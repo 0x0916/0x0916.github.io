@@ -1,31 +1,37 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<?xml-stylesheet type="text/xsl" href="http://linux.laoqinren.net/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://laoqinren.net/posts/my-first-post/</loc>
+    <loc>http://linux.laoqinren.net/posts/my-first-post/</loc>
     <lastmod>2018-04-01T11:05:42+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://laoqinren.net/categories/</loc>
+    <loc>http://linux.laoqinren.net/categories/</loc>
+    <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://laoqinren.net/posts/</loc>
+    <loc>http://linux.laoqinren.net/posts/</loc>
     <lastmod>2018-04-01T11:05:42+08:00</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://laoqinren.net/tags/</loc>
+    <loc>http://linux.laoqinren.net/tags/</loc>
+    <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://laoqinren.net/</loc>
+    <loc>http://linux.laoqinren.net/</loc>
     <lastmod>2018-04-01T11:05:42+08:00</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
