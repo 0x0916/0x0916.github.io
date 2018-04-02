@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>tmux快捷键总结 - article about linux</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="tmux (Terminal Multiplexer的简称), 是一款优秀的终端复用软件，类似 GNU screen，但比screen更出色。
+Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 Tmux 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。
+本文总结了tmux常用的一些快捷键。
+
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/post/tmux/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="tmux快捷键总结" />
+<meta property="og:description" content="tmux (Terminal Multiplexer的简称), 是一款优秀的终端复用软件，类似 GNU screen，但比screen更出色。
+
+Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 Tmux 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。
+
+本文总结了tmux常用的一些快捷键。
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/post/tmux/" />
+
+
+
+<meta property="article:published_time" content="2017-02-01T19:20:04-07:00"/>
+
+<meta property="article:modified_time" content="2017-02-01T19:20:04-07:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="tmux快捷键总结">
+<meta itemprop="description" content="tmux (Terminal Multiplexer的简称), 是一款优秀的终端复用软件，类似 GNU screen，但比screen更出色。
+
+Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 Tmux 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。
+
+本文总结了tmux常用的一些快捷键。
+
+">
+
+
+<meta itemprop="datePublished" content="2017-02-01T19:20:04-07:00" />
+<meta itemprop="dateModified" content="2017-02-01T19:20:04-07:00" />
+<meta itemprop="wordCount" content="855">
+
+
+
+<meta itemprop="keywords" content="terminal,others," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="tmux快捷键总结"/>
+<meta name="twitter:description" content="tmux (Terminal Multiplexer的简称), 是一款优秀的终端复用软件，类似 GNU screen，但比screen更出色。
+
+Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 Tmux 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。
+
+本文总结了tmux常用的一些快捷键。
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Linux</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Linux</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">tmux快捷键总结</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-02-01 </span>
+        <div class="post-category">
+            
+              <a href="/categories/development/"> Development </a>
+            
+          </div>
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#session">session</a></li>
+<li><a href="#window">window</a></li>
+<li><a href="#pane">pane</a></li>
+<li><a href="#other">other</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p><code>tmux</code> (<code>Terminal Multiplexer</code>的简称), 是一款优秀的终端复用软件，类似 <code>GNU screen</code>，但比<code>screen</code>更出色。</p>
+
+<p><code>Tmux</code> 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 <code>Tmux</code> 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。</p>
+
+<p>本文总结了<code>tmux</code>常用的一些快捷键。</p>
+
+<p></p>
+
+<h2 id="session">session</h2>
+
+<p><code>session</code>指的是按下tmux命令后 存在的连接便是session</p>
+
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>命令</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>创建session</td>
+<td>tmux</td>
+</tr>
+
+<tr>
+<td>创建seesion 并指定名字</td>
+<td>tmux new -s $session_name</td>
+</tr>
+
+<tr>
+<td>删除session</td>
+<td>Ctrl+b :kill-session</td>
+</tr>
+
+<tr>
+<td>临时退出session</td>
+<td>Ctrl+b d</td>
+</tr>
+
+<tr>
+<td>列出session</td>
+<td>tmux ls</td>
+</tr>
+
+<tr>
+<td>进入已存在的session</td>
+<td>tmux a -t $session_name</td>
+</tr>
+
+<tr>
+<td>删除所有session</td>
+<td>Ctrl+b :kill-server</td>
+</tr>
+
+<tr>
+<td>删除指定session</td>
+<td>tmux kill-session -t $session_name</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="window">window</h2>
+
+<p>window在session里，可以有N个window，并且window可以在不同的session里移动</p>
+
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>命令</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>创建window</td>
+<td>Ctrl+b +c</td>
+</tr>
+
+<tr>
+<td>删除window</td>
+<td>Ctrl+b &amp;</td>
+</tr>
+
+<tr>
+<td>下一个window</td>
+<td>Ctrl+b n</td>
+</tr>
+
+<tr>
+<td>上一个window</td>
+<td>Ctrl+b p</td>
+</tr>
+
+<tr>
+<td>重命名window</td>
+<td>Ctrl+b ,</td>
+</tr>
+
+<tr>
+<td>在多个window里搜索关键字</td>
+<td>Ctrl+b f</td>
+</tr>
+
+<tr>
+<td>在相邻的两个window里切换</td>
+<td>Ctrl+b l</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="pane">pane</h2>
+
+<p>pane在window里，可以有N个pane，并且pane可以在不同的window里移动、合并、拆分</p>
+
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>命令</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>创建pane 横切split pane horizontal</td>
+<td>Ctrl+b ” (问号的上面，shift+’)</td>
+</tr>
+
+<tr>
+<td>竖切split pane vertical</td>
+<td>Ctrl+b % （shift+5）</td>
+</tr>
+
+<tr>
+<td>按顺序在pane之间移动</td>
+<td>Ctrl+b o</td>
+</tr>
+
+<tr>
+<td>上下左右选择pane</td>
+<td>Ctrl+b 方向键上下左右</td>
+</tr>
+
+<tr>
+<td>调整pane的大小</td>
+<td>Ctrl+b :resize-pane -U #向上</td>
+</tr>
+
+<tr>
+<td></td>
+<td>Ctrl+b :resize-pane -D #向下</td>
+</tr>
+
+<tr>
+<td></td>
+<td>Ctrl+b :resize-pane -L #向左</td>
+</tr>
+
+<tr>
+<td></td>
+<td>Ctrl+b :resize-pane -R #向右</td>
+</tr>
+
+<tr>
+<td>在上下左右的调整里，最后的参数可以加数字 用以控制移动的大小，例如：</td>
+<td>Ctrl+b :resize-pane -D 50</td>
+</tr>
+
+<tr>
+<td>在同一个window里左右移动pane</td>
+<td>Ctrl+b { （往左边，往上面）</td>
+</tr>
+
+<tr>
+<td></td>
+<td>Ctrl+b } （往右边，往下面）</td>
+</tr>
+
+<tr>
+<td>删除pane</td>
+<td>Ctrl+b x</td>
+</tr>
+
+<tr>
+<td>更换pane排版</td>
+<td>Ctrl+b “空格”</td>
+</tr>
+
+<tr>
+<td>移动pane至window</td>
+<td>Ctrl+b !</td>
+</tr>
+
+<tr>
+<td>移动pane合并至某个window</td>
+<td>Ctrl+b :join-pane -t $window_name</td>
+</tr>
+
+<tr>
+<td>显示pane编号</td>
+<td>Ctrl+b q</td>
+</tr>
+
+<tr>
+<td>按顺序移动pane位置</td>
+<td>Ctrl+b Ctrl+o</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="other">other</h2>
+
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>命令</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>复制模式</td>
+<td>Ctrl+b [  空格标记复制开始，回车结束复制。粘贴最后一个缓冲区内容</td>
+</tr>
+
+<tr>
+<td>选择性粘贴缓冲区</td>
+<td>Ctrl+b =</td>
+</tr>
+
+<tr>
+<td>列出缓冲区目标</td>
+<td>Ctrl+b :list-buffer</td>
+</tr>
+
+<tr>
+<td>查看缓冲区内容</td>
+<td>Ctrl+b :show-buffer</td>
+</tr>
+
+<tr>
+<td>vi模式</td>
+<td>Ctrl+b :set mode-keys vi</td>
+</tr>
+
+<tr>
+<td>显示时间</td>
+<td>Ctrl+b t</td>
+</tr>
+
+<tr>
+<td>快捷键帮助</td>
+<td>Ctrl+b ? (Ctrl+b :list-keys)</td>
+</tr>
+
+<tr>
+<td>tmux内置命令帮助</td>
+<td>Ctrl+b :list-commands</td>
+</tr>
+</tbody>
+</table>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-02-01</span>
+  </p>
+  
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/terminal/">terminal</a>
+          
+          <a href="/tags/others/">others</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

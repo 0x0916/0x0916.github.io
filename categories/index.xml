@@ -10,5 +10,14 @@
 	<atom:link href="http://linux.laoqinren.net/categories/index.xml" rel="self" type="application/rss+xml" />
     
     
+    <item>
+      <title>Development</title>
+      <link>http://linux.laoqinren.net/categories/development/</link>
+      <pubDate>Wed, 01 Feb 2017 19:20:04 -0700</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/development/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>
