@@ -6,10 +6,35 @@
     <description>Recent content in Posts on article about linux</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 01 Feb 2017 19:20:04 -0700</lastBuildDate>
+    <lastBuildDate>Mon, 02 Apr 2018 23:30:42 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Example</title>
+      <link>http://linux.laoqinren.net/post/example/</link>
+      <pubDate>Mon, 02 Apr 2018 23:30:42 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/post/example/</guid>
+      <description>&lt;h2 id=&#34;1&#34;&gt;1&lt;/h2&gt;
+
+&lt;h3 id=&#34;1-1&#34;&gt;1.1&lt;/h3&gt;
+
+&lt;h3 id=&#34;1-2&#34;&gt;1.2&lt;/h3&gt;
+
+&lt;h2 id=&#34;2&#34;&gt;2&lt;/h2&gt;
+
+&lt;h3 id=&#34;2-1&#34;&gt;2.1&lt;/h3&gt;
+
+&lt;h3 id=&#34;2-2&#34;&gt;2.2&lt;/h3&gt;
+
+&lt;h2 id=&#34;3&#34;&gt;3&lt;/h2&gt;
+
+&lt;h2 id=&#34;4&#34;&gt;4&lt;/h2&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>tmux快捷键总结</title>
