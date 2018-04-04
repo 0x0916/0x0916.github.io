@@ -31,7 +31,24 @@
 
 &lt;h2 id=&#34;3&#34;&gt;3&lt;/h2&gt;
 
-&lt;h2 id=&#34;4&#34;&gt;4&lt;/h2&gt;
+&lt;h2 id=&#34;4-网易音乐示例&#34;&gt;4 网易音乐示例&lt;/h2&gt;
+
+&lt;p&gt;代码如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;效果如下：&lt;/p&gt;
+
+  &lt;iframe style=&#34;max-width: 100%&#34;
+      class=&#34;music163&#34;
+      frameborder=&#34;no&#34;
+      border=&#34;0&#34;
+      marginwidth=&#34;0&#34;
+      marginheight=&#34;0&#34;
+      width=&#34;330&#34;
+      height=&#34;86&#34;
+      src=&#34;//music.163.com/outchain/player?type=2&amp;id=26641341&amp;auto=0&amp;height=66&#34;&gt;
+    &lt;/iframe&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>
