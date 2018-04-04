@@ -134,8 +134,49 @@ $$ evidence\_{i}=\sum\_{j}W\_{ij}x\_{j}+b\_{i} $$
 
 主题文章中可以轻松插入 [网易云音乐](https://music.163.com/) 的指定音乐，你可以根据需要将音乐设置为自动播放，在主题目录 `layouts/shortcodes` 文件夹下的 `music.html` 对该标签进行定义。
 
-{{% music "398052" %}}
+示例如下：
 
+```
+{{</* music "398052" */>}}
+```
+效果如下：
+
+{{< music "398052" >}}
+
+## 11. 嵌入linux代码链接
+
+示例如下：
+
+```
+* {{</* linux "v4.16" "init/main.c" */>}}
+* {{</* linux "v4.16" "init/main.c" "515" */>}}
+* {{</* linux "v4.16" "init/main.c" "515" "524" */>}}
+* {{</* linux tag="v4.16" file="init/init_task.c" */>}}
+* {{</* linux tag="v4.16" file="init/init_task.c" from="100" */>}}
+* {{</* linux tag="v4.16" file="init/init_task.c" from="100" to="105" */>}}
+```
+
+效果如下：
+
+* {{< linux "v4.16" "init/main.c" >}}
+* {{< linux "v4.16" "init/main.c" "515" >}}
+* {{< linux "v4.16" "init/main.c" "515" "524" >}}
+* {{< linux tag="v4.16" file="init/init_task.c" >}}
+* {{< linux tag="v4.16" file="init/init_task.c" from="100" >}}
+* {{< linux tag="v4.16" file="init/init_task.c" from="100" to="105" >}}
+
+## 12. YouTube
+
+由于不明原因可能无法播放。
+
+示例如下：
+```
+{{</* youtube "wC5pJm8RAu4" */>}}
+```
+
+效果如下：
+
+{{< youtube "wC5pJm8RAu4" >}}
 
 ## 参考资料
 
