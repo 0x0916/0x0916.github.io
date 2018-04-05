@@ -1,31 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on article about linux</title>
-    <link>http://linux.laoqinren.net/post/</link>
-    <description>Recent content in Posts on article about linux</description>
+    <title>Tools on Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/tools/</link>
+    <description>Recent content in Tools on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 02 Apr 2018 23:30:42 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 01 Feb 2017 19:20:04 -0700</lastBuildDate>
     
-	<atom:link href="http://linux.laoqinren.net/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://linux.laoqinren.net/tools/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>Example</title>
-      <link>http://linux.laoqinren.net/post/example/</link>
-      <pubDate>Mon, 02 Apr 2018 23:30:42 +0800</pubDate>
-      
-      <guid>http://linux.laoqinren.net/post/example/</guid>
-      <description>这篇文章集中说明本博客支持的语法。 1.标题 H1 H2 H3 H4 H5 H6 2. 段落 使用单引号 * 或者单下划线 _ 标记 斜体强调 或者 斜体强调 使用两个引号 ** 或者两个下划线 __</description>
-    </item>
     
     <item>
       <title>tmux快捷键总结</title>
-      <link>http://linux.laoqinren.net/post/tmux/</link>
+      <link>http://linux.laoqinren.net/tools/tmux/</link>
       <pubDate>Wed, 01 Feb 2017 19:20:04 -0700</pubDate>
       
-      <guid>http://linux.laoqinren.net/post/tmux/</guid>
+      <guid>http://linux.laoqinren.net/tools/tmux/</guid>
       <description>&lt;p&gt;&lt;code&gt;tmux&lt;/code&gt; (&lt;code&gt;Terminal Multiplexer&lt;/code&gt;的简称), 是一款优秀的终端复用软件，类似 &lt;code&gt;GNU screen&lt;/code&gt;，但比&lt;code&gt;screen&lt;/code&gt;更出色。&lt;/p&gt;
 
 &lt;p&gt;&lt;code&gt;Tmux&lt;/code&gt; 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 &lt;code&gt;Tmux&lt;/code&gt; 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。&lt;/p&gt;

@@ -3,15 +3,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://linux.laoqinren.net/post/example/</loc>
+    <loc>http://linux.laoqinren.net/example/</loc>
     <lastmod>2018-04-02T23:30:42+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/post/tmux/</loc>
+    <loc>http://linux.laoqinren.net/tools/tmux/</loc>
     <lastmod>2017-04-01T19:20:04-07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/kernel/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/posts/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -30,15 +42,15 @@
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/tags/others/</loc>
-    <lastmod>2017-04-01T19:20:04-07:00</lastmod>
+    <loc>http://linux.laoqinren.net/</loc>
+    <lastmod>2018-04-02T23:30:42+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/post/</loc>
-    <lastmod>2018-04-02T23:30:42+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/tags/others/</loc>
+    <lastmod>2017-04-01T19:20:04-07:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -58,8 +70,8 @@
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/</loc>
-    <lastmod>2018-04-02T23:30:42+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/tools/</loc>
+    <lastmod>2017-04-01T19:20:04-07:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
