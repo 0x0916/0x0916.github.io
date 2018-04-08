@@ -148,24 +148,43 @@ $$ evidence\_{i}=\sum\_{j}W\_{ij}x\_{j}+b\_{i} $$
 示例如下：
 
 ```
-* {{</* linux "v4.16" "init/main.c" */>}}
-* {{</* linux "v4.16" "init/main.c" "515" */>}}
-* {{</* linux "v4.16" "init/main.c" "515" "524" */>}}
-* {{</* linux tag="v4.16" file="init/init_task.c" */>}}
-* {{</* linux tag="v4.16" file="init/init_task.c" from="100" */>}}
-* {{</* linux tag="v4.16" file="init/init_task.c" from="100" to="105" */>}}
+* {{</* linux "4.16" "init/main.c" */>}}
+* {{</* linux "4.16" "init/main.c" "515" */>}}
+* {{</* linux "4.16" "init/main.c" "515" "524" */>}}
+* {{</* linux tag="4.16" file="init/init_task.c" */>}}
+* {{</* linux tag="4.16" file="init/init_task.c" from="100" */>}}
+* {{</* linux tag="4.16" file="init/init_task.c" from="100" to="105" */>}}
 ```
 
 效果如下：
 
-* {{< linux "v4.16" "init/main.c" >}}
-* {{< linux "v4.16" "init/main.c" "515" >}}
-* {{< linux "v4.16" "init/main.c" "515" "524" >}}
-* {{< linux tag="v4.16" file="init/init_task.c" >}}
-* {{< linux tag="v4.16" file="init/init_task.c" from="100" >}}
-* {{< linux tag="v4.16" file="init/init_task.c" from="100" to="105" >}}
+* {{< linux "4.16" "init/main.c" >}}
+* {{< linux "4.16" "init/main.c" "515" >}}
+* {{< linux "4.16" "init/main.c" "515" "524" >}}
+* {{< linux tag="4.16" file="init/init_task.c" >}}
+* {{< linux tag="4.16" file="init/init_task.c" from="100" >}}
+* {{< linux tag="4.16" file="init/init_task.c" from="100" to="105" >}}
 
-## 12. YouTube
+
+## 12. 嵌入 linux stable 代码链接
+
+示例如下：
+
+```
+* {{</* lts "4.16.1" "init/main.c" */>}}
+* {{</* lts "4.16.1" "init/main.c" "515" */>}}
+* {{</* lts tag="4.16" file="init/main.c" */>}}
+* {{</* lts tag="4.16" file="init/main.c" line="515" */>}}
+```
+
+效果如下：
+
+* {{< lts "4.16.1" "init/main.c" >}}
+* {{< lts "4.16.1" "init/main.c" "515" >}}
+* {{< lts tag="4.16.1" file="init/main.c" >}}
+* {{< lts tag="4.16.1" file="init/main.c" line="515" >}}
+
+## 13. YouTube
 
 由于不明原因可能无法播放。
 
@@ -182,4 +201,3 @@ $$ evidence\_{i}=\sum\_{j}W\_{ij}x\_{j}+b\_{i} $$
 
 1. <a id="ref01">[Markdown Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)</a>
 2. <a id="ref02">[Markdown 语法手册](https://www.zybuluo.com/EncyKe/note/120103)</a>
-

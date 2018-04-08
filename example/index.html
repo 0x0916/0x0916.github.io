@@ -76,7 +76,7 @@
 
 <meta itemprop="datePublished" content="2018-04-02T23:30:42&#43;08:00" />
 <meta itemprop="dateModified" content="2018-04-02T23:30:42&#43;08:00" />
-<meta itemprop="wordCount" content="854">
+<meta itemprop="wordCount" content="905">
 
 
 
@@ -163,7 +163,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-04-02 </span>
         
-        <span class="more-meta"> 854 words </span>
+        <span class="more-meta"> 905 words </span>
         <span class="more-meta"> 2 mins read </span>
         
       </div>
@@ -208,7 +208,8 @@
 <li><a href="#9-数学公式">9. 数学公式</a></li>
 <li><a href="#10-网易云音乐">10. 网易云音乐</a></li>
 <li><a href="#11-嵌入linux代码链接">11. 嵌入linux代码链接</a></li>
-<li><a href="#12-youtube">12. YouTube</a></li>
+<li><a href="#12-嵌入-linux-stable-代码链接">12. 嵌入 linux stable 代码链接</a></li>
+<li><a href="#13-youtube">13. YouTube</a></li>
 <li><a href="#参考资料">参考资料</a></li>
 </ul></li>
 </ul>
@@ -445,12 +446,12 @@ if (document.getElementById('my-player') !== null) {
 
 <p>示例如下：</p>
 
-<pre><code>* {{&lt; linux &quot;v4.16&quot; &quot;init/main.c&quot; &gt;}}
-* {{&lt; linux &quot;v4.16&quot; &quot;init/main.c&quot; &quot;515&quot; &gt;}}
-* {{&lt; linux &quot;v4.16&quot; &quot;init/main.c&quot; &quot;515&quot; &quot;524&quot; &gt;}}
-* {{&lt; linux tag=&quot;v4.16&quot; file=&quot;init/init_task.c&quot; &gt;}}
-* {{&lt; linux tag=&quot;v4.16&quot; file=&quot;init/init_task.c&quot; from=&quot;100&quot; &gt;}}
-* {{&lt; linux tag=&quot;v4.16&quot; file=&quot;init/init_task.c&quot; from=&quot;100&quot; to=&quot;105&quot; &gt;}}
+<pre><code>* {{&lt; linux &quot;4.16&quot; &quot;init/main.c&quot; &gt;}}
+* {{&lt; linux &quot;4.16&quot; &quot;init/main.c&quot; &quot;515&quot; &gt;}}
+* {{&lt; linux &quot;4.16&quot; &quot;init/main.c&quot; &quot;515&quot; &quot;524&quot; &gt;}}
+* {{&lt; linux tag=&quot;4.16&quot; file=&quot;init/init_task.c&quot; &gt;}}
+* {{&lt; linux tag=&quot;4.16&quot; file=&quot;init/init_task.c&quot; from=&quot;100&quot; &gt;}}
+* {{&lt; linux tag=&quot;4.16&quot; file=&quot;init/init_task.c&quot; from=&quot;100&quot; to=&quot;105&quot; &gt;}}
 </code></pre>
 
 <p>效果如下：</p>
@@ -464,7 +465,26 @@ if (document.getElementById('my-player') !== null) {
 <li>  <a target="_blank" href="https://github.com/torvalds/linux/blob/v4.16/init/init_task.c#L100#L105"> init/init_task.c(line 100-105) </a></li>
 </ul>
 
-<h2 id="12-youtube">12. YouTube</h2>
+<h2 id="12-嵌入-linux-stable-代码链接">12. 嵌入 linux stable 代码链接</h2>
+
+<p>示例如下：</p>
+
+<pre><code>* {{&lt; lts &quot;4.16.1&quot; &quot;init/main.c&quot; &gt;}}
+* {{&lt; lts &quot;4.16.1&quot; &quot;init/main.c&quot; &quot;515&quot; &gt;}}
+* {{&lt; lts tag=&quot;4.16&quot; file=&quot;init/main.c&quot; &gt;}}
+* {{&lt; lts tag=&quot;4.16&quot; file=&quot;init/main.c&quot; line=&quot;515&quot; &gt;}}
+</code></pre>
+
+<p>效果如下：</p>
+
+<ul>
+<li><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/init/main.c?=v4.16.1"> init/main.c</a></li>
+<li><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/init/main.c?=v4.16.1#n515"> init/main.c(line 515)</a></li>
+<li><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/init/main.c?=v4.16.1"> init/main.c </a></li>
+<li><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/init/main.c?=v4.16.1#n515"> init/main.c(line 515) </a></li>
+</ul>
+
+<h2 id="13-youtube">13. YouTube</h2>
 
 <p>由于不明原因可能无法播放。</p>
 
