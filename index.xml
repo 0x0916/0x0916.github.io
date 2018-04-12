@@ -12,12 +12,54 @@
     
     
     <item>
+      <title>Linux 系统调用 eventfd</title>
+      <link>http://linux.laoqinren.net/linux/syscall-eventfd/</link>
+      <pubDate>Thu, 12 Apr 2018 22:45:09 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/linux/syscall-eventfd/</guid>
+      <description>&lt;p&gt;&lt;code&gt;eventfd&lt;/code&gt; 是&lt;code&gt;linux&lt;/code&gt;特有的&lt;code&gt;API&lt;/code&gt;，用于通知/等待机制的实现,该函数一般有两个使用场景：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;（1）用来实现用户态进程(线程)间的&lt;strong&gt;等待/通知(&lt;code&gt;wait/notify&lt;/code&gt;)&lt;/strong&gt; 机制&lt;/li&gt;
+&lt;li&gt;（2）内核用来通知用户态应用程序某个事件的发生。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Linux OOM 机制分析</title>
+      <link>http://linux.laoqinren.net/linux/out-of-memory/</link>
+      <pubDate>Wed, 11 Apr 2018 12:24:17 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/linux/out-of-memory/</guid>
+      <description>&lt;p&gt;本文简要介绍了&lt;code&gt;Linux OOM&lt;/code&gt;机制，并详细分析了&lt;code&gt;OOM&lt;/code&gt;机制的全局参数配置和进程级别的参数配置。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Example</title>
       <link>http://linux.laoqinren.net/example/</link>
       <pubDate>Mon, 02 Apr 2018 23:30:42 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/example/</guid>
       <description>这篇文章集中说明本博客支持的语法。 1.标题 H1 H2 H3 H4 H5 H6 2. 段落 使用单引号 * 或者单下划线 _ 标记 斜体强调 或者 斜体强调 使用两个引号 ** 或者两个下划线 __</description>
+    </item>
+    
+    <item>
+      <title>Boyer-Moore majority vote algorithm(摩尔投票算法)</title>
+      <link>http://linux.laoqinren.net/posts/boyer-moore-majority-vote-algorithm/</link>
+      <pubDate>Sat, 11 Nov 2017 17:58:21 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/boyer-moore-majority-vote-algorithm/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm&#34;&gt;Boyer-Moore majority vote algorithm&lt;/a&gt;(摩尔投票算法)是一种在线性时间&lt;code&gt;O(n)&lt;/code&gt;和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以&lt;code&gt;Robert S.Boyer&lt;/code&gt;和&lt;code&gt;J Strother Moore&lt;/code&gt;命名的，1981年发明的，是一种典型的流算法(&lt;code&gt;streaming algorithm&lt;/code&gt;)。&lt;/p&gt;
+
+&lt;p&gt;在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(&lt;code&gt;n/2&lt;/code&gt;)的元素。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
     </item>
     
     <item>

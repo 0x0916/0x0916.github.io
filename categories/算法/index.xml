@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Notes about linux and my work</title>
-    <link>http://linux.laoqinren.net/posts/</link>
-    <description>Recent content on Notes about linux and my work</description>
+    <title>算法 on Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/categories/%E7%AE%97%E6%B3%95/</link>
+    <description>Recent content in 算法 on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sat, 11 Nov 2017 17:58:21 +0800</lastBuildDate>
     
-	<atom:link href="http://linux.laoqinren.net/posts/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://linux.laoqinren.net/categories/%E7%AE%97%E6%B3%95/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -20,21 +20,6 @@
       <description>&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm&#34;&gt;Boyer-Moore majority vote algorithm&lt;/a&gt;(摩尔投票算法)是一种在线性时间&lt;code&gt;O(n)&lt;/code&gt;和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以&lt;code&gt;Robert S.Boyer&lt;/code&gt;和&lt;code&gt;J Strother Moore&lt;/code&gt;命名的，1981年发明的，是一种典型的流算法(&lt;code&gt;streaming algorithm&lt;/code&gt;)。&lt;/p&gt;
 
 &lt;p&gt;在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(&lt;code&gt;n/2&lt;/code&gt;)的元素。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>tmux快捷键总结</title>
-      <link>http://linux.laoqinren.net/posts/tmux/</link>
-      <pubDate>Wed, 01 Feb 2017 19:20:04 -0700</pubDate>
-      
-      <guid>http://linux.laoqinren.net/posts/tmux/</guid>
-      <description>&lt;p&gt;&lt;code&gt;tmux&lt;/code&gt; (&lt;code&gt;Terminal Multiplexer&lt;/code&gt;的简称), 是一款优秀的终端复用软件，类似 &lt;code&gt;GNU screen&lt;/code&gt;，但比&lt;code&gt;screen&lt;/code&gt;更出色。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;Tmux&lt;/code&gt; 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 &lt;code&gt;Tmux&lt;/code&gt; 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。&lt;/p&gt;
-
-&lt;p&gt;本文总结了&lt;code&gt;tmux&lt;/code&gt;常用的一些快捷键。&lt;/p&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>

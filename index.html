@@ -155,6 +155,103 @@
     
       <article class="post">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/linux/syscall-eventfd/">Linux 系统调用 eventfd</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-04-12 </span>
+      <div class="post-category">
+          
+            <a href="/categories/linux/"> linux </a>
+          
+            <a href="/categories/api/"> API </a>
+          
+            <a href="/categories/eventfd/"> eventfd </a>
+          
+        </div>
+      <span class="more-meta"> 1518 words </span>
+      <span class="more-meta"> 4 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p><code>eventfd</code> 是<code>linux</code>特有的<code>API</code>，用于通知/等待机制的实现,该函数一般有两个使用场景：</p>
+
+<ul>
+<li>（1）用来实现用户态进程(线程)间的<strong>等待/通知(<code>wait/notify</code>)</strong> 机制</li>
+<li>（2）内核用来通知用户态应用程序某个事件的发生。</li>
+</ul>
+
+<p>第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/linux/syscall-eventfd/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/linux/out-of-memory/">Linux OOM 机制分析</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-04-11 </span>
+      <div class="post-category">
+          
+            <a href="/categories/linux/"> linux </a>
+          
+        </div>
+      <span class="more-meta"> 2531 words </span>
+      <span class="more-meta"> 6 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本文简要介绍了<code>Linux OOM</code>机制，并详细分析了<code>OOM</code>机制的全局参数配置和进程级别的参数配置。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/linux/out-of-memory/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/posts/boyer-moore-majority-vote-algorithm/">Boyer-Moore majority vote algorithm(摩尔投票算法)</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2017-11-11 </span>
+      <div class="post-category">
+          
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+          
+        </div>
+      <span class="more-meta"> 2454 words </span>
+      <span class="more-meta"> 5 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p><a href="https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm">Boyer-Moore majority vote algorithm</a>(摩尔投票算法)是一种在线性时间<code>O(n)</code>和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以<code>Robert S.Boyer</code>和<code>J Strother Moore</code>命名的，1981年发明的，是一种典型的流算法(<code>streaming algorithm</code>)。</p>
+
+<p>在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(<code>n/2</code>)的元素。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/posts/boyer-moore-majority-vote-algorithm/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/posts/tmux/">tmux快捷键总结</a></h1>
     <div class="post-meta">
       <span class="post-time"> 2017-02-01 </span>

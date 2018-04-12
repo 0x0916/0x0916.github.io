@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Notes about linux and my work</title>
-    <link>http://linux.laoqinren.net/linux/</link>
-    <description>Recent content on Notes about linux and my work</description>
+    <title>Eventfd on Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/categories/eventfd/</link>
+    <description>Recent content in Eventfd on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Thu, 12 Apr 2018 22:45:09 +0800</lastBuildDate>
     
-	<atom:link href="http://linux.laoqinren.net/linux/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://linux.laoqinren.net/categories/eventfd/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -25,17 +25,6 @@
 &lt;/ul&gt;
 
 &lt;p&gt;第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Linux OOM 机制分析</title>
-      <link>http://linux.laoqinren.net/linux/out-of-memory/</link>
-      <pubDate>Wed, 11 Apr 2018 12:24:17 +0800</pubDate>
-      
-      <guid>http://linux.laoqinren.net/linux/out-of-memory/</guid>
-      <description>&lt;p&gt;本文简要介绍了&lt;code&gt;Linux OOM&lt;/code&gt;机制，并详细分析了&lt;code&gt;OOM&lt;/code&gt;机制的全局参数配置和进程级别的参数配置。&lt;/p&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>
