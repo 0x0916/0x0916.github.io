@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Notes about linux and my work</title>
-    <link>http://linux.laoqinren.net/kernel/</link>
-    <description>Recent content on Notes about linux and my work</description>
+    <title>内核基础设施 on Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/</link>
+    <description>Recent content in 内核基础设施 on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Fri, 13 Apr 2018 20:50:15 +0800</lastBuildDate>
     
-	<atom:link href="http://linux.laoqinren.net/kernel/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>

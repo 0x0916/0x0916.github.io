@@ -6,10 +6,25 @@
     <description>Recent content in Kernel on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 12 Apr 2018 22:45:09 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 13 Apr 2018 20:50:15 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>内核基础设施——percpu_counter</title>
+      <link>http://linux.laoqinren.net/kernel/percpu-counter/</link>
+      <pubDate>Fri, 13 Apr 2018 20:50:15 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/percpu-counter/</guid>
+      <description>&lt;p&gt;内核里很多模块都需要对一些事件进行统计，有一个叫做&lt;code&gt;percpu_counter&lt;/code&gt;的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Linux 系统调用 eventfd</title>

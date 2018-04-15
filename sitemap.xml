@@ -3,6 +3,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://linux.laoqinren.net/kernel/percpu-counter/</loc>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/linux/syscall-eventfd/</loc>
     <lastmod>2018-04-12T22:45:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -53,6 +60,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/kernel/</loc>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -100,15 +108,15 @@
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/tags/kernel/</loc>
-    <lastmod>2018-04-12T22:45:09+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/categories/kernel/</loc>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/tags/linux/</loc>
-    <lastmod>2018-04-12T22:45:09+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/tags/kernel/</loc>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -116,6 +124,13 @@
   <url>
     <loc>http://linux.laoqinren.net/categories/linux/</loc>
     <lastmod>2018-04-12T22:45:09+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/linux/</loc>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -135,8 +150,15 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/percpu_counter/</loc>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/tags/</loc>
-    <lastmod>2018-04-12T22:45:09+08:00</lastmod>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -144,6 +166,13 @@
   <url>
     <loc>http://linux.laoqinren.net/tags/terminal/</loc>
     <lastmod>2017-04-01T19:20:04-07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/</loc>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

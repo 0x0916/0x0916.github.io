@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>内核基础设施——percpu_counter - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
+ 注意：本文中引用的内核代码版本为v4.4.128。
+ 
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/percpu-counter/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="内核基础设施——percpu_counter" />
+<meta property="og:description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
+
+
+注意：本文中引用的内核代码版本为v4.4.128。
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/percpu-counter/" />
+
+
+
+<meta property="article:published_time" content="2018-04-13T20:50:15&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-04-13T20:50:15&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="内核基础设施——percpu_counter">
+<meta itemprop="description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
+
+
+注意：本文中引用的内核代码版本为v4.4.128。
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-04-13T20:50:15&#43;08:00" />
+<meta itemprop="dateModified" content="2018-04-13T20:50:15&#43;08:00" />
+<meta itemprop="wordCount" content="2397">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,percpu_counter,内核基础设施," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="内核基础设施——percpu_counter"/>
+<meta name="twitter:description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
+
+
+注意：本文中引用的内核代码版本为v4.4.128。
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">内核基础设施——percpu_counter</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-04-13 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 2397 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#对于单核">对于单核</a></li>
+<li><a href="#对于多核">对于多核</a></li>
+<li><a href="#api接口">API接口</a></li>
+<li><a href="#batch大小">batch大小</a></li>
+<li><a href="#hotplug">hotplug</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>内核里很多模块都需要对一些事件进行统计，有一个叫做<code>percpu_counter</code>的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。</p>
+
+<blockquote>
+<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code>。</p>
+</blockquote>
+
+<p></p>
+
+<h3 id="对于单核">对于单核</h3>
+
+<p>其数据结构定义<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/percpu_counter.h?h=v4.4.128#n94"> include/linux/percpu_counter.h(line 94) </a>如下：</p>
+
+<pre><code class="language-c">struct percpu_counter {
+        s64 count;
+};
+</code></pre>
+
+<p>对于单核来说，比较简单，其操作主要是对计数器<code>count</code>进行操作。</p>
+
+<h3 id="对于多核">对于多核</h3>
+
+<p>其数据结构定义<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/percpu_counter.h?h=v4.4.128#n19"> include/linux/percpu_counter.h(line 19) </a>如下：</p>
+
+<pre><code class="language-c">struct percpu_counter {
+        raw_spinlock_t lock;
+        s64 count;
+#ifdef CONFIG_HOTPLUG_CPU
+        struct list_head list;  /* All percpu_counters are on a list */
+#endif
+        s32 __percpu *counters;
+};
+</code></pre>
+
+<p>相比较于单核，多核稍微复杂一些，其为了提高效率，引用了<code>__percpu</code>变量<code>counters</code>，另外为了考虑<code>cpu</code>的热插拔，其有引入了字段<code>list</code>，用来将所有的<code>percpu_counter</code>链接到一起。</p>
+
+<h3 id="api接口">API接口</h3>
+
+<p>其接口如下：</p>
+
+<ul>
+<li>percpu_counter_init</li>
+<li>percpu_counter_set</li>
+<li>percpu_counter_destroy</li>
+<li>percpu_counter_inc</li>
+<li>percpu_counter_dec</li>
+<li>percpu_counter_add</li>
+<li>percpu_counter_sub</li>
+<li>percpu_counter_sum</li>
+<li>percpu_counter_sum_positive</li>
+<li>percpu_counter_read</li>
+<li>percpu_counter_read_positive</li>
+<li>percpu_counter_compare</li>
+<li>percpu_counter_initialized</li>
+</ul>
+
+<p>对结构体<code>percpu_counter</code>操作时，如果只访问<code>s32 __percpu *counters;</code>则不需要加锁，如果访问<code>s64 count;</code>则需要加锁，防止竞争。</p>
+
+<p>内核为了尽可能少的加锁，使用了一些编程技巧，对计数器增加或者减少计数时，大多数情况下不用加锁，只修改每<code>cpu</code>变量<code>s32 __percpu *counters;</code>，当计数超过一个范围时<code>[-batch, batch]</code>,则进行加锁，将每cpu变量<code>s32 __percpu *counters;</code>中的计数累计到<code>s64 count;</code>中。</p>
+
+<ul>
+<li><p><code>percpu_counter_init</code>初始化<code>percpu_counter</code>中成员<code>count</code>特定的值，并分配每<code>cpu</code>变量<code>counters</code>;</p></li>
+
+<li><p><code>percpu_counter_set</code> 设置<code>percpu_counter</code>中成员<code>count</code>特定的值，并修改每cpu变量<code>counters</code>的值为<code>0</code>；</p></li>
+
+<li><p><code>percpu_counter_destroy</code> 释放<code>percpu_counter_init</code>中分配的每<code>cpu</code>变量<code>counters</code>;</p></li>
+
+<li><p><code>percpu_counter_inc/percpu_counter_dec/percpu_counter_add/percpu_counter_sub</code>四个方法主要对计数器进行操作，修改其值。修改过程中，就是用上面提到的技巧，尽可能少的加锁。<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n75"> lib/percpu_counter.c(line 75) </a></p></li>
+</ul>
+
+<pre><code class="language-c">void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch)
+{
+        s64 count;
+
+        preempt_disable();
+        count = __this_cpu_read(*fbc-&gt;counters) + amount;
+        if (count &gt;= batch || count &lt;= -batch) {
+                unsigned long flags;
+                raw_spin_lock_irqsave(&amp;fbc-&gt;lock, flags);
+                fbc-&gt;count += count;
+                __this_cpu_sub(*fbc-&gt;counters, count - amount); // 清零
+                raw_spin_unlock_irqrestore(&amp;fbc-&gt;lock, flags);
+        } else {
+                this_cpu_add(*fbc-&gt;counters, amount);
+        }
+        preempt_enable();
+}
+EXPORT_SYMBOL(__percpu_counter_add);
+</code></pre>
+
+<blockquote>
+<p>技巧：这里特别注意<code>__this_cpu_sub(*fbc-&gt;counters, count - amount)</code>，乍一看，这里就是清零，为什么要写这么复杂呢？因为在计算<code>count</code>值到该行代码之间，该<code>cpu</code>对应的<code>percpu_counter</code>计数可能增加，所以只有这样写才是最正确的。</p>
+</blockquote>
+
+<ul>
+<li><p><code>percpu_counter_sum_positive/percpu_counter_sum</code>计算该计数器的数值（精确值），需要加锁，区别是<code>percpu_counter_sum_positive</code>返回值最小为0；;</p></li>
+
+<li><p><code>percpu_counter_read/percpu_counter_read_positive</code>读出该计数器的粗略的数值，不需要加锁, 区别是<code>percpu_counter_read_positive</code>返回值最小为0；</p></li>
+
+<li><p><code>percpu_counter_compare</code> 用来比较计数器的数值和给定的数值的大小，这里也用到了上面提到的编程技巧，尽可能少的加锁。先通过<code>percpu_counter_read</code>计算计数器的粗略值，此时不需要加锁，如果可以判断结果的话，就直接返回；如果判断不了结果的话，就得通过<code>percpu_counter_sum</code>来进一步加锁计算精确的计数值来进行比较，代码可参考：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n200"> lib/percpu_counter.c(line 200) </a></p></li>
+</ul>
+
+<pre><code class="language-c">/*                                                                                                                                             
+ * Compare counter against given value.
+ * Return 1 if greater, 0 if equal and -1 if less
+ */
+int __percpu_counter_compare(struct percpu_counter *fbc, s64 rhs, s32 batch)
+{
+        s64     count;
+
+        count = percpu_counter_read(fbc);       // 读出大概值
+        /* Check to see if rough count will be sufficient for comparison */
+        if (abs(count - rhs) &gt; (batch * num_online_cpus())) {
+                if (count &gt; rhs)
+                        return 1;
+                else
+                        return -1;
+        }
+        /* Need to use precise count */
+        count = percpu_counter_sum(fbc);
+        if (count &gt; rhs)
+                return 1;
+        else if (count &lt; rhs)
+                return -1;
+        else
+                return 0;
+}
+EXPORT_SYMBOL(__percpu_counter_compare);
+</code></pre>
+
+<h3 id="batch大小">batch大小</h3>
+
+<p>该基础设施全名叫<code>Fast batching percpu counters</code>，其能够减少加锁，提高效率，是由于选定了一个<code>batch</code>值，只有每<code>cpu</code>变量中计数器的值超过该范围后，才会加锁进行处理。</p>
+
+<blockquote>
+<p>注意：只有在多核的系统上，才需要batch这个机制。</p>
+</blockquote>
+
+<p>那么该值如何选定呢？</p>
+
+<p>内核中<code>batch</code>的大小为<code>cpu</code>个数的<strong>两倍</strong>，但最小值为<code>32</code>, 具体逻辑请查阅如下代码<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n158"> lib/percpu_counter.c(line 158) </a>:</p>
+
+<pre><code class="language-c">int percpu_counter_batch __read_mostly = 32; // 最小值为32
+EXPORT_SYMBOL(percpu_counter_batch);
+                                                                                                                                               
+static void compute_batch_value(void)
+{
+        int nr = num_online_cpus();
+
+        percpu_counter_batch = max(32, nr*2);
+}
+</code></pre>
+
+<p><strong>当然用户可以自己指定<code>batch</code>的大小</strong>，比如<code>BDI</code>中</p>
+
+<pre><code>// nr_cpu_ids    result
+//  1            8
+//  2            16
+//  4            24
+//  8            32
+// 16            40
+// 32            48
+// 40            48
+#define BDI_STAT_BATCH (8*(1+ilog2(nr_cpu_ids))) 
+
+
+static inline void __add_bdi_stat(struct backing_dev_info *bdi,
+                enum bdi_stat_item item, s64 amount)
+{
+        __percpu_counter_add(&amp;bdi-&gt;bdi_stat[item], amount, BDI_STAT_BATCH);
+}
+</code></pre>
+
+<p>那该值为什么选定<code>(8*(1+ilog2(nr_cpu_ids)))</code>?</p>
+
+<p>内核中使用到<code>ilog2(nr_cpu_ids)</code>的地方如下：</p>
+
+<pre><code class="language-bash">~/linux (master) # grep -nr --color &quot;ilog2(nr_cpu_ids&quot;  ./
+./fs/btrfs/disk-io.c:2596:                                      (1 + ilog2(nr_cpu_ids));
+./fs/btrfs/disk-io.c:2851:      fs_info-&gt;dirty_metadata_batch = nodesize * (1 + ilog2(nr_cpu_ids));
+./fs/btrfs/disk-io.c:2852:      fs_info-&gt;delalloc_batch = sectorsize * 512 * (1 + ilog2(nr_cpu_ids));
+./include/linux/backing-dev-defs.h:45:#define WB_STAT_BATCH (8*(1+ilog2(nr_cpu_ids)))
+./lib/flex_proportions.c:170:#define PROP_BATCH (8*(1+ilog2(nr_cpu_ids)))
+./net/ipv4/udp.c:2855:  udp_busylocks_log = ilog2(nr_cpu_ids) + 4;
+</code></pre>
+
+<p>对于<code>#define WB_STAT_BATCH (8*(1+ilog2(nr_cpu_ids)))</code> , 我们可以得到<code>CPU</code>个数和结果直接的关系如下：</p>
+
+<pre><code>// nr_cpu_ids    result            比较时的误差范围
+//  1            8			8
+//  2            16			32
+//  4            24			96
+//  8            32			256
+// 16            40                    	640
+// 32            48                 	1536
+// 40            48 			1920
+// 64            56                    	3584
+</code></pre>
+
+<p>从上面的列表可以看出：</p>
+
+<ul>
+<li><code>cpu</code>个数为<code>1</code>时，结果为<code>8</code></li>
+<li>此后如果<code>cpu</code>个数翻倍的话，结果递增<code>8</code></li>
+</ul>
+
+<h3 id="hotplug">hotplug</h3>
+
+<p>对于支持<code>cpu热插拔</code>的系统，内核定义了静态的变量<code>percpu_counters</code>，将所有的<code>percpu_count</code>在链接到一起。</p>
+
+<pre><code class="language-c">#ifdef CONFIG_HOTPLUG_CPU
+static LIST_HEAD(percpu_counters);	//所有的percpu_count在一个全局链表上
+static DEFINE_SPINLOCK(percpu_counters_lock);
+#endif
+</code></pre>
+
+<p><code>percpu_counters_lock</code>自旋锁用来保护链表<code>percpu_counters</code>。</p>
+
+<p>在cpu下线时，需要完成以下动作：</p>
+
+<ul>
+<li>因为<code>batch</code>的大小跟<code>cpu</code>个数有关，所以要重新计算一下<code>batch</code>的大小。</li>
+<li>将要下线<code>cpu</code>对应的计数器添加到总的计数中，并清零该<code>cpu</code>对应的每<code>cpu</code>变量的值。</li>
+</ul>
+
+<p>详细的逻辑，请参考代码<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counters.c?h=v4.4.128#n168"> lib/percpu_counters.c(line 168) </a></p>
+
+<p>我的虚拟机器上，一共有<code>379</code>多个<code>percpu_count</code>。</p>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-04-13</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/percpu-counter/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/percpu_counter/">percpu_counter</a>
+          
+          <a href="/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">内核基础设施</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
