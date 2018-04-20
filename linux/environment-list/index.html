@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Linux环境变量 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="说起linux环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。
+
+" />
+<meta name="keywords" content="env, putenv, getenv, clearenv, environment, setenv, unsetenv, environ" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/linux/environment-list/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="Linux环境变量" />
+<meta property="og:description" content="说起linux环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/environment-list/" />
+
+
+
+<meta property="article:published_time" content="2018-04-19T20:49:45&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-04-19T20:49:45&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Linux环境变量">
+<meta itemprop="description" content="说起linux环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。
+
+">
+
+
+<meta itemprop="datePublished" content="2018-04-19T20:49:45&#43;08:00" />
+<meta itemprop="dateModified" content="2018-04-19T20:49:45&#43;08:00" />
+<meta itemprop="wordCount" content="1205">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,environment," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Linux环境变量"/>
+<meta name="twitter:description" content="说起linux环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Linux环境变量</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-04-19 </span>
+        <div class="post-category">
+            
+              <a href="/categories/linux/"> linux </a>
+            
+          </div>
+        <span class="more-meta"> 1205 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#什么是环境变量">什么是环境变量？</a></li>
+<li><a href="#环境变量用处">环境变量用处</a></li>
+<li><a href="#设置shell环境变量的方式">设置shell环境变量的方式</a></li>
+<li><a href="#直接传递环境变量给子进程">直接传递环境变量给子进程</a></li>
+<li><a href="#查看当前shell的环境变量">查看当前shell的环境变量</a></li>
+<li><a href="#查看进程的环境变量">查看进程的环境变量</a>
+<ul>
+<li><a href="#environ">environ</a></li>
+<li><a href="#proc-pid-environ">/proc/PID/environ</a></li>
+</ul></li>
+<li><a href="#进程操作环境变了的api">进程操作环境变了的API</a></li>
+<li><a href="#内核中的环境变量保存的位置">内核中的环境变量保存的位置</a></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>说起<code>linux</code>环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。</p>
+
+<p></p>
+
+<h2 id="什么是环境变量">什么是环境变量？</h2>
+
+<p>什么是环境变量？回答这个问题，大家一定要清晰，环境变量是针对进程的。<strong>环境变量是与进程相关联的一组字符串。</strong>这些字符串的格式一般为<code>name=value</code>格式的，因此，环境变量可以包含任何信息。</p>
+
+<p>当创建一个进程时，它会继承从其父进程的环境变量，当然，这也是最原始的且最常用的进程间通讯方式——父进程将信息通过环境变量传递给子进程，而且只有在创建进程时，传递一次，且只能通过父进程传递给子进程。</p>
+
+<p>当进程创建成功后，进程只能修改自己的环境变量，且环境变量的修改不能被其他进程所见。</p>
+
+<h2 id="环境变量用处">环境变量用处</h2>
+
+<ul>
+<li>最常见的使用环境变量是<code>shell</code>执行环境。设置好<code>shell</code>的环境变量后，<code>shell</code>会将这些变量传递给它创建的子进程。</li>
+<li>另外一些函数库会根据环境变量的不同来改变它们的行为。</li>
+</ul>
+
+<h2 id="设置shell环境变量的方式">设置shell环境变量的方式</h2>
+
+<p>一般情况下可以使用如下的方式设置shell的环境变量：</p>
+
+<pre><code class="language-bash">root@localhost ~# # Create a shell variable
+root@localhost ~# NAME=VALUE
+root@localhost ~# # Put variable into shell process's environment
+root@localhost ~# export NAME
+</code></pre>
+
+<p>也可以使用如下的简写方式：</p>
+
+<pre><code class="language-bash">root@localhost ~# export NAME=VALUE
+</code></pre>
+
+<p>此后，当在<code>shell</code>中执行程序时，<code>NAME=VALUE</code>就会传递给子进程。</p>
+
+<h2 id="直接传递环境变量给子进程">直接传递环境变量给子进程</h2>
+
+<p>我们也可以不通过修改<code>shell</code>的环境变量，直接将环境变量传递给子进程：</p>
+
+<pre><code>root@localhost ~# NAME=VALUE program
+</code></pre>
+
+<h2 id="查看当前shell的环境变量">查看当前shell的环境变量</h2>
+
+<p>可以使用命令<code>printenv</code>或者<code>env</code>来查看当前<code>shell</code>的环境变量：</p>
+
+<pre><code class="language-bash">root@localhost ~# printenv
+NAME=VALUE
+HISTFILESIZE=10000
+USER=root
+MAIL=/var/spool/mail/root
+PATH=/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/local/go/bin:/root/work/go/bin:/root/bin
+PWD=/root
+LANG=en_US.UTF-8
+HISTCONTROL=ignoredups
+SHLVL=1
+HISTTIMEFORMAT=%Y/%m/%d  %T 
+_=/usr/bin/printenv
+root@localhost ~# env
+NAME=VALUE
+HISTFILESIZE=10000
+USER=root
+MAIL=/var/spool/mail/root
+PATH=/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/local/go/bin:/root/work/go/bin:/root/bin
+PWD=/root
+LANG=en_US.UTF-8
+HISTCONTROL=ignoredups
+SHLVL=1
+HISTTIMEFORMAT=%Y/%m/%d  %T 
+_=/usr/bin/printenv
+</code></pre>
+
+<h2 id="查看进程的环境变量">查看进程的环境变量</h2>
+
+<h3 id="environ">environ</h3>
+
+<p>在c程序中，环境变量列表可以通过全局变量<code>char **environ</code>来查看，下图展示了全局变量<code>char **environ</code>数据结构：</p>
+
+<p><img src="./environ.png" alt="enter description here" title="environ" /></p>
+
+<p>所以，<code>printenv</code>的简单实现如下：</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+extern char **environ;
+
+int main(int argc, char *argv[])
+{
+	char **ep;
+	for (ep = environ; *ep != NULL; ep++)
+		printf(&quot;%s\n&quot;, *ep);
+	exit(EXIT_SUCCESS);
+}
+</code></pre>
+
+<h3 id="proc-pid-environ">/proc/PID/environ</h3>
+
+<p>在<code>linux</code>系统中，我们可以通过<code>/proc/PID/environ</code>文件来查看一个进程的环境变量。</p>
+
+<blockquote>
+<p>注意：<code>/proc/PID/environ</code>中包含的环境变量只包含进程创建时刻由父进程传递的，不包括后续由进程自己设置的环境变量。</p>
+</blockquote>
+
+<pre><code class="language-bash">root@localhost ~ # cat -v  /proc/1184/environ 
+LANG=en_US.UTF-8^@PATH=/usr/libexec/docker:/usr/bin:/usr/sbin^@NOTIFY_SOCKET=/run/systemd/notify^@GOTRACEBACK=crash^@DOCKER_HTTP_HOST_COMPAT=1^@OPTIONS=--ip-forward=false --selinux-enabled --log-driver=journald --signature-verification=false^@DOCKER_CERT_PATH=/etc/docker^@DOCKER_STORAGE_OPTIONS=--storage-driver overlay2 ^@DOCKER_NETWORK_OPTIONS=^@
+</code></pre>
+
+<h2 id="进程操作环境变了的api">进程操作环境变了的API</h2>
+
+<p>在C程序中，我们通过一下API来维护进程的环境变量：</p>
+
+<ul>
+<li>查询环境变量<a href="http://www.man7.org/linux/man-pages/man3/getenv.3.html">getenv</a></li>
+<li>修改环境变量<a href="http://www.man7.org/linux/man-pages/man3/putenv.3.html">putenv</a>、 <a href="http://www.man7.org/linux/man-pages/man3/setenv.3.html">setenv</a></li>
+<li>删除环境变量<a href="http://www.man7.org/linux/man-pages/man3/unsetenv.3.html">unsetenv</a></li>
+<li>清除环境变量<a href="http://www.man7.org/linux/man-pages/man3/clearenv.3.html">clearenv</a></li>
+</ul>
+
+<h2 id="内核中的环境变量保存的位置">内核中的环境变量保存的位置</h2>
+
+<p>在内核中，当进程创建时，保存环境变量的内存区域由<code>mm_struct</code>中的变量<code>env_start</code>和<code>env_end</code>标记。</p>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/mm_types.h?h=v4.4.128#n435"> include/linux/mm_types.h(line 435)</a>
+
+<pre><code class="language-c">struct mm_struct {
+...
+...
+        unsigned long start_code, end_code, start_data, end_data;
+        unsigned long start_brk, brk, start_stack;
+        unsigned long arg_start, arg_end, env_start, env_end;
+...
+...
+}
+</code></pre>
+
+<p>此后，进程自己创建或者修改的环境变量，会申请新的内存区域来保存。而<code>/proc/PID/environ</code>是通过读取<code>env_start</code>和<code>env_end</code>指向的内存区域来得到环境变量。</p>
+
+<h2 id="总结">总结</h2>
+
+<ul>
+<li>为了安全考虑，A程序不能修改B程序的环境变量</li>
+<li><code>/proc/PID/environ</code> 不包含进程启动后创建和修改的环境变量</li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-04-19</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/linux/environment-list/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/environment/">environment</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/linux/syscall-eventfd/">
+            <span class="next-text nav-default">Linux 系统调用 eventfd</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

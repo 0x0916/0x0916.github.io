@@ -6,10 +6,36 @@
     <description>Recent content in Kernel on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 13 Apr 2018 20:50:15 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 17 Apr 2018 12:50:56 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/categories/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Floating proportions with flexible aging period</title>
+      <link>http://linux.laoqinren.net/kernel/floating-proportions/</link>
+      <pubDate>Tue, 17 Apr 2018 12:50:56 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/floating-proportions/</guid>
+      <description>&lt;p&gt;&lt;code&gt;flex proportions&lt;/code&gt;基础设施的作用是：根据不同类型的事件，计算其所占的比例部分。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意，本文中的代码是基于稳定版本的内核&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>hungtask 机制分析</title>
+      <link>http://linux.laoqinren.net/kernel/hungtask/</link>
+      <pubDate>Mon, 16 Apr 2018 12:14:18 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/hungtask/</guid>
+      <description>&lt;p&gt;本文分析了内核中&lt;code&gt;hungtask&lt;/code&gt;机制，下文中代码基于社区稳定版本内核，版本为：&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>内核基础设施——percpu_counter</title>
