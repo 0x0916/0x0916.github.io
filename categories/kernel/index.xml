@@ -6,10 +6,50 @@
     <description>Recent content in Kernel on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 17 Apr 2018 12:50:56 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 28 Apr 2018 15:06:33 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/categories/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Linux用户程序如何访问物理内存</title>
+      <link>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</link>
+      <pubDate>Sat, 28 Apr 2018 15:06:33 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</guid>
+      <description>&lt;p&gt;本文转载于：&lt;a href=&#34;http://ilinuxkernel.com/?p=1248&#34;&gt;http://ilinuxkernel.com/?p=1248&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。
+本文中使用的内核版本为：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.21.1.el7.src.rpm&#34;&gt;3.10.0-693.21.1&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。&lt;/p&gt;
+
+&lt;p&gt;通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在&lt;code&gt;Linux&lt;/code&gt;中用户态程序访问所有物理内存。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Linux内存模型分析</title>
+      <link>http://linux.laoqinren.net/kernel/memory-model/</link>
+      <pubDate>Wed, 25 Apr 2018 22:03:05 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/memory-model/</guid>
+      <description>&lt;p&gt;本文转载于：&lt;a href=&#34;http://www.wowotech.net/memory_management/memory_model.html&#34;&gt;http://www.wowotech.net/memory_management/memory_model.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;在原文的基础上，做了如下的改动：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;文中出现的内核代码修改成基于&lt;code&gt;4.4.128&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;对于体系结构相关的代码,使用&lt;code&gt;x86&lt;/code&gt;架构中的代码&lt;/li&gt;
+&lt;li&gt;对代码格式进行调整&lt;/li&gt;
+&lt;li&gt;会添加一些内容，便于更进一步的理解&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Floating proportions with flexible aging period</title>

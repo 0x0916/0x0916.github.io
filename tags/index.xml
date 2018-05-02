@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/tags/</link>
+    <description>Recent content on Notes about linux and my work</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 28 Apr 2018 15:06:33 +0800</lastBuildDate>
+    
+	<atom:link href="http://linux.laoqinren.net/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Linux用户程序如何访问物理内存</title>
+      <link>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</link>
+      <pubDate>Sat, 28 Apr 2018 15:06:33 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</guid>
+      <description>&lt;p&gt;本文转载于：&lt;a href=&#34;http://ilinuxkernel.com/?p=1248&#34;&gt;http://ilinuxkernel.com/?p=1248&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。
+本文中使用的内核版本为：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.21.1.el7.src.rpm&#34;&gt;3.10.0-693.21.1&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。&lt;/p&gt;
+
+&lt;p&gt;通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在&lt;code&gt;Linux&lt;/code&gt;中用户态程序访问所有物理内存。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
