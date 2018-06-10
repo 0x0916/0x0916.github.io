@@ -6,10 +6,39 @@
     <description>Recent content in Linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 10 May 2018 18:26:35 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 20 May 2018 20:57:16 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Cgroup之cpuacct子系统</title>
+      <link>http://linux.laoqinren.net/kernel/cgroup-cpuacct/</link>
+      <pubDate>Sun, 20 May 2018 20:57:16 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/cgroup-cpuacct/</guid>
+      <description>&lt;p&gt;CPU统计（CPU accounting）&lt;code&gt;cpuacct子系统&lt;/code&gt;会自动生成报告来显示cgroup任务所使用的CPU资源，其中包括子群组任务。报告有三种：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;cpuacct.usage&lt;/code&gt;：报告此cgroup中所有任务（包括其子孙层级中的所有任务）使用CPU的总时间（纳秒）,该文件时可以写入0值的，用来进行重置统计信息。&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;cpuacct.stat&lt;/code&gt;：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;user&lt;/code&gt;——用户模式中任务使用的CPU时间&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;system&lt;/code&gt;——系统模式中任务使用的CPU时间&lt;/li&gt;
+&lt;li&gt;其单位为&lt;code&gt;USER_HZ&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;cpuacct.usage_percpu&lt;/code&gt;:报告cgroup的所有任务（包括其子孙层级中的所有任务）在每个CPU中使用的CPU时间（纳秒）&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v4.4.128&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Cgroup之cpuset子系统</title>

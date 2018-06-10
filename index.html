@@ -155,6 +155,54 @@
     
       <article class="post">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-cpuacct/">Cgroup之cpuacct子系统</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-05-20 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+            <a href="/categories/cgroup/"> cgroup </a>
+          
+        </div>
+      <span class="more-meta"> 1725 words </span>
+      <span class="more-meta"> 4 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>CPU统计（CPU accounting）<code>cpuacct子系统</code>会自动生成报告来显示cgroup任务所使用的CPU资源，其中包括子群组任务。报告有三种：</p>
+
+<ul>
+<li><code>cpuacct.usage</code>：报告此cgroup中所有任务（包括其子孙层级中的所有任务）使用CPU的总时间（纳秒）,该文件时可以写入0值的，用来进行重置统计信息。</li>
+
+<li><p><code>cpuacct.stat</code>：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：</p>
+
+<ul>
+<li><code>user</code>——用户模式中任务使用的CPU时间</li>
+<li><code>system</code>——系统模式中任务使用的CPU时间</li>
+<li>其单位为<code>USER_HZ</code></li>
+</ul></li>
+
+<li><p><code>cpuacct.usage_percpu</code>:报告cgroup的所有任务（包括其子孙层级中的所有任务）在每个CPU中使用的CPU时间（纳秒）</p></li>
+</ul>
+
+<blockquote>
+<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code></p>
+</blockquote>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/cgroup-cpuacct/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/linux/cgroup-cpuset/">Cgroup之cpuset子系统</a></h1>
     <div class="post-meta">
       <span class="post-time"> 2018-05-10 </span>
@@ -282,34 +330,6 @@
     </div>
     <div class="read-more">
       <a href="/kernel/memory-model/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/environment-list/">Linux环境变量</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-04-19 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-        </div>
-      <span class="more-meta"> 1205 words </span>
-      <span class="more-meta"> 3 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>说起<code>linux</code>环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/linux/environment-list/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
