@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cgroup on Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/categories/cgroup/</link>
+    <description>Recent content in Cgroup on Notes about linux and my work</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 10 May 2018 18:26:35 +0800</lastBuildDate>
+    
+	<atom:link href="http://linux.laoqinren.net/categories/cgroup/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Cgroup之cpuset子系统</title>
+      <link>http://linux.laoqinren.net/linux/cgroup-cpuset/</link>
+      <pubDate>Thu, 10 May 2018 18:26:35 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/linux/cgroup-cpuset/</guid>
+      <description>&lt;p&gt;最近分析了内核&lt;code&gt;cpuset&lt;/code&gt;的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

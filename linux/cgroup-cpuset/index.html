@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Cgroup之cpuset子系统 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
+
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/linux/cgroup-cpuset/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="Cgroup之cpuset子系统" />
+<meta property="og:description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/cgroup-cpuset/" />
+
+
+
+<meta property="article:published_time" content="2018-05-10T18:26:35&#43;08:00"/>
+
+<meta property="article:modified_time" content="2015-06-10T18:26:35&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Cgroup之cpuset子系统">
+<meta itemprop="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
+
+">
+
+
+<meta itemprop="datePublished" content="2018-05-10T18:26:35&#43;08:00" />
+<meta itemprop="dateModified" content="2018-05-10T18:26:35&#43;08:00" />
+<meta itemprop="wordCount" content="2490">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,cgroup,cpuset," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Cgroup之cpuset子系统"/>
+<meta name="twitter:description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Cgroup之cpuset子系统</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-05-10 </span>
+        <div class="post-category">
+            
+              <a href="/categories/linux/"> linux </a>
+            
+              <a href="/categories/cgroup/"> cgroup </a>
+            
+          </div>
+        <span class="more-meta"> 2490 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#什么是cpuset">什么是cpuset ?</a></li>
+<li><a href="#cpusets-是如何实现的">cpusets 是如何实现的？</a></li>
+<li><a href="#cpuset-cgroup控制文件">cpuset cgroup控制文件</a></li>
+<li><a href="#docker中cpuset的使用">docker中cpuset的使用</a></li>
+<li><a href="#cpuset-扩展功能">cpuset 扩展功能</a>
+<ul>
+<li><a href="#什么是-exclusive-cpusets">什么是 exclusive cpusets ?</a></li>
+<li><a href="#什么是-memory-pressure">什么是 memory_pressure ?</a></li>
+<li><a href="#什么是-memory-spread">什么是  memory spread ?</a></li>
+<li><a href="#什么是-sched-load-balance">什么是 sched_load_balance ?</a></li>
+<li><a href="#什么是-sched-relax-domain-level">什么是 sched_relax_domain_level ?</a></li>
+</ul></li>
+<li><a href="#参考文档">参考文档</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>最近分析了内核<code>cpuset</code>的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。</p>
+
+<p></p>
+
+<h2 id="什么是cpuset">什么是cpuset ?</h2>
+
+<p>man手册中对其的描述为：<code>cpuset - confine processes to processor and memory node subsets</code>，cpuset用于限制一组进程只运行在特定的cpu节点上和只在特定的mem节点上分配内存。</p>
+
+<p>具体为什么需要<code>cpuset</code>，其和<code>sched_setaffinity(2)</code>，<code>mbind(2)</code>和<code>set_mempolicy(2)</code>系统调用的实现关系，可以参考<a href="https://www.kernel.org/doc/Documentation/cgroup-v1/cpusets.txt">https://www.kernel.org/doc/Documentation/cgroup-v1/cpusets.txt</a></p>
+
+<h2 id="cpusets-是如何实现的">cpusets 是如何实现的？</h2>
+
+<p>由于linux kernel在实现cpusets之前，就有<code>sched_setaffinity(2)</code>，<code>mbind(2)</code>和<code>set_mempolicy(2)</code>等系统调用完成类似的功能。cpusets扩展了这些机制。</p>
+
+<p>刚开始，cpusets作为一个单独的实现，有一个文件系统类型为cpusets。后面随着cgroup的发展，cpusets又集成到了cgroup中，成了cgroup的一个子系统。</p>
+
+<p>目前，作为cgroup的一个子系统，其遵循如下原则：</p>
+
+<ul>
+<li>每个进程的cpuset信息，保存在其task_struct中的cgroup的数据结构中。</li>
+<li>sched_setaffinity系统调用只被允许设置为进程的cpuset中的cpu。</li>
+<li>mbind and set_mempolicy系统调用只被允许设置为进程的cpuset中的mem。</li>
+<li>root cpuset包含系统上所有的cpu和mem。</li>
+<li>对于每一个cpuset，可以定义其子cpuset，子cpuset包含的mem和cpu是其parent的子集。</li>
+<li>可以查看某个cpuset中的所有进程列表。</li>
+</ul>
+
+<p>为了实现cpuset，只需在内核中添加一些hook，这些hook都不在性能关键路径中：</p>
+
+<ul>
+<li>在 init/main.c, 在内核启动时，初始化root cpuset</li>
+<li>在fork和exit接口中，attach和detach一个进程到对应的cpuset中</li>
+<li>在sched_setaffinity实现中，添加cpuset的过滤</li>
+<li>在mbind and set_mempolicy的实现中，添加cpuset的过滤</li>
+<li>在 sched.c migrate_live_tasks()中，限制目标cpu为cpuset中所允许的</li>
+<li>在page_alloc.c，限制内存分配的节点为cpuset中所允许的内存节点上</li>
+<li>在vmscan.c,现在内存恢复到cpuset中所允许的内存节点上</li>
+</ul>
+
+<p>另外，每一个进程对应的文件<code>/proc/&lt;pid&gt;/status</code>中有四行信息描述其cpuset信息：</p>
+
+<pre><code>  Cpus_allowed:   ffffffff,ffffffff,ffffffff,ffffffff
+  Cpus_allowed_list:      0-127
+  Mems_allowed:   ffffffff,ffffffff
+  Mems_allowed_list:      0-63
+</code></pre>
+
+<p>每一个进程对应的文件<code>/proc/&lt;pid&gt;/cpuset</code>中展示了其对应的cgroup路径信息。</p>
+
+<h2 id="cpuset-cgroup控制文件">cpuset cgroup控制文件</h2>
+
+<p>每一个<code>cpuset</code>中，都会对应一组<code>cgroup</code>的控制文件，包括如下：</p>
+
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>cpuset.cpus</td>
+<td>限制一组进程所能使用的cpu</td>
+</tr>
+
+<tr>
+<td>cpuset.mems</td>
+<td>限制一组进程所能使用的mem</td>
+</tr>
+
+<tr>
+<td>cpuset.memory_migrate</td>
+<td>flag: 设置为1时，使能memory migration，默认为0</td>
+</tr>
+
+<tr>
+<td>cpuset.cpu_exclusive</td>
+<td>flag：设置为1时，说明独占cpus，默认为0</td>
+</tr>
+
+<tr>
+<td>cpuset.mem_exclusive</td>
+<td>flag：设置为1时，说明独占mem，默认为0</td>
+</tr>
+
+<tr>
+<td>cpuset.mem_hardwall</td>
+<td>flag：设置为1时，说明cpuset为Hardwall，默认为0</td>
+</tr>
+
+<tr>
+<td>cpuset.memory_pressure</td>
+<td>显示该cpuset中的内存压力，只读文件</td>
+</tr>
+
+<tr>
+<td>cpuset.memory_spread_page</td>
+<td>flag：设置为1时，内核page cache将会均匀的分布在不同的节点上，默认值为0</td>
+</tr>
+
+<tr>
+<td>cpuset.memory_spread_slab</td>
+<td>flag：设置为1时，内核slab cache将会均匀的分布在不同的节点上，默认值为0</td>
+</tr>
+
+<tr>
+<td>cpuset.sched_load_balance</td>
+<td>flag：默认为值1，表示进程会在该cpuset中允许的cpu上进行负载均衡</td>
+</tr>
+
+<tr>
+<td>cpuset.sched_relax_domain_level</td>
+<td>可设置的值为-1到一个较小的整数值，只有sched_load_balance为1时生效，值越大，表示负载均衡时查找的cpu范围越大</td>
+</tr>
+</tbody>
+</table>
+
+<p>另外，在<code>root cpuset</code>中除了上面提到的文件外，还包括控制文件：</p>
+
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>cpuset.memory_pressure_enabled</td>
+<td>flag: 设置为1，表示计算每个cpuset的内核压力，此时memory_pressure的输出才有意义，该值默认为0</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="docker中cpuset的使用">docker中cpuset的使用</h2>
+
+<p>docker中对cpuset的复杂功能都没有使用，即上面提到的各种flags都是用的默认值（即都未使能），docker只导出了两个接口：mems和cpus：</p>
+
+<pre><code># docker run --help
+
+Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+Run a command in a new container
+
+Options:
+...
+...
+
+      --cpuset-cpus string                    CPUs in which to allow execution (0-3, 0,1)
+      --cpuset-mems string                    MEMs in which to allow execution (0-3, 0,1)
+...
+...
+</code></pre>
+
+<p>其实现请参考：<a href="https://github.com/opencontainers/runc/blob/v1.0.0-rc5/libcontainer/cgroups/fs/cpuset.go#L32:L44">https://github.com/opencontainers/runc/blob/v1.0.0-rc5/libcontainer/cgroups/fs/cpuset.go#L32:L44</a></p>
+
+<p>在实现中，新建cpuset时mems和cpus的值默认为其parent cpuset的mems和cpus的值。</p>
+
+<h2 id="cpuset-扩展功能">cpuset 扩展功能</h2>
+
+<h3 id="什么是-exclusive-cpusets">什么是 exclusive cpusets ?</h3>
+
+<p>如果一个cpuset是cpu 或者mem exclusive，那么没有其他cpuset（直接parent和其子cpuset除外）会和其共享相同的cpus和mems。</p>
+
+<h3 id="什么是-memory-pressure">什么是 memory_pressure ?</h3>
+
+<p><code>memory_pressure</code>反应了cpuset中的这组进程尝试释放内存的频率，一般用户可以监控该文件，然后做出合理的反应。默认情况下，该功能是disable的。</p>
+
+<h3 id="什么是-memory-spread">什么是  memory spread ?</h3>
+
+<p>当进行内存分配时，默认从当前运行的cpu所在的node上分配内存（page cache or  slab cache），当配置了memory_spread_page和memory_spread_slab后，分配内存时就会使用轮询算法。默认情况下，该功能是disable的。</p>
+
+<h3 id="什么是-sched-load-balance">什么是 sched_load_balance ?</h3>
+
+<p>默认使能，表示进程会在所允许的cpus上进行负载均衡。</p>
+
+<h3 id="什么是-sched-relax-domain-level">什么是 sched_relax_domain_level ?</h3>
+
+<p>当sched_load_balance使能后，该值代表寻找cpu的范围：</p>
+
+<pre><code>  -1  : no request. use system default or follow request of others.
+   0  : no search.
+   1  : search siblings (hyperthreads in a core).
+   2  : search cores in a package.
+   3  : search cpus in a node [= system wide on non-NUMA system]
+   4  : search nodes in a chunk of node [on NUMA system]
+   5  : search system wide [on NUMA system]
+</code></pre>
+
+<p>什么时候有用呢？
+（1）当进程在cpu间迁移时代价足够小
+（2）searching cost 足够小，对我们没有影响
+（3）低延迟是相比cache miss更重要的场景</p>
+
+<h2 id="参考文档">参考文档</h2>
+
+<p><a href="http://man7.org/linux/man-pages/man7/cpuset.7.html">http://man7.org/linux/man-pages/man7/cpuset.7.html</a></p>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-06-10</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/linux/cgroup-cpuset/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/cgroup/">cgroup</a>
+          
+          <a href="/tags/cpuset/">cpuset</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/linux/linux-swap/">
+            <span class="next-text nav-default">Linux交换空间</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

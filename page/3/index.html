@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Tags - Notes about linux and my work</title>
+  <title>Notes about linux and my work</title>
   <meta name="renderer" content="webkit" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
@@ -28,7 +28,9 @@
 <meta name="generator" content="Hugo 0.37.1" />
 
 
-<link rel="canonical" href="http://linux.laoqinren.net/tags/" />
+<link rel="canonical" href="http://linux.laoqinren.net/" />
+<link href="http://linux.laoqinren.net/index.xml" rel="alternate" type="application/rss+xml" title="Notes about linux and my work" />
+  <link href="http://linux.laoqinren.net/index.xml" rel="feed" type="application/rss+xml" title="Notes about linux and my work" />
 
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -48,29 +50,29 @@
 
 
 
-<meta property="og:title" content="Tags" />
+<meta property="og:title" content="Welcome to laoqinren&#39;s notes" />
 <meta property="og:description" content="Notes about my work and linux kernel" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://linux.laoqinren.net/tags/" />
+<meta property="og:url" content="http://linux.laoqinren.net/" />
 
 
 
-<meta property="og:updated_time" content="2018-04-28T15:06:33&#43;08:00"/>
-
-
-
-
+<meta property="og:updated_time" content="2017-11-11T17:58:21&#43;08:00"/>
 
 
 
 
 
 
-<meta itemprop="name" content="Tags">
+
+
+
+
+<meta itemprop="name" content="Welcome to laoqinren&#39;s notes">
 <meta itemprop="description" content="Notes about my work and linux kernel">
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Tags"/>
+<meta name="twitter:title" content="Welcome to laoqinren&#39;s notes"/>
 <meta name="twitter:description" content="Notes about my work and linux kernel"/>
 
 <!--[if lte IE 9]>
@@ -144,93 +146,85 @@
       <div class="content-wrapper">
         <div id="content" class="content">
           
-  
-    <div class="tag-cloud">
-      <div class="tag-cloud-title">
-        
-          15 Tags In Total
-        
-      </div>
-      <div class="tag-cloud-tags">
-        
-          <a href="/tags/kernel/">
-            kernel
-            <span class="tag-count">10</span>
-          </a>
-        
-          <a href="/tags/linux/">
-            linux
-            <span class="tag-count">10</span>
-          </a>
-        
-          <a href="/tags//">
-            
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/cgroup/">
-            cgroup
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/cpuset/">
-            cpuset
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/environment/">
-            environment
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/flex_proporitions/">
-            flex_proporitions
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/hungtask/">
-            hungtask
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/memory/">
-            memory
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/oom/">
-            oom
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/others/">
-            others
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/percpu_counter/">
-            percpu_counter
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/swap/">
-            swap
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/terminal/">
-            terminal
-            <span class="tag-count">1</span>
-          </a>
-        
-          <a href="/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">
-            内核基础设施
-            <span class="tag-count">1</span>
-          </a>
-        
-      </div>
+
+<p>Welcome to loaqinren&rsquo;s notes.</p>
+
+
+  <section id="posts" class="posts">
+    
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/posts/boyer-moore-majority-vote-algorithm/">Boyer-Moore majority vote algorithm(摩尔投票算法)</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2017-11-11 </span>
+      <div class="post-category">
+          
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+          
+        </div>
+      <span class="more-meta"> 2454 words </span>
+      <span class="more-meta"> 5 mins read </span>
     </div>
+  </header>
   
+  <div class="post-content">
+    <div class="post-summary">
+      <p><a href="https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm">Boyer-Moore majority vote algorithm</a>(摩尔投票算法)是一种在线性时间<code>O(n)</code>和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以<code>Robert S.Boyer</code>和<code>J Strother Moore</code>命名的，1981年发明的，是一种典型的流算法(<code>streaming algorithm</code>)。</p>
+
+<p>在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(<code>n/2</code>)的元素。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/posts/boyer-moore-majority-vote-algorithm/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/posts/tmux/">tmux快捷键总结</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2017-02-01 </span>
+      <div class="post-category">
+          
+            <a href="/categories/development/"> Development </a>
+          
+        </div>
+      <span class="more-meta"> 855 words </span>
+      <span class="more-meta"> 2 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p><code>tmux</code> (<code>Terminal Multiplexer</code>的简称), 是一款优秀的终端复用软件，类似 <code>GNU screen</code>，但比<code>screen</code>更出色。</p>
+
+<p><code>Tmux</code> 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 <code>Tmux</code> 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。</p>
+
+<p>本文总结了<code>tmux</code>常用的一些快捷键。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/posts/tmux/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+  </section>
+  
+  <nav class="pagination">
+    
+      <a class="prev" href="/page/2/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text">Prev</span>
+      </a>
+    
+  </nav>
 
         </div>
         
@@ -278,6 +272,13 @@
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
 <script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 
 
 
