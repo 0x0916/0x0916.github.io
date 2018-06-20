@@ -1,5 +1,7 @@
 最近分析了内核`cpuset`的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
+>  注意：本文中引用的内核代码版本为`v4.4.128`
+
 <!--more-->
 
 ## 什么是cpuset ?
@@ -53,11 +55,11 @@ man手册中对其的描述为：`cpuset - confine processes to processor and me
 
 |文件| 说明|
 |---|---|
-| cpuset.cpus | 限制一组进程所能使用的cpu |
-| cpuset.mems | 限制一组进程所能使用的mem |
-| cpuset.memory_migrate |flag: 设置为1时，使能memory migration，默认为0|
-|cpuset.cpu_exclusive|flag：设置为1时，说明独占cpus，默认为0|
-|cpuset.mem_exclusive|flag：设置为1时，说明独占mem，默认为0|
+|cpuset.cpus | 限制一组进程所能使用的cpu |
+|cpuset.mems | 限制一组进程所能使用的mem |
+|cpuset.memory_migrate |flag: 设置为1时，使能memory migration, 即内存结点改变后迁移内存，默认为0|
+|cpuset.cpu_exclusive|flag：设置为1时，说明独占指定cpus，默认为0|
+|cpuset.mem_exclusive|flag：设置为1时，说明独占指定mem，默认为0|
 |cpuset.mem_hardwall |flag：设置为1时，说明cpuset为Hardwall，默认为0|
 |cpuset.memory_pressure|显示该cpuset中的内存压力，只读文件|
 |cpuset.memory_spread_page |flag：设置为1时，内核page cache将会均匀的分布在不同的节点上，默认值为0|
@@ -69,7 +71,7 @@ man手册中对其的描述为：`cpuset - confine processes to processor and me
 
 |文件| 说明|
 |---|---|
-|cpuset.memory_pressure_enabled|flag: 设置为1，表示计算每个cpuset的内核压力，此时memory_pressure的输出才有意义，该值默认为0|
+|cpuset.memory_pressure_enabled|flag: 设置为1，表示计算每个cpuset的内存压力，此时memory_pressure的输出才有意义，该值默认为0|
 
 
 
@@ -112,17 +114,56 @@ Options:
 
 ###  什么是  memory spread ?
 
-当进行内存分配时，默认从当前运行的cpu所在的node上分配内存（page cache or  slab cache），当配置了memory_spread_page和memory_spread_slab后，分配内存时就会使用轮询算法。默认情况下，该功能是disable的。
+当进行内存分配时，默认从当前运行的cpu所在的node上分配内存（`page cache` or  `slab cache`），当配置了`memory_spread_page`和`memory_spread_slab`后，分配内存时就会使用轮询算法。默认情况下，该功能是`disable`的。
 
+代码如下：{{< lts tag="4.4.128" file="kernel/cpuset.c" line="2630" >}}
 
+```c
+static int cpuset_spread_node(int *rotor)
+{
+        int node;
+
+        node = next_node(*rotor, current->mems_allowed);
+        if (node == MAX_NUMNODES)
+                node = first_node(current->mems_allowed);
+        *rotor = node;
+        return node;
+}
+
+int cpuset_mem_spread_node(void)
+{
+        if (current->cpuset_mem_spread_rotor == NUMA_NO_NODE)
+                current->cpuset_mem_spread_rotor =
+                        node_random(&current->mems_allowed);
+
+        return cpuset_spread_node(&current->cpuset_mem_spread_rotor);
+}
+
+int cpuset_slab_spread_node(void)
+{
+        if (current->cpuset_slab_spread_rotor == NUMA_NO_NODE)
+                current->cpuset_slab_spread_rotor =
+                        node_random(&current->mems_allowed);
+
+        return cpuset_spread_node(&current->cpuset_slab_spread_rotor);
+}
+
+EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
+```
 
 ### 什么是 sched_load_balance ?
 
-默认使能，表示进程会在所允许的cpus上进行负载均衡。
+
+该值默认为1，即打开调度CPU的负载均衡，这里指的是cpuset拥有的sched_domain，默认全局的CPU调度是本来就有负载均衡的。
+
+简单说一下`sched_domain`的作用，其实就是划定了负载均衡的`CPU`范围，默认是有一个全局的`sched_domain`，对所有`CPU`做负载均衡的，现在再划分出一个`sched_domain`把`CPU`的某个子集作为负载均衡的单元。
+
+对应到cpuset中，即将该cpuset所运行的cpu集合作为一个负载均衡在单元。
+
 
 ###  什么是 sched_relax_domain_level ?
 
-当sched_load_balance使能后，该值代表寻找cpu的范围：
+当sched_load_balance使能后，该值代表寻找cpu的范围,该值有几个等级，越大越优先，表示迁移时搜索CPU的范围，这个主要开启了负载均衡选项的时候才有用。具体值代表的范围如下：
 
 ```
   -1  : no request. use system default or follow request of others.

@@ -6,10 +6,42 @@
     <description>Recent content in Linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 20 May 2018 20:57:16 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 20 Jun 2018 23:08:40 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>内核基础设施——hlist_head/hlist_node结构解析</title>
+      <link>http://linux.laoqinren.net/kernel/hlist/</link>
+      <pubDate>Wed, 20 Jun 2018 23:08:40 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/hlist/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;注意：本文中的代码参考于linux v4.16。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;数据结构&#34;&gt;数据结构&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;hlist_head&lt;/code&gt;和&lt;code&gt;hlist_node&lt;/code&gt;用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:&lt;/p&gt;
+
+&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190&#34;&gt; include/linux/types.h(line 190) &lt;/a&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct hlist_head {
+	struct hlist_node *first;
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct hlist_node {
+	struct hlist_node *next, **pprev;
+};
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Cgroup之cpuacct子系统</title>
@@ -47,6 +79,10 @@
       
       <guid>http://linux.laoqinren.net/linux/cgroup-cpuset/</guid>
       <description>&lt;p&gt;最近分析了内核&lt;code&gt;cpuset&lt;/code&gt;的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v4.4.128&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>

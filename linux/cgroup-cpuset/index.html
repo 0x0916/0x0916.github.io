@@ -18,7 +18,8 @@
 
 <meta name="author" content="laoqinren" />
   <meta name="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
-
+ 注意：本文中引用的内核代码版本为v4.4.128
+ 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -54,6 +55,10 @@
 <meta property="og:title" content="Cgroup之cpuset子系统" />
 <meta property="og:description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
+
+注意：本文中引用的内核代码版本为v4.4.128
+
+
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/cgroup-cpuset/" />
@@ -77,12 +82,16 @@
 <meta itemprop="name" content="Cgroup之cpuset子系统">
 <meta itemprop="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
+
+注意：本文中引用的内核代码版本为v4.4.128
+
+
 ">
 
 
 <meta itemprop="datePublished" content="2018-05-10T18:26:35&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-10T18:26:35&#43;08:00" />
-<meta itemprop="wordCount" content="2490">
+<meta itemprop="wordCount" content="2854">
 
 
 
@@ -90,6 +99,10 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Cgroup之cpuset子系统"/>
 <meta name="twitter:description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
+
+
+注意：本文中引用的内核代码版本为v4.4.128
+
 
 "/>
 
@@ -177,8 +190,8 @@
               <a href="/categories/cgroup/"> cgroup </a>
             
           </div>
-        <span class="more-meta"> 2490 words </span>
-        <span class="more-meta"> 5 mins read </span>
+        <span class="more-meta"> 2854 words </span>
+        <span class="more-meta"> 6 mins read </span>
         
       </div>
     </header>
@@ -215,6 +228,10 @@
     
     <div class="post-content">
       <p>最近分析了内核<code>cpuset</code>的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。</p>
+
+<blockquote>
+<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code></p>
+</blockquote>
 
 <p></p>
 
@@ -288,17 +305,17 @@
 
 <tr>
 <td>cpuset.memory_migrate</td>
-<td>flag: 设置为1时，使能memory migration，默认为0</td>
+<td>flag: 设置为1时，使能memory migration, 即内存结点改变后迁移内存，默认为0</td>
 </tr>
 
 <tr>
 <td>cpuset.cpu_exclusive</td>
-<td>flag：设置为1时，说明独占cpus，默认为0</td>
+<td>flag：设置为1时，说明独占指定cpus，默认为0</td>
 </tr>
 
 <tr>
 <td>cpuset.mem_exclusive</td>
-<td>flag：设置为1时，说明独占mem，默认为0</td>
+<td>flag：设置为1时，说明独占指定mem，默认为0</td>
 </tr>
 
 <tr>
@@ -346,7 +363,7 @@
 <tbody>
 <tr>
 <td>cpuset.memory_pressure_enabled</td>
-<td>flag: 设置为1，表示计算每个cpuset的内核压力，此时memory_pressure的输出才有意义，该值默认为0</td>
+<td>flag: 设置为1，表示计算每个cpuset的内存压力，此时memory_pressure的输出才有意义，该值默认为0</td>
 </tr>
 </tbody>
 </table>
@@ -387,15 +404,53 @@ Options:
 
 <h3 id="什么是-memory-spread">什么是  memory spread ?</h3>
 
-<p>当进行内存分配时，默认从当前运行的cpu所在的node上分配内存（page cache or  slab cache），当配置了memory_spread_page和memory_spread_slab后，分配内存时就会使用轮询算法。默认情况下，该功能是disable的。</p>
+<p>当进行内存分配时，默认从当前运行的cpu所在的node上分配内存（<code>page cache</code> or  <code>slab cache</code>），当配置了<code>memory_spread_page</code>和<code>memory_spread_slab</code>后，分配内存时就会使用轮询算法。默认情况下，该功能是<code>disable</code>的。</p>
+
+<p>代码如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/cpuset.c?h=v4.4.128#n2630"> kernel/cpuset.c(line 2630) </a></p>
+
+<pre><code class="language-c">static int cpuset_spread_node(int *rotor)
+{
+        int node;
+
+        node = next_node(*rotor, current-&gt;mems_allowed);
+        if (node == MAX_NUMNODES)
+                node = first_node(current-&gt;mems_allowed);
+        *rotor = node;
+        return node;
+}
+
+int cpuset_mem_spread_node(void)
+{
+        if (current-&gt;cpuset_mem_spread_rotor == NUMA_NO_NODE)
+                current-&gt;cpuset_mem_spread_rotor =
+                        node_random(&amp;current-&gt;mems_allowed);
+
+        return cpuset_spread_node(&amp;current-&gt;cpuset_mem_spread_rotor);
+}
+
+int cpuset_slab_spread_node(void)
+{
+        if (current-&gt;cpuset_slab_spread_rotor == NUMA_NO_NODE)
+                current-&gt;cpuset_slab_spread_rotor =
+                        node_random(&amp;current-&gt;mems_allowed);
+
+        return cpuset_spread_node(&amp;current-&gt;cpuset_slab_spread_rotor);
+}
+
+EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
+</code></pre>
 
 <h3 id="什么是-sched-load-balance">什么是 sched_load_balance ?</h3>
 
-<p>默认使能，表示进程会在所允许的cpus上进行负载均衡。</p>
+<p>该值默认为1，即打开调度CPU的负载均衡，这里指的是cpuset拥有的sched_domain，默认全局的CPU调度是本来就有负载均衡的。</p>
+
+<p>简单说一下<code>sched_domain</code>的作用，其实就是划定了负载均衡的<code>CPU</code>范围，默认是有一个全局的<code>sched_domain</code>，对所有<code>CPU</code>做负载均衡的，现在再划分出一个<code>sched_domain</code>把<code>CPU</code>的某个子集作为负载均衡的单元。</p>
+
+<p>对应到cpuset中，即将该cpuset所运行的cpu集合作为一个负载均衡在单元。</p>
 
 <h3 id="什么是-sched-relax-domain-level">什么是 sched_relax_domain_level ?</h3>
 
-<p>当sched_load_balance使能后，该值代表寻找cpu的范围：</p>
+<p>当sched_load_balance使能后，该值代表寻找cpu的范围,该值有几个等级，越大越优先，表示迁移时搜索CPU的范围，这个主要开启了负载均衡选项的时候才有用。具体值代表的范围如下：</p>
 
 <pre><code>  -1  : no request. use system default or follow request of others.
    0  : no search.

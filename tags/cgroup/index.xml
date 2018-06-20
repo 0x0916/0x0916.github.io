@@ -48,6 +48,10 @@
       <guid>http://linux.laoqinren.net/linux/cgroup-cpuset/</guid>
       <description>&lt;p&gt;最近分析了内核&lt;code&gt;cpuset&lt;/code&gt;的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。&lt;/p&gt;
 
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v4.4.128&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
 &lt;p&gt;&lt;/p&gt;</description>
     </item>
     

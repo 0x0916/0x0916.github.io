@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>内核基础设施——hlist_head/hlist_node结构解析 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content=" 注意：本文中的代码参考于linux v4.16。
+ 数据结构 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
+include/linux/types.h(line 190)  struct hlist_head { struct hlist_node *first; };  include/linux/types.h(line 194)  struct hlist_node { struct hlist_node *next, **pprev; };  
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/hlist/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="内核基础设施——hlist_head/hlist_node结构解析" />
+<meta property="og:description" content="
+注意：本文中的代码参考于linux v4.16。
+
+
+数据结构
+
+hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
+
+ include/linux/types.h(line 190) 
+
+struct hlist_head {
+	struct hlist_node *first;
+};
+
+
+ include/linux/types.h(line 194) 
+
+struct hlist_node {
+	struct hlist_node *next, **pprev;
+};
+
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/hlist/" />
+
+
+
+<meta property="article:published_time" content="2018-06-20T23:08:40&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-06-20T23:08:40&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="内核基础设施——hlist_head/hlist_node结构解析">
+<meta itemprop="description" content="
+注意：本文中的代码参考于linux v4.16。
+
+
+数据结构
+
+hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
+
+ include/linux/types.h(line 190) 
+
+struct hlist_head {
+	struct hlist_node *first;
+};
+
+
+ include/linux/types.h(line 194) 
+
+struct hlist_node {
+	struct hlist_node *next, **pprev;
+};
+
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-06-20T23:08:40&#43;08:00" />
+<meta itemprop="dateModified" content="2018-06-20T23:08:40&#43;08:00" />
+<meta itemprop="wordCount" content="1118">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,内核基础设施,hlist_head,hlist_node," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="内核基础设施——hlist_head/hlist_node结构解析"/>
+<meta name="twitter:description" content="
+注意：本文中的代码参考于linux v4.16。
+
+
+数据结构
+
+hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
+
+ include/linux/types.h(line 190) 
+
+struct hlist_head {
+	struct hlist_node *first;
+};
+
+
+ include/linux/types.h(line 194) 
+
+struct hlist_node {
+	struct hlist_node *next, **pprev;
+};
+
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">内核基础设施——hlist_head/hlist_node结构解析</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-06-20 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 1118 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#数据结构">数据结构</a></li>
+<li><a href="#参考文档">参考文档</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <blockquote>
+<p>注意：本文中的代码参考于linux v4.16。</p>
+</blockquote>
+
+<h2 id="数据结构">数据结构</h2>
+
+<p><code>hlist_head</code>和<code>hlist_node</code>用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:</p>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190"> include/linux/types.h(line 190) </a>
+
+<pre><code class="language-c">struct hlist_head {
+	struct hlist_node *first;
+};
+</code></pre>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
+
+<pre><code class="language-c">struct hlist_node {
+	struct hlist_node *next, **pprev;
+};
+
+</code></pre>
+
+<p></p>
+
+<p>在内核中的普通双向链表基本上都是通过<code>list_head</code>实现的：</p>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n186"> include/linux/types.h(line 186) </a>
+
+<pre><code class="language-c">struct list_head {
+	struct list_head *next, *prev;
+};
+</code></pre>
+
+<p><code>list_head</code>很好理解，但是<code>hlist_head</code>和<code>hlist_node</code>为何要这样设计呢？</p>
+
+<p>先看下<code>hlist_head</code>和<code>hlist_node</code>的示意图:</p>
+
+<p><img src="./list_head-and-hlist_node.png" alt="hlist_head and hlist_node" title="list_head-and-hlist_node" /></p>
+
+<p><code>hash_table</code>为散列表（数组），其中的元素类型为<code>struct hlist_head</code>。以<code>hlist_head</code>为链表头的链表，其中的节点<code>hash</code>值是相同的（也叫冲突）。<code>first</code>指针指向链表中的节点①，然后节点①的<code>pprev</code>指针指向<code>hlist_head</code>中的<code>first</code>，节点①的<code>next</code>指针指向节点②。以此类推。</p>
+
+<p><code>hash_table</code>的列表头仅存放一个指针,也就是<code>first</code>指针,指向的是对应链表的头结点,没有<code>tail</code>指针,也就是指向链表尾节点的指针,这样的考虑是为了节省空间——尤其在<code>hash bucket</code>(数组size)很大的情况下可以节省一半的指针空间。</p>
+
+<p><strong>为什么<code>pprev</code>是一个指向指针的指针呢</strong>？按照这个设计，我们如果想要得到尾节点，必须遍历整个链表，可如果是一个指向节点的指针，那么头结点现在的<code>pprev</code>便可以直接指向尾节点，也就是<code>list_head</code>的做法。</p>
+
+<p>对于散列表来说，一般发生冲突的情况并不多（除非<code>hash</code>设计出现了问题），所以一个链表中的元素数量比较有限，遍历的劣势基本可以忽略。</p>
+
+<p><strong>在删除链表头结点的时候，<code>pprev</code>这个设计无需判断删除的节点是否为头结点</strong>。如果是普通双向链表的设计，那么删除头结点之后，hlist_head中的first指针需要指向新的头结点。通过下面2个函数来加深理解:</p>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n669"> include/linux/list.h(line 669) </a>
+
+<pre><code class="language-c">static inline void hlist_add_head(struct hlist_node *n, struct hlist_head *h)
+{
+	struct hlist_node *first = h-&gt;first;
+	n-&gt;next = first; //新节点的next指针指向原头结点
+	if (first) 
+		first-&gt;pprev = &amp;n-&gt;next;//原头结点的pprev指向新节点的next字段
+	WRITE_ONCE(h-&gt;first, n);//first指针指向新的节点（更换了头结点）
+	n-&gt;pprev = &amp;h-&gt;first;//此时n是链表的头结点,将它的pprev指向list_head的first字段
+}
+</code></pre>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n644"> include/linux/list.h(line 644) </a>
+
+<pre><code class="language-c">static inline void __hlist_del(struct hlist_node *n)
+{
+	struct hlist_node *next = n-&gt;next;
+	struct hlist_node **pprev = n-&gt;pprev;
+
+	WRITE_ONCE(*pprev, next); // pprev指向的是前一个节点的next指针,当该节点是头节点时指向 hlist_head的first,两种情况下不论该节点是一般的节点还是头结点都可以通过这个操作删除掉所需删除的节点。
+	if (next)
+		next-&gt;pprev = pprev;//使删除节点的后一个节点的pprev指向删除节点的前一个节点的next字段，节点成功删除。
+}
+</code></pre>
+
+<h2 id="参考文档">参考文档</h2>
+
+<ul>
+<li><a href="https://vinoit.me/2016/09/01/linux-kernel-hlist_head-and-hlist_node/">https://vinoit.me/2016/09/01/linux-kernel-hlist_head-and-hlist_node/</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_508d2c500100gdnp.html">http://blog.sina.com.cn/s/blog_508d2c500100gdnp.html</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-06-20</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/hlist/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">内核基础设施</a>
+          
+          <a href="/tags/hlist_head/">hlist_head</a>
+          
+          <a href="/tags/hlist_node/">hlist_node</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/cgroup-cpuacct/">
+            <span class="next-text nav-default">Cgroup之cpuacct子系统</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

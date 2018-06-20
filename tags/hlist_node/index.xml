@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>内核基础设施 on Notes about linux and my work</title>
-    <link>http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/</link>
-    <description>Recent content in 内核基础设施 on Notes about linux and my work</description>
+    <title>Hlist_node on Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/tags/hlist_node/</link>
+    <description>Recent content in Hlist_node on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Wed, 20 Jun 2018 23:08:40 +0800</lastBuildDate>
     
-	<atom:link href="http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://linux.laoqinren.net/tags/hlist_node/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -39,21 +39,6 @@
 };
 
 &lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>内核基础设施——percpu_counter</title>
-      <link>http://linux.laoqinren.net/kernel/percpu-counter/</link>
-      <pubDate>Fri, 13 Apr 2018 20:50:15 +0800</pubDate>
-      
-      <guid>http://linux.laoqinren.net/kernel/percpu-counter/</guid>
-      <description>&lt;p&gt;内核里很多模块都需要对一些事件进行统计，有一个叫做&lt;code&gt;percpu_counter&lt;/code&gt;的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
-&lt;/blockquote&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>
