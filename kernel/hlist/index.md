@@ -78,6 +78,160 @@ static inline void __hlist_del(struct hlist_node *n)
 }
 ```
 
+## 相关API
+
+|API|说明|
+|---|---|
+|HLIST_HEAD_INIT|静态初始化hlist_head|
+|HLIST_HEAD|静态初始化hlist_head|
+|INIT_HLIST_HEAD|动态初始化hlist_head|
+|INIT_HLIST_NODE|动态初始化hlist_node|
+|hlist_unhashed|判断hlist_node是否添加到hash链表中|
+|hlist_empty|判断hash链表是否为空|
+|hlist_del|在hash链表中删除一个节点|
+|hlist_del_init|在hash链表中删除一个节点|
+|hlist_add_head|在hash链表头添加一个节点|
+|hlist_add_before|在指定节点之前添加一个节点|
+|hlist_add_behind|在指定节点之后添加一个节点|
+|hlist_add_fake||
+|hlist_fake||
+|hlist_is_singular_node|判断hlist是否只有一个节点|
+|hlist_move_list|将一个hash链表从一个hlist_head移动到另外一个hlist_head中|
+|hlist_entry|根据hlist_node找到其外层结构体|
+|hlist_entry_safe|同上|
+|hlist_for_each|遍历hash链表|
+|hlist_for_each_safe|同上|
+|hlist_for_each_entry|遍历hash链表|
+|hlist_for_each_entry_safe|同上|
+|hlist_for_each_entry_continue|从当前节点之后遍历hash链表|
+|hlist_for_each_entry_from|从当前节点开始遍历hash链表|
+
+## 程序示例
+
+写一个测试模块，验证一下各个API
+
+### 模块代码
+
+```c
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <linux/list.h>
+
+struct node {
+	int val;
+	struct hlist_node list;
+};
+
+static int __init hlist_test_init(void)
+{
+	struct hlist_head  head;
+	struct node a, b, c, d, e;
+	struct node *pos;
+	struct hlist_node *p;
+
+	printk(KERN_ALERT "[Hello] hlist_test \n");
+
+	INIT_HLIST_HEAD(&head); //初始化链表头
+	a.val = 1;
+	b.val = 2;
+	c.val = 3;
+	d.val = 4;
+	e.val = 5;
+
+	hlist_add_head(&a.list, &head); //添加节点
+	hlist_add_head(&b.list, &head);
+	hlist_add_head(&c.list, &head);
+
+	printk(KERN_ALERT "-------------------------------------- \n");
+	//遍历链表，打印结果 方法1
+	hlist_for_each_entry(pos, &head, list) {
+		printk(KERN_ALERT "node.val = %d\n", pos->val);
+	} // print 3 2 1
+
+	printk(KERN_ALERT "-------------------------------------- \n");
+	// 遍历链表，打印结果 方法2
+	hlist_for_each(p, &head) {
+		pos = hlist_entry(p, struct node, list);
+		printk(KERN_ALERT "node.val = %d\n", pos->val);
+	} // print 3 2 1
+
+	printk(KERN_ALERT "-------------------------------------- \n");
+	hlist_del_init(&b.list); // 删除中间节点
+	hlist_for_each_entry(pos, &head, list) {
+		printk(KERN_ALERT "node.val = %d\n", pos->val);
+	} // print 3 1
+
+	printk(KERN_ALERT "-------------------------------------- \n");
+	hlist_add_before(&d.list, &a.list); //在最后一个节点之前添加新节点
+	hlist_for_each_entry(pos, &head, list) {
+		printk(KERN_ALERT "node.val = %d\n", pos->val);
+	} // print 3 4 1
+
+	printk(KERN_ALERT "-------------------------------------- \n");
+	hlist_add_behind(&e.list, &a.list);//在最后一个节点之后添加新节点
+	hlist_for_each_entry(pos, &head, list) {
+		printk(KERN_ALERT "node.val = %d\n", pos->val);
+	} // print 3 4 1 5
+
+	return 0;
+}
+
+static void __exit hlist_test_exit(void)
+{
+	printk(KERN_ALERT "[Goodbye] hlist_test\n");
+}
+
+module_init(hlist_test_init);
+module_exit(hlist_test_exit);
+MODULE_LICENSE("GPL");
+```
+
+### 执行结果
+
+```
+[  944.056943] [Hello] hlist_test 
+[  944.056947] -------------------------------------- 
+[  944.056948] node.val = 3
+[  944.056949] node.val = 2
+[  944.056950] node.val = 1
+[  944.056951] -------------------------------------- 
+[  944.056952] node.val = 3
+[  944.056953] node.val = 2
+[  944.056954] node.val = 1
+[  944.056955] -------------------------------------- 
+[  944.056956] node.val = 3
+[  944.056957] node.val = 1
+[  944.056958] -------------------------------------- 
+[  944.056959] node.val = 3
+[  944.056960] node.val = 4
+[  944.056961] node.val = 1
+[  944.056962] -------------------------------------- 
+[  944.056963] node.val = 3
+[  944.056964] node.val = 4
+[  944.056965] node.val = 1
+[  944.056965] node.val = 5
+```
+
+## 其他
+
+内核中用`hlist`来实现 `hash table`，在内核上一般有如下的`hash table`：
+
+```bash
+# dmesg | grep "hash table entries" 
+[    0.000000] PV qspinlock hash table entries: 256 (order: 0, 4096 bytes)
+[    0.000000] PID hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.294869] Dentry cache hash table entries: 524288 (order: 10, 4194304 bytes)
+[    0.296328] Inode-cache hash table entries: 262144 (order: 9, 2097152 bytes)
+[    0.296589] Mount-cache hash table entries: 8192 (order: 4, 65536 bytes)
+[    0.296595] Mountpoint-cache hash table entries: 8192 (order: 4, 65536 bytes)
+[    0.614525] TCP established hash table entries: 32768 (order: 6, 262144 bytes)
+[    0.614769] TCP bind hash table entries: 32768 (order: 9, 2621440 bytes)
+[    0.616607] UDP hash table entries: 2048 (order: 6, 393216 bytes)
+[    0.616794] UDP-Lite hash table entries: 2048 (order: 6, 393216 bytes)
+[    1.053747] futex hash table entries: 1024 (order: 5, 131072 bytes)
+[    1.079062] Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+```
 
 ## 参考文档
 

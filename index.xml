@@ -12,6 +12,21 @@
     
     
     <item>
+      <title>内核基础设施——list_head结构解析</title>
+      <link>http://linux.laoqinren.net/kernel/list/</link>
+      <pubDate>Sat, 23 Jun 2018 17:38:10 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/list/</guid>
+      <description>&lt;p&gt;&lt;code&gt;list_head&lt;/code&gt;用法经常在&lt;code&gt;Linux kernel&lt;/code&gt;里面经常看见，该文对内核中的&lt;code&gt;list_head&lt;/code&gt;进行了总结分析。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文的中的代码来自于内核版本&lt;code&gt;v4.16&lt;/code&gt;。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>内核基础设施——hlist_head/hlist_node结构解析</title>
       <link>http://linux.laoqinren.net/kernel/hlist/</link>
       <pubDate>Wed, 20 Jun 2018 23:08:40 +0800</pubDate>

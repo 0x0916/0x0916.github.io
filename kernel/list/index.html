@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>内核基础设施——list_head结构解析 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
+ 注意：本文的中的代码来自于内核版本v4.16。
+ 
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/list/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="内核基础设施——list_head结构解析" />
+<meta property="og:description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
+
+
+注意：本文的中的代码来自于内核版本v4.16。
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/list/" />
+
+
+
+<meta property="article:published_time" content="2018-06-23T17:38:10&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-06-23T17:38:10&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="内核基础设施——list_head结构解析">
+<meta itemprop="description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
+
+
+注意：本文的中的代码来自于内核版本v4.16。
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-06-23T17:38:10&#43;08:00" />
+<meta itemprop="dateModified" content="2018-06-23T17:38:10&#43;08:00" />
+<meta itemprop="wordCount" content="2535">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,内核基础设施,list_head," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="内核基础设施——list_head结构解析"/>
+<meta name="twitter:description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
+
+
+注意：本文的中的代码来自于内核版本v4.16。
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">内核基础设施——list_head结构解析</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-06-23 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 2535 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#数据结构">数据结构</a></li>
+<li><a href="#list-head详细分析">list_head详细分析</a></li>
+<li><a href="#相关api">相关API</a>
+<ul>
+<li><a href="#list-head-init-list-head">LIST_HEAD/INIT_LIST_HEAD</a></li>
+<li><a href="#list-add">__list_add</a></li>
+<li><a href="#list-del">__list_del</a></li>
+<li><a href="#list-replace">list_replace</a></li>
+<li><a href="#list-cut-position">__list_cut_position</a></li>
+<li><a href="#list-splice">__list_splice</a></li>
+</ul></li>
+<li><a href="#参考文档">参考文档</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p><code>list_head</code>用法经常在<code>Linux kernel</code>里面经常看见，该文对内核中的<code>list_head</code>进行了总结分析。</p>
+
+<blockquote>
+<p>注意：本文的中的代码来自于内核版本<code>v4.16</code>。</p>
+</blockquote>
+
+<p></p>
+
+<h2 id="数据结构">数据结构</h2>
+
+<p>在Linux内核中，<code>list_head</code>用来创建双向循环链表，kernel中对list_head的定义如下：</p>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/inclcude/linux/types.h?h=v4.16#n186"> inclcude/linux/types.h(line 186) </a>
+
+<pre><code class="language-c">struct list_head {
+	struct list_head *next, *prev;
+};
+</code></pre>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n186"> include/linux/list.h(line 186) </a>
+
+<pre><code class="language-c">#define LIST_HEAD_INIT(name) { &amp;(name), &amp;(name) }
+
+#define LIST_HEAD(name) \
+	struct list_head name = LIST_HEAD_INIT(name)
+</code></pre>
+
+<p>需要注意的一点是，头结点<code>head</code>是不使用的，这点需要注意。</p>
+
+<p>使用<code>list_head</code>组织的链表的结构如下图所示：</p>
+
+<p><img src="./list_head.jpg" alt="list_head" title="list_head" /></p>
+
+<h2 id="list-head详细分析">list_head详细分析</h2>
+
+<p><code>list_head</code>这个结构看起来怪怪的，它竟没有数据域！所以看到这个结构的人第一反应就是我们怎么访问数据？</p>
+
+<p>其实<code>list_head</code>不是拿来单独用的，它一般被嵌到其它结构中，如：</p>
+
+<pre><code class="language-c">struct file_node{
+　　char c;
+　　struct list_head node;
+};
+</code></pre>
+
+<p>此时<code>list_head</code>就作为它的父结构中的一个成员了，当我们知道list_head的地址（指针）时，我们可以通过<code>include/linux/list.h</code>提供的宏 <code>list_entry</code> 来获得它的父结构的地址。</p>
+
+<p>下面我们来看看<code>list_entry</code>的实现:</p>
+
+<pre><code class="language-c">/**
+ * list_entry - get the struct for this entry
+ * @ptr:	the &amp;struct list_head pointer.
+ * @type:	the type of the struct this is embedded in.
+ * @member:	the name of the list_head within the struct.
+ */
+#define list_entry(ptr, type, member) \
+	container_of(ptr, type, member)
+
+#define offsetof(TYPE, MEMBER)  ((size_t)&amp;((TYPE *)0)-&gt;MEMBER)
+
+
+/**
+ * container_of - cast a member of a structure out to the containing structure
+ * @ptr:        the pointer to the member.
+ * @type:       the type of the container struct this is embedded in.
+ * @member:     the name of the member within the struct.
+ *
+ */
+#define container_of(ptr, type, member) ({                      \
+        const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
+        (type *)( (char *)__mptr - offsetof(type,member) );})
+</code></pre>
+
+<p>这里涉及到三个宏，还是有点复杂的，我们一个一个来看：</p>
+
+<p><code>#define offsetof(TYPE,MEMBER) ( (size_t)&amp; ((TYPE *)0）-&gt; MEMBER )</code>，我们知道 <code>0 地址</code>内容是不能访问的，但 <code>0地址</code>的地址我们还是可以访问的， 这里用到一个取址运算符,<code>(TYPE *)0</code>它表示将 <code>0地址</code>强制转换为<code>TYPE</code>类型，<code>((TYPE *)0）-&gt; MEMBER</code> 也就是从<code>0址址</code>找到<code>TYPE</code> 的成员<code>MEMBER</code> 。</p>
+
+<p>我们结合上面的结构来看,</p>
+
+<pre><code class="language-c">struct file_node{
+　　char c;
+　　struct list_head node;
+};
+</code></pre>
+
+<p>将实参代入 <code>offset( struct file_node, node )</code>；最终将变成这样：</p>
+
+<pre><code class="language-c">( (size_t) &amp; ((struct file_node*)0）-&gt; node )
+</code></pre>
+
+<p>这样看的还是不很清楚，我们再变变：</p>
+
+<pre><code class="language-c">struct file_node *p = NULL;
+&amp;p-&gt;node;
+</code></pre>
+
+<p>这样应该比较清楚了，即求<code>p</code>的成员 <code>node</code>的地址，只不过<code>p</code> 为<code>0</code>地址，从<code>0</code>地址开始算成员<code>node</code>的地址，也就是 成员<code>node</code> 在结构体 <code>struct file_node</code>中的偏移量。<strong><code>offset</code>宏就是算<code>MEMBER</code>在<code>TYPE</code>中的偏移量的</strong>。</p>
+
+<p>我们再看第二个宏</p>
+
+<pre><code class="language-c">#define container_of(ptr, type, member) ({                      \
+        const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
+        (type *)( (char *)__mptr - offsetof(type,member) );})
+</code></pre>
+
+<p>这个宏是由两个语句组成，最后<code>container_of</code>返回的结果就是第二个表达式的值。这里<code>__mptr</code>为中间变量，这就是<code>list_head</code>指针类型，它被初始化为<code>ptr</code>的值，而<code>ptr</code>就是当前所求的结构体中<code>list_head</code>节点的地址。为什么要用中间变量，这是考虑到安全性因素，如果传进来一个<code>ptr++</code>，所有<code>ptr++</code>放在一个表达式中会有副作用，像 <code>(p++)+(p++)</code>之类。</p>
+
+<p><code>(char*)__mptr</code> 之所以要强制类型转化为<code>char</code>是因为地址是以字节为单位的，而<code>char</code>的长度就是一个字节。</p>
+
+<p><code>container_of</code>的值是两个地址相减，刚说了<code>__mptr</code>是结构体中<code>list_head</code>节点的地址，<code>offset</code>宏求的是<code>list_head</code>节点<code>MEMBER</code>在结构体<code>TYPE</code>中的偏移量，那么<code>__mptr</code>减去它所在结构体中的偏移量，就是<code>结构体的地址</code>。</p>
+
+<p>所以<code>list_entry(ptr,type,member)</code>宏的功能就是，<strong>由结构体成员地址求结构体地址</strong>。其中<code>ptr</code> 是所求结构体中<code>list_head</code>成员指针，<code>type</code>是所求结构体类型，<code>member</code>是结构体<code>list_head</code>成员名。通过下图来总结一下：</p>
+
+<p><img src="./list_entry.jpg" alt="list_entry" title="list_entry" /></p>
+
+<h2 id="相关api">相关API</h2>
+
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>说明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>LIST_HEAD</td>
+<td>静态初始化list_head</td>
+</tr>
+
+<tr>
+<td>INIT_LIST_HEAD</td>
+<td>动态初始化list_head</td>
+</tr>
+
+<tr>
+<td>list_add</td>
+<td>在链表头部添加一个新节点</td>
+</tr>
+
+<tr>
+<td>list_add_tail</td>
+<td>在链表尾部添加一个新节点</td>
+</tr>
+
+<tr>
+<td>list_del</td>
+<td>删除一个节点</td>
+</tr>
+
+<tr>
+<td>list_del_init</td>
+<td>删除一个节点</td>
+</tr>
+
+<tr>
+<td>list_replace</td>
+<td>替换一个节点</td>
+</tr>
+
+<tr>
+<td>list_replace_init</td>
+<td>替换一个节点</td>
+</tr>
+
+<tr>
+<td>list_move</td>
+<td>将一个节点从一个链表中删除，并添加到另一个链表的头部</td>
+</tr>
+
+<tr>
+<td>list_move_tail</td>
+<td>将一个节点从一个链表中删除，并添加到另一个链表的尾部</td>
+</tr>
+
+<tr>
+<td>list_is_last</td>
+<td>判断节点是否为链表的最后一个节点</td>
+</tr>
+
+<tr>
+<td>list_empty</td>
+<td>判断链表是否为空</td>
+</tr>
+
+<tr>
+<td>list_empty_careful</td>
+<td>判断链表是否为空</td>
+</tr>
+
+<tr>
+<td>list_rotate_left</td>
+<td>将链表的第一个节点移动到末尾</td>
+</tr>
+
+<tr>
+<td>list_is_singular</td>
+<td>判断链表是否只有个节点</td>
+</tr>
+
+<tr>
+<td>list_cut_position</td>
+<td>将链表前面知道entry的部分删除，并添加到新的链表list中</td>
+</tr>
+
+<tr>
+<td>list_splice</td>
+<td>将两个链表链接在一起</td>
+</tr>
+
+<tr>
+<td>list_splice_tail</td>
+<td>将两个链表链接在一起</td>
+</tr>
+
+<tr>
+<td>list_splice_init</td>
+<td>将两个链表链接在一起</td>
+</tr>
+
+<tr>
+<td>list_splice_tail_init</td>
+<td>将两个链表链接在一起</td>
+</tr>
+
+<tr>
+<td>list_entry</td>
+<td>根据list_head找到其被嵌入的结构体</td>
+</tr>
+
+<tr>
+<td>list_first_entry</td>
+<td>获取链表的第一个entry</td>
+</tr>
+
+<tr>
+<td>list_last_entry</td>
+<td>获取链表的最后一个entry</td>
+</tr>
+
+<tr>
+<td>list_first_entry_or_null</td>
+<td>获取链表的第一个entry</td>
+</tr>
+
+<tr>
+<td>list_next_entry</td>
+<td>获取链表指定entry的下一个entry</td>
+</tr>
+
+<tr>
+<td>list_prev_entry</td>
+<td>获取链表指定entry的前一个entry</td>
+</tr>
+
+<tr>
+<td>list_for_each</td>
+<td>遍历链表，遍历元素为list_head</td>
+</tr>
+
+<tr>
+<td>list_for_each_safe</td>
+<td>遍历链表，遍历元素为list_head</td>
+</tr>
+
+<tr>
+<td>list_for_each_prev</td>
+<td>反向遍历链表，遍历元素为list_head</td>
+</tr>
+
+<tr>
+<td>list_for_each_prev_safe</td>
+<td>反向遍历链表，遍历元素为list_head</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry</td>
+<td>遍历链表，遍历元素为外层结构体</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_reverse</td>
+<td>反向遍历链表，遍历元素为外层结构体</td>
+</tr>
+
+<tr>
+<td>list_prepare_entry</td>
+<td>为list_for_each_entry_continue准备一个entry</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_continue</td>
+<td>从当前节点的下一个节点进行遍历</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_continue_reverse</td>
+<td>从当前节点的下一个节点进行反向遍历</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_from</td>
+<td>从当前节点进行遍历</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_from_reverse</td>
+<td>从当前节点进行反向遍历</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_safe</td>
+<td>遍历链表，遍历元素为外层结构体</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_safe_reverse</td>
+<td>反向遍历链表，遍历元素为外层结构体</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_safe_continue</td>
+<td>从当前节点的下一个节点进行遍历</td>
+</tr>
+
+<tr>
+<td>list_for_each_entry_safe_from</td>
+<td>从当前节点进行遍历</td>
+</tr>
+
+<tr>
+<td>list_safe_reset_next</td>
+<td>用于在list_for_each_entry_safe中，跳过某个entry</td>
+</tr>
+</tbody>
+</table>
+
+<p>对上述API中的部分，我们进行了图示：</p>
+
+<h3 id="list-head-init-list-head">LIST_HEAD/INIT_LIST_HEAD</h3>
+
+<p><code>LIST_HEAD/INIT_LIST_HEAD</code>两个宏用于初始化<code>list_head</code>节点。</p>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n21"> include/linux/list.h(line 21) </a>
+
+<pre><code class="language-c">#define LIST_HEAD_INIT(name) { &amp;(name), &amp;(name) }
+
+#define LIST_HEAD(name) \
+	struct list_head name = LIST_HEAD_INIT(name)
+
+static inline void INIT_LIST_HEAD(struct list_head *list)
+{
+	WRITE_ONCE(list-&gt;next, list);
+	list-&gt;prev = list;
+}
+</code></pre>
+
+<p>图示如下：</p>
+
+<p><img src="./LIST_HEAD.png" alt="enter description here" title="LIST_HEAD" /></p>
+
+<h3 id="list-add">__list_add</h3>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n50"> include/linux/list.h(line 50) </a>
+
+<pre><code class="language-c">/*
+ * Insert a new entry between two known consecutive entries.
+ *
+ * This is only for internal list manipulation where we know
+ * the prev/next entries already!
+ */
+static inline void __list_add(struct list_head *new,
+			      struct list_head *prev,
+			      struct list_head *next)
+{
+	if (!__list_add_valid(new, prev, next))
+		return;
+
+	next-&gt;prev = new; //1
+	new-&gt;next = next; //2 
+	new-&gt;prev = prev; // 3
+	WRITE_ONCE(prev-&gt;next, new); //4
+}
+</code></pre>
+
+<p>图示如下：</p>
+
+<p><img src="./list_add.png" alt="enter description here" title="list_add" /></p>
+
+<h3 id="list-del">__list_del</h3>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n96"> include/linux/list.h(line 96) </a>
+
+<pre><code class="language-c">/*
+ * Delete a list entry by making the prev/next entries
+ * point to each other.
+ *
+ * This is only for internal list manipulation where we know
+ * the prev/next entries already!
+ */
+static inline void __list_del(struct list_head * prev, struct list_head * next)
+{
+	next-&gt;prev = prev; // 1
+	WRITE_ONCE(prev-&gt;next, next); //2
+}
+</code></pre>
+
+<p>图示如下：</p>
+
+<p><img src="./list_del.png" alt="enter description here" title="list_del" /></p>
+
+<h3 id="list-replace">list_replace</h3>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n130"> include/linux/list.h(line 130) </a>
+
+<pre><code class="language-c">/**
+ * list_replace - replace old entry by new one
+ * @old : the element to be replaced
+ * @new : the new element to insert
+ *
+ * If @old was empty, it will be overwritten.
+ */
+static inline void list_replace(struct list_head *old,
+				struct list_head *new)
+{
+	new-&gt;next = old-&gt;next; // 1
+	new-&gt;next-&gt;prev = new; // 2
+	new-&gt;prev = old-&gt;prev; // 3
+	new-&gt;prev-&gt;next = new; // 4
+}
+
+</code></pre>
+
+<p>图示如下：</p>
+
+<p><img src="./list_replace.png" alt="enter description here" title="list_replace" /></p>
+
+<h3 id="list-cut-position">__list_cut_position</h3>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n248"> include/linux/list.h(line 248) </a>
+
+<pre><code class="language-c">static inline void __list_cut_position(struct list_head *list,
+		struct list_head *head, struct list_head *entry)
+{
+	struct list_head *new_first = entry-&gt;next;
+	list-&gt;next = head-&gt;next; //1
+	list-&gt;next-&gt;prev = list; //2 
+	list-&gt;prev = entry; // 3
+	entry-&gt;next = list; // 4
+	head-&gt;next = new_first; //5
+	new_first-&gt;prev = head; // 6
+}
+</code></pre>
+
+<p>图示如下：</p>
+
+<p><img src="./list_cut_position.png" alt="enter description here" title="list_cut_position" /></p>
+
+<h3 id="list-splice">__list_splice</h3>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n288"> include/linux/list.h(line 288) </a>
+
+<pre><code class="language-c">static inline void __list_splice(const struct list_head *list,
+				 struct list_head *prev,
+				 struct list_head *next)
+{
+	struct list_head *first = list-&gt;next;
+	struct list_head *last = list-&gt;prev;
+
+	first-&gt;prev = prev; // 1
+	prev-&gt;next = first; // 2
+
+	last-&gt;next = next; // 3
+	next-&gt;prev = last; // 4
+}
+
+</code></pre>
+
+<p>图示如下：</p>
+
+<p><img src="./list_splice.png" alt="enter description here" title="list_splice" /></p>
+
+<h2 id="参考文档">参考文档</h2>
+
+<ul>
+<li><a href="http://www.cnblogs.com/zhuyp1015/archive/2012/06/02/2532240.html">http://www.cnblogs.com/zhuyp1015/archive/2012/06/02/2532240.html</a></li>
+<li><a href="http://blog.chinaunix.net/uid-26952464-id-3416870.html">http://blog.chinaunix.net/uid-26952464-id-3416870.html</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-06-23</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/list/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">内核基础设施</a>
+          
+          <a href="/tags/list_head/">list_head</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/hlist/">
+            <span class="next-text nav-default">内核基础设施——hlist_head/hlist_node结构解析</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

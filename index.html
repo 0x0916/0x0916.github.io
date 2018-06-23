@@ -155,6 +155,38 @@
     
       <article class="post">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/list/">内核基础设施——list_head结构解析</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-06-23 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 2535 words </span>
+      <span class="more-meta"> 6 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p><code>list_head</code>用法经常在<code>Linux kernel</code>里面经常看见，该文对内核中的<code>list_head</code>进行了总结分析。</p>
+
+<blockquote>
+<p>注意：本文的中的代码来自于内核版本<code>v4.16</code>。</p>
+</blockquote>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/list/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/kernel/hlist/">内核基础设施——hlist_head/hlist_node结构解析</a></h1>
     <div class="post-meta">
       <span class="post-time"> 2018-06-20 </span>
@@ -163,8 +195,8 @@
             <a href="/categories/kernel/"> kernel </a>
           
         </div>
-      <span class="more-meta"> 1118 words </span>
-      <span class="more-meta"> 3 mins read </span>
+      <span class="more-meta"> 2018 words </span>
+      <span class="more-meta"> 5 mins read </span>
     </div>
   </header>
   
@@ -309,43 +341,6 @@
     </div>
     <div class="read-more">
       <a href="/linux/linux-swap/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/reading-linux-physical-memory/">Linux用户程序如何访问物理内存</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-04-28 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 971 words </span>
-      <span class="more-meta"> 2 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文转载于：<a href="http://ilinuxkernel.com/?p=1248">http://ilinuxkernel.com/?p=1248</a></p>
-
-<blockquote>
-<p>注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。
-本文中使用的内核版本为：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.21.1.el7.src.rpm">3.10.0-693.21.1</a></p>
-</blockquote>
-
-<p>用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。</p>
-
-<p>通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在<code>Linux</code>中用户态程序访问所有物理内存。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/reading-linux-physical-memory/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>

@@ -125,7 +125,7 @@ struct hlist_node {
 
 <meta itemprop="datePublished" content="2018-06-20T23:08:40&#43;08:00" />
 <meta itemprop="dateModified" content="2018-06-20T23:08:40&#43;08:00" />
-<meta itemprop="wordCount" content="1118">
+<meta itemprop="wordCount" content="2018">
 
 
 
@@ -239,8 +239,8 @@ struct hlist_node {
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 1118 words </span>
-        <span class="more-meta"> 3 mins read </span>
+        <span class="more-meta"> 2018 words </span>
+        <span class="more-meta"> 5 mins read </span>
         
       </div>
     </header>
@@ -256,6 +256,13 @@ struct hlist_node {
 <li>
 <ul>
 <li><a href="#数据结构">数据结构</a></li>
+<li><a href="#相关api">相关API</a></li>
+<li><a href="#程序示例">程序示例</a>
+<ul>
+<li><a href="#模块代码">模块代码</a></li>
+<li><a href="#执行结果">执行结果</a></li>
+</ul></li>
+<li><a href="#其他">其他</a></li>
 <li><a href="#参考文档">参考文档</a></li>
 </ul></li>
 </ul>
@@ -341,6 +348,258 @@ struct hlist_node {
 }
 </code></pre>
 
+<h2 id="相关api">相关API</h2>
+
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>说明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>HLIST_HEAD_INIT</td>
+<td>静态初始化hlist_head</td>
+</tr>
+
+<tr>
+<td>HLIST_HEAD</td>
+<td>静态初始化hlist_head</td>
+</tr>
+
+<tr>
+<td>INIT_HLIST_HEAD</td>
+<td>动态初始化hlist_head</td>
+</tr>
+
+<tr>
+<td>INIT_HLIST_NODE</td>
+<td>动态初始化hlist_node</td>
+</tr>
+
+<tr>
+<td>hlist_unhashed</td>
+<td>判断hlist_node是否添加到hash链表中</td>
+</tr>
+
+<tr>
+<td>hlist_empty</td>
+<td>判断hash链表是否为空</td>
+</tr>
+
+<tr>
+<td>hlist_del</td>
+<td>在hash链表中删除一个节点</td>
+</tr>
+
+<tr>
+<td>hlist_del_init</td>
+<td>在hash链表中删除一个节点</td>
+</tr>
+
+<tr>
+<td>hlist_add_head</td>
+<td>在hash链表头添加一个节点</td>
+</tr>
+
+<tr>
+<td>hlist_add_before</td>
+<td>在指定节点之前添加一个节点</td>
+</tr>
+
+<tr>
+<td>hlist_add_behind</td>
+<td>在指定节点之后添加一个节点</td>
+</tr>
+
+<tr>
+<td>hlist_add_fake</td>
+<td></td>
+</tr>
+
+<tr>
+<td>hlist_fake</td>
+<td></td>
+</tr>
+
+<tr>
+<td>hlist_is_singular_node</td>
+<td>判断hlist是否只有一个节点</td>
+</tr>
+
+<tr>
+<td>hlist_move_list</td>
+<td>将一个hash链表从一个hlist_head移动到另外一个hlist_head中</td>
+</tr>
+
+<tr>
+<td>hlist_entry</td>
+<td>根据hlist_node找到其外层结构体</td>
+</tr>
+
+<tr>
+<td>hlist_entry_safe</td>
+<td>同上</td>
+</tr>
+
+<tr>
+<td>hlist_for_each</td>
+<td>遍历hash链表</td>
+</tr>
+
+<tr>
+<td>hlist_for_each_safe</td>
+<td>同上</td>
+</tr>
+
+<tr>
+<td>hlist_for_each_entry</td>
+<td>遍历hash链表</td>
+</tr>
+
+<tr>
+<td>hlist_for_each_entry_safe</td>
+<td>同上</td>
+</tr>
+
+<tr>
+<td>hlist_for_each_entry_continue</td>
+<td>从当前节点之后遍历hash链表</td>
+</tr>
+
+<tr>
+<td>hlist_for_each_entry_from</td>
+<td>从当前节点开始遍历hash链表</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="程序示例">程序示例</h2>
+
+<p>写一个测试模块，验证一下各个API</p>
+
+<h3 id="模块代码">模块代码</h3>
+
+<pre><code class="language-c">#include &lt;linux/module.h&gt;
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/init.h&gt;
+#include &lt;linux/list.h&gt;
+
+struct node {
+	int val;
+	struct hlist_node list;
+};
+
+static int __init hlist_test_init(void)
+{
+	struct hlist_head  head;
+	struct node a, b, c, d, e;
+	struct node *pos;
+	struct hlist_node *p;
+
+	printk(KERN_ALERT &quot;[Hello] hlist_test \n&quot;);
+
+	INIT_HLIST_HEAD(&amp;head); //初始化链表头
+	a.val = 1;
+	b.val = 2;
+	c.val = 3;
+	d.val = 4;
+	e.val = 5;
+
+	hlist_add_head(&amp;a.list, &amp;head); //添加节点
+	hlist_add_head(&amp;b.list, &amp;head);
+	hlist_add_head(&amp;c.list, &amp;head);
+
+	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
+	//遍历链表，打印结果 方法1
+	hlist_for_each_entry(pos, &amp;head, list) {
+		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
+	} // print 3 2 1
+
+	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
+	// 遍历链表，打印结果 方法2
+	hlist_for_each(p, &amp;head) {
+		pos = hlist_entry(p, struct node, list);
+		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
+	} // print 3 2 1
+
+	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
+	hlist_del_init(&amp;b.list); // 删除中间节点
+	hlist_for_each_entry(pos, &amp;head, list) {
+		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
+	} // print 3 1
+
+	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
+	hlist_add_before(&amp;d.list, &amp;a.list); //在最后一个节点之前添加新节点
+	hlist_for_each_entry(pos, &amp;head, list) {
+		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
+	} // print 3 4 1
+
+	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
+	hlist_add_behind(&amp;e.list, &amp;a.list);//在最后一个节点之后添加新节点
+	hlist_for_each_entry(pos, &amp;head, list) {
+		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
+	} // print 3 4 1 5
+
+	return 0;
+}
+
+static void __exit hlist_test_exit(void)
+{
+	printk(KERN_ALERT &quot;[Goodbye] hlist_test\n&quot;);
+}
+
+module_init(hlist_test_init);
+module_exit(hlist_test_exit);
+MODULE_LICENSE(&quot;GPL&quot;);
+</code></pre>
+
+<h3 id="执行结果">执行结果</h3>
+
+<pre><code>[  944.056943] [Hello] hlist_test 
+[  944.056947] -------------------------------------- 
+[  944.056948] node.val = 3
+[  944.056949] node.val = 2
+[  944.056950] node.val = 1
+[  944.056951] -------------------------------------- 
+[  944.056952] node.val = 3
+[  944.056953] node.val = 2
+[  944.056954] node.val = 1
+[  944.056955] -------------------------------------- 
+[  944.056956] node.val = 3
+[  944.056957] node.val = 1
+[  944.056958] -------------------------------------- 
+[  944.056959] node.val = 3
+[  944.056960] node.val = 4
+[  944.056961] node.val = 1
+[  944.056962] -------------------------------------- 
+[  944.056963] node.val = 3
+[  944.056964] node.val = 4
+[  944.056965] node.val = 1
+[  944.056965] node.val = 5
+</code></pre>
+
+<h2 id="其他">其他</h2>
+
+<p>内核中用<code>hlist</code>来实现 <code>hash table</code>，在内核上一般有如下的<code>hash table</code>：</p>
+
+<pre><code class="language-bash"># dmesg | grep &quot;hash table entries&quot; 
+[    0.000000] PV qspinlock hash table entries: 256 (order: 0, 4096 bytes)
+[    0.000000] PID hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.294869] Dentry cache hash table entries: 524288 (order: 10, 4194304 bytes)
+[    0.296328] Inode-cache hash table entries: 262144 (order: 9, 2097152 bytes)
+[    0.296589] Mount-cache hash table entries: 8192 (order: 4, 65536 bytes)
+[    0.296595] Mountpoint-cache hash table entries: 8192 (order: 4, 65536 bytes)
+[    0.614525] TCP established hash table entries: 32768 (order: 6, 262144 bytes)
+[    0.614769] TCP bind hash table entries: 32768 (order: 9, 2621440 bytes)
+[    0.616607] UDP hash table entries: 2048 (order: 6, 393216 bytes)
+[    0.616794] UDP-Lite hash table entries: 2048 (order: 6, 393216 bytes)
+[    1.053747] futex hash table entries: 1024 (order: 5, 131072 bytes)
+[    1.079062] Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+</code></pre>
+
 <h2 id="参考文档">参考文档</h2>
 
 <ul>
@@ -387,6 +646,11 @@ struct hlist_node {
       
       <nav class="post-nav">
         
+          <a class="prev" href="/kernel/list/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">内核基础设施——list_head结构解析</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
         
           <a class="next" href="/kernel/cgroup-cpuacct/">
             <span class="next-text nav-default">Cgroup之cpuacct子系统</span>
