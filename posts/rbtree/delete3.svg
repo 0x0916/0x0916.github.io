@@ -1,0 +1,70 @@
+<svg width="430" height="670" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+
+ <g stroke="null">
+  <title>background</title>
+  <rect x="-1" y="-1" width="432" height="672" id="canvas_background" fill="#ffffff" stroke="null"/>
+  <g id="canvasGrid" display="none" stroke="null">
+   <rect id="svg_1" width="1283" height="960" x="1" y="1" stroke-width="0" fill="url(#gridpattern)"/>
+  </g>
+ </g>
+ <g stroke="null">
+  <title>Layer 1</title>
+  <ellipse fill="#00ff00" stroke-width="1.5" cx="127.500001" cy="16.499999" id="svg_58" rx="16.500001" ry="16.5" stroke="#000000"/>
+  <text fill="#ffffff" stroke-width="0" x="115.510505" y="24.656335" id="svg_59" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">父</text>
+  <ellipse stroke="#ff0000" fill="#ff0000" stroke-width="1.5" cx="102.500002" cy="126.999999" id="svg_60" rx="17.000001" ry="17"/>
+  <text fill="#ffff00" stroke-width="0" x="90.510113" y="135.376631" id="svg_61" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffff00">新</text>
+  <ellipse stroke="#000000" fill="#000000" stroke-width="1.5" cx="62.500001" cy="71.499999" id="svg_62" rx="16.500001" ry="16.5"/>
+  <text fill="#ffffff" stroke-width="0" x="50.521565" y="79.715532" id="svg_63" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">旧</text>
+  <ellipse stroke="#000000" fill="#000000" stroke-width="1.5" cx="283.500001" cy="71.499999" id="svg_66" rx="16.500001" ry="16.5"/>
+  <text fill="#ffffff" stroke-width="0" x="271.521565" y="79.715532" id="svg_67" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">新</text>
+  <path id="svg_68" d="m220.87029,79.01131l8.56162,-3.05455l-16.55347,0l-16.55343,0l0,-1.8909l0,-1.89091l16.36353,0c8.99993,0 16.36352,-0.09584 16.36352,-0.21298c0,-0.11714 -3.58285,-1.49168 -7.96187,-3.05454l-7.96189,-2.84157l7.35922,0l7.35919,0l11.23916,4.00383l11.23915,4.00383l-11.26071,3.99616l-11.26071,3.99617l-7.74747,0l-7.74748,0l8.56164,-3.05454l0,0z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000000" fill="#ffff56"/>
+  <ellipse stroke="#ff0000" fill="#ff0000" stroke-width="1.5" cx="19.500002" cy="290.999999" id="svg_71" rx="17.000001" ry="17"/>
+  <text fill="#ffff00" stroke-width="0" x="7.510113" y="299.376631" id="svg_72" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffff00">新</text>
+  <ellipse stroke="#000000" fill="#000000" stroke-width="1.5" cx="70.500001" cy="234.499999" id="svg_73" rx="16.500001" ry="16.5"/>
+  <text fill="#ffffff" stroke-width="0" x="58.521565" y="242.715532" id="svg_74" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">旧</text>
+  <path id="svg_79" d="m228.87029,242.01131l8.56162,-3.05455l-16.55347,0l-16.55343,0l0,-1.8909l0,-1.89091l16.36353,0c8.99993,0 16.36352,-0.09584 16.36352,-0.21298c0,-0.11714 -3.58285,-1.49168 -7.96187,-3.05454l-7.96189,-2.84157l7.35922,0l7.35919,0l11.23916,4.00383l11.23915,4.00383l-11.26071,3.99616l-11.26071,3.99617l-7.74747,0l-7.74748,0l8.56164,-3.05454l0,0z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000000" fill="#ffff56"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="114" y1="26" x2="76" y2="58" id="svg_80" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="67" y1="86" x2="94" y2="111" id="svg_81" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="122" y1="187" x2="84" y2="222" id="svg_82" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="57" y1="244" x2="29" y2="273" id="svg_83" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="335" y1="28" x2="296" y2="58" id="svg_84" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="346" y1="189" x2="305" y2="226" id="svg_85" stroke-linejoin="null" stroke-linecap="null"/>
+  <ellipse fill="#00ff00" stroke-width="1.5" cx="350.500001" cy="17.499999" id="svg_88" rx="16.500001" ry="16.5" stroke="#000000"/>
+  <text fill="#ffffff" stroke-width="0" x="338.510505" y="25.656335" id="svg_89" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">父</text>
+  <ellipse fill="#00ff00" stroke-width="1.5" cx="138.500001" cy="180.499999" id="svg_91" rx="16.500001" ry="16.5" stroke="#000000"/>
+  <text fill="#ffffff" stroke-width="0" x="126.510505" y="189.656335" id="svg_92" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">父</text>
+  <ellipse fill="#00ff00" stroke-width="1.5" cx="358.500001" cy="183.499999" id="svg_93" rx="16.500001" ry="16.5" stroke="#000000"/>
+  <text fill="#ffffff" stroke-width="0" x="346.510505" y="191.656335" id="svg_94" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">父</text>
+  <ellipse fill="#00ff00" stroke-width="1.5" cx="44.500001" cy="342.499999" id="svg_95" rx="16.500001" ry="16.5" stroke="#000000"/>
+  <text fill="#ffffff" stroke-width="0" x="32.510505" y="350.656335" id="svg_96" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">父</text>
+  <ellipse stroke="#ff0000" fill="#ff0000" stroke-width="1.5" cx="134.500002" cy="444.999999" id="svg_97" rx="17.000001" ry="17"/>
+  <text fill="#ffff00" stroke-width="0" x="122.510113" y="453.376631" id="svg_98" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffff00">新</text>
+  <ellipse stroke="#000000" fill="#000000" stroke-width="1.5" cx="94.500001" cy="389.499999" id="svg_99" rx="16.500001" ry="16.5"/>
+  <text fill="#ffffff" stroke-width="0" x="82.521565" y="397.715532" id="svg_100" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">旧</text>
+  <path id="svg_103" d="m220.87029,404.01131l8.56162,-3.05455l-16.55347,0l-16.55343,0l0,-1.8909l0,-1.89091l16.36353,0c8.99993,0 16.36352,-0.09584 16.36352,-0.21298c0,-0.11714 -3.58285,-1.49168 -7.96187,-3.05454l-7.96189,-2.84157l7.35922,0l7.35919,0l11.23916,4.00383l11.23915,4.00383l-11.26071,3.99616l-11.26071,3.99617l-7.74747,0l-7.74748,0l8.56164,-3.05454l0,0z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000000" fill="#ffff56"/>
+  <ellipse stroke="#ff0000" fill="#ff0000" stroke-width="1.5" cx="80.500002" cy="633.999999" id="svg_104" rx="17.000001" ry="17"/>
+  <text fill="#ffff00" stroke-width="0" x="68.510113" y="642.376631" id="svg_105" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffff00">新</text>
+  <ellipse stroke="#000000" fill="#000000" stroke-width="1.5" cx="131.500001" cy="580.499999" id="svg_106" rx="16.500001" ry="16.5"/>
+  <text fill="#ffffff" stroke-width="0" x="119.521565" y="588.715532" id="svg_107" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">旧</text>
+  <path id="svg_110" d="m228.87029,589.01131l8.56162,-3.05455l-16.55347,0l-16.55343,0l0,-1.8909l0,-1.89091l16.36353,0c8.99993,0 16.36352,-0.09584 16.36352,-0.21298c0,-0.11714 -3.58285,-1.49168 -7.96187,-3.05454l-7.96189,-2.84157l7.35922,0l7.35919,0l11.23916,4.00383l11.23915,4.00383l-11.26071,3.99616l-11.26071,3.99617l-7.74747,0l-7.74748,0l8.56164,-3.05454l0,0z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000000" fill="#ffff56"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="99" y1="404" x2="126" y2="429" id="svg_112" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="118" y1="590" x2="90" y2="619" id="svg_114" stroke-linejoin="null" stroke-linecap="null"/>
+  <ellipse fill="#00ff00" stroke-width="1.5" cx="313.500001" cy="340.499999" id="svg_117" rx="16.500001" ry="16.5" stroke="#000000"/>
+  <text fill="#ffffff" stroke-width="0" x="301.510505" y="347.656335" id="svg_118" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">父</text>
+  <ellipse fill="#00ff00" stroke-width="1.5" cx="77.500001" cy="516.499999" id="svg_119" rx="16.500001" ry="16.5" stroke="#000000"/>
+  <text fill="#ffffff" stroke-width="0" x="65.510505" y="525.656335" id="svg_120" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">父</text>
+  <ellipse fill="#00ff00" stroke-width="1.5" cx="317.500001" cy="515.499999" id="svg_121" rx="16.500001" ry="16.5" stroke="#000000"/>
+  <text fill="#ffffff" stroke-width="0" x="305.510505" y="523.656335" id="svg_122" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">父</text>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="55" y1="353" x2="81" y2="375" id="svg_123" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="326" y1="351" x2="366" y2="382" id="svg_124" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="328" y1="525" x2="372" y2="550" id="svg_125" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" x1="86" y1="528" x2="125" y2="565" id="svg_126" stroke-linejoin="null" stroke-linecap="null"/>
+  <ellipse stroke="#000000" fill="#000000" stroke-width="1.5" cx="301.500001" cy="240.499999" id="svg_2" rx="16.500001" ry="16.5"/>
+  <text fill="#ffffff" stroke-width="0" x="289.521565" y="248.715532" id="svg_3" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">新</text>
+  <ellipse stroke="#000000" fill="#000000" stroke-width="1.5" cx="367.500001" cy="390.499999" id="svg_4" rx="16.500001" ry="16.5"/>
+  <text fill="#ffffff" stroke-width="0" x="355.521565" y="398.715532" id="svg_5" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">新</text>
+  <ellipse stroke="#000000" fill="#000000" stroke-width="1.5" cx="376.500001" cy="565.499999" id="svg_6" rx="16.500001" ry="16.5"/>
+  <text fill="#ffffff" stroke-width="0" x="364.521565" y="573.715532" id="svg_7" font-size="24" font-family="Helvetica, Arial, sans-serif" text-anchor="start" xml:space="preserve" stroke="#ffffff">新</text>
+ </g>
+</svg>

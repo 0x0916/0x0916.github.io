@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Notes about linux and my work</title>
+  <title>Algorithm · Notes about linux and my work</title>
   <meta name="renderer" content="webkit" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
@@ -28,9 +28,9 @@
 <meta name="generator" content="Hugo 0.37.1" />
 
 
-<link rel="canonical" href="http://linux.laoqinren.net/posts/" />
-<link href="http://linux.laoqinren.net/posts/index.xml" rel="alternate" type="application/rss+xml" title="Notes about linux and my work" />
-  <link href="http://linux.laoqinren.net/posts/index.xml" rel="feed" type="application/rss+xml" title="Notes about linux and my work" />
+<link rel="canonical" href="http://linux.laoqinren.net/categories/algorithm/" />
+<link href="http://linux.laoqinren.net/categories/algorithm/index.xml" rel="alternate" type="application/rss+xml" title="Notes about linux and my work" />
+  <link href="http://linux.laoqinren.net/categories/algorithm/index.xml" rel="feed" type="application/rss+xml" title="Notes about linux and my work" />
 
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -50,10 +50,10 @@
 
 
 
-<meta property="og:title" content="" />
+<meta property="og:title" content="Algorithm" />
 <meta property="og:description" content="Notes about my work and linux kernel" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/" />
+<meta property="og:url" content="http://linux.laoqinren.net/categories/algorithm/" />
 
 
 
@@ -68,11 +68,11 @@
 
 
 
-<meta itemprop="name" content="">
+<meta itemprop="name" content="Algorithm">
 <meta itemprop="description" content="Notes about my work and linux kernel">
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content=""/>
+<meta name="twitter:title" content="Algorithm"/>
 <meta name="twitter:description" content="Notes about my work and linux kernel"/>
 
 <!--[if lte IE 9]>
@@ -147,122 +147,33 @@
         <div id="content" class="content">
           
 
-<p>my blogs</p>
-
-
-  <section id="posts" class="posts">
-    
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/rbtree/">红黑树</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-07-16 </span>
-      <div class="post-category">
-          
-            <a href="/categories/algorithm/"> algorithm </a>
-          
-            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
-          
-        </div>
-      <span class="more-meta"> 3898 words </span>
-      <span class="more-meta"> 8 mins read </span>
-    </div>
-  </header>
+<section id="archive" class="archive">
   
-  <div class="post-content">
-    <div class="post-summary">
-      <p>在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。</p>
-
-<p>本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。</p>
-
-<h2 id="红黑树介绍">红黑树介绍</h2>
-
-<p>红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：<strong>红黑树</strong>。</p>
-
-<p>红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？</p>
-
-<p>了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。</p>
-
-<p>自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/posts/rbtree/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
     
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/boyer-moore-majority-vote-algorithm/">Boyer-Moore majority vote algorithm(摩尔投票算法)</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2017-11-11 </span>
-      <div class="post-category">
-          
-            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
-          
-        </div>
-      <span class="more-meta"> 2454 words </span>
-      <span class="more-meta"> 5 mins read </span>
-    </div>
-  </header>
+      <div class="archive-title category">
+        <h2 class="archive-name">Algorithm</h2>
+      </div>
+    
   
-  <div class="post-content">
-    <div class="post-summary">
-      <p><a href="https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm">Boyer-Moore majority vote algorithm</a>(摩尔投票算法)是一种在线性时间<code>O(n)</code>和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以<code>Robert S.Boyer</code>和<code>J Strother Moore</code>命名的，1981年发明的，是一种典型的流算法(<code>streaming algorithm</code>)。</p>
 
-<p>在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(<code>n/2</code>)的元素。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/posts/boyer-moore-majority-vote-algorithm/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/tmux/">tmux快捷键总结</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2017-02-01 </span>
-      <div class="post-category">
-          
-            <a href="/categories/development/"> Development </a>
-          
-        </div>
-      <span class="more-meta"> 855 words </span>
-      <span class="more-meta"> 2 mins read </span>
-    </div>
-  </header>
   
-  <div class="post-content">
-    <div class="post-summary">
-      <p><code>tmux</code> (<code>Terminal Multiplexer</code>的简称), 是一款优秀的终端复用软件，类似 <code>GNU screen</code>，但比<code>screen</code>更出色。</p>
-
-<p><code>Tmux</code> 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 <code>Tmux</code> 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。</p>
-
-<p>本文总结了<code>tmux</code>常用的一些快捷键。</p>
-
-<p></p>
+    <div class="archive-post">
+      <span class="archive-post-time">
+        2018-07-16
+      </span>
+      <span class="archive-post-title">
+        <a href="/posts/rbtree/" class="archive-post-link">
+          红黑树
+        </a>
+      </span>
     </div>
-    <div class="read-more">
-      <a href="/posts/tmux/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-  </section>
   
-  <nav class="pagination">
-    
-    
-  </nav>
+</section>
+
+<nav class="pagination">
+  
+  
+</nav>
 
         </div>
         

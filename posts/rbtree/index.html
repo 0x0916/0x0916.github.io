@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>红黑树 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。
+本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。
+红黑树介绍 红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：红黑树。
+红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？
+了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。
+自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。
+
+" />
+<meta name="keywords" content="rbtree" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/posts/rbtree/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="红黑树" />
+<meta property="og:description" content="在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。
+
+本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。
+
+红黑树介绍
+
+红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：红黑树。
+
+红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？
+
+了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。
+
+自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/rbtree/" />
+
+
+
+<meta property="article:published_time" content="2018-07-16T10:28:23&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-07-16T10:28:23&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="红黑树">
+<meta itemprop="description" content="在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。
+
+本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。
+
+红黑树介绍
+
+红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：红黑树。
+
+红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？
+
+了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。
+
+自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。
+
+">
+
+
+<meta itemprop="datePublished" content="2018-07-16T10:28:23&#43;08:00" />
+<meta itemprop="dateModified" content="2018-07-16T10:28:23&#43;08:00" />
+<meta itemprop="wordCount" content="3898">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="红黑树"/>
+<meta name="twitter:description" content="在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。
+
+本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。
+
+红黑树介绍
+
+红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：红黑树。
+
+红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？
+
+了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。
+
+自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">红黑树</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-07-16 </span>
+        <div class="post-category">
+            
+              <a href="/categories/algorithm/"> algorithm </a>
+            
+              <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+            
+          </div>
+        <span class="more-meta"> 3898 words </span>
+        <span class="more-meta"> 8 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#红黑树介绍">红黑树介绍</a></li>
+<li><a href="#红黑树的平衡">红黑树的平衡</a></li>
+<li><a href="#定义红黑树的结构体">定义红黑树的结构体</a></li>
+<li><a href="#结点的基本操作">结点的基本操作</a>
+<ul>
+<li><a href="#寻找parent-grandparent-slibing-uncle等">寻找parent、grandparent、slibing、uncle等</a></li>
+<li><a href="#旋转">旋转</a></li>
+</ul></li>
+<li><a href="#红黑树的插入">红黑树的插入</a>
+<ul>
+<li><a href="#0-插入的节点为根节点">（0）插入的节点为根节点</a></li>
+<li><a href="#1-插入的节点的父节点为黑色">（1）插入的节点的父节点为黑色</a></li>
+<li><a href="#2-插入的节点的父节点为红色">（2）插入的节点的父节点为红色</a>
+<ul>
+<li><a href="#2-1-插入的节点的父节点为红色-叔叔节点为红色">（2.1）插入的节点的父节点为红色，叔叔节点为红色</a></li>
+<li><a href="#2-2-插入的节点的父节点为红色-叔叔节点为黑色">（2.2）插入的节点的父节点为红色，叔叔节点为黑色</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#红黑树的删除">红黑树的删除</a>
+<ul>
+<li><a href="#旧结点为红色结点">旧结点为红色结点</a></li>
+<li><a href="#旧结点为黑色结点-新结点为红色结点">旧结点为黑色结点，新结点为红色结点</a></li>
+<li><a href="#旧结点和新结点都为黑色">旧结点和新结点都为黑色</a>
+<ul>
+<li><a href="#兄弟结点为红色">兄弟结点为红色</a></li>
+<li><a href="#兄弟结点为黑色">兄弟结点为黑色</a>
+<ul>
+<li><a href="#黑兄二黑侄红父">黑兄二黑侄红父</a></li>
+<li><a href="#黑兄二黑侄黑父">黑兄二黑侄黑父</a></li>
+<li><a href="#黑兄红侄">黑兄红侄</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#参考文档">参考文档</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。</p>
+
+<p>本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。</p>
+
+<h2 id="红黑树介绍">红黑树介绍</h2>
+
+<p>红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：<strong>红黑树</strong>。</p>
+
+<p>红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？</p>
+
+<p>了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。</p>
+
+<p>自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。</p>
+
+<p></p>
+
+<h2 id="红黑树的平衡">红黑树的平衡</h2>
+
+<p>那红黑树其在插入和删除时是如何保证平衡呢？这得益于其几个性质。</p>
+
+<p>红黑树首先是一棵二叉查找树，它每个结点都被标上了颜色（红色或黑色），红黑树满足以下5个性质：</p>
+
+<ol>
+<li><strong>每个结点的颜色只能是红色或黑色</strong>；</li>
+<li><strong>根结点是黑色的</strong>；</li>
+<li><strong>每个叶子结点都带有两个空的黑色结点（被称为黑哨兵）</strong>，如果一个结点只有一个左孩子，那么其右孩子是一个黑哨兵；如果结点只有一个右孩子，那么其左孩子是一个黑哨兵。</li>
+<li><strong>如果一个结点是红的，则它的两个儿子都是黑的</strong>。也就是说在一条路径上不能出现相邻的两个红色结点。</li>
+<li><strong>对于每个结点来说，从该结点到其子孙叶结点的所有路径上包含相同数目的黑结点</strong>。</li>
+</ol>
+
+<p>如下图所示，即是一颗红黑树（来自：<a href="https://en.wikipedia.org/wiki/Red%E2%80%93black_tree）">https://en.wikipedia.org/wiki/Red%E2%80%93black_tree）</a></p>
+
+<p><img src="./Red-black_tree_example.svg" alt="enter description here" title="Red-black_tree_example" /></p>
+
+<p>有了如上5个性质的保证：红黑树在最坏的情况下基本动态集合操作的时间复杂度为O(nlgn)。</p>
+
+<blockquote>
+<p>注意：下文中不定时会复习一下这5个特性，因为它太重要了。</p>
+</blockquote>
+
+<h2 id="定义红黑树的结构体">定义红黑树的结构体</h2>
+
+<p>为了方便的进行讨论，我们根据如上红黑树的特性，定义了红黑树节点的数据结构，如下：</p>
+
+<h2 id="结点的基本操作">结点的基本操作</h2>
+
+<h3 id="寻找parent-grandparent-slibing-uncle等">寻找parent、grandparent、slibing、uncle等</h3>
+
+<h3 id="旋转">旋转</h3>
+
+<p>插入和删除过程中都会有破坏红黑树性质的情况发生，为了维护这些性质，必须要改变树中某些结点的颜色和指针结构。指针结构的修改是通过旋转来完成的，旋转被分为左旋和右旋；在插入和删除操作中这两个操作会多次出现，我们先来分析一下这两个操作:</p>
+
+<p><img src="./left-rotate-right-rotate.png" alt="enter description here" title="left-rotate-right-rotate" /></p>
+
+<h2 id="红黑树的插入">红黑树的插入</h2>
+
+<p>在讨论红黑树的插入操作之前必须要明白，<strong>任何一个即将插入的新结点的初始颜色都为红色</strong>。这一点很容易理解，因为插入黑点会增加某条路径上黑结点的数目，从而导致整棵树黑高度的不平衡。但如果新结点父结点为红色时（如下图所示），将会违返红黑树性质：一条路径上不能出现相邻的两个红色结点。这时就需要通过一系列操作来使红黑树保持平衡。</p>
+
+<p><img src="./insert1.svg" alt="红黑树示例" title="insert1" /></p>
+
+<p>为了清楚地表示插入操作以下在结点中使用<strong>新</strong>字表示一个新插入的结点；使用<strong>父</strong>字表示新插入点的父结点；使用<strong>叔</strong>字表示<strong>父</strong>结点的兄弟结点；使用<strong>祖</strong>字表示<strong>父</strong>结点的父结点。插入操作分为以下几种情况：</p>
+
+<h3 id="0-插入的节点为根节点">（0）插入的节点为根节点</h3>
+
+<p>由于直接插入的结点为红色，所以需要将该结点修改为黑色，才能满足红黑树的性质。</p>
+
+<h3 id="1-插入的节点的父节点为黑色">（1）插入的节点的父节点为黑色</h3>
+
+<p>如果新点的父结点为黑色结点，那么插入一个红点将不会影响红黑树的平衡，此时插入操作完成。红黑树比AVL树优秀的地方之一在于黑父的情况比较常见，从而使红黑树需要旋转的几率相对AVL树来说会少一些。</p>
+
+<p><img src="./black_parent.svg" alt="enter description here" title="black_parent" /></p>
+
+<h3 id="2-插入的节点的父节点为红色">（2）插入的节点的父节点为红色</h3>
+
+<p>如果新点的父结点为红色，这时就需要进行一系列操作以保证整棵树红黑性质。如图所示，由于父结点为红色，此时可以判定，祖父结点必定为黑色。这时需要根据叔父结点的颜色来决定做什么样的操作。青色结点表示颜色未知。由于有可能需要根结点到新点的路径上进行多次旋转操作，而每次进行不平衡判断的起始点（我们可将其视为新点）都不一样。所以我们在此使用一个蓝色箭头指向这个起始点，并称之为判定点。</p>
+
+<p><img src="./red_parent.svg" alt="enter description here" title="red_parent" /></p>
+
+<h4 id="2-1-插入的节点的父节点为红色-叔叔节点为红色">（2.1）插入的节点的父节点为红色，叔叔节点为红色</h4>
+
+<p>当叔父结点为红色时，如图所示，无需进行旋转操作，只要将父和叔结点变为黑色，将祖父结点变为红色即可。但由于祖父结点的父结点有可能为红色，从而违反红黑树性质。此时必须将祖父结点作为新的判定点继续向上进行平衡操作。</p>
+
+<p><img src="./black_parent_red_uncle.svg" alt="enter description here" title="black_parent_red_uncle" /></p>
+
+<p>需要注意，无论“父”在“叔”的左边还是右边，无论“新”是“父”的左孩子还是右孩子，它们的操作都完全一样。</p>
+
+<h4 id="2-2-插入的节点的父节点为红色-叔叔节点为黑色">（2.2）插入的节点的父节点为红色，叔叔节点为黑色</h4>
+
+<p>当叔父结点为黑色时，需要进行旋转，以下图示了所有的旋转可能</p>
+
+<p>情形1</p>
+
+<p><img src="./black_uncle1.svg" alt="enter description here" title="black_uncle1" /></p>
+
+<p>父结点变成黑色，祖结点变成红色，将<strong>祖</strong>节点向右旋转一次</p>
+
+<p>情形2</p>
+
+<p><img src="./black_uncle2.svg" alt="enter description here" title="black_uncle2" /></p>
+
+<p>将<strong>父</strong>节点向左旋转一次，转化为情形1</p>
+
+<p>情形3</p>
+
+<p><img src="./black_uncle3.svg" alt="enter description here" title="black_uncle3" /></p>
+
+<p>将父节点变成黑色，祖结点变成红色，将<strong>祖</strong>节点向左旋转一次</p>
+
+<p>情形4</p>
+
+<p><img src="./black_uncle4.svg" alt="enter description here" title="black_uncle4" /></p>
+
+<p>将<strong>父</strong>节点向右旋转一次，转化为情形3</p>
+
+<p>可以观察到，当旋转完成后，新的旋转根全部为黑色，此时不需要再向上回溯进行平衡操作，插入操作完成。需要注意，上面四张图的<strong>叔</strong>、<strong>1</strong>、<strong>2</strong>、<strong>3</strong>结点有可能为黑哨兵结点。</p>
+
+<p>其实红黑树的插入操作不是很难，甚至比AVL树的插入操作还更简单些。但删除操作就远远比AVL树复杂得多，下面就介绍红黑树的删除操作</p>
+
+<h2 id="红黑树的删除">红黑树的删除</h2>
+
+<p>红黑树本身是一棵二叉查找树，它的删除和二叉查找树的删除类似。</p>
+
+<p>首先要找到真正的删除点，分为两种情况：</p>
+
+<ol>
+<li><strong>删除结点只有左孩子或者只有右孩子</strong>：此时真正的删除结点就是要删除的结点。</li>
+<li><strong>删除结点存在左孩子和右孩子</strong>：真正的删除点应该是中序遍历的前驱，即左孩子中最大的结点，或者是中序遍历的前驱的后继，即有孩子的最大结点。如下图所示，当删除结点20时，实际被删除的结点应该为18，结点20的数据变为18（此例子找的是中序遍历的前驱）。</li>
+</ol>
+
+<p><img src="./delete.svg" alt="enter description here" title="delete" /></p>
+
+<p>所以可以推断出，在进行删除操作时，<strong>真正的删除点要么是只有一个孩子，要么是叶子结点</strong>。而根据红黑树的性质可以得出以下两个结论：</p>
+
+<ol>
+<li><strong>真正被删除的结点必定是只有一个红色孩子或没有孩子的结点</strong></li>
+<li><strong>如果真正的删除点是一个红色结点，那么它必定是一个叶子结点。</strong></li>
+</ol>
+
+<p>第1点很好理解吧，删除结点的中序遍历的前驱或者后继结点肯定只有一个孩子或者没有孩子的结点，如果有一个孩子的话，且为孩子的结点为黑色，则违反了红黑树的性质5，所以孩子结点的颜色必为红色。</p>
+
+<p>对于第2点，如果真正删除结点是红色的，且不是叶子结点，那它必须有一个黑色的孩子结点，此时会违反红黑树的性质5.</p>
+
+<blockquote>
+<p>复习一下：</p>
+
+<p>红黑树必须满足以下5个性质：</p>
+
+<ol>
+<li><strong>每个结点的颜色只能是红色或黑色</strong>；</li>
+<li><strong>根结点是黑色的</strong>；</li>
+<li><strong>每个叶子结点都带有两个空的黑色结点（被称为黑哨兵）</strong>，如果一个结点只有一个左孩子，那么其右孩子是一个黑哨兵；如果结点只有一个右孩子，那么其左孩子是一个黑哨兵。</li>
+<li><strong>如果一个结点是红的，则它的两个儿子都是黑的</strong>。也就是说在一条路径上不能出现相邻的两个红色结点。</li>
+<li><strong>对于每个结点来说，从该结点到其子孙叶结点的所有路径上包含相同数目的黑结点</strong>。</li>
+</ol>
+</blockquote>
+
+<p>在以下讨论中，我们使用蓝色箭头表示<strong>真正的删除点</strong>，它也是旋转操作过程中的第一个判定点；真正的删除点使用<strong>旧</strong>标注，旧点所在位置将被它的的孩子结点所取代（最多只有一个孩子），我们使用<strong>新</strong>表示旧点的孩子结点。删除操作可分为以下几种情形：</p>
+
+<h3 id="旧结点为红色结点">旧结点为红色结点</h3>
+
+<p>若旧结点为红色结点，则它必定是叶子结点，直接删除即可。如图所示</p>
+
+<p><img src="./delete2.svg" alt="enter description here" title="delete2" /></p>
+
+<h3 id="旧结点为黑色结点-新结点为红色结点">旧结点为黑色结点，新结点为红色结点</h3>
+
+<p>当旧点为黑色结点，新点为红色结点时，将新点取代旧点位置后，将新点染成黑色即可（如图所示）。
+这里需要注意：（1）旧点为红色，新点为黑色的情况不可能存在；（2）父结点的颜色随意。</p>
+
+<p><img src="./delete3.svg" alt="enter description here" title="delete3" /></p>
+
+<h3 id="旧结点和新结点都为黑色">旧结点和新结点都为黑色</h3>
+
+<p>此时由于新节点为<code>NIL</code>，否则就不满足红黑树的性质5。</p>
+
+<p>此时即要删除的结点为黑色，且为叶子结点。这时情况比较复杂，需要根据旧点兄弟结点的颜色来决定进行什么样的操作。我们使用<strong>兄</strong>来表示旧点的兄弟结点。这里可分为<strong>红兄</strong>和<strong>黑兄</strong>两种情况：</p>
+
+<h4 id="兄弟结点为红色">兄弟结点为红色</h4>
+
+<p>由于兄弟结点为红色，所以父结点必定为黑色，而旧点被删除后，新点取代了它的位置。下图演示了两种可能的情况：</p>
+
+<p><img src="./delete4.svg" alt="enter description here" title="delete4" /></p>
+
+<p>灰色的新其实代表LEAF结点，但其有一重黑色。</p>
+
+<p>红兄的情况需要进行RR或LL型旋转，然后将父结点染成红色，兄结点染成黑色。然后重新以新点为判定点进行平衡操作。我们可以观察到，旋转操作完成后，判定点没有向上回溯，而是降低了一层，<strong>此时变成了黑兄的情况</strong>。</p>
+
+<h4 id="兄弟结点为黑色">兄弟结点为黑色</h4>
+
+<p>黑兄的情况最为复杂，需要根据黑兄孩子结点（这里用<strong>侄</strong>表示）和父亲结点的颜色来决定做什么样的操作。</p>
+
+<h5 id="黑兄二黑侄红父">黑兄二黑侄红父</h5>
+
+<p>如图所示，这种情况比较简单，只需将父结点变为黑色，兄结点变为红色，新结点变为黑色即可，删除操作到此结束。</p>
+
+<p><img src="./delete6.svg" alt="enter description here" title="delete6" /></p>
+
+<h5 id="黑兄二黑侄黑父">黑兄二黑侄黑父</h5>
+
+<p>如图所示，此时将父结点染成新结点的颜色，新结点染成黑色，兄结点染成红色即可。当新结点为红色时，父结点被染成红色，此时需要以父结点为判定点继续向上进行平衡操作。</p>
+
+<p><img src="./delete7.svg" alt="enter description here" title="delete7" /></p>
+
+<h5 id="黑兄红侄">黑兄红侄</h5>
+
+<p>黑兄红侄有以下四种情形，下面分别进行图示：</p>
+
+<p>情形1：</p>
+
+<p><img src="./delete8.svg" alt="enter description here" title="delete8" /></p>
+
+<p>处理方式：兄弟结点变成父节点的颜色，父结点变成黑色，侄子结点变成黑色，父结点右旋转。</p>
+
+<p>情形2</p>
+
+<p><img src="./delete9.svg" alt="enter description here" title="delete9" /></p>
+
+<p>处理方式：兄弟结点变成红色，右侄子变成黑色，兄弟结点左旋转，变成情形1.</p>
+
+<p>情形3：</p>
+
+<p><img src="./delete10.svg" alt="enter description here" title="delete10" />
+处理方式：兄弟结点变成父节点的颜色，父结点变成黑色，侄子结点变成黑色，父结点左旋转。</p>
+
+<p>情形4：</p>
+
+<p><img src="./delete11.svg" alt="enter description here" title="delete11" /></p>
+
+<p>处理方式：兄弟结点变成红色的，左侄子结点变成黑色的，兄弟结点右旋转。变成情形3.</p>
+
+<p>由以上图例所示，看完以上四张图的兄弟有可能会有一个疑问，如果情形1和情形2中的两个侄子结点都为红色时，是该进行LL旋转还是进行LR旋转呢？答案是进行LL旋转。情形3和情形4则是优先进行RR旋转的判定。</p>
+
+<h2 id="参考文档">参考文档</h2>
+
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Red%E2%80%93black_tree">https://en.wikipedia.org/wiki/Red%E2%80%93black_tree</a></li>
+<li><a href="https://blog.csdn.net/arhaiyun/article/details/12407429">https://blog.csdn.net/arhaiyun/article/details/12407429</a></li>
+<li><a href="http://editor.method.ac/">http://editor.method.ac/</a></li>
+<li><a href="http://www.cs.csubak.edu/~msarr/visualizations/RedBlack.html">http://www.cs.csubak.edu/~msarr/visualizations/RedBlack.html</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-07-16</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/posts/rbtree/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/posts/boyer-moore-majority-vote-algorithm/">
+            <span class="next-text nav-default">Boyer-Moore majority vote algorithm(摩尔投票算法)</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

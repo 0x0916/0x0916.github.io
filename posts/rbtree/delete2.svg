@@ -1,0 +1,30 @@
+<svg width="280" height="210" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+
+ <g stroke="null">
+  <title>background</title>
+  <rect stroke="null" fill="#ffffff" id="canvas_background" height="212" width="282" y="-1" x="-1"/>
+  <g stroke="null" display="none" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="5" x="5" height="400" width="500" id="svg_1"/>
+  </g>
+ </g>
+ <g stroke="null">
+  <title>Layer 1</title>
+  <ellipse ry="16.5" rx="16.5" id="svg_36" cy="26.5" cx="87.25" stroke-width="1.5" fill="#000000" stroke="#000000"/>
+  <text stroke="#ffffff" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_37" y="34.50009" x="75.25269" stroke-width="0" fill="#ffffff">父</text>
+  <ellipse ry="17" rx="17" id="svg_38" cy="73" cx="41.75" stroke-width="1.5" fill="#ff0000" stroke="#ff0000"/>
+  <text stroke="#ffff00" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_39" y="81.37663" x="29.76054" stroke-width="0" fill="#ffff00">旧</text>
+  <ellipse ry="16.5" rx="16.5" id="svg_40" cy="26.5" cx="232.5" stroke-width="1.5" fill="#000000" stroke="#000000"/>
+  <text stroke="#ffffff" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_41" y="34.50009" x="220.50269" stroke-width="0" fill="#ffffff">父</text>
+  <ellipse ry="16.5" rx="16.5" id="svg_42" cy="129.5" cx="41.75" stroke-width="1.5" fill="#000000" stroke="#000000"/>
+  <text stroke="#ffffff" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_43" y="137.50009" x="29.7527" stroke-width="0" fill="#ffffff">父</text>
+  <ellipse ry="17" rx="17" id="svg_44" cy="176" cx="87.25" stroke-width="1.5" fill="#ff0000" stroke="#ff0000"/>
+  <text stroke="#ffff00" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_45" y="184.37663" x="75.26054" stroke-width="0" fill="#ffff00">旧</text>
+  <ellipse ry="16.5" rx="16.5" id="svg_46" cy="129.5" cx="232.5" stroke-width="1.5" fill="#000000" stroke="#000000"/>
+  <text stroke="#ffffff" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_47" y="137.50009" x="220.50269" stroke-width="0" fill="#ffffff">父</text>
+  <path fill="#ffff56" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" d="m149.87029,60.01131l8.56162,-3.05455l-16.55347,0l-16.55343,0l0,-1.8909l0,-1.89091l16.36353,0c8.99993,0 16.36352,-0.09584 16.36352,-0.21298c0,-0.11714 -3.58285,-1.49168 -7.96187,-3.05454l-7.96189,-2.84157l7.35922,0l7.35919,0l11.23916,4.00383l11.23915,4.00383l-11.26071,3.99616l-11.26071,3.99617l-7.74747,0l-7.74748,0l8.56164,-3.05454l0,0z" id="svg_51"/>
+  <path fill="#ffff56" stroke="#000000" stroke-width="1.5" stroke-opacity="null" fill-opacity="null" d="m149.87029,153.01131l8.56162,-3.05455l-16.55347,0l-16.55343,0l0,-1.8909l0,-1.89091l16.36353,0c8.99993,0 16.36352,-0.09584 16.36352,-0.21298c0,-0.11714 -3.58285,-1.49168 -7.96187,-3.05454l-7.96189,-2.84157l7.35922,0l7.35919,0l11.23916,4.00383l11.23915,4.00383l-11.26071,3.99616l-11.26071,3.99617l-7.74747,0l-7.74748,0l8.56164,-3.05454l0,0z" id="svg_53"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" x1="73" y1="37" x2="52" y2="57" id="svg_54" stroke-linejoin="null" stroke-linecap="null"/>
+  <line fill="none" stroke="#000000" stroke-width="1.5" stroke-opacity="null" x1="50" y1="143" x2="74" y2="163" id="svg_55" stroke-linejoin="null" stroke-linecap="null"/>
+ </g>
+</svg>
