@@ -41,15 +41,106 @@
 
 为了方便的进行讨论，我们根据如上红黑树的特性，定义了红黑树节点的数据结构，如下：
 
+```c
+#define BLACK	0
+#define RED	1
+typedef struct _RBNode {
+	int key;
+	int color;
+	struct _RBNode *parent, *left, *right;
+} RBNode;
+```
+
 ## 结点的基本操作
 
 ### 寻找parent、grandparent、slibing、uncle等
+
+这些基本操作比较简单，具体代码如下：
+
+```c
+RBNode* parent(RBNode *n) {
+	return n->parent;
+}
+
+int is_leaf(RBNode *n) {
+	return n == LEAF;
+}
+
+RBNode* grandparent(RBNode *n) {
+	RBNode *p = parent(n);
+	if (p == NULL)
+		return NULL;// no parent means no grandparent
+	return parent(p);
+}
+
+RBNode* slibing(RBNode *n) {
+	RBNode *p = parent(n);
+	if (p == NULL)
+		return NULL;// no parent means no slibing 
+	if (n == p->left)
+		return p->right;
+	else
+		return p->left;
+}
+
+RBNode* uncle(RBNode* n) {
+	RBNode *p = parent(n);
+	RBNode *g = grandparent(n);
+
+	if (g == NULL)
+		return NULL; // No grandparent means no uncle
+
+	return slibing(p);
+}
+```
+
+### 中序遍历
+
+中序遍历，即按照关键字的从小到大的顺序。
+
+```c
+void inorder_tree_walk(RBNode* root) {
+	if (!is_leaf(root)) {
+		inorder_tree_walk(root->left);
+		printf(" %d", root->key);
+		inorder_tree_walk(root->right);
+	}
+}
+
+```
 
 ### 旋转
 
 插入和删除过程中都会有破坏红黑树性质的情况发生，为了维护这些性质，必须要改变树中某些结点的颜色和指针结构。指针结构的修改是通过旋转来完成的，旋转被分为左旋和右旋；在插入和删除操作中这两个操作会多次出现，我们先来分析一下这两个操作:
 
 ![enter description here][2]
+
+#### 左旋
+
+```c
+void rotate_left(RBNode* n) { 
+	RBNode* nnew = n->right;
+
+	n->right = nnew->left;
+	if (!is_leaf(nnew->left)) {
+		nnew->left->parent = n;
+	}
+	nnew->parent = n->parent;
+
+	if (n->parent != NULL) {
+		if (n == n->parent->left)
+			n->parent->left = nnew;
+		else
+			n->parent->right = nnew;
+	}
+	nnew->left = n;
+	n->parent = nnew;
+}
+```
+
+#### 右旋
+
+右旋代码跟左旋代码对称，这里就不贴出来了。
 
 ## 红黑树的插入
 
@@ -228,6 +319,11 @@
 由以上图例所示，看完以上四张图的兄弟有可能会有一个疑问，如果情形1和情形2中的两个侄子结点都为红色时，是该进行LL旋转还是进行LR旋转呢？答案是进行LL旋转。情形3和情形4则是优先进行RR旋转的判定。
 
 
+## 代码
+
+- 基于本文的思路，我实现了一个C语言版本的红黑树，地址为：https://github.com/0x0916/rbtree/tree/master/rbtree_1
+
+- 另外，我也基于算法导论中的思路，实现了一个C语言的版本的红黑树，地址为：https://github.com/0x0916/rbtree/tree/master/rbtree_2
 
 ## 参考文档
 

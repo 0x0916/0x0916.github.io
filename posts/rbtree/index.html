@@ -111,7 +111,7 @@
 
 <meta itemprop="datePublished" content="2018-07-16T10:28:23&#43;08:00" />
 <meta itemprop="dateModified" content="2018-07-16T10:28:23&#43;08:00" />
-<meta itemprop="wordCount" content="3898">
+<meta itemprop="wordCount" content="4311">
 
 
 
@@ -218,8 +218,8 @@
               <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
             
           </div>
-        <span class="more-meta"> 3898 words </span>
-        <span class="more-meta"> 8 mins read </span>
+        <span class="more-meta"> 4311 words </span>
+        <span class="more-meta"> 9 mins read </span>
         
       </div>
     </header>
@@ -240,7 +240,12 @@
 <li><a href="#结点的基本操作">结点的基本操作</a>
 <ul>
 <li><a href="#寻找parent-grandparent-slibing-uncle等">寻找parent、grandparent、slibing、uncle等</a></li>
-<li><a href="#旋转">旋转</a></li>
+<li><a href="#中序遍历">中序遍历</a></li>
+<li><a href="#旋转">旋转</a>
+<ul>
+<li><a href="#左旋">左旋</a></li>
+<li><a href="#右旋">右旋</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#红黑树的插入">红黑树的插入</a>
 <ul>
@@ -267,6 +272,7 @@
 </ul></li>
 </ul></li>
 </ul></li>
+<li><a href="#代码">代码</a></li>
 <li><a href="#参考文档">参考文档</a></li>
 </ul></li>
 </ul>
@@ -320,15 +326,102 @@
 
 <p>为了方便的进行讨论，我们根据如上红黑树的特性，定义了红黑树节点的数据结构，如下：</p>
 
+<pre><code class="language-c">#define BLACK	0
+#define RED	1
+typedef struct _RBNode {
+	int key;
+	int color;
+	struct _RBNode *parent, *left, *right;
+} RBNode;
+</code></pre>
+
 <h2 id="结点的基本操作">结点的基本操作</h2>
 
 <h3 id="寻找parent-grandparent-slibing-uncle等">寻找parent、grandparent、slibing、uncle等</h3>
+
+<p>这些基本操作比较简单，具体代码如下：</p>
+
+<pre><code class="language-c">RBNode* parent(RBNode *n) {
+	return n-&gt;parent;
+}
+
+int is_leaf(RBNode *n) {
+	return n == LEAF;
+}
+
+RBNode* grandparent(RBNode *n) {
+	RBNode *p = parent(n);
+	if (p == NULL)
+		return NULL;// no parent means no grandparent
+	return parent(p);
+}
+
+RBNode* slibing(RBNode *n) {
+	RBNode *p = parent(n);
+	if (p == NULL)
+		return NULL;// no parent means no slibing 
+	if (n == p-&gt;left)
+		return p-&gt;right;
+	else
+		return p-&gt;left;
+}
+
+RBNode* uncle(RBNode* n) {
+	RBNode *p = parent(n);
+	RBNode *g = grandparent(n);
+
+	if (g == NULL)
+		return NULL; // No grandparent means no uncle
+
+	return slibing(p);
+}
+</code></pre>
+
+<h3 id="中序遍历">中序遍历</h3>
+
+<p>中序遍历，即按照关键字的从小到大的顺序。</p>
+
+<pre><code class="language-c">void inorder_tree_walk(RBNode* root) {
+	if (!is_leaf(root)) {
+		inorder_tree_walk(root-&gt;left);
+		printf(&quot; %d&quot;, root-&gt;key);
+		inorder_tree_walk(root-&gt;right);
+	}
+}
+
+</code></pre>
 
 <h3 id="旋转">旋转</h3>
 
 <p>插入和删除过程中都会有破坏红黑树性质的情况发生，为了维护这些性质，必须要改变树中某些结点的颜色和指针结构。指针结构的修改是通过旋转来完成的，旋转被分为左旋和右旋；在插入和删除操作中这两个操作会多次出现，我们先来分析一下这两个操作:</p>
 
 <p><img src="./left-rotate-right-rotate.png" alt="enter description here" title="left-rotate-right-rotate" /></p>
+
+<h4 id="左旋">左旋</h4>
+
+<pre><code class="language-c">void rotate_left(RBNode* n) { 
+	RBNode* nnew = n-&gt;right;
+
+	n-&gt;right = nnew-&gt;left;
+	if (!is_leaf(nnew-&gt;left)) {
+		nnew-&gt;left-&gt;parent = n;
+	}
+	nnew-&gt;parent = n-&gt;parent;
+
+	if (n-&gt;parent != NULL) {
+		if (n == n-&gt;parent-&gt;left)
+			n-&gt;parent-&gt;left = nnew;
+		else
+			n-&gt;parent-&gt;right = nnew;
+	}
+	nnew-&gt;left = n;
+	n-&gt;parent = nnew;
+}
+</code></pre>
+
+<h4 id="右旋">右旋</h4>
+
+<p>右旋代码跟左旋代码对称，这里就不贴出来了。</p>
 
 <h2 id="红黑树的插入">红黑树的插入</h2>
 
@@ -507,6 +600,14 @@
 <p>处理方式：兄弟结点变成红色的，左侄子结点变成黑色的，兄弟结点右旋转。变成情形3.</p>
 
 <p>由以上图例所示，看完以上四张图的兄弟有可能会有一个疑问，如果情形1和情形2中的两个侄子结点都为红色时，是该进行LL旋转还是进行LR旋转呢？答案是进行LL旋转。情形3和情形4则是优先进行RR旋转的判定。</p>
+
+<h2 id="代码">代码</h2>
+
+<ul>
+<li><p>基于本文的思路，我实现了一个C语言版本的红黑树，地址为：<a href="https://github.com/0x0916/rbtree/tree/master/rbtree_1">https://github.com/0x0916/rbtree/tree/master/rbtree_1</a></p></li>
+
+<li><p>另外，我也基于算法导论中的思路，实现了一个C语言的版本的红黑树，地址为：<a href="https://github.com/0x0916/rbtree/tree/master/rbtree_2">https://github.com/0x0916/rbtree/tree/master/rbtree_2</a></p></li>
+</ul>
 
 <h2 id="参考文档">参考文档</h2>
 
