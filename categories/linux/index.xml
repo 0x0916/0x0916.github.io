@@ -6,10 +6,21 @@
     <description>Recent content in Linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 10 May 2018 18:26:35 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 30 Jul 2018 19:02:06 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/categories/linux/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Process Resource</title>
+      <link>http://linux.laoqinren.net/posts/process_resource/</link>
+      <pubDate>Mon, 30 Jul 2018 19:02:06 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/process_resource/</guid>
+      <description>&lt;p&gt;每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Cgroup之cpuset子系统</title>
