@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>红黑树(三)—— 在应用中复用linux的代码实现 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。
+ 注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm " />
+<meta name="keywords" content="rbtree" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/posts/reuse-linux-kernel-rbtree/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="红黑树(三)—— 在应用中复用linux的代码实现" />
+<meta property="og:description" content="红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。
+
+
+注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/reuse-linux-kernel-rbtree/" />
+
+
+
+<meta property="article:published_time" content="2018-08-06T16:17:53&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-08-06T16:17:53&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="红黑树(三)—— 在应用中复用linux的代码实现">
+<meta itemprop="description" content="红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。
+
+
+注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm
+">
+
+
+<meta itemprop="datePublished" content="2018-08-06T16:17:53&#43;08:00" />
+<meta itemprop="dateModified" content="2018-08-06T16:17:53&#43;08:00" />
+<meta itemprop="wordCount" content="819">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="红黑树(三)—— 在应用中复用linux的代码实现"/>
+<meta name="twitter:description" content="红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。
+
+
+注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">红黑树(三)—— 在应用中复用linux的代码实现</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-08-06 </span>
+        <div class="post-category">
+            
+              <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+            
+              <a href="/categories/algorithm/"> algorithm </a>
+            
+          </div>
+        <span class="more-meta"> 819 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#准备代码">准备代码</a></li>
+<li><a href="#删除export-symbol">删除EXPORT_SYMBOL</a></li>
+<li><a href="#调整头文件">调整头文件</a></li>
+<li><a href="#添加测试用例">添加测试用例</a></li>
+<li><a href="#代码">代码</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。</p>
+
+<blockquote>
+<p>注意：本文中的代码来自于：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm">http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm</a>
+</p>
+</blockquote>
+
+<h3 id="准备代码">准备代码</h3>
+
+<p>拷贝内核中的如下代码到一个单独的目录中：</p>
+
+<pre><code>lib/rbtree.c
+include/linux/rbtree.h
+include/linux/rbtree_augmented.h
+</code></pre>
+
+<h3 id="删除export-symbol">删除EXPORT_SYMBOL</h3>
+
+<pre><code class="language-diff">diff --git a/rbtree_3/rbtree.c b/rbtree_3/rbtree.c
+index 65f4eff..cb6c066 100644
+--- a/rbtree_3/rbtree.c
++++ b/rbtree_3/rbtree.c
+@@ -22,7 +22,6 @@
+ */
+ 
+ #include &lt;linux/rbtree_augmented.h&gt;
+-#include &lt;linux/export.h&gt;
+ 
+ /*
+  * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
+@@ -366,7 +365,6 @@ void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
+ {
+        ____rb_erase_color(parent, root, augment_rotate);
+ }
+-EXPORT_SYMBOL(__rb_erase_color);
+ 
+ /*
+  * Non-augmented rbtree manipulation functions.
+@@ -387,7 +385,6 @@ void rb_insert_color(struct rb_node *node, struct rb_root *root)
+ {
+        __rb_insert(node, root, dummy_rotate);
+ }
+-EXPORT_SYMBOL(rb_insert_color);
+ 
+ void rb_erase(struct rb_node *node, struct rb_root *root)
+ {
+@@ -396,7 +393,6 @@ void rb_erase(struct rb_node *node, struct rb_root *root)
+        if (rebalance)
+                ____rb_erase_color(rebalance, root, dummy_rotate);
+ }
+-EXPORT_SYMBOL(rb_erase);
+ 
+ /*
+  * Augmented rbtree manipulation functions.
+@@ -410,7 +406,6 @@ void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
+ {
+        __rb_insert(node, root, augment_rotate);
+ }
+-EXPORT_SYMBOL(__rb_insert_augmented);
+ 
+ /*
+  * This function returns the first node (in sort order) of the tree.
+@@ -426,7 +421,6 @@ struct rb_node *rb_first(const struct rb_root *root)
+                n = n-&gt;rb_left;
+        return n;
+ }
+-EXPORT_SYMBOL(rb_first);
+ 
+ struct rb_node *rb_last(const struct rb_root *root)
+ {
+@@ -439,7 +433,6 @@ struct rb_node *rb_last(const struct rb_root *root)
+                n = n-&gt;rb_right;
+        return n;
+ }
+-EXPORT_SYMBOL(rb_last);
+ 
+ struct rb_node *rb_next(const struct rb_node *node)
+ {
+@@ -471,7 +464,6 @@ struct rb_node *rb_next(const struct rb_node *node)
+ 
+        return parent;
+ }
+-EXPORT_SYMBOL(rb_next);
+ 
+ struct rb_node *rb_prev(const struct rb_node *node)
+ {
+@@ -500,7 +492,6 @@ struct rb_node *rb_prev(const struct rb_node *node)
+ 
+        return parent;
+ }
+-EXPORT_SYMBOL(rb_prev);
+ 
+ void rb_replace_node(struct rb_node *victim, struct rb_node *new,
+                     struct rb_root *root)
+@@ -517,7 +508,6 @@ void rb_replace_node(struct rb_node *victim, struct rb_node *new,
+        /* Copy the pointers/colour from the victim to the replacement */
+        *new = *victim;
+ }
+-EXPORT_SYMBOL(rb_replace_node);
+ 
+ static struct rb_node *rb_left_deepest_node(const struct rb_node *node)
+ {
+@@ -548,7 +538,6 @@ struct rb_node *rb_next_postorder(const struct rb_node *node)
+                 * should be next */
+                return (struct rb_node *)parent;
+ }
+-EXPORT_SYMBOL(rb_next_postorder);
+ 
+ struct rb_node *rb_first_postorder(const struct rb_root *root)
+ {
+@@ -557,4 +546,3 @@ struct rb_node *rb_first_postorder(const struct rb_root *root)
+ 
+        return rb_left_deepest_node(root-&gt;rb_node);
+ }
+-EXPORT_SYMBOL(rb_first_postorder);
+</code></pre>
+
+<h3 id="调整头文件">调整头文件</h3>
+
+<pre><code class="language-diff">diff --git a/rbtree_3/rbtree.c b/rbtree_3/rbtree.c
+index cb6c066..ccaf59b 100644
+--- a/rbtree_3/rbtree.c
++++ b/rbtree_3/rbtree.c
+@@ -21,7 +21,7 @@
+   linux/lib/rbtree.c
+ */
+ 
+-#include &lt;linux/rbtree_augmented.h&gt;
++#include &quot;rbtree_augmented.h&quot;
+ 
+ /*
+  * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
+diff --git a/rbtree_3/rbtree.h b/rbtree_3/rbtree.h
+index 57e75ae..a029d55 100644
+--- a/rbtree_3/rbtree.h
++++ b/rbtree_3/rbtree.h
+@@ -29,8 +29,28 @@
+ #ifndef        _LINUX_RBTREE_H
+ #define        _LINUX_RBTREE_H
+ 
+-#include &lt;linux/kernel.h&gt;
+-#include &lt;linux/stddef.h&gt;
++#include &lt;stdio.h&gt;
++
++#define NULL ((void *)0)
++enum {
++       false   = 0,
++       true    = 1
++};
++
++
++#define offsetof(TYPE, MEMBER)  ((size_t)&amp;((TYPE *)0)-&gt;MEMBER)
++
++/**
++ * container_of - cast a member of a structure out to the containing structure
++ * @ptr:        the pointer to the member.
++ * @type:       the type of the container struct this is embedded in.
++ * @member:     the name of the member within the struct.
++ *
++ */
++#define container_of(ptr, type, member) ({                      \
++       const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
++       (type *)( (char *)__mptr - offsetof(type,member) );})
++
+ 
+ struct rb_node {
+        unsigned long  __rb_parent_color;
+diff --git a/rbtree_3/rbtree_augmented.h b/rbtree_3/rbtree_augmented.h
+index fea49b5..079eb97 100644
+--- a/rbtree_3/rbtree_augmented.h
++++ b/rbtree_3/rbtree_augmented.h
+@@ -24,8 +24,7 @@
+ #ifndef _LINUX_RBTREE_AUGMENTED_H
+ #define _LINUX_RBTREE_AUGMENTED_H
+ 
+-#include &lt;linux/compiler.h&gt;
+-#include &lt;linux/rbtree.h&gt;
++#include &quot;rbtree.h&quot;
+ 
+ /*
+  * Please note - only struct rb_augment_callbacks and the prototypes for
+</code></pre>
+
+<h3 id="添加测试用例">添加测试用例</h3>
+
+<p>添加测试用例文件：main.c</p>
+
+<p>Makefile如下：</p>
+
+<pre><code># cat Makefile 
+all: rbtree 
+
+rbtree:
+        gcc main.c rbtree.c  -g -o rbtree
+
+test: all
+        ./rbtree
+
+clean:
+        rm -fr rbtree *.o
+</code></pre>
+
+<h3 id="代码">代码</h3>
+
+<p>调整好的代码地址为：<a href="https://github.com/0x0916/rbtree/tree/master/rbtree_3">https://github.com/0x0916/rbtree/tree/master/rbtree_3</a></p>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-08-06</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/posts/reuse-linux-kernel-rbtree/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/posts/rbtree-linux-kernel/">
+            <span class="next-text nav-default">红黑树(二)——linux 内核的设计实现</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
