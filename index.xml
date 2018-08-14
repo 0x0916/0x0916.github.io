@@ -12,6 +12,23 @@
     
     
     <item>
+      <title>Cgroup之不绑定任何subsystem</title>
+      <link>http://linux.laoqinren.net/posts/hierarchy-without-controller-group/</link>
+      <pubDate>Tue, 14 Aug 2018 19:59:57 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/hierarchy-without-controller-group/</guid>
+      <description>&lt;p&gt;本文将创建并挂载一颗不和任何&lt;code&gt;subsystem&lt;/code&gt;系统绑定的&lt;code&gt;cgroup&lt;/code&gt;树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个&lt;code&gt;cgroup&lt;/code&gt;中默认都有的几个文件的含义。&lt;/p&gt;
+
+&lt;p&gt;最后，介绍了这样使用&lt;code&gt;cgroup&lt;/code&gt;的一个用户。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;本文所有例子在&lt;code&gt;centos 7.5&lt;/code&gt; 下执行通过&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>cgroup之debug子系统</title>
       <link>http://linux.laoqinren.net/kernel/cgroup-debug/</link>
       <pubDate>Thu, 09 Aug 2018 22:46:11 +0800</pubDate>

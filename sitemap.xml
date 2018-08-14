@@ -3,6 +3,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://linux.laoqinren.net/posts/hierarchy-without-controller-group/</loc>
+    <lastmod>2018-08-14T19:59:57+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/cgroup-debug/</loc>
     <lastmod>2018-08-09T22:46:11+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -186,7 +193,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/posts/</loc>
-    <lastmod>2018-08-06T16:17:53+08:00</lastmod>
+    <lastmod>2018-08-14T19:59:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -214,14 +221,14 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/cgroup/</loc>
-    <lastmod>2018-08-09T22:46:11+08:00</lastmod>
+    <lastmod>2018-08-14T19:59:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/categories/cgroup/</loc>
-    <lastmod>2018-08-09T22:46:11+08:00</lastmod>
+    <lastmod>2018-08-14T19:59:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
