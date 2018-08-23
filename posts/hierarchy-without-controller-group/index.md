@@ -38,7 +38,7 @@ cgroup.clone_children  cgroup.event_control  cgroup.procs  cgroup.sane_behavior 
 
 ### 创建和删除cgroup
 
-挂载好cgroup树之后，就可以在里面新建CG肉片了，其实新建cgroup很简单，就是创建目录就可以了。
+挂载好cgroup树之后，就可以在里面新建cgroup了，其实新建cgroup很简单，就是创建目录就可以了。
 
 ```bash
 ~/cgroup  # # 创建子cgroup很简单，新建一个目录就可以了
@@ -230,7 +230,7 @@ cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xa
 
 `/sys/fs/cgroup/systemd/`目录其实就是一个没有和任何subsystem关联的cgroup，那systemd用它来做什么呢？我猜是用来追踪每个服务的进程的pid号的(由于没有找打相关文档)。
 
-这里先将猜测记录如下，后续有机会再进行验证。
+这里先将猜测记录如下，后续会进行验证。
 
 一般使用systemctl去管理系统服务时，当我们要reload这个服务时，一般的service描述文件中记录的要执行的命令如下：
 
@@ -254,6 +254,80 @@ cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xa
 
 那我们如何知道`$MAINPID`的值是多少呢？我猜这里就使用了该服务对应的cgroup中的cgroup.procs的输出结果。
 
+
+下面通过代码来验证上面的猜测，如下引用的代码来自于：[https://github.com/systemd/systemd/tree/v219](https://github.com/systemd/systemd/tree/v219)
+
+`systemd`有方法`service_search_main_pid`来获取`MAINPID`,其又调用了方法`unit_search_main_pid`。
+
+`unit_search_main_pid` 代码如下：
+
+```c
+pid_t unit_search_main_pid(Unit *u) {
+        _cleanup_fclose_ FILE *f = NULL;
+        pid_t pid = 0, npid, mypid;
+
+        assert(u);
+
+        if (!u->cgroup_path)
+                return 0;
+
+        if (cg_enumerate_processes(SYSTEMD_CGROUP_CONTROLLER, u->cgroup_path, &f) < 0)
+                return 0;
+
+        mypid = getpid();
+        while (cg_read_pid(f, &npid) > 0)  {
+                pid_t ppid;
+
+                if (npid == pid)
+                        continue;
+
+                /* Ignore processes that aren't our kids */
+                if (get_parent_of_pid(npid, &ppid) >= 0 && ppid != mypid)
+                        continue;
+
+                if (pid != 0) {
+                        /* Dang, there's more than one daemonized PID
+                        in this group, so we don't know what process
+                        is the main process. */
+                        pid = 0;
+                        break;
+                }
+
+                pid = npid;
+        }
+
+        return pid;
+}
+```
+
+这个函数就非常简单了，第10行用于获取`cgroup.procs`的文件描述符，14行循环读取该文件中的`pid`。一些关键的宏和函数定义如下：
+
+```c
+#define SYSTEMD_CGROUP_CONTROLLER "name=systemd"
+
+// 打开文件的函数
+int cg_enumerate_processes(const char *controller, const char *path, FILE **_f) {
+        _cleanup_free_ char *fs = NULL;
+        FILE *f;
+        int r;
+
+        assert(_f);
+
+        r = cg_get_path(controller, path, "cgroup.procs", &fs);
+        if (r < 0) 
+                return r;
+
+        f = fopen(fs, "re");
+        if (!f) 
+                return -errno;
+
+        *_f = f; 
+        return 0;
+}
+```
+
+
 ### 参考文章
 
 * https://segmentfault.com/a/1190000007241437
+* https://github.com/systemd/systemd/tree/v219

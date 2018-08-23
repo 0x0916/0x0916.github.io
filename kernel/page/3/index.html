@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Categories - Notes about linux and my work</title>
+  <title>Notes about linux and my work</title>
   <meta name="renderer" content="webkit" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
@@ -28,7 +28,9 @@
 <meta name="generator" content="Hugo 0.37.1" />
 
 
-<link rel="canonical" href="http://linux.laoqinren.net/categories/" />
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/" />
+<link href="http://linux.laoqinren.net/kernel/index.xml" rel="alternate" type="application/rss+xml" title="Notes about linux and my work" />
+  <link href="http://linux.laoqinren.net/kernel/index.xml" rel="feed" type="application/rss+xml" title="Notes about linux and my work" />
 
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -48,29 +50,29 @@
 
 
 
-<meta property="og:title" content="Categories" />
+<meta property="og:title" content="" />
 <meta property="og:description" content="Notes about my work and linux kernel" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://linux.laoqinren.net/categories/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/" />
 
 
 
-<meta property="og:updated_time" content="2018-08-06T16:17:53&#43;08:00"/>
-
-
-
-
+<meta property="og:updated_time" content="2018-04-16T12:14:18&#43;08:00"/>
 
 
 
 
 
 
-<meta itemprop="name" content="Categories">
+
+
+
+
+<meta itemprop="name" content="">
 <meta itemprop="description" content="Notes about my work and linux kernel">
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Categories"/>
+<meta name="twitter:title" content=""/>
 <meta name="twitter:description" content="Notes about my work and linux kernel"/>
 
 <!--[if lte IE 9]>
@@ -144,58 +146,83 @@
       <div class="content-wrapper">
         <div id="content" class="content">
           
-  
-    <div class="categories">
-      <div class="categories-title">
-        
-          8 Categories In Total
-        
-      </div>
-      <div class="categories-tags">
-        
-          <a class="category-link" href="/categories/kernel/">
-            kernel
-            <span class="category-count">12</span>
-          </a>
-        
-          <a class="category-link" href="/categories/cgroup/">
-            cgroup
-            <span class="category-count">7</span>
-          </a>
-        
-          <a class="category-link" href="/categories/linux/">
-            linux
-            <span class="category-count">6</span>
-          </a>
-        
-          <a class="category-link" href="/categories/%E7%AE%97%E6%B3%95/">
-            算法
-            <span class="category-count">4</span>
-          </a>
-        
-          <a class="category-link" href="/categories/algorithm/">
-            algorithm
-            <span class="category-count">3</span>
-          </a>
-        
-          <a class="category-link" href="/categories/api/">
-            api
-            <span class="category-count">1</span>
-          </a>
-        
-          <a class="category-link" href="/categories/development/">
-            development
-            <span class="category-count">1</span>
-          </a>
-        
-          <a class="category-link" href="/categories/eventfd/">
-            eventfd
-            <span class="category-count">1</span>
-          </a>
-        
-      </div>
+
+<p>本栏目下主要归档了一些linux kernel相关的文章,注重结合内核源代码进行说明分析。</p>
+
+
+  <section id="posts" class="posts">
+    
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/hungtask/">hungtask 机制分析</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-04-16 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 2532 words </span>
+      <span class="more-meta"> 6 mins read </span>
     </div>
+  </header>
   
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本文分析了内核中<code>hungtask</code>机制，下文中代码基于社区稳定版本内核，版本为：<code>v4.4.128</code>。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/hungtask/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/percpu-counter/">内核基础设施——percpu_counter</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-04-13 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 2397 words </span>
+      <span class="more-meta"> 5 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>内核里很多模块都需要对一些事件进行统计，有一个叫做<code>percpu_counter</code>的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。</p>
+
+<blockquote>
+<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code>。</p>
+</blockquote>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/percpu-counter/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+  </section>
+  
+  <nav class="pagination">
+    
+      <a class="prev" href="/kernel/page/2/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text">Prev</span>
+      </a>
+    
+  </nav>
 
         </div>
         

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>cgroup源码分析1—— css_set和cgroup的关系 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
+ 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+ 
+" />
+<meta name="keywords" content="cgroup" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="cgroup源码分析1—— css_set和cgroup的关系" />
+<meta property="og:description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
+
+
+本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/" />
+
+
+
+<meta property="article:published_time" content="2018-08-23T15:19:35&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-08-23T15:19:35&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="cgroup源码分析1—— css_set和cgroup的关系">
+<meta itemprop="description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
+
+
+本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-08-23T15:19:35&#43;08:00" />
+<meta itemprop="dateModified" content="2018-08-23T15:19:35&#43;08:00" />
+<meta itemprop="wordCount" content="5502">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,cgroup," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="cgroup源码分析1—— css_set和cgroup的关系"/>
+<meta name="twitter:description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
+
+
+本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">cgroup源码分析1—— css_set和cgroup的关系</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-08-23 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+              <a href="/categories/cgroup/"> cgroup </a>
+            
+          </div>
+        <span class="more-meta"> 5502 words </span>
+        <span class="more-meta"> 11 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#基本概念">基本概念</a>
+<ul>
+<li><a href="#cgroup功能">cgroup功能</a></li>
+<li><a href="#概念">概念</a></li>
+</ul></li>
+<li><a href="#css-set-和-cgroup-的多对多的关系">css_set 和 cgroup 的多对多的关系</a>
+<ul>
+<li><a href="#task-struct-结构">task_struct 结构</a></li>
+<li><a href="#css-set-结构">css_set 结构</a></li>
+<li><a href="#cgroup-subsys-state-结构">cgroup_subsys_state 结构</a></li>
+<li><a href="#cgroup-结构">cgroup 结构</a></li>
+<li><a href="#css-set-和-cgroup-之间的关系"><code>css_set</code>和<code>cgroup</code>之间的关系</a>
+<ul>
+<li><a href="#cg-cgroup-link-结构">cg_cgroup_link 结构</a></li>
+<li><a href="#那为什么要这样设计呢"><strong>那为什么要这样设计呢?</strong></a></li>
+<li><a href="#那为什么cgroup和css-set是多对多的关系呢"><strong>那为什么cgroup和css_set是多对多的关系呢?</strong></a></li>
+<li><a href="#实验">实验</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#参考文档">参考文档</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>本系列文章主要从源码入手，分析<code>linux kernel</code>中<code>cgroup</code>的实现。</p>
+
+<blockquote>
+<p>本文基于<code>3.10.0-862.el7.x86_64</code>版本kernel进行分析。</p>
+</blockquote>
+
+<p></p>
+
+<h2 id="基本概念">基本概念</h2>
+
+<p>在进行源码分析之前， 我们有必要了解一下cgroup的基本概念。</p>
+
+<h3 id="cgroup功能">cgroup功能</h3>
+
+<p><code>Cgroups</code>是<code>control groups</code>的缩写，是<code>Linux</code>内核提供的一种可以限制、记录、隔离进程组（<code>process groups</code>）所使用的物理资源（如：<code>cpu,memory,IO</code>等等）的机制。<code>cgroups</code>也是<strong>LXC</strong>和<strong>Docker</strong>为实现虚拟化所使用的资源管理手段。</p>
+
+<p><code>Cgroups</code> 最初的目标是为资源管理提供的一个统一的框架，既整合现有的 cpuset 等子系统，也为未来开发新的子系统提供接口。现在的 <code>cgroups</code> 适用于多种应用场景，从单个进程的资源控制，到实现操作系统层次的虚拟化(OS Level Virtualization)。<code>Cgroups</code> 提供了一下功能:</p>
+
+<ul>
+<li>限制进程组可以使用的资源数量（Resource limiting ）。比如：memory子系统可以为进程组设定一个memory使用上限，一旦进程组使用的内存达到限额再申请内存，就会出发OOM（out of memory）。</li>
+<li>进程组的优先级控制（Prioritization ）。比如：可以使用cpu子系统为某个进程组分配特定cpu share。</li>
+<li>记录进程组使用的资源数量（Accounting ）。比如：可以使用cpuacct子系统记录某个进程组使用的cpu时间。</li>
+<li>进程组隔离（Isolation）。比如：使用ns子系统可以使不同的进程组使用不同的namespace，以达到隔离的目的，不同的进程组有各自的进程、网络、文件系统挂载空间。</li>
+<li>进程组控制（Control）。比如：使用freezer子系统可以将进程组挂起和恢复。</li>
+</ul>
+
+<h3 id="概念">概念</h3>
+
+<ul>
+<li>任务（<code>task</code>）。在cgroups中，任务就是系统的一个进程。</li>
+<li>控制族群（<code>coontrol group</code>）就是一组按照某种标准划分的进程。<code>Cgroups</code>中的资源控制都是以控制族群为单位实现。一个进程可以加入到某个控制族群，也从一个进程组迁移到另一个控制族群。一个进程组的进程可以使用<code>cgroups</code>以控制族群为单位分配的资源，同时受到<code>cgroups</code>以控制族群为单位设定的限制。</li>
+<li>层级（<code>hierarchy</code>）。控制族群可以组织成<code>hierarchical</code>的形式，既一颗控制族群树。控制族群树上的子节点控制族群是父节点控制族群的孩子，继承父控制族群的特定的属性。</li>
+<li>子系统（<code>subsytem</code>）。一个子系统就是一个资源控制器，比如cpu子系统就是控制cpu时间分配的一个控制器。子系统必须附加（attach）到一个层级上才能起作用，一个子系统附加到某个层级以后，这个层级上的所有控制族群都受到这个子系统的控制</li>
+</ul>
+
+<h2 id="css-set-和-cgroup-的多对多的关系">css_set 和 cgroup 的多对多的关系</h2>
+
+<p>我们先从进程的角度出发，来剖析<code>cgroups</code>相关数据结构之间的关系。</p>
+
+<h3 id="task-struct-结构">task_struct 结构</h3>
+
+<p>在 <code>Linux</code> 中，管理进程的数据结构是 <code>task_struct</code>，其中与 <code>cgroups</code> 有关的是如下两个成员:</p>
+
+<pre><code class="language-c">#ifdef CONFIG_CGROUPS
+	/* Control Group info protected by css_set_lock */
+	struct css_set __rcu *cgroups;
+	/* cg_list protected by css_set_lock and tsk-&gt;alloc_lock */
+	struct list_head cg_list;
+#endif
+</code></pre>
+
+<p>其中<code>cgroups</code>指向了一个<code>css_set</code>结构，而<code>css_set</code>存储了与进程相关的<code>cgroups</code>信息。<code>cg_list</code>将使用同一个<code>css_set</code>的进程链接在一起。</p>
+
+<h3 id="css-set-结构">css_set 结构</h3>
+
+<p>我们来看<code>css_set</code>结构：</p>
+
+<pre><code class="language-c">/*
+ * A css_set is a structure holding pointers to a set of
+ * cgroup_subsys_state objects. This saves space in the task struct
+ * object and speeds up fork()/exit(), since a single inc/dec and a
+ * list_add()/del() can bump the reference count on the entire cgroup
+ * set for a task.
+ */
+struct css_set {
+
+	/* Reference count */
+	atomic_t refcount;
+	
+	/*
+	 * List running through all cgroup groups in the same hash
+	 * slot. Protected by css_set_lock
+	 */
+	struct hlist_node hlist;
+	
+	/*
+	 * List running through all tasks using this cgroup
+	 * group. Protected by css_set_lock
+	 */
+	struct list_head tasks;
+	
+	/*
+	 * List of cg_cgroup_link objects on link chains from
+	 * cgroups referenced from this css_set. Protected by
+	 * css_set_lock
+	 */
+	struct list_head cg_links;
+	
+	/*
+	 * Set of subsystem states, one for each subsystem. This array
+	 * is immutable after creation apart from the init_css_set
+	 * during subsystem registration (at boot time) and modular subsystem
+	 * loading/unloading.
+	 */
+	struct cgroup_subsys_state *subsys[CGROUP_SUBSYS_COUNT];
+	
+	/* For RCU-protected deletion */
+	struct rcu_head rcu_head;
+};
+</code></pre>
+
+<ul>
+<li>其中<code>refcount</code>是该<code>css_set</code>的引用计数，因为一个<code>css_set</code>可以被多个进程共用,只要这些进程的<code>cgroups</code>信息相同。比如：在所有已经创建的层级里面都在同一个<code>cgroup</code>里的进程。</li>
+<li><code>hlist</code>是嵌入的<code>hlist_node</code>，用于把所有的<code>css_set</code>组成一个<code>hash</code>表，这样内核可以快速查找特定的<code>css_set</code>（后续单独有文字分析这个）。</li>
+<li><code>tasks</code>是将所有引用此<code>css_set</code>的进程连接成链表。</li>
+<li><code>cg_links</code>指向一个由<code>struct cg_cgroup_link</code>组成的链表。</li>
+<li><code>subsys</code>是一个指针数组，存储一组指向<code>cgroup_subsys_state</code>的指针。一个<code>cgroup_subsys_state</code>就是进程与一个特定的子系统相关的信息。通过这个指针，进程就可以获得相应的<code>cgroups</code>控制信息了。</li>
+</ul>
+
+<p>我们可以通过实验，观察一下<code>css_set</code>中的<code>tasks</code>链表。</p>
+
+<pre><code class="language-bash"># 启动两个sleep进程
+~ # sleep 72000 &amp;
+[1] 1968
+~ # sleep 72000 &amp;
+[2] 1973
+~ # # 创建一个新的memory cgroup
+~ # mkdir /sys/fs/cgroup/memory/test1
+~ # # 将这两个进程加入到新创建的cgroup中
+~ # echo 1968 &gt; /sys/fs/cgroup/memory/test1/cgroup.procs 
+~ # echo 1973 &gt; /sys/fs/cgroup/memory/test1/cgroup.procs
+~ # cat /sys/fs/cgroup/memory/test1/cgroup.procs
+1968
+1973
+</code></pre>
+
+<p>通过<code>crash</code>，我们可以看到这两个进程使用同一个<code>css_set</code>, 而使用同一个<code>css_set</code>的进程被<code>cg_list</code>链接到了一起，其链表头为<code>css_set</code>中的成员<code>tasks</code>。</p>
+
+<pre><code>crash&gt; task -R cgroups 1968
+PID: 1968   TASK: ffff904710fdc000  CPU: 0   COMMAND: &quot;sleep&quot;
+  cgroups = 0xffff90460d67b9c0, 
+
+crash&gt; task -R cgroups 1973
+PID: 1973   TASK: ffff90463b61c000  CPU: 0   COMMAND: &quot;sleep&quot;
+  cgroups = 0xffff90460d67b9c0, 
+
+crash&gt; struct -o css_set 0xffff90460d67b9c0
+struct css_set {
+  [ffff90460d67b9c0] atomic_t refcount;
+  [ffff90460d67b9c8] struct hlist_node hlist;
+  [ffff90460d67b9d8] struct list_head tasks;
+  [ffff90460d67b9e8] struct list_head cg_links;
+  [ffff90460d67b9f8] struct cgroup_subsys_state *subsys[13];
+  [ffff90460d67ba60] struct callback_head callback_head;
+}
+SIZE: 176
+crash&gt; list -l task_struct.cg_list -s task_struct.comm -H ffff90460d67b9d8
+ffff90463b61d508
+  comm = &quot;sleep\000\000\000\060\000\000\000\000\000\000&quot;
+ffff904710fdd508
+  comm = &quot;sleep\000\000\000\060\000\000\000\000\000\000&quot;
+</code></pre>
+
+<h3 id="cgroup-subsys-state-结构">cgroup_subsys_state 结构</h3>
+
+<p>接着，我们来看<code>cgroup_subsys_state</code>结构</p>
+
+<pre><code class="language-c">/* Per-subsystem/per-cgroup state maintained by the system. */
+struct cgroup_subsys_state {
+	/*
+	 * The cgroup that this subsystem is attached to. Useful
+	 * for subsystems that want to know about the cgroup
+	 * hierarchy structure
+	 */
+	struct cgroup *cgroup;
+	
+	/*
+	 * State maintained by the cgroup system to allow subsystems
+	 * to be &quot;busy&quot;. Should be accessed via css_get(),
+	 * css_tryget() and css_put().
+	 */
+	atomic_t refcnt;
+	
+	unsigned long flags;
+	/* ID for this css, if possible */
+	struct css_id __rcu *id;
+	
+	/* Used to put @cgroup-&gt;dentry on the last css_put() */
+	struct work_struct dput_work;
+};
+</code></pre>
+
+<ul>
+<li><code>cgroup</code>指针指向了一个<code>cgroup</code>结构，也就是进程属于的<code>cgroup</code>。进程受到子系统的控制，实际上是通过加入到特定的<code>cgroup</code>实现的，因为<code>cgroup</code>在特定的层级上，而子系统又是附加到层级上的。</li>
+</ul>
+
+<p>通过以上三个结构，<code>task_struct</code>就可以和<code>cgroup</code> 连接起来了 :<code>task_struct-&gt;css_set-&gt;cgroup_subsys_state-&gt;cgroup</code></p>
+
+<h3 id="cgroup-结构">cgroup 结构</h3>
+
+<p>我们再来看<code>cgroup</code>结构：</p>
+
+<pre><code class="language-c">struct cgroup {
+	unsigned long flags;		/* &quot;unsigned long&quot; so bitops work */
+	
+	/*
+	 * count users of this cgroup. &gt;0 means busy, but doesn't
+	 * necessarily indicate the number of tasks in the cgroup
+	 */
+	atomic_t count;
+	
+	int id;				/* ida allocated in-hierarchy ID */
+	/*
+	 * We link our 'sibling' struct into our parent's 'children'.
+	 * Our children link their 'sibling' into our 'children'.
+	 */
+	struct list_head sibling;	/* my parent's children */
+	struct list_head children;	/* my children */
+	struct list_head files;		/* my files */
+	
+	struct cgroup *parent;		/* my parent */
+	struct dentry *dentry;		/* cgroup fs entry, RCU protected */
+
+	/*
+	 * This is a copy of dentry-&gt;d_name, and it's needed because
+	 * we can't use dentry-&gt;d_name in cgroup_path().
+	 *
+	 * You must acquire rcu_read_lock() to access cgrp-&gt;name, and
+	 * the only place that can change it is rename(), which is
+	 * protected by parent dir's i_mutex.
+	 *
+	 * Normally you should use cgroup_name() wrapper rather than
+	 * access it directly.
+	 */
+	struct cgroup_name __rcu *name;
+	
+	/* Private pointers for each registered subsystem */
+	struct cgroup_subsys_state *subsys[CGROUP_SUBSYS_COUNT];
+	struct cgroupfs_root *root;
+
+	/*
+	 * List of cg_cgroup_links pointing at css_sets with
+	 * tasks in this cgroup. Protected by css_set_lock
+	 */
+	struct list_head css_sets;
+	struct list_head allcg_node;	/* cgroupfs_root-&gt;allcg_list */
+	struct list_head cft_q_node;	/* used during cftype add/rm */
+
+	/*
+	 * Linked list running through all cgroups that can
+	 * potentially be reaped by the release agent. Protected by
+	 * release_list_lock
+	 */
+	struct list_head release_list;
+
+	/*
+	 * list of pidlists, up to two for each namespace (one for procs, one
+	 * for tasks); created on demand.
+	 */
+	struct list_head pidlists;
+	struct mutex pidlist_mutex;
+
+	/* For RCU-protected deletion */
+	struct rcu_head rcu_head;
+	struct work_struct free_work;
+
+	/* List of events which userspace want to receive */
+	struct list_head event_list;
+	spinlock_t event_list_lock;
+
+	/* directory xattrs */
+	struct simple_xattrs xattrs;
+};
+</code></pre>
+
+<ul>
+<li><code>sibling</code>,<code>children</code>和<code>parent</code>三个嵌入的<code>list_head</code>负责将同一层级的<code>cgroup</code>连接成一颗<code>cgroup</code>树。</li>
+<li><code>subsys</code>是一个指针数组，存储一组指向<code>cgroup_subsys_state</code>的指针。这组指针指向了此<code>cgroup</code>跟各个子系统相关的信息，这个跟<code>css_set</code>中的道理是一样的。</li>
+<li><code>root</code>指向了一个<code>cgroupfs_root</code>的结构，就是<code>cgroup</code>所在的层级对应的结构体。</li>
+<li><code>root-&gt;top_cgroup</code>指向了所在层级的根<code>cgroup</code>，也就是创建层级时自动创建的那个<code>cgroup</code>。<code>cgroup-&gt;root-&gt;top_cgroup</code> 可以获取层级的根<code>cgroup</code>信息</li>
+<li><code>css_sets</code>指向一个由<code>struct cg_cgroup_link</code>连成的链表，跟<code>css_set</code>中<code>cg_links</code>一样</li>
+</ul>
+
+<h3 id="css-set-和-cgroup-之间的关系"><code>css_set</code>和<code>cgroup</code>之间的关系</h3>
+
+<h4 id="cg-cgroup-link-结构">cg_cgroup_link 结构</h4>
+
+<p>下面我们来分析一个<code>css_set</code>和<code>cgroup</code>之间的关系。我们先看一下<code>cg_cgroup_link</code>的结构</p>
+
+<pre><code class="language-C">/* Link structure for associating css_set objects with cgroups */
+struct cg_cgroup_link {
+	/*
+	 * List running through cg_cgroup_links associated with a
+	 * cgroup, anchored on cgroup-&gt;css_sets
+	 */
+	struct list_head cgrp_link_list;
+	struct cgroup *cgrp;
+	/*
+	 * List running through cg_cgroup_links pointing at a
+	 * single css_set object, anchored on css_set-&gt;cg_links
+	 */
+	struct list_head cg_link_list;
+	struct css_set *cg;
+};
+</code></pre>
+
+<ul>
+<li><code>cgrp_link_list</code>连入到<code>cgroup-&gt;css_sets</code>指向的链表</li>
+<li><code>cgrp</code>则指向此<code>cg_cgroup_link</code>相关的<code>cgroup</code>。</li>
+<li><code>cg_link_list</code>则连入到<code>css_set-&gt;cg_links</code>指向的链表</li>
+<li><code>cg</code>则指向此<code>cg_cgroup_link</code>相关的<code>css_set</code>。</li>
+</ul>
+
+<h4 id="那为什么要这样设计呢"><strong>那为什么要这样设计呢?</strong></h4>
+
+<p>那是因为<code>cgroup</code>和<code>css_set</code>是一个<strong>多对多</strong>的关系，必须添加一个中间结构来将两者联系起来，这跟数据库模式设计是一个道理。</p>
+
+<p><code>cg_cgroup_link</code>中的<code>cgrp</code>和<code>cg</code>就是此结构体的联合主键，而<code>cgrp_link_list</code>和<code>cg_link_list</code>分别连入到<code>cgroup</code>和<code>css_set</code>相应的链表，使得能从<code>cgroup</code>或<code>css_set</code>都可以进行遍历查询。</p>
+
+<h4 id="那为什么cgroup和css-set是多对多的关系呢"><strong>那为什么cgroup和css_set是多对多的关系呢?</strong></h4>
+
+<p>一个进程对应<code>css_set</code>，一个<code>css_set</code>就存储了一组进程跟各个子系统相关的信息，但是这些信息有可能不是从一个<code>cgroup</code>那里获得的，因为一个进程可以同时属于几个<code>cgroup</code>，只要这些<code>cgroup</code>不在同一个层级。</p>
+
+<blockquote>
+<p>举个例子：我们创建一个层级A，A上面附加了cpu和memory两个子系统，进程x属于A的根cgroup; 然后我们再创建一个层级B，B上面附加了pids和blkio两个子系统，进程x同样属于B的根cgroup; 那么进程x对应的cpu和memory的信息是从A的根cgroup获得的，pids和blkio信息则是从B的根cgroup获得的。</p>
+</blockquote>
+
+<p>因此，<strong>一个<code>css_set</code>存储的<code>cgroup_subsys_state</code>可以对应多个<code>cgroup</code></strong>。</p>
+
+<p>另一方面，<code>cgroup</code>也存储了一组<code>cgroup_subsys_state</code>，这一组<code>cgroup_subsys_state</code>则是<code>cgroup</code>从所在的层级附加的子系统获得的。一个<code>cgroup</code>中可以有多个进程，而这些进程的<code>css_set</code>不一定都相同，因为有些进程可能还加入了其他<code>cgroup</code>。但是同一个<code>cgroup</code>中的进程与该<code>cgroup</code>关联的<code>cgroup_subsys_state</code>都受到该<code>cgroup</code>的管理(<code>cgroups</code>中进程控制是以<code>cgroup</code>为单位的)的，<strong>所以一个<code>cgroup</code>也可以对应多个<code>css_set</code>。</strong></p>
+
+<p>经过前面的分析，我们可以看出从<code>task_struct</code>到<code>cgroup</code>是很容易定位的（<code>task_struct-&gt;css_set-&gt;cgroup_subsys_state-&gt;cgroup</code>），当然我们也可以通过<code>cg_cgroup_link</code>定位到进程对应的所有cgroup，示意图如下：</p>
+
+<p><img src="./css_set-to-cgroup.svg" alt="css_set-to-cgroup" title="css_set-to-cgroup" /></p>
+
+<p>但是从<code>cgroup</code>获取此<code>cgroup</code>所有的<code>task_struct</code>就必须通过<code>cg_cgroup_link</code>这个结构了。</p>
+
+<p>每个进程都会指向一个<code>css_set</code>，而与这个<code>css_set</code>关联的所有进程都会链入到<code>css_set-&gt;tasks</code>链表.而<code>cgroup</code>又通过一个中间结构<code>cg_cgroup_link</code>来寻找所有与之关联的所有<code>css_set</code>，从而可以得到与<code>cgroup</code>关联的所有进程。示意图如下：</p>
+
+<p><img src="./cgroup-to-css_set.svg" alt="cgroup-to-css_set" title="cgroup-to-css_set" /></p>
+
+<h4 id="实验">实验</h4>
+
+<p>在后台启动两个睡眠进程（睡眠足够长，为了后续好观察）:</p>
+
+<pre><code class="language-bash">~  # sleep 36000 &amp;
+[1] 28889
+~  # sleep 36000 &amp;
+[2] 28894
+</code></pre>
+
+<p>新创建一个<code>memory</code>的<code>cgroup</code>和一个<code>pids</code>的<code>cgroup</code>。并分布将两个睡眠进程加入到新创建的<code>cgroup</code>中。</p>
+
+<pre><code class="language-bash">~  # cd /sys/fs/cgroup/
+/sys/fs/cgroup  # mkdir memory/test
+/sys/fs/cgroup  # echo 28889 &gt; memory/test/cgroup.procs 
+/sys/fs/cgroup  # mkdir pids/test
+/sys/fs/cgroup  # echo 28894 &gt; pids/test/cgroup.procs 
+</code></pre>
+
+<p><strong>通过<code>task_struct-&gt;css_set-&gt;cgroup_subsys_state-&gt;cgroup</code> 查找cgroup</strong></p>
+
+<p>我们通过<code>crash</code>可以查看这两个进程，可以看出两个进程对应的<code>css_set</code>不同。</p>
+
+<pre><code>crash&gt; task -R cgroups 28889
+PID: 28889  TASK: ffff904653b10000  CPU: 3   COMMAND: &quot;sleep&quot;
+  cgroups = 0xffff9046d1ef1a80, 
+
+crash&gt; task -R cgroups 28894
+PID: 28894  TASK: ffff90470446c000  CPU: 1   COMMAND: &quot;sleep&quot;
+  cgroups = 0xffff9047076a8540, 
+</code></pre>
+
+<p>我们输出<code>css_set</code>的详细信息：</p>
+
+<pre><code>crash&gt; css_set.cg_links,subsys 0xffff9046d1ef1a80
+  cg_links = {
+    next = 0xffff904713f68958, 
+    prev = 0xffff904713f68558
+  }
+  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff904688253000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046db1d1e40, 0xffff90471e913b80}
+crash&gt; css_set.cg_links,subsys 0xffff9047076a8540
+  cg_links = {
+    next = 0xffff904646222958, 
+    prev = 0xffff904646222098
+  }
+  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff90471e96d000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046448959c0, 0xffff90471e913b80}
+</code></pre>
+
+<p>这两个进程除了<code>memory cgroup</code> 和<code>pids cgroup</code>不同外，其他的<code>cgroup</code>都相同。这可以通过如上的<code>css_set</code>的<code>subsys</code>观察到。</p>
+
+<p>通过<code>cgroup_subsys_state</code>可以找到<code>cgroup</code>，<code>cgroup</code>中也存在着<code>cgroup_subsys_state</code>。不同的控制器结构体种第一个字段都是<code>cgroup_subsys_state</code>。</p>
+
+<p>他们的关系如下：</p>
+
+<pre><code>crash&gt; cgroup_subsys_state.cgroup 0xffffffffa3ffb2a0
+  cgroup = 0xffff90471418e030
+crash&gt; cgroup.subsys 0xffff90471418e030
+  subsys = {0xffffffffa3ffb2a0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
+crash&gt; 
+</code></pre>
+
+<p><strong>通过<code>css_set</code>的<code>cg_links</code>找<code>cgroup</code></strong></p>
+
+<pre><code>crash&gt; struct -o css_set.cg_links 0xffff9046d1ef1a80
+struct css_set {
+  [ffff9046d1ef1aa8] struct list_head cg_links;
+}
+crash&gt; struct -o css_set.cg_links 0xffff9047076a8540
+struct css_set {
+  [ffff9047076a8568] struct list_head cg_links;
+}
+crash&gt; list -l cg_cgroup_link.cg_link_list  -s  cg_cgroup_link.cgrp -H ffff9047076a8568
+ffff904646222958
+  cgrp = 0xffffffffa57ff030
+ffff904646222758
+  cgrp = 0xffff9046894d0c00
+ffff9046462227d8
+  cgrp = 0xffff904714188030
+ffff904646222b18
+  cgrp = 0xffff90471418e030
+ffff904646222c98
+  cgrp = 0xffff90471418c030
+ffff904646222698
+  cgrp = 0xffff9047143c6030
+ffff904646222458
+  cgrp = 0xffff9047143c4030
+ffff904646222498
+  cgrp = 0xffff9047143c2030
+ffff904646222e98
+  cgrp = 0xffff9047143c0030
+ffff904646222a18
+  cgrp = 0xffff9046881b5c00
+ffff904646222618
+  cgrp = 0xffff9047143ba030
+ffff904646222798
+  cgrp = 0xffff9046db3e7400
+ffff904646222098
+  cgrp = 0xffff9047143be030
+crash&gt; list -l cg_cgroup_link.cg_link_list  -s  cg_cgroup_link.cgrp -H ffff9046d1ef1aa8
+ffff904713f68958
+  cgrp = 0xffffffffa57ff030
+ffff904713f68bd8
+  cgrp = 0xffff9046894d0c00
+ffff904713f68fd8
+  cgrp = 0xffff90464b624000
+ffff904713f68158
+  cgrp = 0xffff90471418e030
+ffff904713f687d8
+  cgrp = 0xffff90471418c030
+ffff904713f685d8
+  cgrp = 0xffff9047143c6030
+ffff904713f68118
+  cgrp = 0xffff9047143c4030
+ffff904713f68a98
+  cgrp = 0xffff9047143c2030
+ffff904713f68658
+  cgrp = 0xffff9047143c0030
+ffff904713f684d8
+  cgrp = 0xffff904634e32000
+ffff904713f68418
+  cgrp = 0xffff9047143ba030
+ffff904713f68998
+  cgrp = 0xffff9046db3e7400
+ffff904713f68558
+  cgrp = 0xffff9047143be030
+</code></pre>
+
+<p>可以看出，我们的系统上有<code>13</code>个<code>cgroup</code>子系统</p>
+
+<pre><code># cat /proc/cgroups 
+#subsys_name    hierarchy       num_cgroups     enabled
+cpuset  3       2       1
+debug   4       3       1
+cpu     5       40      1
+cpuacct 5       40      1
+memory  2       44      1
+devices 11      42      1
+freezer 10      2       1
+net_cls 12      2       1
+blkio   8       42      1
+perf_event      6       2       1
+hugetlb 7       2       1
+pids    9       109     1
+net_prio        12      2       1
+</code></pre>
+
+<p>** 通过<code>cgroup</code>的<code>css_sets</code>找<code>css_set</code>, 进而找到task_struct**</p>
+
+<p>我们以刚才新创建的<code>cgroup</code>为例，其应该只有一个对应的<code>css_set</code></p>
+
+<pre><code>crash&gt; css_set.cg_links,subsys 0xffff9046d1ef1a80
+  cg_links = {
+    next = 0xffff904713f68958, 
+    prev = 0xffff904713f68558
+  }
+  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff904688253000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046db1d1e40, 0xffff90471e913b80}
+crash&gt; cgroup_subsys_state.cgroup 0xffff904688253000
+  cgroup = 0xffff90464b624000
+crash&gt; struct -o cgroup.css_sets  0xffff90464b624000
+struct cgroup {
+  [ffff90464b6240c8] struct list_head css_sets;
+}
+crash&gt; list -l cg_cgroup_link.cgrp_link_list -s cg_cgroup_link.cg -H ffff90464b6240c8
+ffff904713f68fc0
+  cg = 0xffff9046d1ef1a80
+</code></pre>
+
+<p>以第一个<code>cgroup</code>(cpuset)为例，可以看到其关联了系统上所有的<code>css_set</code>。</p>
+
+<pre><code>crash&gt; cgroup_subsys_state.cgroup  0xffffffffa3ffb2a0
+  cgroup = 0xffff90471418e030
+crash&gt; struct -o cgroup.css_sets 0xffff90471418e030
+struct cgroup {
+  [ffff90471418e0f8] struct list_head css_sets;
+}
+crash&gt; list -H ffff90471418e0f8 | wc -l
+48
+crash&gt; p css_set_count
+css_set_count = $1 = 48
+</code></pre>
+
+<h2 id="参考文档">参考文档</h2>
+
+<ul>
+<li><a href="http://editor.method.ac/">http://editor.method.ac/</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-08-23</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/cgroup/">cgroup</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/kernel/cgroup-source-cgroup_init/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">cgroup源码分析2——cgroup的初始化</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/kernel/cgroup-default-file/">
+            <span class="next-text nav-default">Cgroup 中默认文件的内核实现分析</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

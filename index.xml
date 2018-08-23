@@ -12,6 +12,63 @@
     
     
     <item>
+      <title>cgroup源码分析2——cgroup的初始化</title>
+      <link>http://linux.laoqinren.net/kernel/cgroup-source-cgroup_init/</link>
+      <pubDate>Thu, 23 Aug 2018 22:50:33 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/cgroup-source-cgroup_init/</guid>
+      <description>&lt;p&gt;本文详细分析了&lt;code&gt;cgroup&lt;/code&gt;初始化的过程。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>cgroup源码分析1—— css_set和cgroup的关系</title>
+      <link>http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/</link>
+      <pubDate>Thu, 23 Aug 2018 15:19:35 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/</guid>
+      <description>&lt;p&gt;本系列文章主要从源码入手，分析&lt;code&gt;linux kernel&lt;/code&gt;中&lt;code&gt;cgroup&lt;/code&gt;的实现。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Cgroup 中默认文件的内核实现分析</title>
+      <link>http://linux.laoqinren.net/kernel/cgroup-default-file/</link>
+      <pubDate>Wed, 15 Aug 2018 10:09:56 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/cgroup-default-file/</guid>
+      <description>&lt;p&gt;cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。&lt;/p&gt;
+
+&lt;p&gt;这些文件包括：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;notify_on_release&lt;/li&gt;
+&lt;li&gt;release_agent&lt;/li&gt;
+&lt;li&gt;cgroup.procs&lt;/li&gt;
+&lt;li&gt;tasks&lt;/li&gt;
+&lt;li&gt;cgroup.clone_children&lt;/li&gt;
+&lt;li&gt;cgroup.event_control&lt;/li&gt;
+&lt;li&gt;cgroup.sane_behavior&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Cgroup之不绑定任何subsystem</title>
       <link>http://linux.laoqinren.net/posts/hierarchy-without-controller-group/</link>
       <pubDate>Tue, 14 Aug 2018 19:59:57 +0800</pubDate>

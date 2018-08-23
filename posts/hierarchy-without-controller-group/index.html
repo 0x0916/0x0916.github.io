@@ -96,7 +96,7 @@
 
 <meta itemprop="datePublished" content="2018-08-14T19:59:57&#43;08:00" />
 <meta itemprop="dateModified" content="2018-08-14T19:59:57&#43;08:00" />
-<meta itemprop="wordCount" content="3360">
+<meta itemprop="wordCount" content="3734">
 
 
 
@@ -195,8 +195,8 @@
               <a href="/categories/cgroup/"> cgroup </a>
             
           </div>
-        <span class="more-meta"> 3360 words </span>
-        <span class="more-meta"> 7 mins read </span>
+        <span class="more-meta"> 3734 words </span>
+        <span class="more-meta"> 8 mins read </span>
         
       </div>
     </header>
@@ -306,7 +306,7 @@ cgroup.clone_children  cgroup.event_control  cgroup.procs  cgroup.sane_behavior 
 
 <h3 id="创建和删除cgroup">创建和删除cgroup</h3>
 
-<p>挂载好cgroup树之后，就可以在里面新建CG肉片了，其实新建cgroup很简单，就是创建目录就可以了。</p>
+<p>挂载好cgroup树之后，就可以在里面新建cgroup了，其实新建cgroup很简单，就是创建目录就可以了。</p>
 
 <pre><code class="language-bash">~/cgroup  # # 创建子cgroup很简单，新建一个目录就可以了
 ~/cgroup  # cd demo/
@@ -494,7 +494,7 @@ cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xa
 
 <p><code>/sys/fs/cgroup/systemd/</code>目录其实就是一个没有和任何subsystem关联的cgroup，那systemd用它来做什么呢？我猜是用来追踪每个服务的进程的pid号的(由于没有找打相关文档)。</p>
 
-<p>这里先将猜测记录如下，后续有机会再进行验证。</p>
+<p>这里先将猜测记录如下，后续会进行验证。</p>
 
 <p>一般使用systemctl去管理系统服务时，当我们要reload这个服务时，一般的service描述文件中记录的要执行的命令如下：</p>
 
@@ -517,10 +517,80 @@ cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xa
 
 <p>那我们如何知道<code>$MAINPID</code>的值是多少呢？我猜这里就使用了该服务对应的cgroup中的cgroup.procs的输出结果。</p>
 
+<p>下面通过代码来验证上面的猜测，如下引用的代码来自于：<a href="https://github.com/systemd/systemd/tree/v219">https://github.com/systemd/systemd/tree/v219</a></p>
+
+<p><code>systemd</code>有方法<code>service_search_main_pid</code>来获取<code>MAINPID</code>,其又调用了方法<code>unit_search_main_pid</code>。</p>
+
+<p><code>unit_search_main_pid</code> 代码如下：</p>
+
+<pre><code class="language-c">pid_t unit_search_main_pid(Unit *u) {
+        _cleanup_fclose_ FILE *f = NULL;
+        pid_t pid = 0, npid, mypid;
+
+        assert(u);
+
+        if (!u-&gt;cgroup_path)
+                return 0;
+
+        if (cg_enumerate_processes(SYSTEMD_CGROUP_CONTROLLER, u-&gt;cgroup_path, &amp;f) &lt; 0)
+                return 0;
+
+        mypid = getpid();
+        while (cg_read_pid(f, &amp;npid) &gt; 0)  {
+                pid_t ppid;
+
+                if (npid == pid)
+                        continue;
+
+                /* Ignore processes that aren't our kids */
+                if (get_parent_of_pid(npid, &amp;ppid) &gt;= 0 &amp;&amp; ppid != mypid)
+                        continue;
+
+                if (pid != 0) {
+                        /* Dang, there's more than one daemonized PID
+                        in this group, so we don't know what process
+                        is the main process. */
+                        pid = 0;
+                        break;
+                }
+
+                pid = npid;
+        }
+
+        return pid;
+}
+</code></pre>
+
+<p>这个函数就非常简单了，第10行用于获取<code>cgroup.procs</code>的文件描述符，14行循环读取该文件中的<code>pid</code>。一些关键的宏和函数定义如下：</p>
+
+<pre><code class="language-c">#define SYSTEMD_CGROUP_CONTROLLER &quot;name=systemd&quot;
+
+// 打开文件的函数
+int cg_enumerate_processes(const char *controller, const char *path, FILE **_f) {
+        _cleanup_free_ char *fs = NULL;
+        FILE *f;
+        int r;
+
+        assert(_f);
+
+        r = cg_get_path(controller, path, &quot;cgroup.procs&quot;, &amp;fs);
+        if (r &lt; 0) 
+                return r;
+
+        f = fopen(fs, &quot;re&quot;);
+        if (!f) 
+                return -errno;
+
+        *_f = f; 
+        return 0;
+}
+</code></pre>
+
 <h3 id="参考文章">参考文章</h3>
 
 <ul>
 <li><a href="https://segmentfault.com/a/1190000007241437">https://segmentfault.com/a/1190000007241437</a></li>
+<li><a href="https://github.com/systemd/systemd/tree/v219">https://github.com/systemd/systemd/tree/v219</a></li>
 </ul>
     </div>
 
