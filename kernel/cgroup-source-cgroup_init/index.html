@@ -91,7 +91,7 @@
 
 <meta itemprop="datePublished" content="2018-08-23T22:50:33&#43;08:00" />
 <meta itemprop="dateModified" content="2018-08-23T22:50:33&#43;08:00" />
-<meta itemprop="wordCount" content="4624">
+<meta itemprop="wordCount" content="6223">
 
 
 
@@ -190,8 +190,8 @@
               <a href="/categories/cgroup/"> cgroup </a>
             
           </div>
-        <span class="more-meta"> 4624 words </span>
-        <span class="more-meta"> 10 mins read </span>
+        <span class="more-meta"> 6223 words </span>
+        <span class="more-meta"> 13 mins read </span>
         
       </div>
     </header>
@@ -211,11 +211,12 @@
 <li><a href="#cgroupfs-root-结构">cgroupfs_root 结构</a></li>
 <li><a href="#cgroup-subsys-结构">cgroup_subsys 结构</a></li>
 <li><a href="#几个全局变量">几个全局变量</a></li>
-<li><a href="#cgroups的初始">cgroups的初始</a>
+<li><a href="#cgroups的初始化">cgroups的初始化</a>
 <ul>
 <li><a href="#cgroup-init-early">cgroup_init_early</a></li>
 <li><a href="#cgroup-init">cgroup_init</a></li>
 <li><a href="#cgroup-init-subsys">cgroup_init_subsys</a></li>
+<li><a href="#初始化后mount前这些数据结构的关系图">初始化后mount前这些数据结构的关系图</a></li>
 </ul></li>
 <li><a href="#proc-cgroups-实现分析">/proc/cgroups 实现分析</a></li>
 <li><a href="#crash-查看cgroup的一些数据结构的关系">crash 查看cgroup的一些数据结构的关系</a></li>
@@ -395,7 +396,7 @@ struct cgroup_subsys {
 <li><code>struct cgroup_subsys *subsys[CGROUP_SUBSYS_COUNT]</code>数组，该数组保存了所有子系统（<code>cgroup_subsys</code>）的信息</li>
 </ul>
 
-<h3 id="cgroups的初始">cgroups的初始</h3>
+<h3 id="cgroups的初始化">cgroups的初始化</h3>
 
 <p>在内核过程中，由于各个<code>cgroup</code>子系统的特点，<code>cgroup</code>的初始分为两部分：</p>
 
@@ -587,7 +588,236 @@ out:
 <li>调用<code>online_css</code></li>
 </ul>
 
-<p><code>cgroup_init_early</code> 和<code>cgroup_init</code> 执行完后，这些数据结构之间的关系如下图所示：</p>
+<h4 id="初始化后mount前这些数据结构的关系图">初始化后mount前这些数据结构的关系图</h4>
+
+<p>我所使用的系统为centos7，默认cgroup各个子系统的挂载是systemd完成的，由于没有办法让systemd不进行挂载，所以在系统启动之后，我们手动umount掉这些cgroup子系统的挂载，用来分析内核里的数据结构。操作方法如下：</p>
+
+<pre><code class="language-bash"># #查看有哪些cgroup
+# mount | grep cgroup
+tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,mode=755)
+cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xattr,release_agent=/usr/lib/systemd/systemd-cgroups-agent,name=systemd)
+cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,net_prio,net_cls)
+cgroup on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,pids)
+cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,cpuacct,cpu)
+cgroup on /sys/fs/cgroup/freezer type cgroup (rw,nosuid,nodev,noexec,relatime,freezer)
+cgroup on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,memory)
+cgroup on /sys/fs/cgroup/perf_event type cgroup (rw,nosuid,nodev,noexec,relatime,perf_event)
+cgroup on /sys/fs/cgroup/hugetlb type cgroup (rw,nosuid,nodev,noexec,relatime,hugetlb)
+cgroup on /sys/fs/cgroup/debug type cgroup (rw,nosuid,nodev,noexec,relatime,debug)
+cgroup on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,blkio)
+cgroup on /sys/fs/cgroup/cpuset type cgroup (rw,nosuid,nodev,noexec,relatime,cpuset)
+cgroup on /sys/fs/cgroup/devices type cgroup (rw,nosuid,nodev,noexec,relatime,devices)
+# # 将所有的进程都添加到各个子系统的root cgroup中
+# echo $$ &gt;  /sys/fs/cgroup/systemd/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/debug/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/blkio/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/cpu,cpuacct/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/cpuset/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/net_cls,net_prio/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/devices/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/hugetlb/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/pids/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/memory/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/freezer/cgroup.procs 
+# echo $$ &gt;  /sys/fs/cgroup/perf_event/cgroup.procs 
+# # 查看有哪些cgroup子系统除了root cgroup外有子cgroup
+# cat /proc/cgroups 
+#subsys_name	hierarchy	num_cgroups	enabled
+cpuset		6	1	1
+debug		2	1	1
+cpu		4	1	1
+cpuacct		4	1	1
+memory		10	1	1
+devices		7	101	1
+freezer		11	1	1
+net_cls		5	1	1
+blkio		3	1	1
+perf_event	12	1	1
+hugetlb		8	1	1
+pids		9	106	1
+net_prio	5	1	1 
+# # 从上面可以看出，pids和devices子系统已经创建了子cgroup，我们需要将其子cgroup中的进程都添加到root cgroup中
+# # 并删除除root cgroup外的所有的子cgroup，效果如下，显示每个子系统上的cgroup个数为1，即剩下的root cgroup了。
+# cat /proc/cgroups 
+#subsys_name	hierarchy	num_cgroups	enabled
+cpuset		6	1	1
+debug		2	1	1
+cpu		4	1	1
+cpuacct		4	1	1
+memory		10	1	1
+devices		7	1	1
+freezer		11	1	1
+net_cls		5	1	1
+blkio		3	1	1
+perf_event	12	1	1
+hugetlb		8	1	1
+pids		9	1	1
+net_prio	5	1	1
+# # 完成后，卸载到这些cgroup子系统
+# umount /sys/fs/cgroup/net_cls,net_prio
+# umount /sys/fs/cgroup/pids
+# umount /sys/fs/cgroup/cpu,cpuacct
+# umount /sys/fs/cgroup/freezer
+# umount /sys/fs/cgroup/memory
+# umount /sys/fs/cgroup/perf_event
+# umount /sys/fs/cgroup/hugetlb
+# umount /sys/fs/cgroup/debug
+# umount /sys/fs/cgroup/blkio
+# umount /sys/fs/cgroup/cpuset
+# umount /sys/fs/cgroup/devices
+# umount /sys/fs/cgroup/systemd
+umount: /sys/fs/cgroup/systemd: target is busy.
+        (In some cases useful info about processes that use
+         the device is found by lsof(8) or fuser(1))
+# mount | grep cgroup
+tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,mode=755)
+cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xattr,release_agent=/usr/lib/systemd/systemd-cgroups-agent,name=systemd)
+</code></pre>
+
+<p>可以看出，除了/sys/fs/cgroup/systemd不能umount外，其他子系统都umount成功了。此时<code>/proc/cgroups</code>的输出如下：</p>
+
+<pre><code># cat /proc/cgroups 
+#subsys_name	hierarchy	num_cgroups	enabled
+cpuset		0	1	1
+debug		0	1	1
+cpu		0	1	1
+cpuacct		0	1	1
+memory		0	1	1
+devices		0	1	1
+freezer		0	1	1
+net_cls		0	1	1
+blkio		0	1	1
+perf_event	0	1	1
+hugetlb		0	1	1
+pids		0	1	1
+net_prio	0	1	1
+</code></pre>
+
+<p>可以看出，每个子系统的hierarchy id为0，且只有一个cgroup，即dummytop这个cgroup。</p>
+
+<p>此时，我们就可以通过crash来分析这些数据结构的关系：</p>
+
+<ul>
+<li>由于系统上挂载了systemd这个cgroup，再加上rootnode这个dummy cgrouproot_fs，总共有两个cgrouproot_fs，所以root_count=2，而只有systemd对应的cgroupfs_root被链接到了roots这个链表上。</li>
+</ul>
+
+<pre><code>crash&gt; p root_count
+root_count = $1 = 2
+crash&gt; list -l cgroupfs_root.root_list -s cgroupfs_root.name -H roots
+ffff9d7d56f94308
+  name = &quot;systemd\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000&quot;
+</code></pre>
+
+<ul>
+<li>rootnode的subsys_list应该包含了那13个未挂载的cgroup_subsys</li>
+</ul>
+
+<pre><code>crash&gt; struct -o cgroupfs_root.subsys_list rootnode
+struct cgroupfs_root {
+  [ffffffffa03ff020] struct list_head subsys_list;
+}
+crash&gt; list  -l cgroup_subsys.sibling -s cgroup_subsys.name,subsys_id -H ffffffffa03ff020
+ffffffff9ebf9f70
+  name = 0xffffffff9ea9a8cc &quot;pids&quot;
+  subsys_id = 11
+ffffffff9ec83270
+  name = 0xffffffff9eacb432 &quot;devices&quot;
+  subsys_id = 5
+ffffffff9ebfb590
+  name = 0xffffffff9eaa6abb &quot;cpuset&quot;
+  subsys_id = 0
+ffffffff9ec98e10
+  name = 0xffffffff9eac4e39 &quot;blkio&quot;
+  subsys_id = 8
+ffffffff9ebf7ff0
+  name = 0xffffffff9ea99ec6 &quot;debug&quot;
+  subsys_id = 1
+ffffffff9ed2f730
+  name = 0xffffffff9eaa7164 &quot;hugetlb&quot;
+  subsys_id = 10
+ffffffff9ec54230
+  name = 0xffffffff9ea9e4ec &quot;perf_event&quot;
+  subsys_id = 9
+ffffffff9ed2f590
+  name = 0xffffffff9eaaf4d8 &quot;memory&quot;
+  subsys_id = 4
+ffffffff9ebf9df0
+  name = 0xffffffff9ea97da3 &quot;freezer&quot;
+  subsys_id = 6
+ffffffff9ebf1050
+  name = 0xffffffff9ea97b50 &quot;cpuacct&quot;
+  subsys_id = 3
+ffffffff9ebeda90
+  name = 0xffffffff9ea9baca &quot;cpu&quot;
+  subsys_id = 2
+ffffffff9ece34b0
+  name = 0xffffffff9eb2289a &quot;net_prio&quot;
+  subsys_id = 12
+ffffffff9ece3dd0
+  name = 0xffffffff9eb22a9e &quot;net_cls&quot;
+  subsys_id = 7
+</code></pre>
+
+<ul>
+<li>系统上这些cgroup对应的cgroup_subsys的成员root都执行了rootnode：</li>
+</ul>
+
+<pre><code>crash&gt; struct -o cgroupfs_root.subsys_list rootnode
+struct cgroupfs_root {
+  [ffffffffa03ff020] struct list_head subsys_list;
+}
+crash&gt; p &amp;rootnode
+$13 = (struct cgroupfs_root *) 0xffffffffa03ff000
+crash&gt;  list  -l cgroup_subsys.sibling -s cgroup_subsys.root  -H ffffffffa03ff020
+ffffffff9ebf9f70
+  root = 0xffffffffa03ff000
+ffffffff9ec83270
+  root = 0xffffffffa03ff000
+ffffffff9ebfb590
+  root = 0xffffffffa03ff000
+ffffffff9ec98e10
+  root = 0xffffffffa03ff000
+ffffffff9ebf7ff0
+  root = 0xffffffffa03ff000
+ffffffff9ed2f730
+  root = 0xffffffffa03ff000
+ffffffff9ec54230
+  root = 0xffffffffa03ff000
+ffffffff9ed2f590
+  root = 0xffffffffa03ff000
+ffffffff9ebf9df0
+  root = 0xffffffffa03ff000
+ffffffff9ebf1050
+  root = 0xffffffffa03ff000
+ffffffff9ebeda90
+  root = 0xffffffffa03ff000
+ffffffff9ece34b0
+  root = 0xffffffffa03ff000
+ffffffff9ece3dd0
+  root = 0xffffffffa03ff000
+</code></pre>
+
+<ul>
+<li>这个时刻，系统上只有一个css_set，即<code>init_css_set</code>, 所有的进程的css_set都执向它：</li>
+</ul>
+
+<pre><code>crash&gt; p css_set_count
+css_set_count = $1 = 1
+</code></pre>
+
+<ul>
+<li>dummytop和init_css_set的成员subsys执行的css都相同：</li>
+</ul>
+
+<pre><code>crash&gt; p &amp;rootnode.top_cgroup
+$18 = (struct cgroup *) 0xffffffffa03ff030
+crash&gt; cgroup.subsys 0xffffffffa03ff030
+  subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
+crash&gt; css_set.subsys init_css_set
+  subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
+</code></pre>
+
+<p>所以，<code>cgroup_init_early</code> 和<code>cgroup_init</code> 执行完后，这些数据结构之间的关系如下图所示：</p>
 
 <p><img src="./cgroup_init.svg" alt="enter description here" title="cgroup_init" /></p>
 
@@ -648,18 +878,18 @@ static const struct file_operations proc_cgroupstats_operations = {
 
 <pre><code class="language-bash">~  # cat /proc/cgroups
 #subsys_name    hierarchy       num_cgroups     enabled
-cpuset  3       2       1
-debug   4       3       1
-cpu     5       40      1
-cpuacct 5       40      1
-memory  2       44      1
-devices 11      42      1
-freezer 10      2       1
-net_cls 12      2       1
-blkio   8       42      1
+cpuset  	3       2       1
+debug   	4       3       1
+cpu     	5       40      1
+cpuacct 	5       40      1
+memory  	2       44      1
+devices 	11      42      1
+freezer 	10      2       1
+net_cls 	12      2       1
+blkio   	8       42      1
 perf_event      6       2       1
-hugetlb 7       2       1
-pids    9       109     1
+hugetlb 	7       2       1
+pids    	9       109     1
 net_prio        12      2       1
 </code></pre>
 
@@ -735,6 +965,10 @@ $17 = 0xffffffffa3f2289a &quot;net_prio&quot;
 </code></pre>
 
 <h3 id="crash-查看cgroup的一些数据结构的关系">crash 查看cgroup的一些数据结构的关系</h3>
+
+<blockquote>
+<p>NOTE:  这里是centos 7启动后，默认情况下，各个cgroup子系统都已经被systemd挂载的情况。</p>
+</blockquote>
 
 <pre><code>crash&gt; struct -o cgroupfs_root rootnode
 struct cgroupfs_root {
@@ -915,6 +1149,11 @@ crash&gt; cgroup_name.name 0xffffffffa3ff9740
       
       <nav class="post-nav">
         
+          <a class="prev" href="/kernel/cgroup-source-cgroup_mount/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">cgroup源码分析3——cgroup层级的mount流程</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
         
           <a class="next" href="/kernel/cgroup-source-css_set-and-cgroup/">
             <span class="next-text nav-default">cgroup源码分析1—— css_set和cgroup的关系</span>

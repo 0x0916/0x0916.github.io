@@ -6,10 +6,25 @@
     <description>Recent content in Kernel on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 23 Aug 2018 22:50:33 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 25 Aug 2018 10:54:09 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>cgroup源码分析3——cgroup层级的mount流程</title>
+      <link>http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/</link>
+      <pubDate>Sat, 25 Aug 2018 10:54:09 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/</guid>
+      <description>&lt;p&gt;本文继续该系列文章，分析了&lt;code&gt;cgroup&lt;/code&gt;各个子系统的&lt;code&gt;mount&lt;/code&gt;流程，当然也包括&lt;code&gt;umount/remount&lt;/code&gt;流程。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>cgroup源码分析2——cgroup的初始化</title>

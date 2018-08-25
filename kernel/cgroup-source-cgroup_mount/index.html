@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>cgroup源码分析3——cgroup层级的mount流程 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
+ 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+ 
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="cgroup源码分析3——cgroup层级的mount流程" />
+<meta property="og:description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/" />
+
+
+
+<meta property="article:published_time" content="2018-08-25T10:54:09&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-08-25T10:54:09&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="cgroup源码分析3——cgroup层级的mount流程">
+<meta itemprop="description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-08-25T10:54:09&#43;08:00" />
+<meta itemprop="dateModified" content="2018-08-25T10:54:09&#43;08:00" />
+<meta itemprop="wordCount" content="4327">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,cgroup," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="cgroup源码分析3——cgroup层级的mount流程"/>
+<meta name="twitter:description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">cgroup源码分析3——cgroup层级的mount流程</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-08-25 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+              <a href="/categories/cgroup/"> cgroup </a>
+            
+          </div>
+        <span class="more-meta"> 4327 words </span>
+        <span class="more-meta"> 9 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#mount流程整体流程介绍">mount流程整体流程介绍</a></li>
+<li><a href="#mount中的一些细节">mount中的一些细节</a>
+<ul>
+<li><a href="#解析mount选项">解析mount选项</a></li>
+<li><a href="#init-root-id-获取分配的层级的id">init_root_id 获取分配的层级的id</a></li>
+<li><a href="#sget-查找对应的super-block是否存在">sget 查找对应的super_block是否存在</a></li>
+</ul></li>
+<li><a href="#rebind-subsystem">rebind_subsystem</a>
+<ul>
+<li><a href="#创建对应的cgroup控制文件">创建对应的cgroup控制文件</a></li>
+</ul></li>
+<li><a href="#remount的一些限制">remount的一些限制</a></li>
+<li><a href="#umount">umount</a></li>
+<li><a href="#参考文章">参考文章</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>本文继续该系列文章，分析了<code>cgroup</code>各个子系统的<code>mount</code>流程，当然也包括<code>umount/remount</code>流程。</p>
+
+<blockquote>
+<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
+</blockquote>
+
+<p></p>
+
+<h3 id="mount流程整体流程介绍">mount流程整体流程介绍</h3>
+
+<p>当我们mount <code>cgroup</code>文件系统时，一般输入命令如下：</p>
+
+<pre><code># mount -t cgroup -o cpu,cpuacct   none  /sys/fs/cgroup/cpu,cpuacct
+# mount -t cgroup -o pids none /sysfs/cgroup/cpu,cpuacct
+</code></pre>
+
+<p>在内核中，执行的函数为<code>cgroup_mount</code>，其主要完成了如下工作：</p>
+
+<ul>
+<li>执行<code>parse_cgroupfs_options</code> 解析<code>mount</code>时的<code>options</code>选项</li>
+<li>执行<code>cgroup_root_from_opts</code> 分配一个新的<code>cgroupfs_root</code></li>
+<li>通过<code>sget</code>查找对应的<code>super_block</code>是否存在，如果不存在就创建一个新的<code>super_block</code></li>
+<li>如果<code>cgroupfs_root</code>已经存在，则说明已经挂载了，这次不需要做什么。</li>
+<li>如果是新创建的<code>cgroupfs_root</code>，则说明没有挂载，需要做如下事情：
+
+<ul>
+<li>获取挂载点对应的<code>inode</code></li>
+<li>分配<code>css_set_count</code>个<code>cg_cgroup_link</code>结构</li>
+<li><code>rebind_subsystem</code></li>
+<li>将该<code>cgroupfs_root</code>添加到链表<code>roots</code>中</li>
+<li>根据该层级的配置，使用<code>cgroup_populate_dir</code>创建对应的<code>cgroup</code>控制文件</li>
+</ul></li>
+</ul>
+
+<p>代码如下：</p>
+
+<pre><code class="language-c">static struct dentry *cgroup_mount(struct file_system_type *fs_type,
+			 int flags, const char *unused_dev_name,
+			 void *data)
+{
+	struct cgroup_sb_opts opts;
+	struct cgroupfs_root *root;
+	int ret = 0;
+	struct super_block *sb;
+	struct cgroupfs_root *new_root;
+	struct inode *inode;
+
+	/* First find the desired set of subsystems */
+	mutex_lock(&amp;cgroup_mutex);
+	ret = parse_cgroupfs_options(data, &amp;opts);
+	mutex_unlock(&amp;cgroup_mutex);
+	if (ret)
+		goto out_err;
+
+	/*
+	 * Allocate a new cgroup root. We may not need it if we're
+	 * reusing an existing hierarchy.
+	 */
+	new_root = cgroup_root_from_opts(&amp;opts); // 解析mount时的options选项
+	if (IS_ERR(new_root)) {
+		ret = PTR_ERR(new_root);
+		goto drop_modules;
+	}
+	opts.new_root = new_root;
+
+	/* Locate an existing or new sb for this hierarchy */// 分配一个新的cgroupfs_root
+	sb = sget(fs_type, cgroup_test_super, cgroup_set_super, 0, &amp;opts);
+	if (IS_ERR(sb)) {
+		ret = PTR_ERR(sb);
+		cgroup_drop_root(opts.new_root);
+		goto drop_modules;
+	}
+
+	root = sb-&gt;s_fs_info;
+	BUG_ON(!root);
+	if (root == opts.new_root) { // 新的挂载，说明这是一个新的层级
+		/* We used the new root structure, so this is a new hierarchy */
+		struct list_head tmp_cg_links;
+		struct cgroup *root_cgrp = &amp;root-&gt;top_cgroup;
+		struct cgroupfs_root *existing_root;
+		const struct cred *cred;
+		int i;
+		struct css_set *cg;
+
+		BUG_ON(sb-&gt;s_root != NULL);
+		// 获取挂载点的inode
+		ret = cgroup_get_rootdir(sb);
+		if (ret)
+			goto drop_new_super;
+		inode = sb-&gt;s_root-&gt;d_inode;
+
+		mutex_lock(&amp;inode-&gt;i_mutex);
+		mutex_lock(&amp;cgroup_mutex);
+		mutex_lock(&amp;cgroup_root_mutex);
+
+		/* Check for name clashes with existing mounts */
+		ret = -EBUSY;
+		if (strlen(root-&gt;name))
+			for_each_active_root(existing_root)
+				if (!strcmp(existing_root-&gt;name, root-&gt;name))
+					goto unlock_drop;
+
+		/*
+		 * We're accessing css_set_count without locking
+		 * css_set_lock here, but that's OK - it can only be
+		 * increased by someone holding cgroup_lock, and
+		 * that's us. The worst that can happen is that we
+		 * have some link structures left over
+		 */// 分配css_set_count个cg_cgroup_link结构
+		ret = allocate_cg_links(css_set_count, &amp;tmp_cg_links);
+		if (ret)
+			goto unlock_drop;
+
+		ret = rebind_subsystems(root, root-&gt;subsys_mask);
+		if (ret == -EBUSY) {
+			free_cg_links(&amp;tmp_cg_links);
+			goto unlock_drop;
+		}
+		/*
+		 * There must be no failure case after here, since rebinding
+		 * takes care of subsystems' refcounts, which are explicitly
+		 * dropped in the failure exit path.
+		 */
+
+		/* EBUSY should be the only error here */
+		BUG_ON(ret);
+		// 将该cgroupfs_root添加到链表roots中
+		list_add(&amp;root-&gt;root_list, &amp;roots);
+		root_count++;
+
+		sb-&gt;s_root-&gt;d_fsdata = root_cgrp;
+		root-&gt;top_cgroup.dentry = sb-&gt;s_root;
+
+		/* Link the top cgroup in this hierarchy into all
+		 * the css_set objects */
+		write_lock(&amp;css_set_lock);
+		hash_for_each(css_set_table, i, cg, hlist)
+			link_css_set(&amp;tmp_cg_links, cg, root_cgrp);
+		write_unlock(&amp;css_set_lock);
+
+		free_cg_links(&amp;tmp_cg_links);
+
+		BUG_ON(!list_empty(&amp;root_cgrp-&gt;children));
+		BUG_ON(root-&gt;number_of_cgroups != 1);
+
+		cred = override_creds(&amp;init_cred);
+		// 创建对应的cgroup控制文件
+		cgroup_populate_dir(root_cgrp, true, root-&gt;subsys_mask);
+		revert_creds(cred);
+		mutex_unlock(&amp;cgroup_root_mutex);
+		mutex_unlock(&amp;cgroup_mutex);
+		mutex_unlock(&amp;inode-&gt;i_mutex);
+	} else { // 已经挂载了，不需要做什么
+		/*
+		 * We re-used an existing hierarchy - the new root (if
+		 * any) is not needed
+		 */
+		cgroup_drop_root(opts.new_root);
+
+		if (root-&gt;flags != opts.flags) {
+			if ((root-&gt;flags | opts.flags) &amp; CGRP_ROOT_SANE_BEHAVIOR) {
+				pr_err(&quot;cgroup: sane_behavior: new mount options should match the existing superblock\n&quot;);
+				ret = -EINVAL;
+				goto drop_new_super;
+			} else {
+				pr_warning(&quot;cgroup: new mount options do not match the existing superblock, will be ignored\n&quot;);
+			}
+		}
+
+		/* no subsys rebinding, so refcounts don't change */
+		drop_parsed_module_refcounts(opts.subsys_mask);
+	}
+
+	kfree(opts.release_agent);
+	kfree(opts.name);
+	return dget(sb-&gt;s_root);
+
+ unlock_drop:
+	mutex_unlock(&amp;cgroup_root_mutex);
+	mutex_unlock(&amp;cgroup_mutex);
+	mutex_unlock(&amp;inode-&gt;i_mutex);
+ drop_new_super:
+	deactivate_locked_super(sb);
+ drop_modules:
+	drop_parsed_module_refcounts(opts.subsys_mask);
+ out_err:
+	kfree(opts.release_agent);
+	kfree(opts.name);
+	return ERR_PTR(ret);
+}
+
+</code></pre>
+
+<p>在<code>centos 7</code>系统启动时，默认会挂载所有的<code>cgroup</code>子系统，这些子系统是由<code>systemd</code>来负责挂载的，其代码为：<a href="https://github.com/systemd/systemd/blob/v219/src/core/mount-setup.c#L222L316">mount_cgroup_controllers</a></p>
+
+<h3 id="mount中的一些细节">mount中的一些细节</h3>
+
+<h4 id="解析mount选项">解析mount选项</h4>
+
+<p><code>parse_cgroupfs_options</code> 函数对mount时的options进行了解析，最后将结果保存到了一个cgroup_sb_opts类型的结构，并返回。</p>
+
+<p>该版本的kernel支持的选项包括：</p>
+
+<ul>
+<li>none</li>
+<li>all</li>
+<li>__DEVEL__sane_behavior</li>
+<li>noprefix</li>
+<li>clone_children</li>
+<li>cpuset_v2_mode</li>
+<li>xattr</li>
+<li>release_agent=</li>
+<li>name=</li>
+<li>cgroup子系统的名称</li>
+</ul>
+
+<p>这些选项受如下约束：</p>
+
+<ul>
+<li>只能指定一个<code>release_agent=</code></li>
+<li><code>name=</code>的值中只允许为字母、数字和符号<code>.</code>, <code>-</code>, <code>_</code>等</li>
+<li><code>all和</code>cgroup<code>子系统的名互斥，指定了</code>all<code>，就不能在指定</code>cgroup`子系统的名称了</li>
+<li><code>none</code>和<code>cgroup</code>子系统的名互斥，指定了<code>none</code>，就不能在指定<code>cgroup</code>子系统的名称了</li>
+<li>当指定了<code>__DEVEL__sane_behavior</code>后，就不能再指定<code>clone_children</code>和<code>noprefix</code>了</li>
+<li>指定<code>noprefix</code>时，必须是在mount  <code>cpuset</code>这个控制器</li>
+</ul>
+
+<p>在<code>parse_cgroupfs_options</code>的最后，会将这些需要挂载的<code>cgroup</code>控制器的模块引用计数<strong>加1</strong>，防止被别人意外卸载。</p>
+
+<h4 id="init-root-id-获取分配的层级的id">init_root_id 获取分配的层级的id</h4>
+
+<p><code>cgroup_root_from_opts</code>函数根据挂载选项的要求，创建新的<code>cgroupfs_root</code>结构，如下：</p>
+
+<pre><code class="language-c">static struct cgroupfs_root *cgroup_root_from_opts(struct cgroup_sb_opts *opts)
+{
+	struct cgroupfs_root *root;
+
+	if (!opts-&gt;subsys_mask &amp;&amp; !opts-&gt;none)
+		return NULL;
+
+	root = kzalloc(sizeof(*root), GFP_KERNEL);
+	if (!root)
+		return ERR_PTR(-ENOMEM);
+
+	if (!init_root_id(root)) { // 重点
+		kfree(root);
+		return ERR_PTR(-ENOMEM);
+	}
+	init_cgroup_root(root);
+
+	root-&gt;subsys_mask = opts-&gt;subsys_mask;
+	root-&gt;flags = opts-&gt;flags;
+	ida_init(&amp;root-&gt;cgroup_ida);
+	if (opts-&gt;release_agent)
+		strcpy(root-&gt;release_agent_path, opts-&gt;release_agent);
+	if (opts-&gt;name)
+		strcpy(root-&gt;name, opts-&gt;name);
+	if (opts-&gt;cpuset_clone_children)
+		set_bit(CGRP_CPUSET_CLONE_CHILDREN, &amp;root-&gt;top_cgroup.flags);
+	return root;
+}
+</code></pre>
+
+<p><code>init_root_id</code> 用来为该<code>cgroupfs_root</code>分配一个唯一的id。其利用了内核基础设置<code>IDA</code>机制，对应到cgroup里有以下几个全局变量：</p>
+
+<pre><code>static DEFINE_IDA(hierarchy_ida);
+static int next_hierarchy_id;
+static DEFINE_SPINLOCK(hierarchy_id_lock);
+</code></pre>
+
+<p><code>hierarchy_id_lock</code> 用来包含对<code>next_hierarchy_id</code> 和 <code>hierarchy_ida</code>的访问，<code>next_hierarchy_id</code>表示下一次需要分配的<code>id</code>号。</p>
+
+<pre><code class="language-c">static bool init_root_id(struct cgroupfs_root *root)
+{
+	int ret = 0;
+
+	do {
+		if (!ida_pre_get(&amp;hierarchy_ida, GFP_KERNEL))
+			return false;
+		spin_lock(&amp;hierarchy_id_lock);
+		/* Try to allocate the next unused ID */
+		ret = ida_get_new_above(&amp;hierarchy_ida, next_hierarchy_id,
+					&amp;root-&gt;hierarchy_id);
+		if (ret == -ENOSPC)
+			/* Try again starting from 0 */
+			ret = ida_get_new(&amp;hierarchy_ida, &amp;root-&gt;hierarchy_id);
+		if (!ret) {
+			next_hierarchy_id = root-&gt;hierarchy_id + 1;
+		} else if (ret != -EAGAIN) {
+			/* Can only get here if the 31-bit IDR is full ... */
+			BUG_ON(ret);
+		}
+		spin_unlock(&amp;hierarchy_id_lock);
+	} while (ret);
+	return true;
+}
+</code></pre>
+
+<h4 id="sget-查找对应的super-block是否存在">sget 查找对应的super_block是否存在</h4>
+
+<p>sget 查找对应的super_block是否存时，用到了两个方法<code>cgroup_test_super</code>和<code>cgroup_set_super</code>:</p>
+
+<ul>
+<li><code>cgroup_test_super</code>用于判断super_block是否相等</li>
+</ul>
+
+<p>当有name时，name必须相等，此外cgroupfs_root上挂载的cgroup子系统也完全相同时，这两个super_block才相等</p>
+
+<pre><code class="language-c">static int cgroup_test_super(struct super_block *sb, void *data)
+{
+	struct cgroup_sb_opts *opts = data;
+	struct cgroupfs_root *root = sb-&gt;s_fs_info;
+
+	/* If we asked for a name then it must match */
+	if (opts-&gt;name &amp;&amp; strcmp(opts-&gt;name, root-&gt;name))
+		return 0;
+
+	/*
+	 * If we asked for subsystems (or explicitly for no
+	 * subsystems) then they must match
+	 */
+	if ((opts-&gt;subsys_mask || opts-&gt;none)
+	    &amp;&amp; (opts-&gt;subsys_mask != root-&gt;subsys_mask))
+		return 0;
+
+	return 1;
+}
+</code></pre>
+
+<ul>
+<li><code>cgroup_set_super</code>的目的是设置新创建的<code>super_block</code>的一些属性</li>
+</ul>
+
+<pre><code>static int cgroup_set_super(struct super_block *sb, void *data)
+{
+	int ret;
+	struct cgroup_sb_opts *opts = data;
+
+	/* If we don't have a new root, we can't set up a new sb */
+	if (!opts-&gt;new_root)
+		return -EINVAL;
+
+	BUG_ON(!opts-&gt;subsys_mask &amp;&amp; !opts-&gt;none);
+
+	ret = set_anon_super(sb, NULL);
+	if (ret)
+		return ret;
+
+	sb-&gt;s_fs_info = opts-&gt;new_root;
+	opts-&gt;new_root-&gt;sb = sb;
+
+	sb-&gt;s_blocksize = PAGE_CACHE_SIZE;
+	sb-&gt;s_blocksize_bits = PAGE_CACHE_SHIFT;
+	sb-&gt;s_magic = CGROUP_SUPER_MAGIC;
+	sb-&gt;s_op = &amp;cgroup_ops;
+
+	return 0;
+}
+</code></pre>
+
+<p>看这里的<code>cgroup_ops</code>：</p>
+
+<pre><code class="language-c">static const struct super_operations cgroup_ops = {
+	.statfs = simple_statfs,
+	.drop_inode = generic_delete_inode,
+	.show_options = cgroup_show_options,
+	.remount_fs = cgroup_remount,
+};
+</code></pre>
+
+<p>后续remount操作时，调用的就是这里的钩子函数<code>cgroup_remount</code>。</p>
+
+<h3 id="rebind-subsystem">rebind_subsystem</h3>
+
+<p><code>rebind_subsystem</code>比较关键，其实现的功能时：</p>
+
+<ul>
+<li>计算这次<code>mount</code>时，需要添加的<code>cgroup</code>子系统和要删除的<code>cgroup</code>子系统</li>
+<li>检查要添加的<code>cgroup</code>子系统是否是空闲的，如果不是，则返回EBUSY`</li>
+<li>检查<code>cgroupfs_root</code>是否只有一个<code>cgroup</code>，即只有<code>root cgroup</code>。否则返回<code>EBUSY</code></li>
+<li>然后处理每一个<code>cgroup子系统</code>
+
+<ul>
+<li>需要添加<code>cgroup子系统</code>的话：将<code>cgroup_subsys</code>从<code>rootnode</code>的<code>subsys_list</code>中移动到新创建的<code>cgroupfs_root</code>的subsys_list中等；</li>
+<li>需要删除<code>cgroup子系统</code>的话：将<code>cgroup_subsys</code>从<code>cgroupfs_root</code>的<code>subsys_list</code>移动到<code>rootnode</code>的<code>subsys_list</code>中；</li>
+<li>不添加也不删除<code>cgroup</code>子系统的话：减少模块的引用计数，因为<code>parse_cgroupfs_options</code>中已经将其引用计数<code>加1</code>了</li>
+<li>其他：不做任何操作</li>
+</ul></li>
+</ul>
+
+<p>当然，在添加和删除<code>cgroup子系统</code>时，会调整一下<code>cgroup_subsys</code>的<code>root</code>成员的值和<code>root cgroup</code>的成员<code>subsys</code>的值。</p>
+
+<pre><code class="language-c">/*
+ * Call with cgroup_mutex held. Drops reference counts on modules, including
+ * any duplicate ones that parse_cgroupfs_options took. If this function
+ * returns an error, no reference counts are touched.
+ */
+static int rebind_subsystems(struct cgroupfs_root *root,
+			      unsigned long final_subsys_mask)
+{
+	unsigned long added_mask, removed_mask;
+	struct cgroup *cgrp = &amp;root-&gt;top_cgroup;
+	int i;
+
+	BUG_ON(!mutex_is_locked(&amp;cgroup_mutex));
+	BUG_ON(!mutex_is_locked(&amp;cgroup_root_mutex));
+
+	removed_mask = root-&gt;actual_subsys_mask &amp; ~final_subsys_mask;
+	added_mask = final_subsys_mask &amp; ~root-&gt;actual_subsys_mask;
+	/* Check that any added subsystems are currently free */
+	for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
+		unsigned long bit = 1UL &lt;&lt; i;
+		struct cgroup_subsys *ss = subsys[i];
+		if (!(bit &amp; added_mask))
+			continue;
+		/*
+		 * Nobody should tell us to do a subsys that doesn't exist:
+		 * parse_cgroupfs_options should catch that case and refcounts
+		 * ensure that subsystems won't disappear once selected.
+		 */
+		BUG_ON(ss == NULL);
+		if (ss-&gt;root != &amp;rootnode) {
+			/* Subsystem isn't free */
+			return -EBUSY;
+		}
+	}
+
+	/* Currently we don't handle adding/removing subsystems when
+	 * any child cgroups exist. This is theoretically supportable
+	 * but involves complex error handling, so it's being left until
+	 * later */
+	if (root-&gt;number_of_cgroups &gt; 1)
+		return -EBUSY;
+
+	/* Process each subsystem */
+	for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
+		struct cgroup_subsys *ss = subsys[i];
+		unsigned long bit = 1UL &lt;&lt; i;
+		if (bit &amp; added_mask) {
+			/* We're binding this subsystem to this hierarchy */
+			BUG_ON(ss == NULL);
+			BUG_ON(cgrp-&gt;subsys[i]);
+			BUG_ON(!dummytop-&gt;subsys[i]);
+			BUG_ON(dummytop-&gt;subsys[i]-&gt;cgroup != dummytop);
+			cgrp-&gt;subsys[i] = dummytop-&gt;subsys[i];
+			cgrp-&gt;subsys[i]-&gt;cgroup = cgrp;
+			list_move(&amp;ss-&gt;sibling, &amp;root-&gt;subsys_list);
+			ss-&gt;root = root;
+			if (ss-&gt;bind)
+				ss-&gt;bind(cgrp);
+			/* refcount was already taken, and we're keeping it */
+		} else if (bit &amp; removed_mask) {
+			/* We're removing this subsystem */
+			BUG_ON(ss == NULL);
+			BUG_ON(cgrp-&gt;subsys[i] != dummytop-&gt;subsys[i]);
+			BUG_ON(cgrp-&gt;subsys[i]-&gt;cgroup != cgrp);
+			if (ss-&gt;bind)
+				ss-&gt;bind(dummytop);
+			dummytop-&gt;subsys[i]-&gt;cgroup = dummytop;
+			cgrp-&gt;subsys[i] = NULL;
+			subsys[i]-&gt;root = &amp;rootnode;
+			list_move(&amp;ss-&gt;sibling, &amp;rootnode.subsys_list);
+			/* subsystem is now free - drop reference on module */
+			module_put(ss-&gt;module);
+		} else if (bit &amp; final_subsys_mask) {
+			/* Subsystem state should already exist */
+			BUG_ON(ss == NULL);
+			BUG_ON(!cgrp-&gt;subsys[i]);
+			/*
+			 * a refcount was taken, but we already had one, so
+			 * drop the extra reference.
+			 */
+			module_put(ss-&gt;module);
+#ifdef CONFIG_MODULE_UNLOAD
+			BUG_ON(ss-&gt;module &amp;&amp; !module_refcount(ss-&gt;module));
+#endif
+		} else {
+			/* Subsystem state shouldn't exist */
+			BUG_ON(cgrp-&gt;subsys[i]);
+		}
+	}
+	root-&gt;subsys_mask = root-&gt;actual_subsys_mask = final_subsys_mask;
+
+	return 0;
+}
+
+</code></pre>
+
+<h4 id="创建对应的cgroup控制文件">创建对应的cgroup控制文件</h4>
+
+<p><code>cgroup_populate_dir</code>用来创建对应的cgroup控制文件。</p>
+
+<pre><code class="language-c">/**
+ * cgroup_populate_dir - selectively creation of files in a directory
+ * @cgrp: target cgroup
+ * @base_files: true if the base files should be added
+ * @subsys_mask: mask of the subsystem ids whose files should be added
+ */
+static int cgroup_populate_dir(struct cgroup *cgrp, bool base_files,
+			       unsigned long subsys_mask)
+{
+	int err;
+	struct cgroup_subsys *ss;
+
+	if (base_files) { // files 定义了cgroup的基本文件, true代表添加文件
+		err = cgroup_addrm_files(cgrp, NULL, files, true);
+		if (err &lt; 0)
+			return err;
+	}
+
+	/* process cftsets of each subsystem */
+	for_each_subsys(cgrp-&gt;root, ss) { // 对于该层级上挂载的每一个cgroup子系统，创建控制文件
+		struct cftype_set *set;
+		if (!test_bit(ss-&gt;subsys_id, &amp;subsys_mask))
+			continue;
+
+		list_for_each_entry(set, &amp;ss-&gt;cftsets, node)
+			cgroup_addrm_files(cgrp, ss, set-&gt;cfts, true);
+	}
+
+	/* This cgroup is ready now */
+	for_each_subsys(cgrp-&gt;root, ss) {
+		struct cgroup_subsys_state *css = cgrp-&gt;subsys[ss-&gt;subsys_id];
+		/*
+		 * Update id-&gt;css pointer and make this css visible from
+		 * CSS ID functions. This pointer will be dereferened
+		 * from RCU-read-side without locks.
+		 */
+		if (css-&gt;id)
+			rcu_assign_pointer(css-&gt;id-&gt;css, css);
+	}
+
+	return 0;
+}
+</code></pre>
+
+<p><code>err = cgroup_addrm_files(cgrp, NULL, files, true);</code>创建cgroup基本的控制文件，这些文件的信息定义在一个<code>files</code>的全局变量中。</p>
+
+<pre><code class="language-c">/*
+ * for the common functions, 'private' gives the type of file
+ */
+/* for hysterical raisins, we can't put this on the older files */
+#define CGROUP_FILE_GENERIC_PREFIX &quot;cgroup.&quot;
+static struct cftype files[] = {
+	{
+		.name = &quot;tasks&quot;,
+		.open = cgroup_tasks_open,
+		.write_u64 = cgroup_tasks_write,
+		.release = cgroup_pidlist_release,
+		.mode = S_IRUGO | S_IWUSR,
+	},
+	{
+		.name = CGROUP_FILE_GENERIC_PREFIX &quot;procs&quot;,
+		.open = cgroup_procs_open,
+		.write_u64 = cgroup_procs_write,
+		.release = cgroup_pidlist_release,
+		.mode = S_IRUGO | S_IWUSR,
+	},
+	{
+		.name = &quot;notify_on_release&quot;,
+		.read_u64 = cgroup_read_notify_on_release,
+		.write_u64 = cgroup_write_notify_on_release,
+	},
+	{
+		.name = CGROUP_FILE_GENERIC_PREFIX &quot;event_control&quot;,
+		.write_string = cgroup_write_event_control,
+		.mode = S_IWUGO,
+	},
+	{
+		.name = &quot;cgroup.clone_children&quot;,
+		.flags = CFTYPE_INSANE,
+		.read_u64 = cgroup_clone_children_read,
+		.write_u64 = cgroup_clone_children_write,
+	},
+	{
+		.name = &quot;cgroup.sane_behavior&quot;,
+		.flags = CFTYPE_ONLY_ON_ROOT,
+		.read_seq_string = cgroup_sane_behavior_show,
+	},
+	{
+		.name = &quot;release_agent&quot;,
+		.flags = CFTYPE_ONLY_ON_ROOT,
+		.read_seq_string = cgroup_release_agent_show,
+		.write_string = cgroup_release_agent_write,
+		.max_write_len = PATH_MAX,
+	},
+	{ }	/* terminate */
+};
+</code></pre>
+
+<h3 id="remount的一些限制">remount的一些限制</h3>
+
+<p><code>cgroup_remount</code>执行对cgroup挂载点remount的操作：</p>
+
+<pre><code class="language-c">static int cgroup_remount(struct super_block *sb, int *flags, char *data)
+{
+	int ret = 0;
+	struct cgroupfs_root *root = sb-&gt;s_fs_info;
+	struct cgroup *cgrp = &amp;root-&gt;top_cgroup;
+	struct cgroup_sb_opts opts;
+	unsigned long added_mask, removed_mask;
+	// __DEVEL__sane_behavior 指定后，不允许进行remount操作
+	if (root-&gt;flags &amp; CGRP_ROOT_SANE_BEHAVIOR) {
+		pr_err(&quot;cgroup: sane_behavior: remount is not allowed\n&quot;);
+		return -EINVAL;
+	}
+
+	mutex_lock(&amp;cgrp-&gt;dentry-&gt;d_inode-&gt;i_mutex);
+	mutex_lock(&amp;cgroup_mutex);
+	mutex_lock(&amp;cgroup_root_mutex);
+
+	/* See what subsystems are wanted */ // 解析remount的选项
+	ret = parse_cgroupfs_options(data, &amp;opts);
+	if (ret)
+		goto out_unlock;
+	// 不建议remount时修改层级的子系统或者其他选项，该功能已经废弃
+	if (opts.subsys_mask != root-&gt;actual_subsys_mask || opts.release_agent)
+		pr_warning(&quot;cgroup: option changes via remount are deprecated (pid=%d comm=%s)\n&quot;,
+			   task_tgid_nr(current), current-&gt;comm);
+
+	added_mask = opts.subsys_mask &amp; ~root-&gt;subsys_mask;
+	removed_mask = root-&gt;subsys_mask &amp; ~opts.subsys_mask;
+
+	// flags和name在remount时不允许改变
+	/* Don't allow flags or name to change at remount */
+	if (opts.flags != root-&gt;flags ||
+	    (opts.name &amp;&amp; strcmp(opts.name, root-&gt;name))) {
+		ret = -EINVAL;
+		drop_parsed_module_refcounts(opts.subsys_mask);
+		goto out_unlock;
+	}
+
+	/*
+	 * Clear out the files of subsystems that should be removed, do
+	 * this before rebind_subsystems, since rebind_subsystems may
+	 * change this hierarchy's subsys_list.
+	 *///删除 要删除的cgroup子系统的控制文件
+	cgroup_clear_directory(cgrp-&gt;dentry, false, removed_mask);
+
+	ret = rebind_subsystems(root, opts.subsys_mask);
+	if (ret) {
+		/* rebind_subsystems failed, re-populate the removed files */
+		cgroup_populate_dir(cgrp, false, removed_mask);
+		drop_parsed_module_refcounts(opts.subsys_mask);
+		goto out_unlock;
+	}
+
+	/* re-populate subsystem files */
+	// 添加 要添加的cgroup子系统的控制文件
+	cgroup_populate_dir(cgrp, false, added_mask);
+
+	if (opts.release_agent)
+		strcpy(root-&gt;release_agent_path, opts.release_agent);
+ out_unlock:
+	kfree(opts.release_agent);
+	kfree(opts.name);
+	mutex_unlock(&amp;cgroup_root_mutex);
+	mutex_unlock(&amp;cgroup_mutex);
+	mutex_unlock(&amp;cgrp-&gt;dentry-&gt;d_inode-&gt;i_mutex);
+	return ret;
+}
+
+</code></pre>
+
+<h3 id="umount">umount</h3>
+
+<p><code>cgroup_kill_sb</code>是执行umount <code>cgroup</code>文件系统的内核方法：</p>
+
+<pre><code class="language-c">static void cgroup_kill_sb(struct super_block *sb) {
+	struct cgroupfs_root *root = sb-&gt;s_fs_info;
+	struct cgroup *cgrp = &amp;root-&gt;top_cgroup;
+	int ret;
+	struct cg_cgroup_link *link;
+	struct cg_cgroup_link *saved_link;
+
+	BUG_ON(!root);
+	// umount时，该层级上的cgroup个数必须为1
+	BUG_ON(root-&gt;number_of_cgroups != 1);
+	// umount时，该层级的root cgroup必须没有子cgroup
+	BUG_ON(!list_empty(&amp;cgrp-&gt;children));
+
+	mutex_lock(&amp;cgroup_mutex);
+	mutex_lock(&amp;cgroup_root_mutex);
+
+	/* Rebind all subsystems back to the default hierarchy */
+	// 删除该层级上所有附加的cgroup子系统
+	ret = rebind_subsystems(root, 0);
+	/* Shouldn't be able to fail ... */
+	BUG_ON(ret);
+
+	/*
+	 * Release all the links from css_sets to this hierarchy's
+	 * root cgroup
+	 */
+	write_lock(&amp;css_set_lock);
+
+	list_for_each_entry_safe(link, saved_link, &amp;cgrp-&gt;css_sets,
+				 cgrp_link_list) {
+		list_del(&amp;link-&gt;cg_link_list);
+		list_del(&amp;link-&gt;cgrp_link_list);
+		kfree(link);
+	}
+	write_unlock(&amp;css_set_lock);
+	// 在roots链表中删除该cgroupfs_root
+	if (!list_empty(&amp;root-&gt;root_list)) {
+		list_del(&amp;root-&gt;root_list);
+		root_count--;
+	}
+
+	mutex_unlock(&amp;cgroup_root_mutex);
+	mutex_unlock(&amp;cgroup_mutex);
+
+	simple_xattrs_free(&amp;cgrp-&gt;xattrs);
+
+	kill_litter_super(sb);
+	cgroup_drop_root(root);
+}
+</code></pre>
+
+<h3 id="参考文章">参考文章</h3>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-08-25</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/cgroup/">cgroup</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/cgroup-source-cgroup_init/">
+            <span class="next-text nav-default">cgroup源码分析2——cgroup的初始化</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
