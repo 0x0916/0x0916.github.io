@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-08-09T22:46:11&#43;08:00"/>
+<meta property="og:updated_time" content="2018-08-23T15:19:35&#43;08:00"/>
 
 
 
@@ -155,6 +155,74 @@
     
       <article class="post">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-css_set-and-cgroup/">cgroup源码分析1—— css_set和cgroup的关系</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-08-23 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+            <a href="/categories/cgroup/"> cgroup </a>
+          
+        </div>
+      <span class="more-meta"> 5502 words </span>
+      <span class="more-meta"> 11 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本系列文章主要从源码入手，分析<code>linux kernel</code>中<code>cgroup</code>的实现。</p>
+
+<blockquote>
+<p>本文基于<code>3.10.0-862.el7.x86_64</code>版本kernel进行分析。</p>
+</blockquote>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/cgroup-source-css_set-and-cgroup/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/posts/hierarchy-without-controller-group/">Cgroup之不绑定任何subsystem</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-08-14 </span>
+      <div class="post-category">
+          
+            <a href="/categories/cgroup/"> cgroup </a>
+          
+        </div>
+      <span class="more-meta"> 3734 words </span>
+      <span class="more-meta"> 8 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本文将创建并挂载一颗不和任何<code>subsystem</code>系统绑定的<code>cgroup</code>树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个<code>cgroup</code>中默认都有的几个文件的含义。</p>
+
+<p>最后，介绍了这样使用<code>cgroup</code>的一个用户。</p>
+
+<blockquote>
+<p>本文所有例子在<code>centos 7.5</code> 下执行通过</p>
+</blockquote>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/posts/hierarchy-without-controller-group/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-debug/">cgroup之debug子系统</a></h1>
     <div class="post-meta">
       <span class="post-time"> 2018-08-09 </span>
@@ -246,76 +314,6 @@
     </div>
     <div class="read-more">
       <a href="/posts/rbtree-linux-kernel/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/process_resource/">Process Resource</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-07-30 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-        </div>
-      <span class="more-meta"> 1820 words </span>
-      <span class="more-meta"> 4 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/posts/process_resource/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/rbtree/">红黑树(一) ——原理</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-07-16 </span>
-      <div class="post-category">
-          
-            <a href="/categories/algorithm/"> algorithm </a>
-          
-            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
-          
-        </div>
-      <span class="more-meta"> 4311 words </span>
-      <span class="more-meta"> 9 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。</p>
-
-<p>本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。</p>
-
-<h2 id="红黑树介绍">红黑树介绍</h2>
-
-<p>红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：<strong>红黑树</strong>。</p>
-
-<p>红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？</p>
-
-<p>了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。</p>
-
-<p>自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/posts/rbtree/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>

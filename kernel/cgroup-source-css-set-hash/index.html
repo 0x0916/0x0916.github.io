@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>cgroup源码分析4——css_set的哈希表分析 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="在描述进程的结构体task_struct中有一个类型为css_set的成员cgroups，它描述了进程的所有cgroup信息，从前面的分析文章中我们已经知道通过task_struct-&amp;gt;cgroups可以找到进程的所有不同cgroup控制器的信息。
+当我们新创建一个进程时，新进程的task_struct-&amp;gt;cgroups的值继承自其父进程。此后，如果我们将新创建的进程添加到一个新的cgroup中时，就需要重新给task_struct-&amp;gt;cgroups赋值，这个值要么是一个已经存在的css_set结构的指针，要么是新创建的css_set的结构的指针。
+所以，我们就需要通过进程的cgroup信息，快速查找其对应的css_set结构是否存在，如果不存在的话就去创建它。linux kernel 使用一个hash表来完成这个工作。本文主要分析该hash表的实现。
+ 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+ 
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="cgroup源码分析4——css_set的哈希表分析" />
+<meta property="og:description" content="在描述进程的结构体task_struct中有一个类型为css_set的成员cgroups，它描述了进程的所有cgroup信息，从前面的分析文章中我们已经知道通过task_struct-&gt;cgroups可以找到进程的所有不同cgroup控制器的信息。
+
+当我们新创建一个进程时，新进程的task_struct-&gt;cgroups的值继承自其父进程。此后，如果我们将新创建的进程添加到一个新的cgroup中时，就需要重新给task_struct-&gt;cgroups赋值，这个值要么是一个已经存在的css_set结构的指针，要么是新创建的css_set的结构的指针。
+
+所以，我们就需要通过进程的cgroup信息，快速查找其对应的css_set结构是否存在，如果不存在的话就去创建它。linux kernel 使用一个hash表来完成这个工作。本文主要分析该hash表的实现。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/" />
+
+
+
+<meta property="article:published_time" content="2018-08-25T16:31:46&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-08-25T16:31:46&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="cgroup源码分析4——css_set的哈希表分析">
+<meta itemprop="description" content="在描述进程的结构体task_struct中有一个类型为css_set的成员cgroups，它描述了进程的所有cgroup信息，从前面的分析文章中我们已经知道通过task_struct-&gt;cgroups可以找到进程的所有不同cgroup控制器的信息。
+
+当我们新创建一个进程时，新进程的task_struct-&gt;cgroups的值继承自其父进程。此后，如果我们将新创建的进程添加到一个新的cgroup中时，就需要重新给task_struct-&gt;cgroups赋值，这个值要么是一个已经存在的css_set结构的指针，要么是新创建的css_set的结构的指针。
+
+所以，我们就需要通过进程的cgroup信息，快速查找其对应的css_set结构是否存在，如果不存在的话就去创建它。linux kernel 使用一个hash表来完成这个工作。本文主要分析该hash表的实现。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-08-25T16:31:46&#43;08:00" />
+<meta itemprop="dateModified" content="2018-08-25T16:31:46&#43;08:00" />
+<meta itemprop="wordCount" content="3069">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,cgroup," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="cgroup源码分析4——css_set的哈希表分析"/>
+<meta name="twitter:description" content="在描述进程的结构体task_struct中有一个类型为css_set的成员cgroups，它描述了进程的所有cgroup信息，从前面的分析文章中我们已经知道通过task_struct-&gt;cgroups可以找到进程的所有不同cgroup控制器的信息。
+
+当我们新创建一个进程时，新进程的task_struct-&gt;cgroups的值继承自其父进程。此后，如果我们将新创建的进程添加到一个新的cgroup中时，就需要重新给task_struct-&gt;cgroups赋值，这个值要么是一个已经存在的css_set结构的指针，要么是新创建的css_set的结构的指针。
+
+所以，我们就需要通过进程的cgroup信息，快速查找其对应的css_set结构是否存在，如果不存在的话就去创建它。linux kernel 使用一个hash表来完成这个工作。本文主要分析该hash表的实现。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">cgroup源码分析4——css_set的哈希表分析</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-08-25 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+              <a href="/categories/cgroup/"> cgroup </a>
+            
+          </div>
+        <span class="more-meta"> 3069 words </span>
+        <span class="more-meta"> 7 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#数据结构">数据结构</a></li>
+<li><a href="#hash-方法">hash 方法</a></li>
+<li><a href="#向css-set-table中添加css-set">向css_set_table中添加css_set</a></li>
+<li><a href="#删除css-set-table中的css-set">删除css_set_table中的css_set</a></li>
+<li><a href="#在css-set-table查找一个css-set">在css_set_table查找一个css_set</a></li>
+<li><a href="#通过crash可以查看css-set-table">通过crash可以查看css_set_table</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>在描述进程的结构体<code>task_struct</code>中有一个类型为<code>css_set</code>的成员<code>cgroups</code>，它描述了进程的所有<code>cgroup</code>信息，从前面的分析文章中我们已经知道通过<code>task_struct-&gt;cgroups</code>可以找到进程的所有不同<code>cgroup</code>控制器的信息。</p>
+
+<p>当我们新创建一个进程时，新进程的<code>task_struct-&gt;cgroups</code>的值继承自其<code>父进程</code>。此后，如果我们将新创建的进程添加到一个新的<code>cgroup</code>中时，就需要重新给<code>task_struct-&gt;cgroups</code>赋值，这个值要么是一个已经存在的<code>css_set</code>结构的指针，要么是新创建的<code>css_set</code>的结构的指针。</p>
+
+<p>所以，我们就需要通过<code>进程的cgroup信息</code>，快速查找其对应的<code>css_set结构</code>是否存在，如果不存在的话就去创建它。<code>linux kernel</code> 使用一个<code>hash</code>表来完成这个工作。本文主要分析该<code>hash</code>表的实现。</p>
+
+<blockquote>
+<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
+</blockquote>
+
+<p></p>
+
+<h3 id="数据结构">数据结构</h3>
+
+<pre><code class="language-c">/*
+ * hash table for cgroup groups. This improves the performance to find
+ * an existing css_set. This hash doesn't (currently) take into
+ * account cgroups in empty hierarchies.
+ */
+#define CSS_SET_HASH_BITS       7
+static DEFINE_HASHTABLE(css_set_table, CSS_SET_HASH_BITS);
+</code></pre>
+
+<p>其中<code>CSS_SET_HASH_BITS</code>的值为7，所以定义的<code>css_set_table</code>这个hash数组由128个元素(1&lt;&lt;7)。</p>
+
+<pre><code>crash&gt; whatis css_set_table
+struct hlist_head css_set_table[128];
+</code></pre>
+
+<p><code>css_set</code>有成员<code>hlist</code>，用来将具有相同<code>hash</code>值的<code>css_set</code>链接到一起，如下：</p>
+
+<pre><code class="language-c">struct css_set {
+
+	...
+        /*
+         * List running through all cgroup groups in the same hash
+         * slot. Protected by css_set_lock
+         */
+        struct hlist_node hlist;
+	...
+};
+</code></pre>
+
+<h3 id="hash-方法">hash 方法</h3>
+
+<p>此种场景下，如果进程的<code>cgroup</code>信息都相同的话，他们的<code>css_set</code>也应该相同，所以<code>css_set</code>的<code>hash</code>方法如下：</p>
+
+<p>使用各个<code>cgroup</code>的<code>cgroup_subsys_state</code>的地址来计算<code>hash</code>值，计算方法如下：</p>
+
+<pre><code class="language-c">static unsigned long css_set_hash(struct cgroup_subsys_state *css[])
+{
+        int i;
+        unsigned long key = 0UL;
+
+        for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++)
+                key += (unsigned long)css[i];
+        key = (key &gt;&gt; 16) ^ key;
+
+        return key;
+}
+</code></pre>
+
+<blockquote>
+<p>注意：这里的返回值<code>key</code>肯定是一个大于<code>127</code>的数字，而我们的<code>css_set_table</code>数组只有<code>128</code>个，其实不用担心，再<code>hash_add</code>方法中会自动根据hash数组的大小进行调整的。</p>
+</blockquote>
+
+<h3 id="向css-set-table中添加css-set">向css_set_table中添加css_set</h3>
+
+<p>当系统初始化时，需要将<code>init_css_set</code>添加到<code>css_set_table</code>中：</p>
+
+<pre><code class="language-c">        /* Add init_css_set to the hash table */
+        key = css_set_hash(init_css_set.subsys);
+        hash_add(css_set_table, &amp;init_css_set.hlist, key);  
+</code></pre>
+
+<p>在<code>find_css_set</code>函数中，如果没有找到<code>css_set</code>，新建一个新的<code>css_set</code>后，需要将这个新的<code>css_set</code>添加到<code>css_set_table</code>：</p>
+
+<pre><code class="language-c">/*
+ * find_css_set() takes an existing cgroup group and a
+ * cgroup object, and returns a css_set object that's
+ * equivalent to the old group, but with the given cgroup
+ * substituted into the appropriate hierarchy. Must be called with
+ * cgroup_mutex held
+ */
+static struct css_set *find_css_set(
+        struct css_set *oldcg, struct cgroup *cgrp)
+{
+	....
+        read_lock(&amp;css_set_lock);
+        res = find_existing_css_set(oldcg, cgrp, template);
+        if (res)
+                get_css_set(res);
+        read_unlock(&amp;css_set_lock);
+	// 找到了直接返回
+        if (res)
+                return res;
+
+	// 没有找到，新创建一个css_set
+        res = kmalloc(sizeof(*res), GFP_KERNEL);
+        if (!res)
+                return NULL;
+
+	...
+	...
+        css_set_count++;
+
+        /* Add this cgroup group to the hash table */
+        key = css_set_hash(res-&gt;subsys);
+        hash_add(css_set_table, &amp;res-&gt;hlist, key);
+
+        write_unlock(&amp;css_set_lock);
+
+        return res;
+}
+</code></pre>
+
+<p>在<code>cgroup_load_subsys</code>函数中，由于添加了新的cgroup子系统，导致系统上所有<code>css_set</code>的hash值都发生了变化，都必须重新计算<code>css_set</code>的hash，并添加到适当的hash数组中。</p>
+
+<pre><code class="language-c">/**
+ * cgroup_load_subsys: load and register a modular subsystem at runtime
+ * @ss: the subsystem to load
+ *
+ * This function should be called in a modular subsystem's initcall. If the
+ * subsystem is built as a module, it will be assigned a new subsys_id and set
+ * up for use. If the subsystem is built-in anyway, work is delegated to the
+ * simpler cgroup_init_subsys.
+ */
+int __init_or_module cgroup_load_subsys(struct cgroup_subsys *ss)
+{
+	...
+        write_lock(&amp;css_set_lock);
+        hash_for_each_safe(css_set_table, i, tmp, cg, hlist) {
+                /* skip entries that we already rehashed */
+                if (cg-&gt;subsys[ss-&gt;subsys_id])
+                        continue;
+                /* remove existing entry */
+                hash_del(&amp;cg-&gt;hlist); // 删除旧的
+                /* set new value */
+                cg-&gt;subsys[ss-&gt;subsys_id] = css;
+                /* recompute hash and restore entry */
+                key = css_set_hash(cg-&gt;subsys); // 添加新的
+                hash_add(css_set_table, &amp;cg-&gt;hlist, key);
+        }
+        write_unlock(&amp;css_set_lock);
+	...
+}
+</code></pre>
+
+<p><code>cgroup_unload_subsys</code>的情况跟<code>cgroup_load_subsys</code>类似。</p>
+
+<h3 id="删除css-set-table中的css-set">删除css_set_table中的css_set</h3>
+
+<p>当一个<code>cgroup</code>的最后一个进程退出时，该进程对应的css_set就没有用了，需要从<code>css_set_table</code>中删除，其实现位于函数<code>__put_css_set</code>:</p>
+
+<pre><code class="language-c">static void __put_css_set(struct css_set *cg, int taskexit)                                                                                    
+{
+        struct cg_cgroup_link *link;
+        struct cg_cgroup_link *saved_link;
+        /*
+         * Ensure that the refcount doesn't hit zero while any readers
+         * can see it. Similar to atomic_dec_and_lock(), but for an
+         * rwlock
+         */
+        if (atomic_add_unless(&amp;cg-&gt;refcount, -1, 1))
+                return;
+        write_lock(&amp;css_set_lock);
+        if (!atomic_dec_and_test(&amp;cg-&gt;refcount)) {
+                write_unlock(&amp;css_set_lock);
+                return;
+        }
+
+        /* This css_set is dead. unlink it and release cgroup refcounts */
+        hash_del(&amp;cg-&gt;hlist);
+        css_set_count--;
+	...
+	...
+}
+</code></pre>
+
+<h3 id="在css-set-table查找一个css-set">在css_set_table查找一个css_set</h3>
+
+<p><code>find_existing_css_set</code>函数用于查找一个css_se是否存在，这个函数的参考有点怪，我们仔细分析一下：</p>
+
+<ul>
+<li><code>oldcg</code>为该进程原来的<code>css_set</code></li>
+<li><code>cgrp</code>为要将进程添加进这个<code>cgroup</code></li>
+<li><code>template</code>为临时变量，用来传递进程最终的<code>cgroup</code>信息</li>
+</ul>
+
+<pre><code class="language-c">/*
+ * find_existing_css_set() is a helper for
+ * find_css_set(), and checks to see whether an existing
+ * css_set is suitable.
+ *
+ * oldcg: the cgroup group that we're using before the cgroup
+ * transition
+ *
+ * cgrp: the cgroup that we're moving into
+ *
+ * template: location in which to build the desired set of subsystem
+ * state objects for the new cgroup group
+ */
+static struct css_set *find_existing_css_set(
+        struct css_set *oldcg,
+        struct cgroup *cgrp,
+        struct cgroup_subsys_state *template[])
+{
+        int i;
+        struct cgroupfs_root *root = cgrp-&gt;root;
+        struct css_set *cg;
+        unsigned long key;
+
+        /*
+         * Build the set of subsystem state objects that we want to see in the
+         * new css_set. while subsystems can change globally, the entries here
+         * won't change, so no need for locking.
+         */
+        for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
+                if (root-&gt;subsys_mask &amp; (1UL &lt;&lt; i)) {
+                        /* Subsystem is in this hierarchy. So we want
+                         * the subsystem state from the new
+                         * cgroup */
+                        template[i] = cgrp-&gt;subsys[i];
+                } else {
+                        /* Subsystem is not in this hierarchy, so we
+                         * don't want to change the subsystem state */
+                        template[i] = oldcg-&gt;subsys[i];
+                }
+        }
+
+        key = css_set_hash(template);
+        hash_for_each_possible(css_set_table, cg, hlist, key) {
+                if (!compare_css_sets(cg, oldcg, cgrp, template))
+                        continue;
+
+                /* This css_set matches what we need */
+                return cg;
+        }
+
+        /* No existing cgroup group matched */
+        return NULL;
+}
+</code></pre>
+
+<p>在查找过程中，如果判断两个css_set相等呢？这个重任就交给了函数<code>compare_css_sets</code>:</p>
+
+<pre><code class="language-c">/*
+ * compare_css_sets - helper function for find_existing_css_set().
+ * @cg: candidate css_set being tested
+ * @old_cg: existing css_set for a task
+ * @new_cgrp: cgroup that's being entered by the task
+ * @template: desired set of css pointers in css_set (pre-calculated)
+ *
+ * Returns true if &quot;cg&quot; matches &quot;old_cg&quot; except for the hierarchy
+ * which &quot;new_cgrp&quot; belongs to, for which it should match &quot;new_cgrp&quot;.
+ */
+static bool compare_css_sets(struct css_set *cg,
+                             struct css_set *old_cg,
+                             struct cgroup *new_cgrp,
+                             struct cgroup_subsys_state *template[])
+{
+        struct list_head *l1, *l2;
+	// 判断cgroup_subsys_state是否完全相等
+        if (memcmp(template, cg-&gt;subsys, sizeof(cg-&gt;subsys))) {
+                /* Not all subsystems matched */
+                return false;
+        }
+
+        /*
+         * Compare cgroup pointers in order to distinguish between
+         * different cgroups in heirarchies with no subsystems. We
+         * could get by with just this check alone (and skip the
+         * memcmp above) but on most setups the memcmp check will
+         * avoid the need for this more expensive check on almost all
+         * candidates.
+         */
+	// 进一步严格判断各个链表的长度和其指向的值是否一致
+        l1 = &amp;cg-&gt;cg_links;
+        l2 = &amp;old_cg-&gt;cg_links;
+        while (1) {
+                struct cg_cgroup_link *cgl1, *cgl2;
+                struct cgroup *cg1, *cg2;
+
+                l1 = l1-&gt;next;
+                l2 = l2-&gt;next;
+                /* See if we reached the end - both lists are equal length. */
+                if (l1 == &amp;cg-&gt;cg_links) {
+                        BUG_ON(l2 != &amp;old_cg-&gt;cg_links);
+                        break;
+                } else {
+                        BUG_ON(l2 == &amp;old_cg-&gt;cg_links);
+                }
+                /* Locate the cgroups associated with these links. */
+                cgl1 = list_entry(l1, struct cg_cgroup_link, cg_link_list);
+                cgl2 = list_entry(l2, struct cg_cgroup_link, cg_link_list);
+                cg1 = cgl1-&gt;cgrp;
+                cg2 = cgl2-&gt;cgrp;
+                /* Hierarchies should be linked in the same order. */
+                BUG_ON(cg1-&gt;root != cg2-&gt;root);
+
+                /*
+                 * If this hierarchy is the hierarchy of the cgroup
+                 * that's changing, then we need to check that this
+                 * css_set points to the new cgroup; if it's any other
+                 * hierarchy, then this css_set should point to the
+                 * same cgroup as the old css_set.
+                 */
+                if (cg1-&gt;root == new_cgrp-&gt;root) {
+                        if (cg1 != new_cgrp)
+                                return false;
+                } else {
+                        if (cg1 != cg2)
+                                return false;
+                }
+        }
+        return true;
+}
+</code></pre>
+
+<h3 id="通过crash可以查看css-set-table">通过crash可以查看css_set_table</h3>
+
+<pre><code>crash&gt; p css_set_count
+css_set_count = $4 = 42
+crash&gt; p css_set_table
+css_set_table = $5 = 
+ {{
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d43c90c8
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d6915248
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b52042bb48
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d1862f08
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d6ac2008
+  }, {
+    first = 0xffffa0b5d43c9a88
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d18629c8
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5205e7cc8
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b612593008
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d1862188
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5bf085f08
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d1862548
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d6ac26c8
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d83cd308
+  }, {
+    first = 0xffffa0b5d09e4848
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b535d28cc8
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d185c6c8
+  }, {
+    first = 0xffffa0b616f0d488
+  }, {
+    first = 0xffffa0b5205e70c8
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d43c9248
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5cd167a88
+  }, {
+    first = 0xffffa0b5db76ce48
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d185c488
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d43c9d88
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5db59d788
+  }, {
+    first = 0xffffa0b616922248
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d43c93c8
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d1862d88
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d4332248
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d1862b48
+  }, {
+    first = 0xffffa0b5d18626c8
+  }, {
+    first = 0xffffa0b5d5d46308
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5bcbb23c8
+  }, {
+    first = 0xffffa0b5d43c9548
+  }, {
+    first = 0x0
+  }, {
+    first = 0xffffa0b5d1862848
+  }, {
+    first = 0x0
+  }, {
+    first = 0x0
+  }}
+</code></pre>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-08-25</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/cgroup/">cgroup</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/kernel/cgroup-source-proc-pid-cgroup/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/kernel/cgroup-source-cgroup_mount/">
+            <span class="next-text nav-default">cgroup源码分析3——cgroup层级的mount流程</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

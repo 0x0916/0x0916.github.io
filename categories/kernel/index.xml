@@ -6,10 +6,71 @@
     <description>Recent content in Kernel on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 25 Aug 2018 10:54:09 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 26 Aug 2018 10:09:56 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/categories/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>cgroup源码分析6——cgroup 中默认控制文件的内核实现分析</title>
+      <link>http://linux.laoqinren.net/kernel/cgroup-source-default-file/</link>
+      <pubDate>Sun, 26 Aug 2018 10:09:56 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/cgroup-source-default-file/</guid>
+      <description>&lt;p&gt;cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。&lt;/p&gt;
+
+&lt;p&gt;这些文件包括：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;notify_on_release&lt;/li&gt;
+&lt;li&gt;release_agent&lt;/li&gt;
+&lt;li&gt;cgroup.procs&lt;/li&gt;
+&lt;li&gt;tasks&lt;/li&gt;
+&lt;li&gt;cgroup.clone_children&lt;/li&gt;
+&lt;li&gt;cgroup.event_control&lt;/li&gt;
+&lt;li&gt;cgroup.sane_behavior&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析</title>
+      <link>http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/</link>
+      <pubDate>Sat, 25 Aug 2018 16:32:32 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/</guid>
+      <description>&lt;p&gt;本文详细分析了&lt;code&gt;/proc/pid/cgroup&lt;/code&gt;文件的内核实现。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>cgroup源码分析4——css_set的哈希表分析</title>
+      <link>http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/</link>
+      <pubDate>Sat, 25 Aug 2018 16:31:46 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/</guid>
+      <description>&lt;p&gt;在描述进程的结构体&lt;code&gt;task_struct&lt;/code&gt;中有一个类型为&lt;code&gt;css_set&lt;/code&gt;的成员&lt;code&gt;cgroups&lt;/code&gt;，它描述了进程的所有&lt;code&gt;cgroup&lt;/code&gt;信息，从前面的分析文章中我们已经知道通过&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;可以找到进程的所有不同&lt;code&gt;cgroup&lt;/code&gt;控制器的信息。&lt;/p&gt;
+
+&lt;p&gt;当我们新创建一个进程时，新进程的&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;的值继承自其&lt;code&gt;父进程&lt;/code&gt;。此后，如果我们将新创建的进程添加到一个新的&lt;code&gt;cgroup&lt;/code&gt;中时，就需要重新给&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;赋值，这个值要么是一个已经存在的&lt;code&gt;css_set&lt;/code&gt;结构的指针，要么是新创建的&lt;code&gt;css_set&lt;/code&gt;的结构的指针。&lt;/p&gt;
+
+&lt;p&gt;所以，我们就需要通过&lt;code&gt;进程的cgroup信息&lt;/code&gt;，快速查找其对应的&lt;code&gt;css_set结构&lt;/code&gt;是否存在，如果不存在的话就去创建它。&lt;code&gt;linux kernel&lt;/code&gt; 使用一个&lt;code&gt;hash&lt;/code&gt;表来完成这个工作。本文主要分析该&lt;code&gt;hash&lt;/code&gt;表的实现。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>cgroup源码分析3——cgroup层级的mount流程</title>
@@ -51,33 +112,6 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Cgroup 中默认文件的内核实现分析</title>
-      <link>http://linux.laoqinren.net/kernel/cgroup-default-file/</link>
-      <pubDate>Wed, 15 Aug 2018 10:09:56 +0800</pubDate>
-      
-      <guid>http://linux.laoqinren.net/kernel/cgroup-default-file/</guid>
-      <description>&lt;p&gt;cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。&lt;/p&gt;
-
-&lt;p&gt;这些文件包括：&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;notify_on_release&lt;/li&gt;
-&lt;li&gt;release_agent&lt;/li&gt;
-&lt;li&gt;cgroup.procs&lt;/li&gt;
-&lt;li&gt;tasks&lt;/li&gt;
-&lt;li&gt;cgroup.clone_children&lt;/li&gt;
-&lt;li&gt;cgroup.event_control&lt;/li&gt;
-&lt;li&gt;cgroup.sane_behavior&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>

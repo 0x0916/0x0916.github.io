@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
+ 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+ 
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析" />
+<meta property="og:description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/" />
+
+
+
+<meta property="article:published_time" content="2018-08-25T16:32:32&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-08-25T16:32:32&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析">
+<meta itemprop="description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-08-25T16:32:32&#43;08:00" />
+<meta itemprop="dateModified" content="2018-08-25T16:32:32&#43;08:00" />
+<meta itemprop="wordCount" content="587">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,cgroup," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析"/>
+<meta name="twitter:description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
+
+
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-08-25 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+              <a href="/categories/cgroup/"> cgroup </a>
+            
+          </div>
+        <span class="more-meta"> 587 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#proc-pid-cgroup-实现">/proc/pid/cgroup 实现</a></li>
+<li><a href="#参考文章">参考文章</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>本文详细分析了<code>/proc/pid/cgroup</code>文件的内核实现。</p>
+
+<blockquote>
+<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
+</blockquote>
+
+<p></p>
+
+<h3 id="proc-pid-cgroup-实现">/proc/pid/cgroup 实现</h3>
+
+<p>该文件描述了指定进程的cgroup信息，其信息包行多行，每一行描述了一个cgroup控制器的信息，每一行的格式如下：</p>
+
+<pre><code>           hierarchy-ID:controller-list:cgroup-path
+</code></pre>
+
+<p>例如：</p>
+
+<pre><code class="language-bash"># cat /proc/1/cgroup 
+12:blkio:/
+11:memory:/
+10:hugetlb:/
+9:devices:/
+8:net_prio,net_cls:/
+7:cpuacct,cpu:/
+6:cpuset:/
+5:perf_event:/
+4:pids:/
+3:freezer:/
+2:debug:/
+1:name=systemd:/
+</code></pre>
+
+<p>更详细的信息，请参考man手册：<a href="http://man7.org/linux/man-pages/man7/cgroups.7.html。">http://man7.org/linux/man-pages/man7/cgroups.7.html。</a></p>
+
+<p>了解了如上信息，该接口的内核实现就比较简单了：</p>
+
+<ul>
+<li>使用<code>for_each_active_root</code>遍历所有的层级(hierarchy)</li>
+<li>对于每个层级：
+
+<ul>
+<li>获取<code>hierarchy-ID</code>和对应的<code>controller-list</code>。</li>
+<li>通过<code>task_cgroup_from_root</code>和<code>cgroup_path</code>获取<code>cgroup-path</code></li>
+</ul></li>
+</ul>
+
+<p>代码实现如下：</p>
+
+<pre><code class="language-c">/*
+ * proc_cgroup_show()
+ *  - Print task's cgroup paths into seq_file, one line for each hierarchy
+ *  - Used for /proc/&lt;pid&gt;/cgroup.
+ *  - No need to task_lock(tsk) on this tsk-&gt;cgroup reference, as it
+ *    doesn't really matter if tsk-&gt;cgroup changes after we read it,
+ *    and we take cgroup_mutex, keeping cgroup_attach_task() from changing it
+ *    anyway.  No need to check that tsk-&gt;cgroup != NULL, thanks to
+ *    the_top_cgroup_hack in cgroup_exit(), which sets an exiting tasks
+ *    cgroup to top_cgroup.
+ */
+
+/* TODO: Use a proper seq_file iterator */
+int proc_cgroup_show(struct seq_file *m, void *v)
+{
+        struct pid *pid;
+        struct task_struct *tsk;
+        char *buf;
+        int retval;
+        struct cgroupfs_root *root;
+
+        retval = -ENOMEM;
+        buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
+        if (!buf)
+                goto out;
+
+        retval = -ESRCH;
+        pid = m-&gt;private;
+        tsk = get_pid_task(pid, PIDTYPE_PID);
+        if (!tsk)
+                goto out_free;
+
+        retval = 0;
+
+        mutex_lock(&amp;cgroup_mutex);
+
+        for_each_active_root(root) {
+                struct cgroup_subsys *ss;
+                struct cgroup *cgrp;
+                int count = 0;
+
+                seq_printf(m, &quot;%d:&quot;, root-&gt;hierarchy_id);
+                for_each_subsys(root, ss)
+                        seq_printf(m, &quot;%s%s&quot;, count++ ? &quot;,&quot; : &quot;&quot;, ss-&gt;name);
+                if (strlen(root-&gt;name))
+                        seq_printf(m, &quot;%sname=%s&quot;, count ? &quot;,&quot; : &quot;&quot;,
+                                   root-&gt;name);
+                seq_putc(m, ':');
+                cgrp = task_cgroup_from_root(tsk, root);
+                retval = cgroup_path(cgrp, buf, PAGE_SIZE);
+                if (retval &lt; 0)
+                        goto out_unlock;
+                seq_puts(m, buf);
+                seq_putc(m, '\n');
+        }
+
+out_unlock:
+        mutex_unlock(&amp;cgroup_mutex);
+        put_task_struct(tsk);
+out_free:
+        kfree(buf);
+out:
+        return retval;
+}
+</code></pre>
+
+<h3 id="参考文章">参考文章</h3>
+
+<ul>
+<li><a href="http://man7.org/linux/man-pages/man7/cgroups.7.html">http://man7.org/linux/man-pages/man7/cgroups.7.html</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-08-25</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/cgroup/">cgroup</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/kernel/cgroup-source-default-file/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">cgroup源码分析6——cgroup 中默认控制文件的内核实现分析</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/kernel/cgroup-source-css-set-hash/">
+            <span class="next-text nav-default">cgroup源码分析4——css_set的哈希表分析</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-04-06T16:23:29&#43;08:00"/>
+<meta property="og:updated_time" content="2017-11-11T17:58:21&#43;08:00"/>
 
 
 
@@ -155,45 +155,29 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-default-file/">cgroup源码分析6——cgroup 中默认控制文件的内核实现分析</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/boyer-moore-majority-vote-algorithm/">Boyer-Moore majority vote algorithm(摩尔投票算法)</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2018-08-26 </span>
+      <span class="post-time"> 2017-11-11 </span>
       <div class="post-category">
           
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
           
         </div>
-      <span class="more-meta"> 3362 words </span>
-      <span class="more-meta"> 7 mins read </span>
+      <span class="more-meta"> 2454 words </span>
+      <span class="more-meta"> 5 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。</p>
+      <p><a href="https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm">Boyer-Moore majority vote algorithm</a>(摩尔投票算法)是一种在线性时间<code>O(n)</code>和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以<code>Robert S.Boyer</code>和<code>J Strother Moore</code>命名的，1981年发明的，是一种典型的流算法(<code>streaming algorithm</code>)。</p>
 
-<p>这些文件包括：</p>
-
-<ul>
-<li>notify_on_release</li>
-<li>release_agent</li>
-<li>cgroup.procs</li>
-<li>tasks</li>
-<li>cgroup.clone_children</li>
-<li>cgroup.event_control</li>
-<li>cgroup.sane_behavior</li>
-</ul>
-
-<blockquote>
-<p>注意：本文分析中引用的代码来自于centos系统自带的内核：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm">kernel-3.10.0-862.9.1.el7</a></p>
-</blockquote>
+<p>在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(<code>n/2</code>)的元素。</p>
 
 <p></p>
     </div>
     <div class="read-more">
-      <a href="/kernel/cgroup-source-default-file/" class="read-more-link">Read more..</a>
+      <a href="/posts/boyer-moore-majority-vote-algorithm/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -201,139 +185,31 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-proc-pid-cgroup/">cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/tmux/">tmux快捷键总结</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2018-08-25 </span>
+      <span class="post-time"> 2017-02-01 </span>
       <div class="post-category">
           
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
+            <a href="/categories/development/"> Development </a>
           
         </div>
-      <span class="more-meta"> 587 words </span>
+      <span class="more-meta"> 855 words </span>
       <span class="more-meta"> 2 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>本文详细分析了<code>/proc/pid/cgroup</code>文件的内核实现。</p>
+      <p><code>tmux</code> (<code>Terminal Multiplexer</code>的简称), 是一款优秀的终端复用软件，类似 <code>GNU screen</code>，但比<code>screen</code>更出色。</p>
 
-<blockquote>
-<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
-</blockquote>
+<p><code>Tmux</code> 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 <code>Tmux</code> 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。</p>
 
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-proc-pid-cgroup/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-css-set-hash/">cgroup源码分析4——css_set的哈希表分析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-25 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 3069 words </span>
-      <span class="more-meta"> 7 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>在描述进程的结构体<code>task_struct</code>中有一个类型为<code>css_set</code>的成员<code>cgroups</code>，它描述了进程的所有<code>cgroup</code>信息，从前面的分析文章中我们已经知道通过<code>task_struct-&gt;cgroups</code>可以找到进程的所有不同<code>cgroup</code>控制器的信息。</p>
-
-<p>当我们新创建一个进程时，新进程的<code>task_struct-&gt;cgroups</code>的值继承自其<code>父进程</code>。此后，如果我们将新创建的进程添加到一个新的<code>cgroup</code>中时，就需要重新给<code>task_struct-&gt;cgroups</code>赋值，这个值要么是一个已经存在的<code>css_set</code>结构的指针，要么是新创建的<code>css_set</code>的结构的指针。</p>
-
-<p>所以，我们就需要通过<code>进程的cgroup信息</code>，快速查找其对应的<code>css_set结构</code>是否存在，如果不存在的话就去创建它。<code>linux kernel</code> 使用一个<code>hash</code>表来完成这个工作。本文主要分析该<code>hash</code>表的实现。</p>
-
-<blockquote>
-<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
-</blockquote>
+<p>本文总结了<code>tmux</code>常用的一些快捷键。</p>
 
 <p></p>
     </div>
     <div class="read-more">
-      <a href="/kernel/cgroup-source-css-set-hash/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-cgroup_mount/">cgroup源码分析3——cgroup层级的mount流程</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-25 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 4327 words </span>
-      <span class="more-meta"> 9 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文继续该系列文章，分析了<code>cgroup</code>各个子系统的<code>mount</code>流程，当然也包括<code>umount/remount</code>流程。</p>
-
-<blockquote>
-<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-cgroup_mount/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-cgroup_init/">cgroup源码分析2——cgroup的初始化</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-23 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 6223 words </span>
-      <span class="more-meta"> 13 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文详细分析了<code>cgroup</code>初始化的过程。</p>
-
-<blockquote>
-<p>本文基于<code>3.10.0-862.el7.x86_64</code>版本kernel进行分析。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-cgroup_init/" class="read-more-link">Read more..</a>
+      <a href="/posts/tmux/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -343,11 +219,11 @@
   
   <nav class="pagination">
     
-    
-      <a class="next" href="/page/2/">
-        <span class="next-text">Next</span>
-        <i class="iconfont icon-right"></i>
+      <a class="prev" href="/page/5/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text">Prev</span>
       </a>
+    
   </nav>
 
         </div>
