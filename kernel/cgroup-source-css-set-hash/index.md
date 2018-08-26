@@ -328,7 +328,7 @@ crash> p css_set_count
 css_set_count = $4 = 42
 crash> p css_set_table
 css_set_table = $5 = 
- {{
+ { {
     first = 0x0
   }, {
     first = 0x0
@@ -584,7 +584,8 @@ css_set_table = $5 =
     first = 0x0
   }, {
     first = 0x0
-  }}
+  } }
+crash>
 ```
 
 
