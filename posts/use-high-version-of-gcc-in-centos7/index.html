@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>在centos7中使用高版本的GCC - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="在centos上进行内核开发时，由于一些内核特性依赖于高版本的GCC特性（gcc &amp;gt; 5.0），而centos默认的GCC一般为4.8.x。
+本文记录一种非常简单的在centos上使用高版本的GCC的方法。
+
+" />
+<meta name="keywords" content="gcc, centos" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="在centos7中使用高版本的GCC" />
+<meta property="og:description" content="在centos上进行内核开发时，由于一些内核特性依赖于高版本的GCC特性（gcc &gt; 5.0），而centos默认的GCC一般为4.8.x。
+
+本文记录一种非常简单的在centos上使用高版本的GCC的方法。
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/" />
+
+
+
+<meta property="article:published_time" content="2018-06-27T21:18:15&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-06-27T21:18:15&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="在centos7中使用高版本的GCC">
+<meta itemprop="description" content="在centos上进行内核开发时，由于一些内核特性依赖于高版本的GCC特性（gcc &gt; 5.0），而centos默认的GCC一般为4.8.x。
+
+本文记录一种非常简单的在centos上使用高版本的GCC的方法。
+
+">
+
+
+<meta itemprop="datePublished" content="2018-06-27T21:18:15&#43;08:00" />
+<meta itemprop="dateModified" content="2018-06-27T21:18:15&#43;08:00" />
+<meta itemprop="wordCount" content="506">
+
+
+
+<meta itemprop="keywords" content="gcc," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="在centos7中使用高版本的GCC"/>
+<meta name="twitter:description" content="在centos上进行内核开发时，由于一些内核特性依赖于高版本的GCC特性（gcc &gt; 5.0），而centos默认的GCC一般为4.8.x。
+
+本文记录一种非常简单的在centos上使用高版本的GCC的方法。
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">在centos7中使用高版本的GCC</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-06-27 </span>
+        <div class="post-category">
+            
+              <a href="/categories/gcc/"> gcc </a>
+            
+          </div>
+        <span class="more-meta"> 506 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#方法来源">方法来源</a></li>
+<li><a href="#具体步骤">具体步骤</a></li>
+<li><a href="#参考文章">参考文章</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>在<code>centos</code>上进行内核开发时，由于一些内核特性依赖于高版本的<code>GCC特性</code>（<code>gcc &gt; 5.0</code>），而<code>centos</code>默认的GCC一般为<code>4.8.x</code>。</p>
+
+<p>本文记录一种非常简单的在<code>centos</code>上使用高版本的<code>GCC</code>的方法。</p>
+
+<p></p>
+
+<h3 id="方法来源">方法来源</h3>
+
+<p>非常感谢项目：<a href="https://www.softwarecollections.org/en/">https://www.softwarecollections.org/en/</a>，其提供了RHEL系列发行版上默认的软件版本外的其他选择，其项目介绍就不翻译了，直接<a href="https://www.softwarecollections.org/en/about/">copy过来</a>：</p>
+
+<pre><code>SoftwareCollections.org is the home for projects creating Software Collections (SCLs)
+for Red Hat Enterprise Linux, Fedora, CentOS, and Scientific Linux. This is where you
+create and host Software Collections, as well as connect with other developers working
+on SCLs.
+
+SoftwareCollections.org is also the central repository for users to find
+third-party SCLs for their systems.
+</code></pre>
+
+<h3 id="具体步骤">具体步骤</h3>
+
+<p>详细步骤来源于：<a href="https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/">https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/</a></p>
+
+<pre><code class="language-bash"># 1. Install a package with repository for your system:
+# On CentOS, install package centos-release-scl available in CentOS repository:
+$ sudo yum install centos-release-scl
+
+# On RHEL, enable RHSCL repository for you system:
+$ sudo yum-config-manager --enable rhel-server-rhscl-7-rpms
+
+# 2. Install the collection:
+$ sudo yum install devtoolset-7
+
+# 3. Start using software collections:
+$ scl enable devtoolset-7 bash
+
+$ # 默认情况下，gcc的版本未 4.8.x
+$ gcc --version
+gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-28)
+Copyright (C) 2015 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+$ # 切换为scl后
+$ scl enable devtoolset-7 bash
+$ gcc --version
+gcc (GCC) 7.3.1 20180303 (Red Hat 7.3.1-5)
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+</code></pre>
+
+<h3 id="参考文章">参考文章</h3>
+
+<ul>
+<li><a href="https://www.softwarecollections.org/en/">https://www.softwarecollections.org/en/</a></li>
+<li><a href="https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/">https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-06-27</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/gcc/">gcc</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/posts/rbtree/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">红黑树(一) ——原理</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/posts/boyer-moore-majority-vote-algorithm/">
+            <span class="next-text nav-default">Boyer-Moore majority vote algorithm(摩尔投票算法)</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

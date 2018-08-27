@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Gcc on Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/categories/gcc/</link>
+    <description>Recent content in Gcc on Notes about linux and my work</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 27 Jun 2018 21:18:15 +0800</lastBuildDate>
+    
+	<atom:link href="http://linux.laoqinren.net/categories/gcc/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>在centos7中使用高版本的GCC</title>
+      <link>http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/</link>
+      <pubDate>Wed, 27 Jun 2018 21:18:15 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/</guid>
+      <description>&lt;p&gt;在&lt;code&gt;centos&lt;/code&gt;上进行内核开发时，由于一些内核特性依赖于高版本的&lt;code&gt;GCC特性&lt;/code&gt;（&lt;code&gt;gcc &amp;gt; 5.0&lt;/code&gt;），而&lt;code&gt;centos&lt;/code&gt;默认的GCC一般为&lt;code&gt;4.8.x&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;本文记录一种非常简单的在&lt;code&gt;centos&lt;/code&gt;上使用高版本的&lt;code&gt;GCC&lt;/code&gt;的方法。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
