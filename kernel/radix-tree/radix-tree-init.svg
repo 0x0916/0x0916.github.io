@@ -1,0 +1,18 @@
+<svg width="237" height="167" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+ <g>
+  <title>background</title>
+  <rect fill="#fff" id="canvas_background" height="169" width="239" y="-1" x="-1"/>
+  <g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"/>
+  </g>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <rect id="svg_1" height="63" width="144" y="62.683804" x="44.75" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <line stroke="#000" stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_2" y2="96.683804" x2="188.249994" y1="96.683804" x1="45.25" stroke-width="1.5" fill="none"/>
+  <text stroke="#000" transform="matrix(0.6540021300315857,0,0,0.6000000238418579,62.10661765933037,25.999998450279236) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_3" y="98.139672" x="31.526188" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">gfp_mask</text>
+  <text stroke="#000" transform="matrix(0.7440584897994995,0,0,0.6000000238418579,35.95978218317032,63.19999623298645) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_4" y="91.139676" x="40.204712" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">rnode=NULL</text>
+  <text stroke="#000" transform="matrix(0.6592779159545898,0,0,0.8545454740524291,79.45029401779175,11.509090304374695) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_5" y="43.268281" x="-24.131988" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">radix_tree_root</text>
+ </g>
+</svg>

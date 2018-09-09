@@ -6,10 +6,25 @@
     <description>Recent content in Linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 26 Aug 2018 10:09:56 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 09 Sep 2018 13:36:38 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Radix Tree </title>
+      <link>http://linux.laoqinren.net/kernel/radix-tree/</link>
+      <pubDate>Sun, 09 Sep 2018 13:36:38 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/radix-tree/</guid>
+      <description>&lt;p&gt;本文详细介绍了Linux的Radix树。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>cgroup源码分析6——cgroup 中默认控制文件的内核实现分析</title>

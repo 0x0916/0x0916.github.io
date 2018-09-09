@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Radix Tree  - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="本文详细介绍了Linux的Radix树。
+ 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
+ 
+" />
+<meta name="keywords" content="radix-tree, linux, kernel" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/radix-tree/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="Radix Tree " />
+<meta property="og:description" content="本文详细介绍了Linux的Radix树。
+
+
+注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/radix-tree/" />
+
+
+
+<meta property="article:published_time" content="2018-09-09T13:36:38&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-09-09T13:36:38&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Radix Tree ">
+<meta itemprop="description" content="本文详细介绍了Linux的Radix树。
+
+
+注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-09-09T13:36:38&#43;08:00" />
+<meta itemprop="dateModified" content="2018-09-09T13:36:38&#43;08:00" />
+<meta itemprop="wordCount" content="2049">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,radix-tree," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Radix Tree "/>
+<meta name="twitter:description" content="本文详细介绍了Linux的Radix树。
+
+
+注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Radix Tree </h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-09-09 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+              <a href="/categories/radix-tree/"> radix-tree </a>
+            
+          </div>
+        <span class="more-meta"> 2049 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#radix-tree介绍">Radix Tree介绍</a></li>
+<li><a href="#基本数据结构">基本数据结构</a>
+<ul>
+<li><a href="#radix-tree-root">radix_tree_root</a></li>
+<li><a href="#radix-tree-node">radix_tree_node</a></li>
+</ul></li>
+<li><a href="#radix-tree在linux下的图解">Radix Tree在linux下的图解</a>
+<ul>
+<li><a href="#初始化后的图示">初始化后的图示</a></li>
+<li><a href="#插入0-和4的图示">插入0 和4的图示</a></li>
+<li><a href="#插入131的图示">插入131的图示</a></li>
+<li><a href="#插入4100的图示">插入4100的图示</a></li>
+</ul></li>
+<li><a href="#linux-api-介绍">Linux API 介绍</a>
+<ul>
+<li><a href="#初始化">初始化</a></li>
+<li><a href="#插入条目">插入条目</a></li>
+<li><a href="#删除条目">删除条目</a></li>
+<li><a href="#查询条目">查询条目</a></li>
+<li><a href="#标签操作">标签操作</a></li>
+</ul></li>
+<li><a href="#参考文章">参考文章</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>本文详细介绍了Linux的Radix树。</p>
+
+<blockquote>
+<p>注意：本文分析中引用的代码来自于centos系统自带的内核：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm">kernel-3.10.0-862.9.1.el7</a></p>
+</blockquote>
+
+<p></p>
+
+<h3 id="radix-tree介绍">Radix Tree介绍</h3>
+
+<p>Linux基数树（radix tree）是将<code>指针</code>与<code>long整数键值</code>相关联的机制，它存储有效率，并且可快速查询，用于指针与整数值的映射（如：IDR机制）、内存管理等。</p>
+
+<p>Linux radix树最广泛的用途是用于内存管理，结构<code>address_space</code>通过<code>radix树</code>跟踪绑定到地址映射上的核心页，该<code>radix树允</code>许内存管理代码快速查找标识为<code>dirty</code>或<code>writeback</code>的页。<code>Linux radix树</code>的<code>API</code>函数在<code>lib/radix-tree.c</code>中实现。</p>
+
+<h3 id="基本数据结构">基本数据结构</h3>
+
+<h4 id="radix-tree-root">radix_tree_root</h4>
+
+<pre><code class="language-c">/* root tags are stored in gfp_mask, shifted by __GFP_BITS_SHIFT */
+struct radix_tree_root {
+        RH_KABI_DEPRECATE(unsigned int, height)
+        gfp_t                   gfp_mask;       //内存申请的标识
+        struct radix_tree_node  __rcu *rnode;   //子节点指针
+};
+
+</code></pre>
+
+<p><code>radix_tree_root</code>用来表示树的根：</p>
+
+<ul>
+<li><code>height</code>在这个版本中已经废弃了</li>
+<li><code>gfp_mask</code>用于保存内存申请的标识</li>
+<li><code>rnode</code>用于指向基数的结点，一个空的基数，该指针为NULL</li>
+</ul>
+
+<h4 id="radix-tree-node">radix_tree_node</h4>
+
+<pre><code class="language-c">/*
+ * The radix_tree_node structure is never embedded in other data structures.
+ * As a result, there's no need to preserve the size.  Because the structure
+ * is reachable via others, though, we need to preserve the original contents
+ * for the kabi checker.
+ */
+
+struct radix_tree_node {
+        RH_KABI_REPLACE2(       /* shift &amp; offset replaces path */
+                unsigned int    path,   /* Offset in parent &amp; height from the bottom */
+                unsigned char   shift,  /* Bits remaining in each slot */
+                unsigned char   offset  /* Slot offset in parent */
+        )
+        unsigned int    count; //子节点个数
+        union {
+                struct {
+                        /* Used when ascending tree */
+                        struct radix_tree_node *parent; //父节点指针
+                        /* For tree user */
+                        void *private_data;
+                };
+                /* Used when freeing node */
+                struct rcu_head rcu_head; //用于节点释放的RCU链表
+        };
+        /* For tree user */
+        struct list_head private_list;
+        void __rcu      *slots[RADIX_TREE_MAP_SIZE];// slots[64] //指向存储数据指针
+        unsigned long   tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS]; // tags[3][1]
+};
+</code></pre>
+
+<p><code>radix_tree_node</code>用于表示基数树的内部结点：</p>
+
+<ul>
+<li><code>offset</code>： 表示该结点在其父结点的slots中的偏移值</li>
+<li><code>shift</code>： 该node中的slots的指针中有多少位用于继续寻址，当node是最底层的叶子结点时，shift为0，每上一层，shift递增6</li>
+<li><code>count</code>：表示该node的孩子的数量</li>
+<li><code>parent</code>： 指向该node的父结点</li>
+<li><code>slots</code>： 64个指针，每层可以有64个子节点</li>
+<li><code>tags</code>： tags域用于记录该结点下面的子结点有没有相应的标志位,这是一个典型的用空间换时间的应用</li>
+</ul>
+
+<h3 id="radix-tree在linux下的图解">Radix Tree在linux下的图解</h3>
+
+<h4 id="初始化后的图示">初始化后的图示</h4>
+
+<p>当一个radix tree初始化后，其只有<code>radix_tree_root</code>结点，如下图：</p>
+
+<p><img src="./radix-tree-init.svg" alt="" /></p>
+
+<h4 id="插入0-和4的图示">插入0 和4的图示</h4>
+
+<p>当插入0和4时，树的高度增加1，如下图所示：</p>
+
+<p><img src="./insert-0-and-4.svg" alt="" /></p>
+
+<h4 id="插入131的图示">插入131的图示</h4>
+
+<p>当插入131时，高度需要再增加1，如下图所示：</p>
+
+<p><img src="./insert-0-and-4-and-131.svg" alt="" /></p>
+
+<h4 id="插入4100的图示">插入4100的图示</h4>
+
+<p>当插入4100时，高度需要再增加1，如下图所示：</p>
+
+<p><img src="./insert-0-and-4-and-131-and-4100.svg" alt="" /></p>
+
+<h3 id="linux-api-介绍">Linux API 介绍</h3>
+
+<h4 id="初始化">初始化</h4>
+
+<p>使用radix tree时，需要初始化，可以分为静态初始化和动态初始化两种方法：</p>
+
+<p>静态初始化<code>RADIX_TREE</code>：</p>
+
+<pre><code class="language-c">RADIX_TREE(mytree, GFP_KERNEL);
+</code></pre>
+
+<p>动态初始化：<code>INIT_RADIX_TREE</code></p>
+
+<pre><code class="language-c">struct radix_tree_root mytree;
+INIT_RADIX_TREE(&amp;mytree, GFP_KERNEL);
+</code></pre>
+
+<h4 id="插入条目">插入条目</h4>
+
+<pre><code class="language-c">int radix_tree_insert(struct radix_tree_root *root,
+                        unsigned long index, void *entry)
+</code></pre>
+
+<p>函数<code>radix_tree_insert</code>插入条目<code>entry</code>到树<code>root</code>中，如果插入条目中内存分配错误，将返回错误<code>-ENOMEM</code>。该函数不能覆盖写正存在的条目。如果索引键值<code>index</code>已存在于树中，返回错误<code>-EEXIST</code>。插入操作成功返回0。</p>
+
+<p>对于插入条目操作失败将引起严重问题的场合，下面的一对函数可避免插入操作失败：</p>
+
+<pre><code class="language-c">int radix_tree_preload(gfp_t gfp_mask);                                                                                                                       
+void radix_tree_preload_end(void);
+</code></pre>
+
+<p>函数<code>radix_tree_preload</code>尝试用给定的<code>gfp_mask</code>分配足够的内存，保证下一个插入操作不会失败。在调用插入操作函数之前调用此函数，分配的结构将存放在<code>每CPU</code>变量中。函数<code>radix_tree_preload</code>操作成功后，将关闭内核抢占。因此，在插入操作完成之后，用户应调用函数<code>radix_tree_preload_end</code>打开内核抢占。</p>
+
+<p><code>radix_tree_preload</code>有如下连个变种：</p>
+
+<pre><code class="language-c">int radix_tree_maybe_preload(gfp_t gfp_mask);                                                                        
+int radix_tree_maybe_preload_order(gfp_t gfp_mask, int order);  
+</code></pre>
+
+<h4 id="删除条目">删除条目</h4>
+
+<p>函数<code>radix_tree_delete</code>删除与索引键值<code>index</code>相关的条目，如果删除条目在树中，返回该条目的指针，否则返回NULL。
+函数<code>radix_tree_delete_item</code>删除与索引键值<code>index</code>相关的条目<code>item</code>，如果删除条目在树中，返回该条目的指针，否则返回NULL。</p>
+
+<pre><code class="language-c">void *radix_tree_delete(struct radix_tree_root *root, unsigned long index);
+void *radix_tree_delete_item(struct radix_tree_root *root, unsigned long index, void *item);
+</code></pre>
+
+<h4 id="查询条目">查询条目</h4>
+
+<pre><code class="language-c">void *radix_tree_lookup(struct radix_tree_root *root, unsigned long index);
+void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index);
+</code></pre>
+
+<ul>
+<li><code>radix_tree_lookup</code>在树中查找指定键值的条目，查找成功，返回该条目的指针，否则，返回NULL.</li>
+<li><code>radix_tree_lookup_slot</code>返回指向slot的指针，该slot含有指向查找到条目的指针</li>
+</ul>
+
+<pre><code class="language-c">unsigned int radix_tree_gang_lookup(struct radix_tree_root *root,                                                                                             
+                        void **results, unsigned long first_index,                                                   
+                        unsigned int max_items);                                                                     
+unsigned int radix_tree_gang_lookup_slot(struct radix_tree_root *root,                                               
+                        void ***results, unsigned long *indices,                                                     
+                        unsigned long first_index, unsigned int max_items); 
+
+</code></pre>
+
+<p><code>radix_tree_gang_lookup</code>多键值查找，max_items为需要查找的item个数，results表示查询结果。查询时键值索引从first_index开始</p>
+
+<h4 id="标签操作">标签操作</h4>
+
+<pre><code>void *radix_tree_tag_set(struct radix_tree_root *root,                                                               
+                        unsigned long index, unsigned int tag);                                                      
+void *radix_tree_tag_clear(struct radix_tree_root *root,                                                             
+                        unsigned long index, unsigned int tag);                                                      
+int radix_tree_tag_get(struct radix_tree_root *root,                                                                 
+                        unsigned long index, unsigned int tag);  
+int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
+</code></pre>
+
+<ul>
+<li><code>radix_tree_tag_set</code>: 将键值index对应的条目设置标签tag，返回值为设置标签的条目</li>
+<li><code>radix_tree_tag_clear</code>: 从键值index对应的条目清除标签tag，返回值为清除标签的条目</li>
+<li><code>radix_tree_tag_get</code>: 检查键值index对应的条目tag是否设置。tag参数为0或者1</li>
+<li><code>radix_tree_tagged</code>: 如果树root中有任何条目使用tag标签，返回键值</li>
+</ul>
+
+<h3 id="参考文章">参考文章</h3>
+
+<ul>
+<li><a href="https://blog.csdn.net/xiaofeng_yan/article/details/78600190">https://blog.csdn.net/xiaofeng_yan/article/details/78600190</a></li>
+<li><a href="https://www.cnblogs.com/mingziday/p/3969269.html">https://www.cnblogs.com/mingziday/p/3969269.html</a></li>
+<li><a href="http://blog.csdn.net/joker0910/article/details/8250085">http://blog.csdn.net/joker0910/article/details/8250085</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-09-09</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/radix-tree/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/radix-tree/">radix-tree</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/cgroup-source-default-file/">
+            <span class="next-text nav-default">cgroup源码分析6——cgroup 中默认控制文件的内核实现分析</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
