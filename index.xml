@@ -12,6 +12,17 @@
     
     
     <item>
+      <title>FUSE介绍</title>
+      <link>http://linux.laoqinren.net/linux/fuse/</link>
+      <pubDate>Sat, 15 Sep 2018 20:10:34 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/linux/fuse/</guid>
+      <description>&lt;p&gt;本文介绍了&lt;code&gt;FUSE&lt;/code&gt;（用户态文件系统），和其相应的编程库&lt;code&gt;libfuse&lt;/code&gt;，并给出了示例程序。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Radix Tree </title>
       <link>http://linux.laoqinren.net/kernel/radix-tree/</link>
       <pubDate>Sun, 09 Sep 2018 13:36:38 +0800</pubDate>
