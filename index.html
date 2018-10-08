@@ -155,6 +155,66 @@
     
       <article class="post">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/linux/get-init-pid-for-any-task/">获取容器中init进程的pid</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-10-08 </span>
+      <div class="post-category">
+          
+            <a href="/categories/linux/"> linux </a>
+          
+        </div>
+      <span class="more-meta"> 1467 words </span>
+      <span class="more-meta"> 3 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本文题目为『<strong>获取容器中init进程的pid</strong>』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的<code>pid namespace</code>中，而我们有时需要在顶级的<code>pid namespace</code>中获取其<code>init</code>进程对应的在顶级<code>pid namespace</code>的<code>pid</code>。</p>
+
+<p>本文简要介绍了完成这个任务的一种方法。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/linux/get-init-pid-for-any-task/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/linux/passing-file-descriptors/">传递文件描述符</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-09-16 </span>
+      <div class="post-category">
+          
+            <a href="/categories/linux/"> linux </a>
+          
+            <a href="/categories/socket/"> socket </a>
+          
+        </div>
+      <span class="more-meta"> 1106 words </span>
+      <span class="more-meta"> 3 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p><code>Unix domain socket</code>具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/linux/passing-file-descriptors/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/linux/fuse/">FUSE介绍</a></h1>
     <div class="post-meta">
       <span class="post-time"> 2018-09-15 </span>
@@ -258,78 +318,6 @@
     </div>
     <div class="read-more">
       <a href="/kernel/cgroup-source-default-file/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-proc-pid-cgroup/">cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-25 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 587 words </span>
-      <span class="more-meta"> 2 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文详细分析了<code>/proc/pid/cgroup</code>文件的内核实现。</p>
-
-<blockquote>
-<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-proc-pid-cgroup/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-css-set-hash/">cgroup源码分析4——css_set的哈希表分析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-25 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 3072 words </span>
-      <span class="more-meta"> 7 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>在描述进程的结构体<code>task_struct</code>中有一个类型为<code>css_set</code>的成员<code>cgroups</code>，它描述了进程的所有<code>cgroup</code>信息，从前面的分析文章中我们已经知道通过<code>task_struct-&gt;cgroups</code>可以找到进程的所有不同<code>cgroup</code>控制器的信息。</p>
-
-<p>当我们新创建一个进程时，新进程的<code>task_struct-&gt;cgroups</code>的值继承自其<code>父进程</code>。此后，如果我们将新创建的进程添加到一个新的<code>cgroup</code>中时，就需要重新给<code>task_struct-&gt;cgroups</code>赋值，这个值要么是一个已经存在的<code>css_set</code>结构的指针，要么是新创建的<code>css_set</code>的结构的指针。</p>
-
-<p>所以，我们就需要通过<code>进程的cgroup信息</code>，快速查找其对应的<code>css_set结构</code>是否存在，如果不存在的话就去创建它。<code>linux kernel</code> 使用一个<code>hash</code>表来完成这个工作。本文主要分析该<code>hash</code>表的实现。</p>
-
-<blockquote>
-<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-css-set-hash/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>

@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-09-15T20:10:34&#43;08:00"/>
+<meta property="og:updated_time" content="2018-10-08T14:26:43&#43;08:00"/>
 
 
 
@@ -155,6 +155,66 @@
     
       <article class="post">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/linux/get-init-pid-for-any-task/">获取容器中init进程的pid</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-10-08 </span>
+      <div class="post-category">
+          
+            <a href="/categories/linux/"> linux </a>
+          
+        </div>
+      <span class="more-meta"> 1467 words </span>
+      <span class="more-meta"> 3 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本文题目为『<strong>获取容器中init进程的pid</strong>』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的<code>pid namespace</code>中，而我们有时需要在顶级的<code>pid namespace</code>中获取其<code>init</code>进程对应的在顶级<code>pid namespace</code>的<code>pid</code>。</p>
+
+<p>本文简要介绍了完成这个任务的一种方法。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/linux/get-init-pid-for-any-task/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/linux/passing-file-descriptors/">传递文件描述符</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-09-16 </span>
+      <div class="post-category">
+          
+            <a href="/categories/linux/"> linux </a>
+          
+            <a href="/categories/socket/"> socket </a>
+          
+        </div>
+      <span class="more-meta"> 1106 words </span>
+      <span class="more-meta"> 3 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p><code>Unix domain socket</code>具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/linux/passing-file-descriptors/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/linux/fuse/">FUSE介绍</a></h1>
     <div class="post-meta">
       <span class="post-time"> 2018-09-15 </span>
@@ -242,73 +302,6 @@
     </div>
     <div class="read-more">
       <a href="/linux/linux-swap/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/environment-list/">Linux环境变量</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-04-19 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-        </div>
-      <span class="more-meta"> 1205 words </span>
-      <span class="more-meta"> 3 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>说起<code>linux</code>环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/linux/environment-list/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/syscall-eventfd/">Linux 系统调用 eventfd</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-04-12 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-            <a href="/categories/api/"> API </a>
-          
-            <a href="/categories/eventfd/"> eventfd </a>
-          
-        </div>
-      <span class="more-meta"> 1518 words </span>
-      <span class="more-meta"> 4 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p><code>eventfd</code> 是<code>linux</code>特有的<code>API</code>，用于通知/等待机制的实现,该函数一般有两个使用场景：</p>
-
-<ul>
-<li>（1）用来实现用户态进程(线程)间的<strong>等待/通知(<code>wait/notify</code>)</strong> 机制</li>
-<li>（2）内核用来通知用户态应用程序某个事件的发生。</li>
-</ul>
-
-<p>第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/linux/syscall-eventfd/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
