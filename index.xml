@@ -12,6 +12,17 @@
     
     
     <item>
+      <title>struct page结构体</title>
+      <link>http://linux.laoqinren.net/kernel/memory-page/</link>
+      <pubDate>Sun, 30 Dec 2018 17:37:29 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/memory-page/</guid>
+      <description>&lt;p&gt;内存管理基本上是以数据结构&lt;code&gt;struct page&lt;/code&gt;展开的，本文将详细围绕&lt;code&gt;struct page&lt;/code&gt;展开。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>获取容器中init进程的pid</title>
       <link>http://linux.laoqinren.net/linux/get-init-pid-for-any-task/</link>
       <pubDate>Mon, 08 Oct 2018 14:26:43 +0800</pubDate>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>struct page结构体 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。
+
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/memory-page/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="struct page结构体" />
+<meta property="og:description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/memory-page/" />
+
+
+
+<meta property="article:published_time" content="2018-12-30T17:37:29&#43;08:00"/>
+
+<meta property="article:modified_time" content="2018-12-30T17:37:29&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="struct page结构体">
+<meta itemprop="description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。
+
+">
+
+
+<meta itemprop="datePublished" content="2018-12-30T17:37:29&#43;08:00" />
+<meta itemprop="dateModified" content="2018-12-30T17:37:29&#43;08:00" />
+<meta itemprop="wordCount" content="2849">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,memory," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="struct page结构体"/>
+<meta name="twitter:description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">struct page结构体</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-12-30 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 2849 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#struct-page-结构体"><code>struct page</code>结构体</a></li>
+<li><a href="#flags-标志成员"><code>flags</code>标志成员</a></li>
+<li><a href="#mapping-成员"><code>mapping</code>成员</a></li>
+<li><a href="#count-和-mapcount-成员"><code>_count</code>和<code>_mapcount</code>成员</a></li>
+<li><a href="#页面锁-pg-locked">页面锁<code>PG_locked</code></a></li>
+<li><a href="#struct-page-数组"><code>struct page</code>数组</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>内存管理基本上是以数据结构<code>struct page</code>展开的，本文将详细围绕<code>struct page</code>展开。</p>
+
+<p></p>
+
+<h2 id="struct-page-结构体"><code>struct page</code>结构体</h2>
+
+<p><code>Linux</code>内核内存管理的实现是以<code>struct page</code>为核心，实际上每个物理页面都需要一个<code>struct page</code>数据结构来描述，因此为了降低成本，该结构中大量使用了<code>C</code>语言的联合体<code>Union</code>来优化其大小。</p>
+
+<p><img src="./page.png" alt="enter description here" title="page" /></p>
+
+<p>我们可以看出，一个<code>struct page</code>结构体大小为<code>64</code>字节，而一般情况下系统的页大小为<code>4096</code>字节（<code>4k</code>）。所以，一个系统上如果有<code>4GB</code>的内存，<code>struct page</code>结构体就需要<code>64MB</code>的内存，占比大约<code>1.5%</code>。</p>
+
+<h2 id="flags-标志成员"><code>flags</code>标志成员</h2>
+
+<p><code>flags</code>成员是页面标志位的集合，标志位是内存管理非常重要的部分，目前系统上主要有如下标志位：</p>
+
+<pre><code class="language-c">enum pageflags {
+        PG_locked,              /* Page is locked. Don't touch. */
+        PG_error,
+        PG_referenced,
+        PG_uptodate,
+        PG_dirty,
+        PG_lru,
+        PG_active,
+        PG_slab,
+        PG_owner_priv_1,        /* Owner use. If pagecache, fs may use*/
+        PG_arch_1,
+        PG_reserved,
+        PG_private,             /* If pagecache, has fs-private data */
+        PG_private_2,           /* If pagecache, has fs aux data */
+        PG_writeback,           /* Page is under writeback */
+#ifdef CONFIG_PAGEFLAGS_EXTENDED
+        PG_head,                /* A head page */
+        PG_tail,                /* A tail page */
+#else
+        PG_compound,            /* A compound page */
+#endif
+        PG_swapcache,           /* Swap page: swp_entry_t in private */
+        PG_mappedtodisk,        /* Has blocks allocated on-disk */
+        PG_reclaim,             /* To be reclaimed asap */
+        PG_swapbacked,          /* Page is backed by RAM/swap */
+        PG_unevictable,         /* Page is &quot;unevictable&quot;  */
+#ifdef CONFIG_MMU
+        PG_mlocked,             /* Page is vma mlocked */
+#endif
+#ifdef CONFIG_ARCH_USES_PG_UNCACHED
+        PG_uncached,            /* Page has been mapped as uncached */
+#endif
+#ifdef CONFIG_MEMORY_FAILURE
+        PG_hwpoison,            /* hardware poisoned page. Don't touch */
+#endif
+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+        PG_compound_lock,
+#endif
+        __NR_PAGEFLAGS,
+
+        /* Filesystems */
+        PG_checked = PG_owner_priv_1,
+
+        /* Two page bits are conscripted by FS-Cache to maintain local caching
+         * state.  These bits are set on pages belonging to the netfs's inodes
+         * when those inodes are being locally cached.
+         */
+        PG_fscache = PG_private_2,      /* page backed by cache */
+
+        /* XEN */
+        PG_pinned = PG_owner_priv_1,
+        PG_savepinned = PG_dirty,
+
+        /* SLOB */
+        PG_slob_free = PG_private,
+};
+</code></pre>
+
+<p>在实际的<code>x86-64</code>系统上，有如下<code>flags</code>:</p>
+
+<pre><code>crash&gt; kmem -g
+PAGE-FLAG        BIT  VALUE
+PG_locked          0  0000001
+PG_error           1  0000002
+PG_referenced      2  0000004
+PG_uptodate        3  0000008
+PG_dirty           4  0000010
+PG_lru             5  0000020
+PG_active          6  0000040
+PG_slab            7  0000080
+PG_owner_priv_1    8  0000100
+PG_arch_1          9  0000200
+PG_reserved       10  0000400
+PG_private        11  0000800
+PG_private_2      12  0001000
+PG_writeback      13  0002000
+PG_head           14  0004000
+PG_tail           15  0008000
+PG_swapcache      16  0010000
+PG_mappedtodisk   17  0020000
+PG_reclaim        18  0040000
+PG_swapbacked     19  0080000
+PG_unevictable    20  0100000
+PG_mlocked        21  0200000
+PG_uncached       22  0400000
+PG_hwpoison       23  0800000
+PG_compound_lock  24  1000000
+PG_checked         8  0000100
+PG_fscache        12  0001000
+PG_pinned          8  0000100
+PG_savepinned      4  0000010
+PG_slob_free      11  0000800
+</code></pre>
+
+<p>内核定义了一些标准宏，用于检查页面是否设置了某个特定的标志位或者用于设置、清除某个标志位，这些宏的名称有一定的模式，具体如下：</p>
+
+<ul>
+<li><code>PageXXX()</code>用于检查页面是否设置了<code>PG_XXX</code>标志位；</li>
+<li><code>SetPageXXX()</code>设置页面的<code>PG_XXX</code>标志位；</li>
+<li><code>ClearPageXXX()</code>用于无条件的清除<code>PG_XXX</code>标志位。</li>
+</ul>
+
+<pre><code class="language-c">#define TESTPAGEFLAG(uname, lname)                                      \
+static inline int Page##uname(const struct page *page)                  \
+                        { return test_bit(PG_##lname, &amp;page-&gt;flags); }
+
+#define SETPAGEFLAG(uname, lname)                                       \
+static inline void SetPage##uname(struct page *page)                    \
+                        { set_bit(PG_##lname, &amp;page-&gt;flags); }
+
+#define CLEARPAGEFLAG(uname, lname)                                     \
+static inline void ClearPage##uname(struct page *page)                  \
+                        { clear_bit(PG_##lname, &amp;page-&gt;flags); }
+
+</code></pre>
+
+<p><code>flags</code>成员除了存放以上重要的标志位以外，还有另外一个很重要的作用，就是存放<code>section</code>编号、<code>node</code>结点编号、<code>zone</code>结点编号和<code>LAST_CPUPID</code>等。具体存放内容与内核配置有关。</p>
+
+<p>如下图所示，在<code>x86-64</code>平台上，<code>centos7</code>内核配置中，<code>flags</code>的布局示意图，其中：</p>
+
+<p><img src="./page-flags.svg" alt="enter description here" title="page-flags" /></p>
+
+<ul>
+<li><code>0-24</code>位用于存放页面标志位；</li>
+<li><code>25-29</code>位保留；</li>
+<li><code>30-51</code>位用于存放<code>last_cpupid</code>；</li>
+<li><code>52-53</code>位用于存放<code>zone id</code>；</li>
+<li><code>54-63</code>位用于存放<code>node id</code>。</li>
+</ul>
+
+<h2 id="mapping-成员"><code>mapping</code>成员</h2>
+
+<p><code>struct page</code>中，<code>mapping</code>成员表示页面所指向的地址空间。内核中的地址空间通常有两个不通的地址空间，一个用于文件映射页面，例如在读取文件时，地址空间用于将文件内容数据与装载数据的存储介质区关联起来。另一个用于匿名映射。内核使用了一个简单直接的方式实现了『一个指针，两种用途』，<code>mapping</code>指针地址的最后两位用于判断是否指匿名映射或KSM页面的地址空间，如果是匿名页面，那么<code>mapping</code>指向匿名页面的地址空间数据结构<code>struct anon_vma</code>。</p>
+
+<pre><code class="language-c">#define PAGE_MAPPING_ANON       1
+#define PAGE_MAPPING_KSM        2
+#define PAGE_MAPPING_FLAGS      (PAGE_MAPPING_ANON | PAGE_MAPPING_KSM)
+
+static inline int PageAnon(struct page *page)
+{
+        return ((unsigned long)page-&gt;mapping &amp; PAGE_MAPPING_ANON) != 0;
+}
+</code></pre>
+
+<h2 id="count-和-mapcount-成员"><code>_count</code>和<code>_mapcount</code>成员</h2>
+
+<p><code>_count</code>和<code>_mapcount</code>成员是<code>struct page</code>结构中的两个非常重要的引用计数，并且都是<code>atomic_t</code>类型的变量。</p>
+
+<p>其中，<code>_count</code>表示内核中引用该页面的次数：</p>
+
+<ul>
+<li><code>_count</code>的值为0时，表示该页面为空闲或者即将要被释放的页面；</li>
+<li><code>_count</code>的值大于0时，表示该页面已经被分配且内核正在使用，暂时不会释放。</li>
+</ul>
+
+<p>内核中常用的加减<code>_count</code>引用计数的<code>API</code>为：<code>get_page</code> 和<code>put_page</code>，此外，内核中还有一对常用的变种宏：</p>
+
+<pre><code>#define page_cache_get(page)            get_page(page) 
+#define page_cache_release(page)        put_page(page)
+</code></pre>
+
+<p>其中，<code>_mapcount</code>表示这个页面被进程映射的个数，即已经映射了多少个用于<code>pte</code>页表：</p>
+
+<ul>
+<li><code>_mapcount == -1</code>表示没有pte映射到页面；</li>
+<li><code>_mapcount == 0</code>表示只有父进程映射了页面；</li>
+<li><code>_mapcount &gt; 0</code>表示除了父进程外还有其他进程映射了这个页面。</li>
+</ul>
+
+<h2 id="页面锁-pg-locked">页面锁<code>PG_locked</code></h2>
+
+<p>还记得前面提到的标志位中有一个叫做<code>PG_locked</code>，内核常用这个标志位来设置一个页面锁。</p>
+
+<ul>
+<li><code>lock_page()</code>函数用于申请页面锁，如果页面锁被其它进程占用了，就会睡眠等待；</li>
+<li><code>trylock_page()</code>函数用于去尝试申请页面锁，如果<code>PG_locked</code> 已经置位了，该函数返回<code>false</code>，说明有其他进程已经锁住了该页面，返回<code>true</code>表示获取页面锁成功。</li>
+</ul>
+
+<pre><code class="language-c">
+/**
+ * __lock_page - get a lock on the page, assuming we need to sleep to get it
+ * @page: the page to lock
+ */
+void __lock_page(struct page *page)                                                                                                                                               
+{
+        DEFINE_WAIT_BIT(wait, &amp;page-&gt;flags, PG_locked);
+
+        __wait_on_bit_lock(page_waitqueue(page), &amp;wait, bit_wait_io,
+                                                        TASK_UNINTERRUPTIBLE);
+}
+EXPORT_SYMBOL(__lock_page);
+
+/*
+ * lock_page may only be called if we have the page's inode pinned.
+ */
+static inline void lock_page(struct page *page) 
+{
+        might_sleep(); 
+        if (!trylock_page(page)) 
+                __lock_page(page);  
+}
+
+
+static inline int trylock_page(struct page *page) 
+{                                                   
+        return (likely(!test_and_set_bit_lock(PG_locked, &amp;page-&gt;flags)));
+}
+</code></pre>
+
+<ul>
+<li><code>unlock_page()</code>函数用于释放页面锁，并唤醒等待页面锁的进程。</li>
+</ul>
+
+<pre><code class="language-c">/**
+ * unlock_page - unlock a locked page
+ * @page: the page
+ *
+ * Unlocks the page and wakes up sleepers in ___wait_on_page_locked().
+ * Also wakes sleepers in wait_on_page_writeback() because the wakeup
+ * mechananism between PageLocked pages and PageWriteback pages is shared.
+ * But that's OK - sleepers in wait_on_page_writeback() just go back to sleep.
+ *
+ * The mb is necessary to enforce ordering between the clear_bit and the read
+ * of the waitqueue (to avoid SMP races with a parallel wait_on_page_locked()).
+ */
+void unlock_page(struct page *page)
+{
+        VM_BUG_ON_PAGE(!PageLocked(page), page);
+        clear_bit_unlock(PG_locked, &amp;page-&gt;flags);
+        smp_mb__after_clear_bit();
+
+        wake_up_page(page, PG_locked);
+}
+EXPORT_SYMBOL(unlock_page);
+
+</code></pre>
+
+<h2 id="struct-page-数组"><code>struct page</code>数组</h2>
+
+<p>我们知道内核里每一个物理页面都有一个<code>struct page</code>结构体描述，这些<code>struct page</code>数组存放到哪里呢？</p>
+
+<p>下面我们分析<code>x86-64</code>情况下，<code>struct page</code>数组的情况，现在的服务器使用的都是<code>NUMA</code>架构，一般有两个<code>numa node</code>，<code>centos7</code>的内核内存模型为<code>Sparse Memory Model</code>，所以，内存被划分为很多个<code>mem_section</code>，每个<code>mem_section</code>的大小为<code>128MB</code>。</p>
+
+<p><img src="./memory-node.png" alt="enter description here" title="memory-node" /></p>
+
+<p>如上图所示，通过<code>crash</code>命令<code>kmem -n</code>我们可以看到，该服务器有两个<code>NUMA NODE</code>, <code>node0</code> 包含三个<code>zone（DMA,DMA32,Normal）</code>，<code>node1</code>包含<code>1</code>个<code>zone（Normal）</code>。同时也展示了<code>mem_section</code>的情况。</p>
+
+<p><code>struct mem_section</code>的定义如下：</p>
+
+<pre><code>crash&gt; struct -o mem_section
+struct mem_section {
+   [0] unsigned long section_mem_map;
+   [8] unsigned long *pageblock_flags;
+  [16] struct page_cgroup *page_cgroup;
+  [24] unsigned long pad;
+}
+SIZE: 32
+</code></pre>
+
+<p>其中<code>section_mem_map</code>成员指向了<code>struct page</code>数组。我们看一下<code>mem_section[0][0]</code>这个<code>mem_section</code>的<code>section_mem_map</code>的值：</p>
+
+<pre><code>crash&gt; p -x  mem_section[0][0]
+$6 = {
+  section_mem_map = 0xffffea0000000003, 
+  pageblock_flags = 0xffff88107ffd0040, 
+  page_cgroup = 0xffff88017fc80000, 
+  pad = 0x0
+}
+</code></pre>
+
+<p>说明<code>0xffffea0000000000</code>为第一个<code>struct page</code>数据结构的地址，地址的低两位用作其它用途。</p>
+
+<p>通过<code>crash</code>命令<code>kmem -p</code>我们可以验证一下上面的分析是否正确：</p>
+
+<pre><code>crash&gt; kmem -p
+      PAGE         PHYSICAL      MAPPING       INDEX CNT FLAGS
+ffffea0000000000          0                0        0  0 400 reserved
+ffffea0000000040       1000                0        0  1 fffff00000400 reserved
+ffffea0000000080       2000                0        0  1 fffff00000400 reserved
+ffffea00000000c0       3000                0        0  1 fffff00000400 reserved
+ffffea0000000100       4000                0        0  1 fffff00000400 reserved
+ffffea0000000140       5000                0        0  1 fffff00000400 reserved
+ffffea0000000180       6000                0        0  1 fffff00000400 reserved
+ffffea00000001c0       7000                0        0  1 fffff00000400 reserved
+ffffea0000000200       8000                0        0  1 fffff00000400 reserved
+ffffea0000000240       9000                0        0  1 fffff00000400 reserved
+ffffea0000000280       a000                0        0  1 fffff00000400 reserved
+ffffea00000002c0       b000                0        0  1 fffff00000400 reserved
+ffffea0000000300       c000                0        0  1 fffff00000400 reserved
+</code></pre>
+
+<p>可以看出，第一个页面的地址为：<code>ffffea0000000000</code>。</p>
+
+<p>此外，我们通过<code>crash</code>命令<code>kmem -p</code>有如下片段：</p>
+
+<pre><code>ffffea00000846c0    211b000                0        1  0 1fffff00000000
+ffffea0000084700    211c000                0 ffff88000211c600  1 1fffff00004080 slab,head
+ffffea0000084740    211d000                0        1  0 1fffff00008000 tail
+</code></pre>
+
+<p><code>ffffea0000084700</code> 描述的页面的flags为：<code>slab,head</code>，我们可以进行验证一下：</p>
+
+<pre><code>crash&gt; page.flags -x ffffea0000084700
+  flags = 0x1fffff00004080
+crash&gt; kmem -g 0x1fffff00004080
+FLAGS: 1fffff00004080
+  PAGE-FLAG        BIT  VALUE
+  PG_slab            7  0000080
+  PG_head           14  0004000
+</code></pre>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-12-30</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/memory-page/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/memory/">memory</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/radix-tree/">
+            <span class="next-text nav-default">Radix Tree </span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

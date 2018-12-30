@@ -3,6 +3,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://linux.laoqinren.net/kernel/memory-page/</loc>
+    <lastmod>2018-12-30T17:37:29+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/linux/get-init-pid-for-any-task/</loc>
     <lastmod>2018-10-08T14:26:43+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -256,7 +263,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/kernel/</loc>
-    <lastmod>2018-09-09T13:36:38+08:00</lastmod>
+    <lastmod>2018-12-30T17:37:29+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -410,14 +417,14 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/kernel/</loc>
-    <lastmod>2018-10-08T14:26:43+08:00</lastmod>
+    <lastmod>2018-12-30T17:37:29+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/categories/kernel/</loc>
-    <lastmod>2018-09-09T13:36:38+08:00</lastmod>
+    <lastmod>2018-12-30T17:37:29+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -431,7 +438,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/linux/</loc>
-    <lastmod>2018-10-08T14:26:43+08:00</lastmod>
+    <lastmod>2018-12-30T17:37:29+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -452,7 +459,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/memory/</loc>
-    <lastmod>2018-04-25T22:03:05+08:00</lastmod>
+    <lastmod>2018-12-30T17:37:29+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

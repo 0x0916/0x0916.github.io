@@ -6,10 +6,21 @@
     <description>Recent content in Memory on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 25 Apr 2018 22:03:05 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 30 Dec 2018 17:37:29 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/memory/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>struct page结构体</title>
+      <link>http://linux.laoqinren.net/kernel/memory-page/</link>
+      <pubDate>Sun, 30 Dec 2018 17:37:29 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/memory-page/</guid>
+      <description>&lt;p&gt;内存管理基本上是以数据结构&lt;code&gt;struct page&lt;/code&gt;展开的，本文将详细围绕&lt;code&gt;struct page&lt;/code&gt;展开。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Linux内存模型分析</title>
