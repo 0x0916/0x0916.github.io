@@ -6,10 +6,21 @@
     <description>Recent content in Kernel on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 30 Dec 2018 17:37:29 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 05 Jan 2019 21:08:28 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>内存管理参数min_free_kbytes 分析</title>
+      <link>http://linux.laoqinren.net/kernel/vm-sysctl-min_free_kbytes/</link>
+      <pubDate>Sat, 05 Jan 2019 21:08:28 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/vm-sysctl-min_free_kbytes/</guid>
+      <description>&lt;p&gt;在&lt;code&gt;Linux&lt;/code&gt;系统中，有很多内存管理的配置参数，本文就详细分析&lt;code&gt;min_free_kbytes&lt;/code&gt;参数。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>struct page结构体</title>

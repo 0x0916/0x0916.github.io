@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-05-20T20:57:16&#43;08:00"/>
+<meta property="og:updated_time" content="2018-06-20T23:08:40&#43;08:00"/>
 
 
 
@@ -152,6 +152,55 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/hlist/">内核基础设施——hlist_head/hlist_node结构解析</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-06-20 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 2018 words </span>
+      <span class="more-meta"> 5 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <blockquote>
+<p>注意：本文中的代码参考于linux v4.16。</p>
+</blockquote>
+
+<h2 id="数据结构">数据结构</h2>
+
+<p><code>hlist_head</code>和<code>hlist_node</code>用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:</p>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190"> include/linux/types.h(line 190) </a>
+
+<pre><code class="language-c">struct hlist_head {
+	struct hlist_node *first;
+};
+</code></pre>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
+
+<pre><code class="language-c">struct hlist_node {
+	struct hlist_node *next, **pprev;
+};
+
+</code></pre>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/hlist/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">
@@ -302,43 +351,6 @@
 </article>
 
     
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/memory-model/">Linux内存模型分析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-04-25 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 6318 words </span>
-      <span class="more-meta"> 13 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文转载于：<a href="http://www.wowotech.net/memory_management/memory_model.html">http://www.wowotech.net/memory_management/memory_model.html</a></p>
-
-<p>在原文的基础上，做了如下的改动：</p>
-
-<ol>
-<li>文中出现的内核代码修改成基于<code>4.4.128</code></li>
-<li>对于体系结构相关的代码,使用<code>x86</code>架构中的代码</li>
-<li>对代码格式进行调整</li>
-<li>会添加一些内容，便于更进一步的理解</li>
-</ol>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/memory-model/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
   </section>
   
   <nav class="pagination">
@@ -382,7 +394,7 @@
     &copy; 
     
       2016 - 
-    2018
+    2019
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>
