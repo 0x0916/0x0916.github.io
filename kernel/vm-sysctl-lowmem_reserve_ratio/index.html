@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>内存管理参数lowmem_reserve_ratio分析 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="在Linux系统中，有很多内存管理的配置参数，本文就详细分析lowmem_reserve_ratio参数。
+
+" />
+<meta name="keywords" content="vm, lowmem_reserve_ratio, kernel, memory" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/vm-sysctl-lowmem_reserve_ratio/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="内存管理参数lowmem_reserve_ratio分析" />
+<meta property="og:description" content="在Linux系统中，有很多内存管理的配置参数，本文就详细分析lowmem_reserve_ratio参数。
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/vm-sysctl-lowmem_reserve_ratio/" />
+
+
+
+<meta property="article:published_time" content="2019-01-06T09:53:01&#43;08:00"/>
+
+<meta property="article:modified_time" content="2019-01-06T09:53:01&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="内存管理参数lowmem_reserve_ratio分析">
+<meta itemprop="description" content="在Linux系统中，有很多内存管理的配置参数，本文就详细分析lowmem_reserve_ratio参数。
+
+">
+
+
+<meta itemprop="datePublished" content="2019-01-06T09:53:01&#43;08:00" />
+<meta itemprop="dateModified" content="2019-01-06T09:53:01&#43;08:00" />
+<meta itemprop="wordCount" content="1556">
+
+
+
+<meta itemprop="keywords" content="kernel,linux," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="内存管理参数lowmem_reserve_ratio分析"/>
+<meta name="twitter:description" content="在Linux系统中，有很多内存管理的配置参数，本文就详细分析lowmem_reserve_ratio参数。
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">内存管理参数lowmem_reserve_ratio分析</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-01-06 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 1556 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#系统环境介绍">系统环境介绍</a></li>
+<li><a href="#官方解释">官方解释</a></li>
+<li><a href="#zone-的-protection-计算方法"><code>zone</code>的<code>protection</code>计算方法</a></li>
+<li><a href="#计算示例">计算示例</a></li>
+<li><a href="#lowmem-reserve-ratio-影响"><code>lowmem_reserve_ratio</code>影响</a>
+<ul>
+<li><a href="#参考文档">参考文档</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>在<code>Linux</code>系统中，有很多内存管理的配置参数，本文就详细分析<code>lowmem_reserve_ratio</code>参数。</p>
+
+<p></p>
+
+<p><img src="./pic.jpg" alt="" /></p>
+
+<h3 id="系统环境介绍">系统环境介绍</h3>
+
+<ul>
+<li>发行版：<code>centos7.5</code></li>
+<li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
+<li>处理器：<code>40core（Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz）</code></li>
+<li>内存：<code>128GB</code>，两个<code>NUMA node</code></li>
+</ul>
+
+<h3 id="官方解释">官方解释</h3>
+
+<p><code>lowmem_reserve_ratio</code>的官方解释如下：</p>
+
+<pre><code>For some specialised workloads on highmem machines it is dangerous for
+the kernel to allow process memory to be allocated from the &quot;lowmem&quot;
+zone.  This is because that memory could then be pinned via the mlock()
+system call, or by unavailability of swapspace.
+
+And on large highmem machines this lack of reclaimable lowmem memory
+can be fatal.
+
+So the Linux page allocator has a mechanism which prevents allocations
+which _could_ use highmem from using too much lowmem.  This means that
+a certain amount of lowmem is defended from the possibility of being
+captured into pinned user memory.
+
+(The same argument applies to the old 16 megabyte ISA DMA region.  This
+mechanism will also defend that region from allocations which could use
+highmem or lowmem).
+
+The `lowmem_reserve_ratio' tunable determines how aggressive the kernel is
+in defending these lower zones.
+
+If you have a machine which uses highmem or ISA DMA and your
+applications are using mlock(), or if you are running with no swap then
+you probably should change the lowmem_reserve_ratio setting.
+
+</code></pre>
+
+<p>总的来说，就是防止进程过多的使用<code>lower zones</code>中的内存。 具体实现如下：</p>
+
+<ul>
+<li>系统上每个<code>zone</code>都会有一个<code>protection</code> 数组，在内存分配时，用它和对用的zone的<code>watermark[high]</code>来判断是否能够分配内存</li>
+<li>而每个<code>zone</code>的<code>protection</code> 的计算方法跟<code>lowmem_reserve_ratio</code>有关。</li>
+</ul>
+
+<p>接下来我们看一下每个<code>zone</code>的<code>protection</code>数组的计算方法。</p>
+
+<h3 id="zone-的-protection-计算方法"><code>zone</code>的<code>protection</code>计算方法</h3>
+
+<p><code>lowmem_reserve_ratio</code>是一个数组，可以通过文件<code>/proc/sys/vm/lowmem_reserve_ratio</code>查看其值：</p>
+
+<pre><code>$ cat /proc/sys/vm/lowmem_reserve_ratio 
+256     256     32
+</code></pre>
+
+<p>目前该值为：</p>
+
+<ul>
+<li><code>256</code>： 如果<code>zone</code>为<code>DMA</code>或者<code>DMA32</code></li>
+<li><code>32</code>： 其它<code>zone</code></li>
+</ul>
+
+<p>内核利用上述的<code>lowmem_reserve_ratio</code>数组计算每个<code>zone</code>的预留<code>page</code>量，计算出来也是数组形式，从<code>/proc/zoneinfo</code>里可以查看：</p>
+
+<pre><code>Node 0, zone      DMA
+  pages free     1355
+        min      3
+        low      3
+        high     4
+	:
+	:
+    numa_other   0
+        protection: (0, 2004, 2004, 2004)
+	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  pagesets
+    cpu: 0 pcp: 0
+        :
+</code></pre>
+
+<p>在进行内存分配时，这些预留页数值和<code>watermark</code>相加来一起决定现在是满足分配请求，还是认为空闲内存量过低需要启动回收。</p>
+
+<p>例如，如果一个<code>normal</code>区(<code>index = 2</code>)的页申请来试图分配<code>DMA</code>区的内存，且现在使用的判断标准是<code>watermark[high]</code>时，内核计算出 <code>page_free = 1355</code>，而<code>watermark + protection[2] = 4 + 2004 = 2008 &gt; page_free</code>，则认为空闲内存太少而不予以分配。如果分配请求本就来自<code>DMA zone</code>，则 <code>protection[0] = 0</code>会被使用，而满足分配申请。</p>
+
+<p><code>zone[i]</code> 的 <code>protection[j]</code> 计算规则如下：</p>
+
+<pre><code>(i &lt; j):
+  zone[i]-&gt;protection[j]
+  = (total sums of managed_pages from zone[i+1] to zone[j] on the node)
+    / lowmem_reserve_ratio[i];
+(i = j):
+   (should not be protected. = 0;
+(i &gt; j):
+   (not necessary, but looks 0)
+</code></pre>
+
+<p>从上面的计算规则可以看出，预留内存值是<code>ratio</code>的倒数关系，如果是<code>256</code>则代表 <code>1/256</code>，即为 <code>0.39%</code> 的高端<code>zone</code>内存大小。
+如果想要预留更多页，应该设更小一点的值，最小值是<code>1</code>（<code>1/1 -&gt; 100%</code>）。</p>
+
+<h3 id="计算示例">计算示例</h3>
+
+<p>根据上述计算方法，结合我的系统环境，计算出的每个<code>zone</code>的<code>protection</code>数组如下：</p>
+
+<table>
+<thead>
+<tr>
+<th>node</th>
+<th>zone</th>
+<th>manage_pages</th>
+<th>protection[0]</th>
+<th>protection[1]</th>
+<th>protection[2]</th>
+<th>protection[3]</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>0</td>
+<td>DMA</td>
+<td>3976</td>
+<td>0</td>
+<td>1383</td>
+<td>63848</td>
+<td>83848</td>
+</tr>
+
+<tr>
+<td>0</td>
+<td>DMM32</td>
+<td>354201</td>
+<td></td>
+<td>0</td>
+<td>62464</td>
+<td>62464</td>
+</tr>
+
+<tr>
+<td>0</td>
+<td>NORAML</td>
+<td>15991024</td>
+<td></td>
+<td></td>
+<td>0</td>
+<td>0</td>
+</tr>
+
+<tr>
+<td>0</td>
+<td>MOVABLE</td>
+<td>0</td>
+<td></td>
+<td></td>
+<td></td>
+<td>0</td>
+</tr>
+
+<tr>
+<td>1</td>
+<td>DMA</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>64508</td>
+<td>64508</td>
+</tr>
+
+<tr>
+<td>1</td>
+<td>DMA32</td>
+<td>0</td>
+<td></td>
+<td>0</td>
+<td>64508</td>
+<td>64508</td>
+</tr>
+
+<tr>
+<td>1</td>
+<td>NORMAL</td>
+<td>16514229</td>
+<td></td>
+<td></td>
+<td>0</td>
+<td>0</td>
+</tr>
+
+<tr>
+<td>1</td>
+<td>MOVABLE</td>
+<td>0</td>
+<td></td>
+<td></td>
+<td></td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+<p>通过<code>/proc/zoneinfo</code>和<code>crash</code>命令，我们可以验证一下计算结果是否正确：</p>
+
+<pre><code>$ cat /proc/zoneinfo | grep protection
+        protection: (0, 1383, 63848, 63848)
+        protection: (0, 0, 62464, 62464)
+        protection: (0, 0, 0, 0)
+        protection: (0, 0, 0, 0)
+		
+		
+crash&gt; struct zone.lowmem_reserve  ffff88107ffd9000
+  lowmem_reserve = {0, 1383, 63848, 63848}
+crash&gt; struct zone.lowmem_reserve  ffff88107ffd9800
+  lowmem_reserve = {0, 0, 62464, 62464}
+crash&gt; struct zone.lowmem_reserve  ffff88107ffda000
+  lowmem_reserve = {0, 0, 0, 0}
+crash&gt; struct zone.lowmem_reserve  ffff88107ffda800
+  lowmem_reserve = {0, 0, 0, 0}
+crash&gt; struct zone.lowmem_reserve  ffff88207ffd6000
+  lowmem_reserve = {0, 0, 64508, 64508}
+crash&gt; struct zone.lowmem_reserve  ffff88207ffd6800
+  lowmem_reserve = {0, 0, 64508, 64508}
+crash&gt; struct zone.lowmem_reserve  ffff88207ffd7000
+  lowmem_reserve = {0, 0, 0, 0}
+crash&gt; struct zone.lowmem_reserve  ffff88207ffd7800
+  lowmem_reserve = {0, 0, 0, 0}
+</code></pre>
+
+<h3 id="lowmem-reserve-ratio-影响"><code>lowmem_reserve_ratio</code>影响</h3>
+
+<p>通过分析，我们知道<code>lowmem_reserve_ratio</code>会影响系统预留内存的大小，且预留的数量是<code>ratio</code>的倒数，所以，如果系统预留稍微多一点的内存，应该将<code>lowmem_reserve_ratio</code>适当调小。</p>
+
+<blockquote>
+<p>一般情况下，很少回调整<code>lowmem_reserve_ratio</code>的值。</p>
+</blockquote>
+
+<h4 id="参考文档">参考文档</h4>
+
+<ul>
+<li><a href="https://www.kernel.org/doc/Documentation/sysctl/vm.txt">https://www.kernel.org/doc/Documentation/sysctl/vm.txt</a></li>
+<li><a href="https://blog.csdn.net/joyeu/article/details/20063429">https://blog.csdn.net/joyeu/article/details/20063429</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-01-06</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/vm-sysctl-lowmem_reserve_ratio/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/vm-sysctl-min_free_kbytes/">
+            <span class="next-text nav-default">内存管理参数min_free_kbytes 分析</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
