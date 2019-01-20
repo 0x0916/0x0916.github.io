@@ -6,10 +6,21 @@
     <description>Recent content in Linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 06 Jan 2019 09:53:01 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 19 Jan 2019 09:53:01 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>内存管理参数zone_reclaim_mode分析</title>
+      <link>http://linux.laoqinren.net/kernel/vm-sysctl-zone_reclaim_mode/</link>
+      <pubDate>Sat, 19 Jan 2019 09:53:01 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/vm-sysctl-zone_reclaim_mode/</guid>
+      <description>&lt;p&gt;在&lt;code&gt;Linux&lt;/code&gt;系统中，有很多内存管理的配置参数，本文就详细分析&lt;code&gt;zone_reclaim_mode&lt;/code&gt;参数。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>内存管理参数lowmem_reserve_ratio分析</title>

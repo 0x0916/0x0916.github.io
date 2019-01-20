@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-08-25T10:54:09&#43;08:00"/>
+<meta property="og:updated_time" content="2018-08-25T16:31:46&#43;08:00"/>
 
 
 
@@ -152,6 +152,44 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-css-set-hash/">cgroup源码分析4——css_set的哈希表分析</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-08-25 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+            <a href="/categories/cgroup/"> cgroup </a>
+          
+        </div>
+      <span class="more-meta"> 3072 words </span>
+      <span class="more-meta"> 7 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>在描述进程的结构体<code>task_struct</code>中有一个类型为<code>css_set</code>的成员<code>cgroups</code>，它描述了进程的所有<code>cgroup</code>信息，从前面的分析文章中我们已经知道通过<code>task_struct-&gt;cgroups</code>可以找到进程的所有不同<code>cgroup</code>控制器的信息。</p>
+
+<p>当我们新创建一个进程时，新进程的<code>task_struct-&gt;cgroups</code>的值继承自其<code>父进程</code>。此后，如果我们将新创建的进程添加到一个新的<code>cgroup</code>中时，就需要重新给<code>task_struct-&gt;cgroups</code>赋值，这个值要么是一个已经存在的<code>css_set</code>结构的指针，要么是新创建的<code>css_set</code>的结构的指针。</p>
+
+<p>所以，我们就需要通过<code>进程的cgroup信息</code>，快速查找其对应的<code>css_set结构</code>是否存在，如果不存在的话就去创建它。<code>linux kernel</code> 使用一个<code>hash</code>表来完成这个工作。本文主要分析该<code>hash</code>表的实现。</p>
+
+<blockquote>
+<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
+</blockquote>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/cgroup-source-css-set-hash/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">
@@ -284,42 +322,6 @@
     </div>
     <div class="read-more">
       <a href="/posts/hierarchy-without-controller-group/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-debug/">cgroup之debug子系统</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-09 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 2174 words </span>
-      <span class="more-meta"> 5 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p><code>cgroup</code>的<code>debug子系统</code>其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核<code>cgroup</code>框架的使用方法，同时也展示了<code>cgroup</code>框架中各个数据结构之间的关系。</p>
-
-<p>本文就通过研究<code>debug</code>子系统，来展示<code>cgroup</code>框架中各个数据结构的关系。</p>
-
-<blockquote>
-<p>注意: 内核代码采用<code>linux-3.10.0-862.9.1.el7</code></p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-debug/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
