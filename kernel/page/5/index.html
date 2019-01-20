@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-08-23T22:50:33&#43;08:00"/>
+<meta property="og:updated_time" content="2018-04-13T20:50:15&#43;08:00"/>
 
 
 
@@ -155,184 +155,31 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-cgroup_init/">cgroup源码分析2——cgroup的初始化</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/kernel/percpu-counter/">内核基础设施——percpu_counter</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2018-08-23 </span>
+      <span class="post-time"> 2018-04-13 </span>
       <div class="post-category">
           
             <a href="/categories/kernel/"> kernel </a>
           
-            <a href="/categories/cgroup/"> cgroup </a>
-          
         </div>
-      <span class="more-meta"> 6223 words </span>
-      <span class="more-meta"> 13 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文详细分析了<code>cgroup</code>初始化的过程。</p>
-
-<blockquote>
-<p>本文基于<code>3.10.0-862.el7.x86_64</code>版本kernel进行分析。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-cgroup_init/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-css_set-and-cgroup/">cgroup源码分析1—— css_set和cgroup的关系</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-23 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 5502 words </span>
-      <span class="more-meta"> 11 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本系列文章主要从源码入手，分析<code>linux kernel</code>中<code>cgroup</code>的实现。</p>
-
-<blockquote>
-<p>本文基于<code>3.10.0-862.el7.x86_64</code>版本kernel进行分析。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-css_set-and-cgroup/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-debug/">cgroup之debug子系统</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-09 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 2174 words </span>
+      <span class="more-meta"> 2397 words </span>
       <span class="more-meta"> 5 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p><code>cgroup</code>的<code>debug子系统</code>其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核<code>cgroup</code>框架的使用方法，同时也展示了<code>cgroup</code>框架中各个数据结构之间的关系。</p>
-
-<p>本文就通过研究<code>debug</code>子系统，来展示<code>cgroup</code>框架中各个数据结构的关系。</p>
+      <p>内核里很多模块都需要对一些事件进行统计，有一个叫做<code>percpu_counter</code>的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。</p>
 
 <blockquote>
-<p>注意: 内核代码采用<code>linux-3.10.0-862.9.1.el7</code></p>
+<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code>。</p>
 </blockquote>
 
 <p></p>
     </div>
     <div class="read-more">
-      <a href="/kernel/cgroup-debug/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/list/">内核基础设施——list_head结构解析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-06-23 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2535 words </span>
-      <span class="more-meta"> 6 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p><code>list_head</code>用法经常在<code>Linux kernel</code>里面经常看见，该文对内核中的<code>list_head</code>进行了总结分析。</p>
-
-<blockquote>
-<p>注意：本文的中的代码来自于内核版本<code>v4.16</code>。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/list/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/hlist/">内核基础设施——hlist_head/hlist_node结构解析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-06-20 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2018 words </span>
-      <span class="more-meta"> 5 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <blockquote>
-<p>注意：本文中的代码参考于linux v4.16。</p>
-</blockquote>
-
-<h2 id="数据结构">数据结构</h2>
-
-<p><code>hlist_head</code>和<code>hlist_node</code>用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:</p>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190"> include/linux/types.h(line 190) </a>
-
-<pre><code class="language-c">struct hlist_head {
-	struct hlist_node *first;
-};
-</code></pre>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
-
-<pre><code class="language-c">struct hlist_node {
-	struct hlist_node *next, **pprev;
-};
-
-</code></pre>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/hlist/" class="read-more-link">Read more..</a>
+      <a href="/kernel/percpu-counter/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -342,15 +189,11 @@
   
   <nav class="pagination">
     
-      <a class="prev" href="/kernel/page/2/">
+      <a class="prev" href="/kernel/page/4/">
         <i class="iconfont icon-left"></i>
         <span class="prev-text">Prev</span>
       </a>
     
-      <a class="next" href="/kernel/page/4/">
-        <span class="next-text">Next</span>
-        <i class="iconfont icon-right"></i>
-      </a>
   </nav>
 
         </div>

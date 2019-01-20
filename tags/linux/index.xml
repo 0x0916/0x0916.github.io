@@ -6,10 +6,23 @@
     <description>Recent content in Linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 19 Jan 2019 09:53:01 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 20 Jan 2019 11:24:14 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>描述系统上cpu和memory的状态:node_states</title>
+      <link>http://linux.laoqinren.net/kernel/node_states/</link>
+      <pubDate>Sun, 20 Jan 2019 11:24:14 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/node_states/</guid>
+      <description>&lt;p&gt;在内存管理和调度负载均衡中，有许多代码逻辑要遍历&lt;code&gt;node&lt;/code&gt;上的&lt;strong&gt;内存&lt;/strong&gt;和&lt;strong&gt;cpu&lt;/strong&gt;信息，加上现在的内核都支持内存和&lt;code&gt;cpu&lt;/code&gt;的热插拔，所以系统上&lt;code&gt;node&lt;/code&gt;的状态在内核上要有专门的数据结构进行描述。&lt;/p&gt;
+
+&lt;p&gt;本文就研究一下用于描述&lt;code&gt;node&lt;/code&gt;信息的数据结构。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>内存管理参数zone_reclaim_mode分析</title>
