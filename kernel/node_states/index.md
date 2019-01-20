@@ -90,8 +90,8 @@ nodemask_t node_states[5];
 
 ```
 crash> p node_states
-node_states = $1 = 
- {{
+node_states = $1 = {
+  {
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
   }, {
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
@@ -101,13 +101,14 @@ node_states = $1 =
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
   }, {
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-  }}
+  }
+  }
 ```
-* 第一行3代表系统上只会有两个`node`，`node0`和`node1`
-* 第二行3代表系统上目前`node0`和`node1`都是`online`的
-* 第三行3代表系统上`node0`和`node1`都有`normal memory`
-* 第四行3代表系统上`node0`和`node1`都有内存
-* 第五行3代表系统上`node0`和`node1`上都有`cpu`
+* 第一行`3`代表系统上只会有两个`node`，`node0`和`node1`
+* 第二行`3`代表系统上目前`node0`和`node1`都是`online`的
+* 第三行`3`代表系统上`node0`和`node1`都有`normal memory`
+* 第四行`3`代表系统上`node0`和`node1`都有内存
+* 第五行`3`代表系统上`node0`和`node1`上都有`cpu`
 
 
 有了`node_states`后，我们就可以方便的遍历所有`node`，并且跳过那些已经不存在或者没有某些资源的`node`。

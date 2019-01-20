@@ -87,7 +87,7 @@
 
 <meta itemprop="datePublished" content="2019-01-20T11:24:14&#43;08:00" />
 <meta itemprop="dateModified" content="2019-01-20T11:24:14&#43;08:00" />
-<meta itemprop="wordCount" content="1467">
+<meta itemprop="wordCount" content="1469">
 
 
 
@@ -182,7 +182,7 @@
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 1467 words </span>
+        <span class="more-meta"> 1469 words </span>
         <span class="more-meta"> 3 mins read </span>
         
       </div>
@@ -305,8 +305,8 @@ nodemask_t node_states[5];
 <p>我所查看的机器上有两个<code>node</code>，那么接下来我们通过<code>crash</code>查看一下<code>node_states</code>的值：</p>
 
 <pre><code>crash&gt; p node_states
-node_states = $1 = 
- {{
+node_states = $1 = {
+  {
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
   }, {
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
@@ -316,15 +316,16 @@ node_states = $1 =
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
   }, {
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-  }}
+  }
+  }
 </code></pre>
 
 <ul>
-<li>第一行3代表系统上只会有两个<code>node</code>，<code>node0</code>和<code>node1</code></li>
-<li>第二行3代表系统上目前<code>node0</code>和<code>node1</code>都是<code>online</code>的</li>
-<li>第三行3代表系统上<code>node0</code>和<code>node1</code>都有<code>normal memory</code></li>
-<li>第四行3代表系统上<code>node0</code>和<code>node1</code>都有内存</li>
-<li>第五行3代表系统上<code>node0</code>和<code>node1</code>上都有<code>cpu</code></li>
+<li>第一行<code>3</code>代表系统上只会有两个<code>node</code>，<code>node0</code>和<code>node1</code></li>
+<li>第二行<code>3</code>代表系统上目前<code>node0</code>和<code>node1</code>都是<code>online</code>的</li>
+<li>第三行<code>3</code>代表系统上<code>node0</code>和<code>node1</code>都有<code>normal memory</code></li>
+<li>第四行<code>3</code>代表系统上<code>node0</code>和<code>node1</code>都有内存</li>
+<li>第五行<code>3</code>代表系统上<code>node0</code>和<code>node1</code>上都有<code>cpu</code></li>
 </ul>
 
 <p>有了<code>node_states</code>后，我们就可以方便的遍历所有<code>node</code>，并且跳过那些已经不存在或者没有某些资源的<code>node</code>。</p>
