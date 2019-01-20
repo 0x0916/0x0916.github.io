@@ -36,6 +36,25 @@
     </item>
     
     <item>
+      <title>内存规整（memory compaction）</title>
+      <link>http://linux.laoqinren.net/kernel/memory-compaction/</link>
+      <pubDate>Sat, 12 Jan 2019 12:06:18 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/memory-compaction/</guid>
+      <description>&lt;p&gt;伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：&lt;strong&gt;内存规整&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;包括如下内容：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;内存规整相关的内存管理参数&lt;/li&gt;
+&lt;li&gt;描述内存碎片化程度的指数：&lt;code&gt;extfrag_index&lt;/code&gt;和&lt;code&gt;unusable_index&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;extfrag_threshold&lt;/code&gt;内存管理参数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>内存管理参数lowmem_reserve_ratio分析</title>
       <link>http://linux.laoqinren.net/kernel/vm-sysctl-lowmem_reserve_ratio/</link>
       <pubDate>Sun, 06 Jan 2019 09:53:01 +0800</pubDate>
