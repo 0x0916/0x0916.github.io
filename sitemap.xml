@@ -17,6 +17,13 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/linux/proc-memory/</loc>
+    <lastmod>2019-01-13T10:28:37+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/memory-compaction/</loc>
     <lastmod>2019-01-12T12:06:18+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -305,7 +312,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/linux/</loc>
-    <lastmod>2018-10-08T14:26:43+08:00</lastmod>
+    <lastmod>2019-01-13T10:28:37+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -480,7 +487,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/categories/linux/</loc>
-    <lastmod>2018-10-08T14:26:43+08:00</lastmod>
+    <lastmod>2019-01-13T10:28:37+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

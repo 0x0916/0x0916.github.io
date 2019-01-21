@@ -36,6 +36,56 @@
     </item>
     
     <item>
+      <title>内核中内存信息的展示</title>
+      <link>http://linux.laoqinren.net/linux/proc-memory/</link>
+      <pubDate>Sun, 13 Jan 2019 10:28:37 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/linux/proc-memory/</guid>
+      <description>&lt;p&gt;在&lt;code&gt;linux&lt;/code&gt;内核中，整个内存信息和状态的展示可以通过以下几个文件获得：&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;文件&lt;/th&gt;
+&lt;th&gt;描述&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;/proc/buddyinfo&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;展示系统上各个&lt;code&gt;zone&lt;/code&gt;的&lt;code&gt;buddy&lt;/code&gt;信息，主要用来分析内存碎片问题&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;/proc/pagetypeinfo&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;输出系统上各个&lt;code&gt;zone&lt;/code&gt;中的不同迁移类型的详细状态信息&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;/proc/vmstat&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;描述内存统计信息&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;/proc/zoneinfo&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;输出系统上各个内存&lt;code&gt;zone&lt;/code&gt;的详细信息&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;在详细介绍这些接口之前，我们先要明确一下几点：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;现在的内核中，内存管理最大概念为&lt;code&gt;node&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;在node上再分为一个或者几个&lt;code&gt;zone&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;每个&lt;code&gt;zone&lt;/code&gt;中又分为不同的迁移类型&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>内存规整（memory compaction）</title>
       <link>http://linux.laoqinren.net/kernel/memory-compaction/</link>
       <pubDate>Sat, 12 Jan 2019 12:06:18 +0800</pubDate>

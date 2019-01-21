@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>内核中内存信息的展示 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
+   文件 描述     /proc/buddyinfo 展示系统上各个zone的buddy信息，主要用来分析内存碎片问题   /proc/pagetypeinfo 输出系统上各个zone中的不同迁移类型的详细状态信息   /proc/vmstat 描述内存统计信息   /proc/zoneinfo 输出系统上各个内存zone的详细信息    在详细介绍这些接口之前，我们先要明确一下几点：
+ 现在的内核中，内存管理最大概念为node。 在node上再分为一个或者几个zone 每个zone中又分为不同的迁移类型  
+" />
+<meta name="keywords" content="zoneinfo, buddyinfo, vmstat, pagetypeinfo" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/linux/proc-memory/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="内核中内存信息的展示" />
+<meta property="og:description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
+
+
+
+
+文件
+描述
+
+
+
+
+
+/proc/buddyinfo
+展示系统上各个zone的buddy信息，主要用来分析内存碎片问题
+
+
+
+/proc/pagetypeinfo
+输出系统上各个zone中的不同迁移类型的详细状态信息
+
+
+
+/proc/vmstat
+描述内存统计信息
+
+
+
+/proc/zoneinfo
+输出系统上各个内存zone的详细信息
+
+
+
+
+在详细介绍这些接口之前，我们先要明确一下几点：
+
+
+现在的内核中，内存管理最大概念为node。
+在node上再分为一个或者几个zone
+每个zone中又分为不同的迁移类型
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/proc-memory/" />
+
+
+
+<meta property="article:published_time" content="2019-01-13T10:28:37&#43;08:00"/>
+
+<meta property="article:modified_time" content="2019-01-13T10:28:37&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="内核中内存信息的展示">
+<meta itemprop="description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
+
+
+
+
+文件
+描述
+
+
+
+
+
+/proc/buddyinfo
+展示系统上各个zone的buddy信息，主要用来分析内存碎片问题
+
+
+
+/proc/pagetypeinfo
+输出系统上各个zone中的不同迁移类型的详细状态信息
+
+
+
+/proc/vmstat
+描述内存统计信息
+
+
+
+/proc/zoneinfo
+输出系统上各个内存zone的详细信息
+
+
+
+
+在详细介绍这些接口之前，我们先要明确一下几点：
+
+
+现在的内核中，内存管理最大概念为node。
+在node上再分为一个或者几个zone
+每个zone中又分为不同的迁移类型
+
+
+">
+
+
+<meta itemprop="datePublished" content="2019-01-13T10:28:37&#43;08:00" />
+<meta itemprop="dateModified" content="2019-01-13T10:28:37&#43;08:00" />
+<meta itemprop="wordCount" content="3149">
+
+
+
+<meta itemprop="keywords" content="kernel,linux," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="内核中内存信息的展示"/>
+<meta name="twitter:description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
+
+
+
+
+文件
+描述
+
+
+
+
+
+/proc/buddyinfo
+展示系统上各个zone的buddy信息，主要用来分析内存碎片问题
+
+
+
+/proc/pagetypeinfo
+输出系统上各个zone中的不同迁移类型的详细状态信息
+
+
+
+/proc/vmstat
+描述内存统计信息
+
+
+
+/proc/zoneinfo
+输出系统上各个内存zone的详细信息
+
+
+
+
+在详细介绍这些接口之前，我们先要明确一下几点：
+
+
+现在的内核中，内存管理最大概念为node。
+在node上再分为一个或者几个zone
+每个zone中又分为不同的迁移类型
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">内核中内存信息的展示</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-01-13 </span>
+        <div class="post-category">
+            
+              <a href="/categories/linux/"> linux </a>
+            
+          </div>
+        <span class="more-meta"> 3149 words </span>
+        <span class="more-meta"> 7 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#系统环境">系统环境</a></li>
+<li><a href="#proc-vmstat">/proc/vmstat</a></li>
+<li><a href="#proc-buddyinfo">/proc/buddyinfo</a></li>
+<li><a href="#proc-pagetypeinfo">/proc/pagetypeinfo</a></li>
+<li><a href="#proc-zoneinfo">/proc/zoneinfo</a></li>
+<li><a href="#参考文章">参考文章</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>在<code>linux</code>内核中，整个内存信息和状态的展示可以通过以下几个文件获得：</p>
+
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>描述</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>/proc/buddyinfo</code></td>
+<td>展示系统上各个<code>zone</code>的<code>buddy</code>信息，主要用来分析内存碎片问题</td>
+</tr>
+
+<tr>
+<td><code>/proc/pagetypeinfo</code></td>
+<td>输出系统上各个<code>zone</code>中的不同迁移类型的详细状态信息</td>
+</tr>
+
+<tr>
+<td><code>/proc/vmstat</code></td>
+<td>描述内存统计信息</td>
+</tr>
+
+<tr>
+<td><code>/proc/zoneinfo</code></td>
+<td>输出系统上各个内存<code>zone</code>的详细信息</td>
+</tr>
+</tbody>
+</table>
+
+<p>在详细介绍这些接口之前，我们先要明确一下几点：</p>
+
+<ul>
+<li>现在的内核中，内存管理最大概念为<code>node</code>。</li>
+<li>在node上再分为一个或者几个<code>zone</code></li>
+<li>每个<code>zone</code>中又分为不同的迁移类型</li>
+</ul>
+
+<p></p>
+
+<p><img src="./pic.jpg" alt="" /></p>
+
+<h3 id="系统环境">系统环境</h3>
+
+<ul>
+<li>发行版：<code>centos7.5</code></li>
+<li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
+<li>处理器：<code>40core（Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz）</code></li>
+<li>内存：<code>128GB</code>，两个<code>NUMA node</code></li>
+</ul>
+
+<h3 id="proc-vmstat">/proc/vmstat</h3>
+
+<p>该文件输出了当前系统上虚拟内存的统计信息，这里的信息大约分为以下几类：</p>
+
+<ul>
+<li>所有<code>zone</code>中各种类型页面数的统计信息，从<code>nr_free_pages</code> 到<code>nr_free_cma</code></li>
+<li><code>writeback</code>相关的统计信息：<code>nr_dirty_threshold</code> 和 <code>nr_dirty_background_threshold</code></li>
+<li><code>vm</code>相关事件的统计信息：<code>pgpgin</code> 到<code>balloon_migrate</code></li>
+</ul>
+
+<p>简单讨论一下这几类数据的内核实现：</p>
+
+<p>（1）各种类型的页面统计信息：</p>
+
+<p>使用数组<code>vm_stat</code>来记录各种类型的页面统计信息，其类型为原子变量：<code>atomic_long_t</code></p>
+
+<pre><code class="language-c">atomic_long_t vm_stat[NR_VM_ZONE_STAT_ITEMS] __cacheline_aligned_in_smp; 
+</code></pre>
+
+<p>（2）<code>writeback</code>相关的统计信息，是通过函数<code>global_dirty_limits</code>来获取的，这里就不具体分析了。</p>
+
+<p>（3）<code>vm</code>相关事件的统计信息是通过函数<code>all_vm_events</code>来计算,内核定义了<code>vm_event_states</code>每<code>cpu</code>变量，<code>all_vm_events</code>用于将所有处理器上的这些事件进行累加。</p>
+
+<pre><code class="language-c">DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};  
+</code></pre>
+
+<p>该文件的输出示例如下：</p>
+
+<pre><code class="language-bash">$ cat /proc/vmstat
+nr_free_pages 29655945 			//各种类型页面数的统计信息
+nr_alloc_batch 5265
+nr_inactive_anon 1105696
+nr_active_anon 145571
+nr_inactive_file 77585
+nr_active_file 146995
+nr_unevictable 0
+nr_mlock 0
+nr_anon_pages 91904
+nr_mapped 31031
+nr_file_pages 1284682
+nr_dirty 111
+nr_writeback 0
+nr_slab_reclaimable 945919
+nr_slab_unreclaimable 144386
+nr_page_table_pages 3120
+nr_kernel_stack 983
+nr_unstable 0
+nr_bounce 0
+nr_vmscan_write 132
+nr_vmscan_immediate_reclaim 0
+nr_writeback_temp 0
+nr_isolated_anon 0
+nr_isolated_file 0
+nr_shmem 1060098
+nr_dirtied 1100238982
+nr_written 764546994
+numa_hit 117570377080
+numa_miss 2104051815
+numa_foreign 2104051815
+numa_interleave 71023
+numa_local 117569971886
+numa_other 2104457009
+workingset_refault 1414110
+workingset_activate 127292
+workingset_nodereclaim 0
+nr_anon_transparent_hugepages 194
+nr_free_cma 0
+nr_dirty_threshold 8921519		//writeback相关统计信息
+nr_dirty_background_threshold 1482076
+pgpgin 47745153				//vm相关事件统计信息
+pgpgout 3334426145
+pswpin 0
+pswpout 132
+pgalloc_dma 2440
+pgalloc_dma32 906331246
+pgalloc_normal 122337837001
+pgalloc_movable 0
+pgfree 123275102844
+pgactivate 866958575
+pgdeactivate 35134007
+pgfault 200181149428
+pgmajfault 302912
+pgrefill_dma 0
+pgrefill_dma32 330384
+pgrefill_normal 33572221
+pgrefill_movable 0
+pgsteal_kswapd_dma 0
+pgsteal_kswapd_dma32 217561
+pgsteal_kswapd_normal 20754709
+pgsteal_kswapd_movable 0
+pgsteal_direct_dma 0
+pgsteal_direct_dma32 44442
+pgsteal_direct_normal 5791306
+pgsteal_direct_movable 0
+pgscan_kswapd_dma 0
+pgscan_kswapd_dma32 217623
+pgscan_kswapd_normal 20758866
+pgscan_kswapd_movable 0
+pgscan_direct_dma 0
+pgscan_direct_dma32 44444
+pgscan_direct_normal 5801646
+pgscan_direct_movable 0
+pgscan_direct_throttle 0
+zone_reclaim_failed 0
+pginodesteal 521563
+slabs_scanned 19199872
+kswapd_inodesteal 830416
+kswapd_low_wmark_hit_quickly 7589
+kswapd_high_wmark_hit_quickly 3308
+pageoutrun 13365
+allocstall 1873
+pgrotated 1079550
+drop_pagecache 2
+drop_slab 0
+numa_pte_updates 10414340982
+numa_huge_pte_updates 348659
+numa_hint_faults 9485402037
+numa_hint_faults_local 8163824272
+numa_pages_migrated 1233051066
+pgmigrate_success 1234311263
+pgmigrate_fail 4573711
+compact_migrate_scanned 26654488
+compact_free_scanned 857655344
+compact_isolated 2530461
+compact_stall 355
+compact_fail 70
+compact_success 285
+htlb_buddy_alloc_success 0
+htlb_buddy_alloc_fail 0
+unevictable_pgs_culled 0
+unevictable_pgs_scanned 0
+unevictable_pgs_rescued 0
+unevictable_pgs_mlocked 0
+unevictable_pgs_munlocked 0
+unevictable_pgs_cleared 0
+unevictable_pgs_stranded 0
+thp_fault_alloc 4953381
+thp_fault_fallback 35453294
+thp_collapse_alloc 15648
+thp_collapse_alloc_failed 55693
+thp_split 494944
+thp_zero_page_alloc 1
+thp_zero_page_alloc_failed 0
+balloon_inflate 0
+balloon_deflate 0
+balloon_migrate 0
+
+</code></pre>
+
+<h3 id="proc-buddyinfo">/proc/buddyinfo</h3>
+
+<p>该文件输出了系统内存管理中，伙伴系统的状态。该文件每一行代表一个<code>zone</code>中<code>buddy</code>的信息。每一行先输出<code>node</code> 编号，然后是<code>zone</code>的名称，紧接着是各个<code>order（0-10）</code>剩余的块个数。</p>
+
+<ul>
+<li>每个<code>order</code>对应的大小为：<code>2^(order)*PAGE_SIZE</code></li>
+<li>当内存系统碎片化比较严重时，<code>order</code>比较大的计数一般为<code>0</code>，此时分配大的内存将会失败</li>
+</ul>
+
+<p>该文件的内核实现比较简单，直接输出每个<code>zone</code>对应的<code>free_area[order].nr_free</code></p>
+
+<pre><code class="language-c">static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,                                                                                                  
+                                                struct zone *zone)                                                                                                 
+{                                                                                                                                                                  
+        int order;                                                                                                                                                 
+                                                                                                                                                                   
+        seq_printf(m, &quot;Node %d, zone %8s &quot;, pgdat-&gt;node_id, zone-&gt;name);
+        for (order = 0; order &lt; MAX_ORDER; ++order)
+                seq_printf(m, &quot;%6lu &quot;, zone-&gt;free_area[order].nr_free);
+        seq_putc(m, '\n');
+}
+</code></pre>
+
+<p>输出示例如下：</p>
+
+<pre><code class="language-bash">$ cat /proc/buddyinfo 
+Node 0, zone      DMA      1      1      1      1      1      0      1      1      1      1      2 
+Node 0, zone    DMA32    688   2080   1420    995    596    357    278    241    276     32    133 
+Node 0, zone   Normal 195748 204074 161167 119070  70791  33578   9556   2070   1034   2533   7328 
+Node 1, zone   Normal  11705  51467  36752  21326  11343   7309   5024   3403   2597   3056  10898
+</code></pre>
+
+<h3 id="proc-pagetypeinfo">/proc/pagetypeinfo</h3>
+
+<p><code>pagetypeinfo</code>输出系统上各个<code>zone</code>中的不同迁移类型的详细状态信息，其比<code>/proc/buddyinfo</code>中的信息更加详细。同时该文件也输出了如下信息：</p>
+
+<ul>
+<li>系统上<code>page block</code>的大小和<code>page block order</code>的值：一般情况下，<code>Page block order</code> 为<code>9</code>， 所以每个<code>page block</code>中有<code>512</code>个<code>page</code>页。</li>
+<li>每个<code>zone</code>中的<code>page block</code>个数</li>
+</ul>
+
+<blockquote>
+<p>注意：跟<code>buddyinfo</code>不同，这里直接输出的<code>page</code>的个数，而不是<code>order</code>对应的伙伴系统的空闲块的个数</p>
+</blockquote>
+
+<p>输出示例信息如下：</p>
+
+<pre><code class="language-bash">$ cat /proc/pagetypeinfo 
+Page block order: 9
+Pages per block:  512
+
+Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10 
+Node    0, zone      DMA, type    Unmovable      1      1      1      1      1      0      1      1      1      0      0 
+Node    0, zone      DMA, type  Reclaimable      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone      DMA, type      Movable      0      0      0      0      0      0      0      0      0      1      2 
+Node    0, zone      DMA, type      Reserve      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone      DMA, type          CMA      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone      DMA, type      Isolate      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone    DMA32, type    Unmovable     95    216    141     63     27      3      2      1      5      0      0 
+Node    0, zone    DMA32, type  Reclaimable      0    871    900    605    255     62     21     10     15      0      0 
+Node    0, zone    DMA32, type      Movable    566    981    382    327    313    291    255    230    256     32    133 
+Node    0, zone    DMA32, type      Reserve      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone    DMA32, type          CMA      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone    DMA32, type      Isolate      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone   Normal, type    Unmovable   3635   2151   1535    962    927    352     24      0      0      0      0 
+Node    0, zone   Normal, type  Reclaimable   4235  36693  29792  13837   2886    318     23      4      4      0      1 
+Node    0, zone   Normal, type      Movable 186666 165228 129840 104268  66977  32908   9510   2066   1030   2534   7327 
+Node    0, zone   Normal, type      Reserve      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone   Normal, type          CMA      0      0      0      0      0      0      0      0      0      0      0 
+Node    0, zone   Normal, type      Isolate      0      0      0      0      0      0      0      0      0      0      0 
+
+Number of blocks type     Unmovable  Reclaimable      Movable      Reserve          CMA      Isolate 
+Node 0, zone      DMA            3            0            5            0            0            0 
+Node 0, zone    DMA32           69           59          760            0            0            0 
+Node 0, zone   Normal         1256         1426        29062            0            0            0 
+Page block order: 9
+Pages per block:  512
+
+Free pages count per migrate type at order       0      1      2      3      4      5      6      7      8      9     10 
+Node    1, zone   Normal, type    Unmovable   5911   2837   1059    495    341    132     67     34     29      0      0 
+Node    1, zone   Normal, type  Reclaimable   4972  34049  27480  12864   2317    547     29      4      3      0      0 
+Node    1, zone   Normal, type      Movable    374  14707   8209   7967   8685   6630   4928   3365   2565   3056  10898 
+Node    1, zone   Normal, type      Reserve      0      0      0      0      0      0      0      0      0      0      0 
+Node    1, zone   Normal, type          CMA      0      0      0      0      0      0      0      0      0      0      0 
+Node    1, zone   Normal, type      Isolate      0      0      0      0      0      0      0      0      0      0      0 
+
+Number of blocks type     Unmovable  Reclaimable      Movable      Reserve          CMA      Isolate 
+Node 1, zone   Normal         1009         1602        30157            0            0            0 
+</code></pre>
+
+<ul>
+<li>从输出来看，我们系统上每个<code>pageblock</code>的大小为<code>512 * 4k = 2MB</code></li>
+<li>我们看到<code>DMA</code>区的总共有<code>8</code>个<code>pageblock</code>，所以<code>DMA</code>的大小为<code>8 * 2MB = 16MB</code></li>
+</ul>
+
+<h3 id="proc-zoneinfo">/proc/zoneinfo</h3>
+
+<p><code>/proc/zoneinfo</code>输出了系统上<code>zone</code>的信息，其信息主要分为以下几类：</p>
+
+<ol>
+<li><code>zone</code>的一些基本信息，包括名称，空闲页面个数，三个水位，以及管理的页的个数等等</li>
+<li><code>zone</code>中各个类型页面个数的统计信息</li>
+<li><code>protection</code>信息，决定是否可以内存分配请求时，需要用到</li>
+<li>输出<code>zone</code>的每个<code>cpu</code>对应的<code>pagesets</code>信息</li>
+<li>其它信息</li>
+</ol>
+
+<ul>
+<li>在本示例输出中，<code>node0</code>有<code>DMA</code>、 <code>DMA32</code>、<code>Normal</code>这三个<code>zone</code>，<code>node1</code>只有一个<code>Normal zone</code>。</li>
+</ul>
+
+<pre><code class="language-bash">$ cat /proc/zoneinfo
+Node 0, zone      DMA		// node信息，zone名称
+  pages free     3039		// 空闲page个数
+        min      2			// min水位
+        low      2			//low 水位
+        high     3			// high 水位
+        scanned  0
+        spanned  4095		// spanned_pages = zone_end_pfn - zone_start_pfn (包含hole)
+        present  3997		// present_pages = spanned_pages - absent_pages(pages in holes)
+        managed  3976		// managed_pages = present_pages - reserved_pages(buddy管理的页面个数)
+    nr_free_pages 3039  // 以下38行统计了该zone中不同用途类型的page的个数
+    nr_alloc_batch 1
+    nr_inactive_anon 0
+    nr_active_anon 0
+    nr_inactive_file 0
+    nr_active_file 0
+    nr_unevictable 0
+    nr_mlock     0
+    nr_anon_pages 0
+    nr_mapped    0
+    nr_file_pages 0
+    nr_dirty     0
+    nr_writeback 0
+    nr_slab_reclaimable 0
+    nr_slab_unreclaimable 0
+    nr_page_table_pages 0
+    nr_kernel_stack 0
+    nr_unstable  0
+    nr_bounce    0
+    nr_vmscan_write 0
+    nr_vmscan_immediate_reclaim 0
+    nr_writeback_temp 0
+    nr_isolated_anon 0
+    nr_isolated_file 0
+    nr_shmem     0
+    nr_dirtied   0
+    nr_written   0
+    numa_hit     1675
+    numa_miss    0
+    numa_foreign 0
+    numa_interleave 0
+    numa_local   1586
+    numa_other   89
+    workingset_refault 0
+    workingset_activate 0
+    workingset_nodereclaim 0
+    nr_anon_transparent_hugepages 0
+    nr_free_cma  0
+        protection: (0, 1383, 63848, 63848)
+  pagesets
+    cpu: 0
+              count: 0
+              high:  0
+              batch: 1
+  vm stats threshold: 12
+    cpu: 1
+              count: 0
+              high:  0
+              batch: 1
+  vm stats threshold: 12
+...
+...
+...
+...
+    cpu: 38
+              count: 0
+              high:  0
+              batch: 1
+  vm stats threshold: 12
+    cpu: 39
+              count: 0
+              high:  0
+              batch: 1
+  vm stats threshold: 12
+  all_unreclaimable: 0
+  start_pfn:         1
+  inactive_ratio:    1
+Node 0, zone    DMA32
+  pages free     310887
+        min      242
+        low      302
+        high     363
+        scanned  0
+        spanned  1044480
+        present  417248
+        managed  354201
+    nr_free_pages 310887
+    nr_alloc_batch 61
+    nr_inactive_anon 13164
+    nr_active_anon 477
+    nr_inactive_file 806
+    nr_active_file 1797
+    nr_unevictable 0
+    nr_mlock     0
+    nr_anon_pages 729
+    nr_mapped    194
+    nr_file_pages 14973
+    nr_dirty     0
+    nr_writeback 0
+    nr_slab_reclaimable 7453
+    nr_slab_unreclaimable 1325
+    nr_page_table_pages 37
+    nr_kernel_stack 6
+    nr_unstable  0
+    nr_bounce    0
+    nr_vmscan_write 0
+    nr_vmscan_immediate_reclaim 0
+    nr_writeback_temp 0
+    nr_isolated_anon 0
+    nr_isolated_file 0
+    nr_shmem     12370
+    nr_dirtied   8381421
+    nr_written   5315197
+    numa_hit     854956447
+    numa_miss    153095
+    numa_foreign 0
+    numa_interleave 0
+    numa_local   854952367
+    numa_other   157175
+    workingset_refault 10804
+    workingset_activate 97
+    workingset_nodereclaim 0
+    nr_anon_transparent_hugepages 1
+    nr_free_cma  0
+        protection: (0, 0, 62464, 62464)
+  pagesets
+    cpu: 0
+              count: 158
+              high:  186
+              batch: 31
+  vm stats threshold: 60
+    cpu: 1
+              count: 170
+              high:  186
+              batch: 31
+  vm stats threshold: 60
+    cpu: 2
+              count: 182
+              high:  186
+              batch: 31
+  vm stats threshold: 60
+...
+...
+...
+    cpu: 38
+              count: 0
+              high:  186
+              batch: 31
+  vm stats threshold: 60
+    cpu: 39
+              count: 0
+              high:  186
+              batch: 31
+  vm stats threshold: 60
+  all_unreclaimable: 0
+  start_pfn:         4096				// 开始的pfn号
+  inactive_ratio:    3
+Node 0, zone   Normal
+  pages free     14351077
+        min      10962
+        low      13702
+        high     16443
+        scanned  0
+        spanned  16252928
+        present  16252928
+        managed  15991024
+    nr_free_pages 14351077
+    nr_alloc_batch 1381
+    nr_inactive_anon 557945
+    nr_active_anon 49324
+    nr_inactive_file 30342
+    nr_active_file 56404
+    nr_unevictable 0
+    nr_mlock     0
+    nr_anon_pages 31468
+    nr_mapped    12918
+    nr_file_pages 643281
+    nr_dirty     59
+    nr_writeback 0
+    nr_slab_reclaimable 416893
+    nr_slab_unreclaimable 71886
+    nr_page_table_pages 1351
+    nr_kernel_stack 519
+    nr_unstable  0
+    nr_bounce    0
+    nr_vmscan_write 25
+    nr_vmscan_immediate_reclaim 0
+    nr_writeback_temp 0
+    nr_isolated_anon 0
+    nr_isolated_file 0
+    nr_shmem     556532
+    nr_dirtied   598988584
+    nr_written   419469120
+    numa_hit     60842388353
+    numa_miss    2044762264
+    numa_foreign 59136456
+    numa_interleave 35507
+    numa_local   60842226428
+    numa_other   2044924189
+    workingset_refault 610786
+    workingset_activate 22873
+    workingset_nodereclaim 0
+    nr_anon_transparent_hugepages 37
+    nr_free_cma  0
+        protection: (0, 0, 0, 0)
+  pagesets
+    cpu: 0
+              count: 125
+              high:  186
+              batch: 31
+  vm stats threshold: 120
+    cpu: 1
+              count: 162
+              high:  186
+              batch: 31
+  vm stats threshold: 120
+...
+...
+...
+...
+    cpu: 38
+              count: 176
+              high:  186
+              batch: 31
+  vm stats threshold: 120
+    cpu: 39
+              count: 174
+              high:  186
+              batch: 31
+  vm stats threshold: 120
+  all_unreclaimable: 0
+  start_pfn:         1048576
+  inactive_ratio:    24
+Node 1, zone   Normal
+  pages free     14993432
+        min      11320
+        low      14150
+        high     16980
+        scanned  0
+        spanned  16777216
+        present  16777216
+        managed  16514229
+    nr_free_pages 14993432
+    nr_alloc_batch 894
+    nr_inactive_anon 534587
+    nr_active_anon 95276
+    nr_inactive_file 46704
+    nr_active_file 87189
+    nr_unevictable 0
+    nr_mlock     0
+    nr_anon_pages 59220
+    nr_mapped    17798
+    nr_file_pages 625093
+    nr_dirty     90
+    nr_writeback 0
+    nr_slab_reclaimable 521541
+    nr_slab_unreclaimable 71127
+    nr_page_table_pages 1682
+    nr_kernel_stack 459
+    nr_unstable  0
+    nr_bounce    0
+    nr_vmscan_write 107
+    nr_vmscan_immediate_reclaim 0
+    nr_writeback_temp 0
+    nr_isolated_anon 0
+    nr_isolated_file 0
+    nr_shmem     491196
+    nr_dirtied   492864604
+    nr_written   339759696
+    numa_hit     55865496981
+    numa_miss    59136456
+    numa_foreign 2044915359
+    numa_interleave 35516
+    numa_local   55865257923
+    numa_other   59375514
+    workingset_refault 792520
+    workingset_activate 104322
+    workingset_nodereclaim 0
+    nr_anon_transparent_hugepages 155
+    nr_free_cma  0
+        protection: (0, 0, 0, 0)
+  pagesets
+    cpu: 0
+              count: 157
+              high:  186
+              batch: 31
+  vm stats threshold: 120
+    cpu: 1
+              count: 181
+              high:  186
+              batch: 31
+  vm stats threshold: 120
+...
+...
+...
+...
+    cpu: 38
+              count: 158
+              high:  186
+              batch: 31
+  vm stats threshold: 120
+    cpu: 39
+              count: 125
+              high:  186
+              batch: 31
+  vm stats threshold: 120
+  all_unreclaimable: 0
+  start_pfn:         17301504
+  inactive_ratio:    24
+</code></pre>
+
+<h3 id="参考文章">参考文章</h3>
+
+<ul>
+<li><a href="http://man7.org/linux/man-pages/man5/proc.5.html">http://man7.org/linux/man-pages/man5/proc.5.html</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-01-13</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/linux/proc-memory/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/linux/get-init-pid-for-any-task/">
+            <span class="next-text nav-default">获取容器中init进程的pid</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
