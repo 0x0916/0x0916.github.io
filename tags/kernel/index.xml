@@ -6,10 +6,21 @@
     <description>Recent content in Kernel on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 26 Jan 2019 07:07:32 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 29 Jan 2019 07:28:18 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>内存管理：shrink_lruvec分析</title>
+      <link>http://linux.laoqinren.net/kernel/shrink_lruvec/</link>
+      <pubDate>Tue, 29 Jan 2019 07:28:18 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/shrink_lruvec/</guid>
+      <description>&lt;p&gt;&lt;code&gt;Linux&lt;/code&gt;内存回收操作的核心就是扫描&lt;code&gt;LRU&lt;/code&gt;链表，完成该工作的函数名称为&lt;code&gt;shrink_lruvec&lt;/code&gt;，本文首先介绍了&lt;code&gt;LRU&lt;/code&gt;链表，然后详细分析了&lt;code&gt;shrink_lruvec&lt;/code&gt;函数。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>kswapd内核线程</title>

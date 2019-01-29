@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-06-27T21:18:15&#43;08:00"/>
+<meta property="og:updated_time" content="2017-02-01T19:20:04-07:00"/>
 
 
 
@@ -155,192 +155,31 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/use-high-version-of-gcc-in-centos7/">在centos7中使用高版本的GCC</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/tmux/">tmux快捷键总结</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2018-06-27 </span>
+      <span class="post-time"> 2017-02-01 </span>
       <div class="post-category">
           
-            <a href="/categories/gcc/"> gcc </a>
+            <a href="/categories/development/"> Development </a>
           
         </div>
-      <span class="more-meta"> 506 words </span>
+      <span class="more-meta"> 855 words </span>
       <span class="more-meta"> 2 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>在<code>centos</code>上进行内核开发时，由于一些内核特性依赖于高版本的<code>GCC特性</code>（<code>gcc &gt; 5.0</code>），而<code>centos</code>默认的GCC一般为<code>4.8.x</code>。</p>
+      <p><code>tmux</code> (<code>Terminal Multiplexer</code>的简称), 是一款优秀的终端复用软件，类似 <code>GNU screen</code>，但比<code>screen</code>更出色。</p>
 
-<p>本文记录一种非常简单的在<code>centos</code>上使用高版本的<code>GCC</code>的方法。</p>
+<p><code>Tmux</code> 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 <code>Tmux</code> 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。</p>
 
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/posts/use-high-version-of-gcc-in-centos7/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/list/">内核基础设施——list_head结构解析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-06-23 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2535 words </span>
-      <span class="more-meta"> 6 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p><code>list_head</code>用法经常在<code>Linux kernel</code>里面经常看见，该文对内核中的<code>list_head</code>进行了总结分析。</p>
-
-<blockquote>
-<p>注意：本文的中的代码来自于内核版本<code>v4.16</code>。</p>
-</blockquote>
+<p>本文总结了<code>tmux</code>常用的一些快捷键。</p>
 
 <p></p>
     </div>
     <div class="read-more">
-      <a href="/kernel/list/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/hlist/">内核基础设施——hlist_head/hlist_node结构解析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-06-20 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2018 words </span>
-      <span class="more-meta"> 5 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <blockquote>
-<p>注意：本文中的代码参考于linux v4.16。</p>
-</blockquote>
-
-<h2 id="数据结构">数据结构</h2>
-
-<p><code>hlist_head</code>和<code>hlist_node</code>用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:</p>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190"> include/linux/types.h(line 190) </a>
-
-<pre><code class="language-c">struct hlist_head {
-	struct hlist_node *first;
-};
-</code></pre>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
-
-<pre><code class="language-c">struct hlist_node {
-	struct hlist_node *next, **pprev;
-};
-
-</code></pre>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/hlist/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-cpuacct/">Cgroup之cpuacct子系统</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-05-20 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 1725 words </span>
-      <span class="more-meta"> 4 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>CPU统计（CPU accounting）<code>cpuacct子系统</code>会自动生成报告来显示cgroup任务所使用的CPU资源，其中包括子群组任务。报告有三种：</p>
-
-<ul>
-<li><code>cpuacct.usage</code>：报告此cgroup中所有任务（包括其子孙层级中的所有任务）使用CPU的总时间（纳秒）,该文件时可以写入0值的，用来进行重置统计信息。</li>
-
-<li><p><code>cpuacct.stat</code>：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：</p>
-
-<ul>
-<li><code>user</code>——用户模式中任务使用的CPU时间</li>
-<li><code>system</code>——系统模式中任务使用的CPU时间</li>
-<li>其单位为<code>USER_HZ</code></li>
-</ul></li>
-
-<li><p><code>cpuacct.usage_percpu</code>:报告cgroup的所有任务（包括其子孙层级中的所有任务）在每个CPU中使用的CPU时间（纳秒）</p></li>
-</ul>
-
-<blockquote>
-<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code></p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-cpuacct/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/cgroup-cpuset/">Cgroup之cpuset子系统</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-05-10 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 2854 words </span>
-      <span class="more-meta"> 6 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>最近分析了内核<code>cpuset</code>的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。</p>
-
-<blockquote>
-<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code></p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/linux/cgroup-cpuset/" class="read-more-link">Read more..</a>
+      <a href="/posts/tmux/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -350,15 +189,11 @@
   
   <nav class="pagination">
     
-      <a class="prev" href="/page/5/">
+      <a class="prev" href="/page/8/">
         <i class="iconfont icon-left"></i>
         <span class="prev-text">Prev</span>
       </a>
     
-      <a class="next" href="/page/7/">
-        <span class="next-text">Next</span>
-        <i class="iconfont icon-right"></i>
-      </a>
   </nav>
 
         </div>

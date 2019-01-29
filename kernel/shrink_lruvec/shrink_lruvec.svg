@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1013px" height="1315px" viewBox="0 0 1013 1315" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
+    <title>shrink_lruvec函数流程分析</title>
+    <desc>Created with Sketch.</desc>
+    <g id="shrink_lruvec" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <text id="shrink_lruvec函数流程分析" font-family="PingFangSC-Regular, PingFang SC" font-size="20" font-weight="normal" fill="#000000">
+            <tspan x="337.36" y="61">shrink_lruvec函数流程分析</tspan>
+        </text>
+        <rect id="Rectangle" stroke="#979797" fill="#F8E71C" x="362.5" y="224.5" width="208" height="54"></rect>
+        <text id="调用get_scan_count获取要扫" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="367.054" y="249">调用get_scan_count获取要扫描</tspan>
+            <tspan x="367.67" y="269">的页面个数，存放到nr[4]数组中</tspan>
+        </text>
+        <rect id="Rectangle" stroke="#979797" fill="#F8E71C" x="362.5" y="507.5" width="208" height="54"></rect>
+        <text id="对于每种类型的LRU链表-调用shrin" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="390.154" y="532">对于每种类型的LRU链表</tspan>
+            <tspan x="392.653" y="552">调用shrink_list回收页面</tspan>
+        </text>
+        <path d="M424.584096,347.830023 L324.254154,529.39796 L509.049707,430.803779 L609.379649,249.235843 L424.584096,347.830023 Z" id="Rectangle" stroke="#979797" fill="#D8D8D8" transform="translate(466.816901, 389.316901) scale(1, -1) rotate(45.000000) translate(-466.816901, -389.316901) "></path>
+        <path d="M436.731093,1030.73109 L365.244884,1162.38892 L496.90271,1090.90271 L568.388918,959.244884 L436.731093,1030.73109 Z" id="Rectangle" stroke="#979797" fill="#F8E71C" transform="translate(466.816901, 1060.816901) rotate(45.000000) translate(-466.816901, -1060.816901) "></path>
+        <text id="是" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="465" y="1142">是</tspan>
+        </text>
+        <text id="是" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="460" y="483">是</tspan>
+        </text>
+        <path id="Line-4" d="M466.917503,322.005255 L466.500024,279.004854 L466.495169,278.504878 L467.495122,278.495169 L467.499976,278.995146 L467.917456,321.995546 L471.917268,321.956713 L467.504854,330.999976 L462.917692,322.044088 L466.917503,322.005255 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-4" d="M467.5,215.5 L467.5,189 L467.5,188.5 L468.5,188.5 L468.5,189 L468.5,215.5 L472.5,215.5 L468,224.5 L463.5,215.5 L467.5,215.5 Z" fill="#979797" fill-rule="nonzero"></path>
+        <text id="nr[INACTIVE_ANON]或者" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="387.025" y="367">nr[INACTIVE_ANON]或者</tspan>
+            <tspan x="399.478" y="387">nr[ACTIVE_FILE]或者</tspan>
+            <tspan x="406.786" y="407">nr[INACTIVE_FILE]</tspan>
+            <tspan x="434.8" y="427">是否大于0</tspan>
+        </text>
+        <text id="不活跃的匿名页是否过少" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="390" y="1073">不活跃的匿名页是否过少</tspan>
+        </text>
+        <path id="Line" d="M676.498502,386.975148 L838.998538,386.500002 L839.498536,386.49854 L839.50146,387.498536 L839.001462,387.499998 L676.501426,387.975144 L676.513122,391.975127 L667.500002,387.501462 L676.486806,382.975166 L676.498502,386.975148 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line" d="M147,390.5 L266,390.5 L266.5,390.5 L266.5,391.5 L266,391.5 L147,391.5 L147,395.5 L138,391 L147,386.5 L147,390.5 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line" d="M138,1052.5 L138,391 L138,390.5 L139,390.5 L139,391 L139,1052.5 L143,1052.5 L138.5,1061.5 L134,1052.5 L138,1052.5 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line" d="M313.912347,1061.32536 L138.500498,1061.5 L138.000498,1061.5005 L137.999502,1060.5005 L138.499502,1060.5 L313.911351,1060.32536 L313.907369,1056.32537 L322.911845,1060.8164 L313.916329,1065.32536 L313.912347,1061.32536 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-3" d="M830.500404,639.323727 L611.000402,639.5 L610.500402,639.500401 L610.499599,638.500402 L610.999598,638.5 L830.499601,638.323728 L830.496389,634.323729 L839.5,638.8165 L830.503617,643.323726 L830.500404,639.323727 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-3" d="M830.507314,774.611789 L611.006578,777.499957 L610.506622,777.506535 L610.493465,776.506622 L610.993422,776.500043 L830.494157,773.611876 L830.44153,769.612222 L839.499957,773.993422 L830.559941,778.611443 L830.507314,774.611789 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-3" d="M692.499058,914.483719 L605.404099,914.3169 L604.9041,914.315943 L604.906015,913.315945 L605.406014,913.316902 L692.500973,913.48372 L692.508635,909.483728 L701.499999,914.000958 L692.491396,918.483711 L692.499058,914.483719 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-3" d="M839.5,395.5 L839.5,870 L839.5,870.5 L838.5,870.5 L838.5,870 L838.5,395.5 L834.5,395.5 L839,386.5 L843.5,395.5 L839.5,395.5 Z" fill="#979797" fill-rule="nonzero"></path>
+        <text id="没有回收足够页面" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="642" y="634">没有回收足够页面</tspan>
+        </text>
+        <text id="回收足够页面" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="476" y="711">回收足够页面</tspan>
+        </text>
+        <text id="否" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="204" y="382">否</tspan>
+        </text>
+        <text id="否" transform="translate(660.000000, 1041.000000) scale(-1, 1) translate(-660.000000, -1041.000000) " font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="653" y="1046">否</tspan>
+        </text>
+        <path id="Line-5" d="M466.21259,498.990159 L467.500156,447.487504 L467.512652,446.98766 L468.51234,447.012652 L468.499844,447.512496 L467.212277,499.015151 L471.211028,499.11512 L466.487504,507.999844 L462.213839,498.89019 L466.21259,498.990159 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-5" d="M466.423833,587.931331 L466.75004,561.993712 L466.756327,561.493752 L467.756248,561.506327 L467.74996,562.006288 L467.423754,587.943907 L471.423438,587.994209 L466.810614,596.936907 L462.42415,587.881029 L466.423833,587.931331 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-5" d="M466.5,1150 L466.5,1103.5 L466.5,1103 L467.5,1103 L467.5,1103.5 L467.5,1150 L471.5,1150 L467,1159 L462.5,1150 L466.5,1150 Z" fill="#979797" fill-rule="nonzero"></path>
+        <rect id="Rectangle" stroke="#979797" fill="#D8D8D8" x="408.5" y="151.5" width="119" height="39"></rect>
+        <text id="开始" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="454" y="176">开始</tspan>
+        </text>
+        <rect id="Rectangle" stroke="#979797" fill="#D8D8D8" x="408.5" y="1233.5" width="119" height="39"></rect>
+        <text id="结束" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="454" y="1258">结束</tspan>
+        </text>
+        <path id="Line-6" d="M791.5,1248 L791.5,1060.8169 L791.5,1060.3169 L792.5,1060.3169 L792.5,1060.8169 L792.5,1248 L796.5,1248 L792,1257 L787.5,1248 L791.5,1248 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-6" d="M537.5,1256 L792,1256 L792.5,1256 L792.5,1257 L792,1257 L537.5,1257 L537.5,1261 L528.5,1256.5 L537.5,1252 L537.5,1256 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-7" d="M783.5,1061.5 L605.405056,1061.5 L604.905056,1061.5 L604.905056,1060.5 L605.405056,1060.5 L783.5,1060.5 L783.5,1056.5 L792.5,1061 L783.5,1065.5 L783.5,1061.5 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path id="Line-8" d="M466.644119,1224.49275 L467.000072,1203.49153 L467.008545,1202.9916 L468.008402,1203.00855 L467.999928,1203.50847 L467.643975,1224.50969 L471.643401,1224.57748 L466.991527,1233.49993 L462.644693,1224.42496 L466.644119,1224.49275 Z" fill="#979797" fill-rule="nonzero"></path>
+        <rect id="Rectangle" stroke="#979797" fill="#D8D8D8" x="337.5" y="1155.5" width="258" height="48"></rect>
+        <text id="调用shrink_active_list" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="343.415" y="1185">调用shrink_active_list(lACTIVE_ANON)</tspan>
+        </text>
+        <rect id="Rectangle" stroke="#979797" fill="#D8D8D8" x="701.5" y="870.5" width="258" height="97"></rect>
+        <text id="根据需要调整一下nr[4]数组中的值，" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="717.17" y="896">根据需要调整一下nr[4]数组中的值，</tspan>
+            <tspan x="727.873" y="916">确保扫描的anon和file页面成比例</tspan>
+            <tspan x="830.5" y="936"></tspan>
+            <tspan x="743.154" y="956">并设置scan_adjusted为true</tspan>
+        </text>
+        <path d="M436.731093,608.731093 L365.244884,740.388918 L496.90271,668.90271 L568.388918,537.244884 L436.731093,608.731093 Z" id="Rectangle" stroke="#979797" fill="#D8D8D8" transform="translate(466.816901, 638.816901) rotate(45.000000) translate(-466.816901, -638.816901) "></path>
+        <text id="是否回收足够的页面" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="404" y="645">是否回收足够的页面</tspan>
+        </text>
+        <path id="Line-18" d="M466,725 L466,682.5 L466,682 L467,682 L467,682.5 L467,725 L471,725 L466.5,734 L462,725 L466,725 Z" fill="#979797" fill-rule="nonzero"></path>
+        <path d="M436.731093,746.731093 L365.244884,878.388918 L496.90271,806.90271 L568.388918,675.244884 L436.731093,746.731093 Z" id="Rectangle" stroke="#979797" fill="#D8D8D8" transform="translate(466.816901, 776.816901) rotate(45.000000) translate(-466.816901, -776.816901) "></path>
+        <path d="M436.731093,883.731093 L365.244884,1015.38892 L496.90271,943.90271 L568.388918,812.244884 L436.731093,883.731093 Z" id="Rectangle" stroke="#979797" fill="#D8D8D8" transform="translate(466.816901, 913.816901) rotate(45.000000) translate(-466.816901, -913.816901) "></path>
+        <text id="扫描的anon或者file页是否为0" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="374.173" y="919">扫描的anon或者file页是否为0</tspan>
+        </text>
+        <text id="scan_adjusted的值为？" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="392.499" y="783">scan_adjusted的值为？</tspan>
+        </text>
+        <path id="Line-18" d="M466,863 L466,820.5 L466,820 L467,820 L467,820.5 L467,863 L471,863 L466.5,872 L462,863 L466,863 Z" fill="#979797" fill-rule="nonzero"></path>
+        <text id="true" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="668.655" y="769">true</tspan>
+        </text>
+        <text id="false" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="479.411" y="848">false</tspan>
+        </text>
+        <path id="Line-18" d="M467,1009 L467,955.5 L467,955 L468,955 L468,955.5 L468,1009 L472,1009 L467.5,1018 L463,1009 L467,1009 Z" fill="#979797" fill-rule="nonzero"></path>
+        <text id="0" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="480.3" y="992">0</tspan>
+        </text>
+        <text id="非0" font-family="PingFangSC-Regular, PingFang SC" font-size="14" font-weight="normal" fill="#000000">
+            <tspan x="642.3" y="909">非0</tspan>
+        </text>
+    </g>
+</svg>
