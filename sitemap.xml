@@ -3,6 +3,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://linux.laoqinren.net/kernel/kswapd-thread/</loc>
+    <lastmod>2019-01-26T07:07:32+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/node_states/</loc>
     <lastmod>2019-01-20T11:24:14+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -305,7 +312,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/kernel/</loc>
-    <lastmod>2019-01-20T11:24:14+08:00</lastmod>
+    <lastmod>2019-01-26T07:07:32+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -459,14 +466,14 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/kernel/</loc>
-    <lastmod>2019-01-20T11:24:14+08:00</lastmod>
+    <lastmod>2019-01-26T07:07:32+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/categories/kernel/</loc>
-    <lastmod>2019-01-20T11:24:14+08:00</lastmod>
+    <lastmod>2019-01-26T07:07:32+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -480,7 +487,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/linux/</loc>
-    <lastmod>2019-01-20T11:24:14+08:00</lastmod>
+    <lastmod>2019-01-26T07:07:32+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

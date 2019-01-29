@@ -6,10 +6,20 @@
     <description>Recent content on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 20 Jan 2019 11:24:14 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 26 Jan 2019 07:07:32 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>kswapd内核线程</title>
+      <link>http://linux.laoqinren.net/kernel/kswapd-thread/</link>
+      <pubDate>Sat, 26 Jan 2019 07:07:32 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/kswapd-thread/</guid>
+      <description>&lt;p&gt;&lt;code&gt;Linux&lt;/code&gt; 内核在系统内存紧张时，会唤醒内核线程&lt;code&gt;kswapd&lt;/code&gt;进行内存回收，从而释放掉一些不用的内存。本文将详细分析&lt;code&gt;kswapd&lt;/code&gt;的工作流程。
+&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>描述系统上cpu和memory的状态:node_states</title>

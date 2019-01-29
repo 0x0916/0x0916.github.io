@@ -99,7 +99,7 @@ extfrag_threshold内存管理参数
 
 <meta itemprop="datePublished" content="2019-01-12T12:06:18&#43;08:00" />
 <meta itemprop="dateModified" content="2019-01-12T12:06:18&#43;08:00" />
-<meta itemprop="wordCount" content="2882">
+<meta itemprop="wordCount" content="2866">
 
 
 
@@ -200,7 +200,7 @@ extfrag_threshold内存管理参数
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 2882 words </span>
+        <span class="more-meta"> 2866 words </span>
         <span class="more-meta"> 6 mins read </span>
         
       </div>
@@ -286,18 +286,21 @@ extfrag_threshold内存管理参数
 
 <p>在我的系统上输出如下：</p>
 
-<pre><code>cat /sys/kernel/debug/extfrag/unusable_index 
+<pre><code class="language-bash"># cat /sys/kernel/debug/extfrag/unusable_index 
 Node 0, zone      DMA 0.000 0.000 0.000 0.002 0.004 0.010 0.010 0.031 0.073 0.157 0.326 
 Node 0, zone    DMA32 0.000 0.036 0.124 0.275 0.490 0.703 0.822 0.849 0.854 1.000 1.000 
 Node 0, zone   Normal 0.000 0.036 0.119 0.264 0.478 0.725 0.910 0.984 0.997 0.999 1.000 
 Node 1, zone   Normal 0.000 0.025 0.088 0.202 0.382 0.620 0.845 0.964 0.991 0.997 0.998 
 </code></pre>
 
-<p>首先解释一下该值的含义：
-* 该值表示一个<code>zone</code>中所有的空闲内存中，有多少是不能满足分配<code>order</code>大小的内存
-* 该值的范围最小为<code>0</code>，最大为<code>1</code>
-*  <code>0</code>代表没有内存碎片，表示所有的空闲内存都能满足内存分配
-*  <code>1</code>代表内存碎片严重，表示所有的空闲内存都不能满足内存分配</p>
+<p>首先解释一下该值的含义：</p>
+
+<ul>
+<li>该值表示一个<code>zone</code>中所有的空闲内存中，有多少是不能满足分配<code>order</code>大小的内存</li>
+<li>该值的范围最小为<code>0</code>，最大为<code>1</code></li>
+<li><code>0</code>代表没有内存碎片，表示所有的空闲内存都能满足内存分配</li>
+<li><code>1</code>代表内存碎片严重，表示所有的空闲内存都不能满足内存分配</li>
+</ul>
 
 <p>例如：<code>Node1</code> 的<code>Normal</code> 区中，<code>order</code>为<code>10</code>的<code>unusable_index</code>的值为<code>0.998</code>，表示<code>99.8%</code>的空闲内存都不能满足<code>2^10</code>大小的内存分配请求。</p>
 
@@ -395,18 +398,21 @@ $$</p>
 
 <p>在我的系统上，输出如下：</p>
 
-<pre><code>$ cat /sys/kernel/debug/extfrag/extfrag_index 
+<pre><code class="language-bash">$ cat /sys/kernel/debug/extfrag/extfrag_index 
 Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 
 Node 0, zone    DMA32 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.988 0.994 
 Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.994 
 Node 1, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 
 </code></pre>
 
-<p>首先解释一下该值的含义：
-* 该值有意义的是有前提的，只有内存预计内存分配将失败时，该值用来反映导致失败的原因
-* <code>0</code> 代表是由于内存不足导致
-* <code>1</code> 代表是由于内存碎片导致
-* 该值有特殊的值<code>-1</code>：表示内存分配不会失败</p>
+<p>首先解释一下该值的含义：</p>
+
+<ul>
+<li>该值有意义的是有前提的，只有内存预计内存分配将失败时，该值用来反映导致失败的原因</li>
+<li><code>0</code> 代表是由于内存不足导致</li>
+<li><code>1</code> 代表是由于内存碎片导致</li>
+<li>该值有特殊的值<code>-1</code>：表示内存分配不会失败</li>
+</ul>
 
 <p>内核中计算该<code>extfrag_index</code>的代码如下：</p>
 
@@ -535,21 +541,21 @@ unsigned long compaction_suitable(struct zone *zone, int order)
 
 <p>该函数的逻辑如下：</p>
 
-<ul>
-<li>（1）如果<code>order = -1</code>，无条件进行内存规整，这种情况一般是用户手动触发了内存规整（<code>echo 1 &gt; /proc/sys/vm/compact_memory</code>）</li>
-<li>（2）接下来判断<code>zone</code>是否在<code>low_wmark_pages(zone) + (2UL &lt;&lt; order);</code>之上，如果达不到这个条件，说明<code>zone</code>中只有很少的空闲内存，不适合做内存规整，跳过这个<code>zone</code></li>
-<li>（3）使用<code>fragmentation_index</code>函数计算该<code>zone</code>的碎片化指数
+<ol>
+<li>如果<code>order = -1</code>，无条件进行内存规整，这种情况一般是用户手动触发了内存规整（<code>echo 1 &gt; /proc/sys/vm/compact_memory</code>）</li>
+<li>接下来判断<code>zone</code>是否在<code>low_wmark_pages(zone) + (2UL &lt;&lt; order);</code>之上，如果达不到这个条件，说明<code>zone</code>中只有很少的空闲内存，不适合做内存规整，跳过这个<code>zone</code></li>
+<li>使用<code>fragmentation_index</code>函数计算该<code>zone</code>的碎片化指数
 
 <ul>
 <li><code>-1000</code>： 表示分配可能会成功，不需要内存规整</li>
 <li>趋向于<code>0</code>：表示是由于内存不足导致分配失败，不应该进行内存规整，因为规整完毕，也释放不出来足够的内存</li>
 <li>趋向于<code>1000</code>： 表示是由于内存碎片导致内存分配失败，如果该指数大于<code>/proc/sys/vm/extfrag_threshold</code>的值，则进行内存规整，该值默认为<code>500</code>.</li>
 </ul></li>
-</ul>
+</ol>
 
 <p>再次看一下extfrag_index 的输出：</p>
 
-<pre><code>$ cat /sys/kernel/debug/extfrag/extfrag_index 
+<pre><code class="language-bash">$ cat /sys/kernel/debug/extfrag/extfrag_index 
 Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 
 Node 0, zone    DMA32 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.988 0.994 
 Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.994 
