@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2019-02-10T20:20:18&#43;08:00"/>
+<meta property="og:updated_time" content="2018-04-11T12:24:17&#43;08:00"/>
 
 
 
@@ -155,182 +155,27 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/build-auto-install-centos7-iso/">制作自动化安装的CENTOS7 ISO</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/linux/out-of-memory/">Linux OOM 机制分析</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2019-02-10 </span>
+      <span class="post-time"> 2018-04-11 </span>
       <div class="post-category">
           
             <a href="/categories/linux/"> linux </a>
           
         </div>
-      <span class="more-meta"> 2486 words </span>
-      <span class="more-meta"> 5 mins read </span>
+      <span class="more-meta"> 2531 words </span>
+      <span class="more-meta"> 6 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>本文以<code>centos 7.6</code> 的<code>ISO</code>为例，构建了用于自动化安装的<code>ISO</code>。</p>
+      <p>本文简要介绍了<code>Linux OOM</code>机制，并详细分析了<code>OOM</code>机制的全局参数配置和进程级别的参数配置。</p>
 
 <p></p>
     </div>
     <div class="read-more">
-      <a href="/linux/build-auto-install-centos7-iso/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/access-physical-address/">Linux用户程序如何访问物理内存</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2019-02-09 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-        </div>
-      <span class="more-meta"> 1130 words </span>
-      <span class="more-meta"> 3 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。</p>
-
-<p>如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现<code>Linux</code>中用户态程序访问所有物理内存。</p>
-    </div>
-    <div class="read-more">
-      <a href="/linux/access-physical-address/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/proc-memory/">内核中内存信息的展示</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2019-01-13 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-        </div>
-      <span class="more-meta"> 3149 words </span>
-      <span class="more-meta"> 7 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>在<code>linux</code>内核中，整个内存信息和状态的展示可以通过以下几个文件获得：</p>
-
-<table>
-<thead>
-<tr>
-<th>文件</th>
-<th>描述</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td><code>/proc/buddyinfo</code></td>
-<td>展示系统上各个<code>zone</code>的<code>buddy</code>信息，主要用来分析内存碎片问题</td>
-</tr>
-
-<tr>
-<td><code>/proc/pagetypeinfo</code></td>
-<td>输出系统上各个<code>zone</code>中的不同迁移类型的详细状态信息</td>
-</tr>
-
-<tr>
-<td><code>/proc/vmstat</code></td>
-<td>描述内存统计信息</td>
-</tr>
-
-<tr>
-<td><code>/proc/zoneinfo</code></td>
-<td>输出系统上各个内存<code>zone</code>的详细信息</td>
-</tr>
-</tbody>
-</table>
-
-<p>在详细介绍这些接口之前，我们先要明确一下几点：</p>
-
-<ul>
-<li>现在的内核中，内存管理最大概念为<code>node</code>。</li>
-<li>在node上再分为一个或者几个<code>zone</code></li>
-<li>每个<code>zone</code>中又分为不同的迁移类型</li>
-</ul>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/linux/proc-memory/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/get-init-pid-for-any-task/">获取容器中init进程的pid</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-10-08 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-        </div>
-      <span class="more-meta"> 1467 words </span>
-      <span class="more-meta"> 3 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文题目为『<strong>获取容器中init进程的pid</strong>』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的<code>pid namespace</code>中，而我们有时需要在顶级的<code>pid namespace</code>中获取其<code>init</code>进程对应的在顶级<code>pid namespace</code>的<code>pid</code>。</p>
-
-<p>本文简要介绍了完成这个任务的一种方法。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/linux/get-init-pid-for-any-task/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/linux/passing-file-descriptors/">传递文件描述符</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-09-16 </span>
-      <div class="post-category">
-          
-            <a href="/categories/linux/"> linux </a>
-          
-            <a href="/categories/socket/"> socket </a>
-          
-        </div>
-      <span class="more-meta"> 1106 words </span>
-      <span class="more-meta"> 3 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p><code>Unix domain socket</code>具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/linux/passing-file-descriptors/" class="read-more-link">Read more..</a>
+      <a href="/linux/out-of-memory/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -340,11 +185,11 @@
   
   <nav class="pagination">
     
-    
-      <a class="next" href="/linux/page/2/">
-        <span class="next-text">Next</span>
-        <i class="iconfont icon-right"></i>
+      <a class="prev" href="/linux/page/2/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text">Prev</span>
       </a>
+    
   </nav>
 
         </div>

@@ -6,10 +6,21 @@
     <description>Recent content in Linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 09 Feb 2019 10:45:06 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 10 Feb 2019 20:20:18 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/categories/linux/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>制作自动化安装的CENTOS7 ISO</title>
+      <link>http://linux.laoqinren.net/linux/build-auto-install-centos7-iso/</link>
+      <pubDate>Sun, 10 Feb 2019 20:20:18 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/linux/build-auto-install-centos7-iso/</guid>
+      <description>&lt;p&gt;本文以&lt;code&gt;centos 7.6&lt;/code&gt; 的&lt;code&gt;ISO&lt;/code&gt;为例，构建了用于自动化安装的&lt;code&gt;ISO&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Linux用户程序如何访问物理内存</title>
