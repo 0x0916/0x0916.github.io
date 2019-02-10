@@ -6,10 +6,21 @@
     <description>Recent content in Kernel on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 29 Jan 2019 07:28:18 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 09 Feb 2019 10:45:06 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Linux用户程序如何访问物理内存</title>
+      <link>http://linux.laoqinren.net/linux/access-physical-address/</link>
+      <pubDate>Sat, 09 Feb 2019 10:45:06 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/linux/access-physical-address/</guid>
+      <description>&lt;p&gt;用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。&lt;/p&gt;
+
+&lt;p&gt;如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现&lt;code&gt;Linux&lt;/code&gt;中用户态程序访问所有物理内存。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>内存管理：shrink_lruvec分析</title>
