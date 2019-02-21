@@ -152,7 +152,7 @@ struct scan_control {
 
 ### get_scan_count
 
-`shrink_lruvec`会调用`get_scan_count`函数，它根据`swapiness`和`priority`优先级计算`4`个`LRU`链表中需要扫描的页面的个数，结构放到`nr`数组中。
+`shrink_lruvec`会调用`get_scan_count`函数，它根据`swapiness`和`priority`优先级计算`4`个`LRU`链表中需要扫描的页面的个数，结果保存到`nr`数组中。
 
 函数原型如下：
 
@@ -177,12 +177,12 @@ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc, unsig
 扫描页面多少的计算公式如下：
 
 ```
-//扫描一种页面
+//扫描类型为：SCAN_FILE、SCAN_ANON或者SCAN_EQUAL时
 scan = LRU上总页面数 >> sc->priority;
-//同时扫描两种页面
+//扫描类型为：SCAN_FRACT时
 scan = LRU上总页面数 >> sc->priority;
 ap = swappiness* (recent_scanned[0] + 1)/ (recent_rotated[0] + 1)
-ap = (200 - swappiness)* (recent_scanned[1] + 1)/ (recent_rotated[1] + 1)
+fp = (200 - swappiness)* (recent_scanned[1] + 1)/ (recent_rotated[1] + 1)
 scan_anon = scan * ap / (ap + fp + 1)
 scan_file = scan * fp / (ap + fp + 1)
 ```
@@ -210,14 +210,13 @@ struct zone_reclaim_stat {
 };
 ```
 
-其中匿名页面放到数组`0`中，文件页面放到数组`1`中，`recent_rotated/recent_scanned`的比值越大，说明这些被缓存起来的页面价值越大，他们更应该留下来。
+其中匿名页面放到数组中下标为`0`的位置中，文件页面放到数组中下标为`1`的位置中，`recent_rotated/recent_scanned`的比值越大，说明这些被缓存起来的页面价值越大，他们更应该留下来。
 
 举个例子，如果`recent_rotated[1]/recent_scanned[1]`越小，说明`LRU`中的文件页面价值较小，那么更应该多扫描一些文件页面，尽量把没有价值的文件页面释放掉。根据公式，文件页面的`recent_rotated`越小，`fp`值越大，那么最后扫描的`scan_file`需要扫描的文件页面数量也就越大。也可以理解为：在扫描总量一定的情况下，扫描文件页面的比重更大。
 
-
 ### shrink_list
 
-下面来看看`shrink_list`函数，该函数处理各个LRU链表的回收页面工作：
+下面来看看`shrink_list`函数，该函数处理各个`LRU`链表的回收页面工作：
 
 ```c?linenums
 static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
@@ -233,15 +232,15 @@ static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
 }
 ```
 
-* 第`4-8`行代码处理活跃的`LRU`链表的，包括匿名页面和文件页面，只有当不活跃的页面少于活跃页面，才需要调用`shrink_active_list`来看哪些活跃页面可以迁移到不活跃链表中
+* 第`4-8`行代码处理活跃的`LRU`链表的，包括匿名页面和文件页面，只有当不活跃的页面比较少时，才需要调用`shrink_active_list`来看哪些活跃页面可以迁移到不活跃链表中
 * 第`10`行代码调用`shrink_inactive_list`扫描不活跃页面链表，并回收页面，后续会详细介绍该函数。
 
-这里遇到了一个文件，如果判断**不活跃的页面少于活跃页面**，前面在分析`shrink_lruvec`函数时也遇到了该文件，这里就详细分析一下：
+这里遇到了一个问题，如何判断**不活跃的页面比较少**，前面在分析`shrink_lruvec`函数时也遇到了该问题，这里就详细分析一下：
 
 ### inactive_list_is_low
 
 
-`inactive_list_is_low`的判断逻辑区分匿名页面和文件缓存两种情况，我们分别就这两种情况进行讨论。
+`inactive_list_is_low`的判断逻辑区分**匿名页面**和**文件页面**两种情况，我们分别就这两种情况进行讨论。
 
 #### 文件页面
 
@@ -262,33 +261,47 @@ static int inactive_file_is_low(struct lruvec *lruvec)
 
 #### 匿名页面
 
-对于匿名也没稍微复杂一些，在判断时有一个`inactive_ratio`变量，对于内存空间小于`1GB`的情况，`inactive_ratio`等于`1`，`1GB`到`10GB`的情况，`inactive_ratio`等于`3`。`inactive_ratio`为`3`，表明`LRU`中活跃匿名页面和不活跃匿名页面的比值为`3：1`，也就是说在理想情况下，有`25%`的匿名页面保存链表中。
+对于匿名页面稍微复杂一些，函数`inactive_anon_is_low`用来完成判断，它的判断区分是否开启了`CONFIG_MEMCG`:
 
-```c
-static int inactive_anon_is_low_global(struct zone *zone)
+* 如果没有开启`CONFIG_MEMCG`时，调用函数`inactive_anon_is_low_global`;
+* 如果开启了`CONFIG_MEMCG`时，调用函数`mem_cgroup_inactive_anon_is_low`。
+
+> 注意：在一般的服务器系统上，默认都会开启`CONFIG_MEMCG`。
+
+```
+/**
+ * inactive_anon_is_low - check if anonymous pages need to be deactivated
+ * @lruvec: LRU vector to check
+ *
+ * Returns true if the zone does not have enough inactive anon pages,
+ * meaning some active anon pages need to be deactivated.
+ */
+static int inactive_anon_is_low(struct lruvec *lruvec)
 {
-        unsigned long active, inactive;
+        /*
+         * If we don't have swap space, anonymous page deactivation
+         * is pointless.
+         */
+        if (!total_swap_pages)
+                return 0;
 
-        active = zone_page_state(zone, NR_ACTIVE_ANON);
-        inactive = zone_page_state(zone, NR_INACTIVE_ANON);
+        if (!mem_cgroup_disabled())
+                return mem_cgroup_inactive_anon_is_low(lruvec);
 
-        if (inactive * zone->inactive_ratio < active)
-                return 1;
-
-        return 0;
+        return inactive_anon_is_low_global(lruvec_zone(lruvec));
 }
 ```
-所以判断方法如下：
+
+不管是上面哪种情况，其判断的方法如下:
 
 ```
 inactive * inactive_ratio < active
 ```
 
+对于是否打开`CONFIG_MEMCG`,`inactive_ratio`的计算方法不同：
 
-`inactive_ratio`变量的计算又分为两种情况下：
-
-* 对于全局的`LRU`链表，使用的`zone`数据结构中的`inactive_ratio`变量，该变量的值在`zone`初始化时就计算好了。
-* 对于`mem cgroup`中的`LRU`链表，`inactive_ratio` 需要根据`mem cgroup`中的页面总数进行计算。
+* 未打开`CONFIG_MEMCG`: 此时系统上只有全局全局的`LRU`链表，使用的`zone`数据结构中的`inactive_ratio`变量，该变量的值在`zone`初始化时就计算好了。
+* 打开`CONFIG_MEMCG`: 此时系统使用的是`mem cgroup`中的`LRU`链表，`inactive_ratio` 需要根据`mem cgroup`中的使用的匿名页面总数进行计算。
 
 具体计算方法如下：
 
@@ -306,7 +319,46 @@ inactive * inactive_ratio < active
  *   10TB     320        32GB
  */
  
- gb = zone的内存大小或者mem cgoup中的页面的总大小（单位为GB）
+ gb = zone的内存大小或者mem cgoup中的使用的匿名页面的总大小（单位为GB）
  gb 大于等于1时： inactive_ratio = int_sqrt(10 * gb)
  gb 小于1时，inactive_ratio = 1
+```
+
+> 说明：对于内存空间小于`1GB`的情况，`inactive_ratio`等于`1`，对于内存空间大小在`1GB`到`10GB`的情况，`inactive_ratio`等于`3`。`inactive_ratio`为`3`，表明`LRU`中活跃匿名页面和不活跃匿名页面的比值为`3：1`，也就是说在理想情况下，有`25%`的匿名页面保存在不活跃链表中。
+
+
+`mem_cgroup_inactive_anon_is_low`和`inactive_anon_is_low_global`的代码如下：
+
+```c
+int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
+{
+        unsigned long inactive_ratio;
+        unsigned long inactive;
+        unsigned long active;
+        unsigned long gb;
+
+        inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_ANON);
+        active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_ANON);
+
+        gb = (inactive + active) >> (30 - PAGE_SHIFT);
+        if (gb)
+                inactive_ratio = int_sqrt(10 * gb);
+        else
+                inactive_ratio = 1;
+
+        return inactive * inactive_ratio < active;
+}
+
+static int inactive_anon_is_low_global(struct zone *zone)
+{
+        unsigned long active, inactive;
+
+        active = zone_page_state(zone, NR_ACTIVE_ANON);
+        inactive = zone_page_state(zone, NR_INACTIVE_ANON);
+
+        if (inactive * zone->inactive_ratio < active)
+                return 1;
+
+        return 0;
+}
 ```
