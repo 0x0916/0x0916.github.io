@@ -134,9 +134,9 @@ struct scan_control {
 * `nr_reclaimed`：用于返回一次回收操作共回收的页面数量
 * `nr_to_reclaim`： 要回收的页面数量
 * `may_writepage`：用于控制回收过程是否可以回写磁盘
-* `may_unmap`：用于控制回收过程是否可以unmap
+* `may_unmap`：用于控制回收过程是否可以`unmap`
 * `may_swap`：用于控制回收过程是否可以回收匿名页面
-* `priority`： 扫描LRU链表的优先级，其用于计算每次扫描页面的数量，计算方法是`total_size >> priority`，初始值为`12`，依次递减，`priority`数值越低，扫描的页面数量越大，相当于逐步加大扫描粒度。
+* `priority`： 扫描`LRU`链表的优先级，其用于计算每次扫描页面的数量，计算方法是`total_size >> priority`，初始值为`12`，依次递减，`priority`数值越低，扫描的页面数量越大，相当于逐步加大扫描粒度。
 * `order`：分配的阶数（`2^order`个页面）
 * `gfp_mask`：分配掩码
 * `target_mem_cgroup`： 主要回收的`mem cgroup`

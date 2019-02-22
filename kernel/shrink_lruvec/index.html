@@ -349,9 +349,9 @@ struct zone {
 <li><code>nr_reclaimed</code>：用于返回一次回收操作共回收的页面数量</li>
 <li><code>nr_to_reclaim</code>： 要回收的页面数量</li>
 <li><code>may_writepage</code>：用于控制回收过程是否可以回写磁盘</li>
-<li><code>may_unmap</code>：用于控制回收过程是否可以unmap</li>
+<li><code>may_unmap</code>：用于控制回收过程是否可以<code>unmap</code></li>
 <li><code>may_swap</code>：用于控制回收过程是否可以回收匿名页面</li>
-<li><code>priority</code>： 扫描LRU链表的优先级，其用于计算每次扫描页面的数量，计算方法是<code>total_size &gt;&gt; priority</code>，初始值为<code>12</code>，依次递减，<code>priority</code>数值越低，扫描的页面数量越大，相当于逐步加大扫描粒度。</li>
+<li><code>priority</code>： 扫描<code>LRU</code>链表的优先级，其用于计算每次扫描页面的数量，计算方法是<code>total_size &gt;&gt; priority</code>，初始值为<code>12</code>，依次递减，<code>priority</code>数值越低，扫描的页面数量越大，相当于逐步加大扫描粒度。</li>
 <li><code>order</code>：分配的阶数（<code>2^order</code>个页面）</li>
 <li><code>gfp_mask</code>：分配掩码</li>
 <li><code>target_mem_cgroup</code>： 主要回收的<code>mem cgroup</code></li>
