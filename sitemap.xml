@@ -227,6 +227,13 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/kernel/wait-queue/</loc>
+    <lastmod>2019-02-21T18:27:48+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/linux/linux-swap/</loc>
     <lastmod>2018-05-04T21:07:38+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -614,6 +621,13 @@
   <url>
     <loc>http://linux.laoqinren.net/tags/ulimit/</loc>
     <lastmod>2018-07-30T19:02:06+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/wait-queue/</loc>
+    <lastmod>2019-02-21T18:27:48+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
