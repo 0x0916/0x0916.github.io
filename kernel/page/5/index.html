@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-04-28T15:06:33&#43;08:00"/>
+<meta property="og:updated_time" content="2018-05-07T18:27:48&#43;08:00"/>
 
 
 
@@ -152,6 +152,40 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/wait-queue/">内核基础设施——wait queue</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-05-07 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 2883 words </span>
+      <span class="more-meta"> 6 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <h2 id="什么是等待队列">什么是等待队列？</h2>
+
+<p>在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。<code>Linux</code>中提供了等待队列的机制，该机制在内核中应用很广泛。</p>
+
+<p>等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。</p>
+
+<p>在<code>Linux</code>内核中使用等待队列的过程很简单，首先定义一个<code>wait_queue_head</code>，然后如果一个<code>task</code>想等待某种事件，那么调用<code>wait_event（等待队列，事件）</code>就可以了。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/wait-queue/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">
@@ -287,38 +321,6 @@
 </article>
 
     
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/percpu-counter/">内核基础设施——percpu_counter</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-04-13 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2397 words </span>
-      <span class="more-meta"> 5 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>内核里很多模块都需要对一些事件进行统计，有一个叫做<code>percpu_counter</code>的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。</p>
-
-<blockquote>
-<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code>。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/percpu-counter/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
   </section>
   
   <nav class="pagination">
@@ -328,6 +330,10 @@
         <span class="prev-text">Prev</span>
       </a>
     
+      <a class="next" href="/kernel/page/6/">
+        <span class="next-text">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
   </nav>
 
         </div>

@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-05-20T20:57:16&#43;08:00"/>
+<meta property="og:updated_time" content="2018-06-20T23:08:40&#43;08:00"/>
 
 
 
@@ -152,6 +152,55 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/hlist/">内核基础设施——hlist_head/hlist_node结构解析</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-06-20 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 2018 words </span>
+      <span class="more-meta"> 5 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <blockquote>
+<p>注意：本文中的代码参考于linux v4.16。</p>
+</blockquote>
+
+<h2 id="数据结构">数据结构</h2>
+
+<p><code>hlist_head</code>和<code>hlist_node</code>用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:</p>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190"> include/linux/types.h(line 190) </a>
+
+<pre><code class="language-c">struct hlist_head {
+	struct hlist_node *first;
+};
+</code></pre>
+
+<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
+
+<pre><code class="language-c">struct hlist_node {
+	struct hlist_node *next, **pprev;
+};
+
+</code></pre>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/hlist/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">
@@ -294,43 +343,6 @@
     </div>
     <div class="read-more">
       <a href="/linux/linux-swap/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/reading-linux-physical-memory/">Linux用户程序如何访问物理内存</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-04-28 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 971 words </span>
-      <span class="more-meta"> 2 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文转载于：<a href="http://ilinuxkernel.com/?p=1248">http://ilinuxkernel.com/?p=1248</a></p>
-
-<blockquote>
-<p>注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。
-本文中使用的内核版本为：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.21.1.el7.src.rpm">3.10.0-693.21.1</a></p>
-</blockquote>
-
-<p>用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。</p>
-
-<p>通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在<code>Linux</code>中用户态程序访问所有物理内存。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/reading-linux-physical-memory/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>

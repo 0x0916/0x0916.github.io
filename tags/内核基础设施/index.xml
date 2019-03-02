@@ -6,10 +6,19 @@
     <description>Recent content in 内核基础设施 on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 23 Jun 2018 17:38:10 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 02 Mar 2019 14:10:37 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>内核基础设施——读写信号量</title>
+      <link>http://linux.laoqinren.net/kernel/rw-semaphore/</link>
+      <pubDate>Sat, 02 Mar 2019 14:10:37 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/rw-semaphore/</guid>
+      <description>&lt;p&gt;本文首先介绍了读写信号量，然后介绍了其&lt;code&gt;API&lt;/code&gt;，接着以一个实验的形式，给大家展示了读写信号量内部的&lt;code&gt;count&lt;/code&gt;值的含义。只有明白了&lt;code&gt;count&lt;/code&gt;的含义，我们在分析问题时才能得心应手。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>内核基础设施——list_head结构解析</title>
