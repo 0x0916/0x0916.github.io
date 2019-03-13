@@ -12,6 +12,15 @@
     
     
     <item>
+      <title>内核调试——dyndbg特性</title>
+      <link>http://linux.laoqinren.net/kernel/kernel-dynamic-debug/</link>
+      <pubDate>Wed, 13 Mar 2019 22:30:09 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/kernel-dynamic-debug/</guid>
+      <description>&lt;p&gt;本文介绍了如何使用内核的&lt;code&gt;dynamic debug (dyndbg)&lt;/code&gt;特性。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>内核基础设施——读写信号量</title>
       <link>http://linux.laoqinren.net/kernel/rw-semaphore/</link>
       <pubDate>Sat, 02 Mar 2019 14:10:37 +0800</pubDate>

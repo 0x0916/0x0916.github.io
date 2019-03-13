@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>内核调试——dyndbg特性 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="本文介绍了如何使用内核的dynamic debug (dyndbg)特性。
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/kernel-dynamic-debug/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="内核调试——dyndbg特性" />
+<meta property="og:description" content="本文介绍了如何使用内核的dynamic debug (dyndbg)特性。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/kernel-dynamic-debug/" />
+
+
+
+<meta property="article:published_time" content="2019-03-13T22:30:09&#43;08:00"/>
+
+<meta property="article:modified_time" content="2019-03-13T22:30:09&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="内核调试——dyndbg特性">
+<meta itemprop="description" content="本文介绍了如何使用内核的dynamic debug (dyndbg)特性。">
+
+
+<meta itemprop="datePublished" content="2019-03-13T22:30:09&#43;08:00" />
+<meta itemprop="dateModified" content="2019-03-13T22:30:09&#43;08:00" />
+<meta itemprop="wordCount" content="1426">
+
+
+
+<meta itemprop="keywords" content="kernel,linux,dyndbg,debug," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="内核调试——dyndbg特性"/>
+<meta name="twitter:description" content="本文介绍了如何使用内核的dynamic debug (dyndbg)特性。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">内核调试——dyndbg特性</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-03-13 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 1426 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#介绍">介绍</a></li>
+<li><a href="#查看dynamic-debug的行为">查看dynamic debug的行为</a></li>
+<li><a href="#控制dynamic-debug的行为">控制dynamic debug的行为</a></li>
+<li><a href="#examples">Examples</a></li>
+<li><a href="#实验">实验</a>
+<ul>
+<li><a href="#编写内核模块">编写内核模块</a></li>
+<li><a href="#编译模块-并加载到内核中">编译模块，并加载到内核中</a></li>
+<li><a href="#实验开始">实验开始</a></li>
+</ul></li>
+<li><a href="#参考文档">参考文档</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>本文介绍了如何使用内核的<code>dynamic debug (dyndbg)</code>特性。</p>
+
+<p>
+<img src="pic.jpg" alt="" /></p>
+
+<h3 id="介绍">介绍</h3>
+
+<p><code>Dynamic debug</code> 允许内核开发者动态地使能或者关闭内核输出。</p>
+
+<p>当打开了内核配置选项<code>CONFIG_DYNAMIC_DEBUG</code>， 内核中的<code>pr_debug()/dev_dbg()</code>和<code>print_hex_dump_debug()/print_hex_dump_bytes()</code>就使用了<code>Dynamic debug</code>特性。</p>
+
+<p>当未打开了内核配置选项<code>CONFIG_DYNAMIC_DEBUG</code>:</p>
+
+<ul>
+<li><code>printk</code>就退化成<code>printk(KERN_DEBUG)</code></li>
+<li><code>print_hex_dump_debug()</code> 就退化成<code>print_hex_dump(KERN_DEBUG)</code></li>
+<li><code>dev_dbg</code>就退化为空。</li>
+</ul>
+
+<p><code>Dynamic debug</code>在<code>debugfs</code>中有个控制文件节点：<code>/sys/kernel/debug/dynamic_debug/control</code>。它记录了所有使用<code>Dynamic debug</code>技术的文件路径、行号、模块名称、函数名称和要打印的语句。</p>
+
+<h3 id="查看dynamic-debug的行为">查看dynamic debug的行为</h3>
+
+<p>我们可以通过向读文件<code>/sys/kernel/debug/dynamic_debug/control</code>来查看目前系统上<code>Dynamic debug</code>的配置。
+如下所示：</p>
+
+<pre><code># cat /sys/kernel/debug/dynamic_debug/control | head
+# filename:lineno [module]function flags format
+init/main.c:765 [main]do_one_initcall_debug =p &quot;initcall %pF returned %d after %lld usecs\012&quot;
+init/main.c:758 [main]do_one_initcall_debug =p &quot;calling  %pF @ %i\012&quot;
+init/main.c:729 [main]initcall_blacklisted =p &quot;initcall %s blacklisted\012&quot;
+init/main.c:705 [main]initcall_blacklist =p &quot;blacklisting initcall %s\012&quot;
+arch/x86/events/intel/core.c:4235 [core]fixup_ht_bug =_ &quot;failed to disable PMU erratum BJ122, BV98, HSD29 workaround\012&quot;
+arch/x86/events/intel/pt.c:726 [pt]pt_topa_dump =_ &quot;# entry @%p (%lx sz %u %c%c%c) raw=%16llx\012&quot;
+arch/x86/events/intel/pt.c:717 [pt]pt_topa_dump =_ &quot;# table @%p (%016Lx), off %llx size %zx\012&quot;
+arch/x86/kernel/tboot.c:103 [tboot]tboot_probe =_ &quot;tboot_size: 0x%x\012&quot;
+arch/x86/kernel/tboot.c:102 [tboot]tboot_probe =_ &quot;tboot_base: 0x%08x\012&quot;
+</code></pre>
+
+<h3 id="控制dynamic-debug的行为">控制dynamic debug的行为</h3>
+
+<p>我们可以通过向文件<code>/sys/kernel/debug/dynamic_debug/control</code>中写入一定的指令，来使能或者关闭输出。 例如：使能文件<code>svcsock.c</code>中<code>1603</code>行的输出。</p>
+
+<pre><code># echo 'file svcsock.c line 1603 +p' &gt;
+                              /sys/kernel/debug/dynamic_debug/control
+</code></pre>
+
+<p>控制打印时，还可以使用flags更来定义更详细的输出信息，目前支持的flags如下：</p>
+
+<pre><code>p    enables the pr_debug() callsite.
+f    Include the function name in the printed message
+l    Include line number in the printed message
+m    Include module name in the printed message
+t    Include thread ID in messages not generated from interrupt context
+_    No flags are set. (Or'd with others on input)
+</code></pre>
+
+<h3 id="examples">Examples</h3>
+
+<pre><code>// 打开svcsock.c中第1603行的动态输出
+# echo -n 'file svcsock.c line 1603 +p' &gt; /sys/kernel/debug/dynamic_debug/control
+
+// 打开svcsock.c文件中所有的动态输出
+# echo -n 'file svcsock.c +p' &gt; /sys/kernel/debug/dynamic_debug/control
+
+// 打开NFS服务模块中所有的动态输出
+# echo -n 'module nfsd +p' &gt; /sys/kernel/debug/dynamic_debug/control
+
+// 打开函数svc_process中所有的动态输出
+# echo -n 'func svc_process +p' &gt; /sys/kernel/debug/dynamic_debug/control
+
+// 关闭函数svc_process中所有的动态输出
+# echo -n 'func svc_process -p' &gt; /sys/kernel/debug/dynamic_debug/control
+
+// 打开文件路径中包含usb的文件里的所有的动态输出
+# echo -n '*usb* +p' &gt; /sys/kernel/debug/dynamic_debug/control
+
+// 打开所有的动态输出
+# echo -n '+p' &gt; /sys/kernel/debug/dynamic_debug/control
+
+// 为所有使能的动态输出信息中添加模块和函数名信息
+# echo -n '+mf' &gt; /sys/kernel/debug/dynamic_debug/control
+</code></pre>
+
+<h3 id="实验">实验</h3>
+
+<h4 id="编写内核模块">编写内核模块</h4>
+
+<p><code>dynamic_printk.c</code>文件内容：</p>
+
+<pre><code class="language-c">#include &lt;linux/module.h&gt;
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/init.h&gt;
+#include &lt;linux/kthread.h&gt;
+#include &lt;linux/delay.h&gt;
+
+static struct task_struct *mythread;
+static int exit = 0;
+static int my_function(void *unused)
+{
+	while(!exit) {
+		pr_debug(&quot;just print this message\n&quot;);
+		msleep(2000);
+	}
+
+	return 0;
+}
+static int __init dynamic_printk_init(void)
+{
+	printk(KERN_ALERT &quot;[Hello] dynamic_printk \n&quot;);
+
+	// Create the kernel thread with name &quot;MyThread&quot;
+	mythread = kthread_create(my_function, NULL, &quot;MyThread&quot;);
+	if (mythread) {
+		printk(KERN_ALERT &quot;Thread created successfully\n&quot;);
+		wake_up_process(mythread);
+	} else {
+		printk(KERN_ALERT &quot;Thread creation failed\n&quot;);
+	}
+
+	return 0;
+}
+
+static void __exit dynamic_printk_exit(void)
+{
+	exit = 1;
+	msleep(3000);
+	printk(KERN_ALERT &quot;[Goodbye] dynamic_printk\n&quot;);
+}
+
+module_init(dynamic_printk_init);
+module_exit(dynamic_printk_exit);
+MODULE_LICENSE(&quot;GPL&quot;);
+</code></pre>
+
+<p><code>Makefile</code>内容：</p>
+
+<pre><code>ifneq ($(KERNELRELEASE), )
+obj-m := dynamic_printk.o
+else
+KERNELDIR ?=/lib/modules/$(shell uname -r)/build
+PWD := $(shell pwd)
+all:
+        $(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+clean:
+        $(MAKE) -C $(KERNELDIR) M=$(PWD) clean 
+</code></pre>
+
+<h4 id="编译模块-并加载到内核中">编译模块，并加载到内核中</h4>
+
+<pre><code>root@localhost # make
+root@localhost # insmod dynamic_printk.ko
+</code></pre>
+
+<h4 id="实验开始">实验开始</h4>
+
+<p>默认情况下，模块中的<code>pr_debug</code>并不会输出任何内容，我们可以在<code>/sys/kernel/debug/dynamic_debug/control</code>文件中看到其信息：</p>
+
+<pre><code class="language-bash">/root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c:17 [dynamic_printk]my_function =_ &quot;just print this message\012&quot;
+</code></pre>
+
+<p>打开该动态输出</p>
+
+<pre><code class="language-bash">root@localhost # echo -n &quot;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c +pflm&quot; &gt; /sys/kernel/debug/dynamic_debug/control
+</code></pre>
+
+<p><code>dmesg</code>中输出如下信息：</p>
+
+<pre><code>[268243.607925] dynamic_printk:my_function:17: just print this message
+[268245.617781] dynamic_printk:my_function:17: just print this message
+[268247.622379] dynamic_printk:my_function:17: just print this message
+[268249.628472] dynamic_printk:my_function:17: just print this message
+[268251.645144] dynamic_printk:my_function:17: just print this message
+</code></pre>
+
+<p>关闭输出模块信息：</p>
+
+<pre><code class="language-bash">root@localhost # echo -n &quot;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c -m&quot; &gt; /sys/kernel/debug/dynamic_debug/control
+</code></pre>
+
+<p><code>dmesg</code>中输出如下信息：</p>
+
+<pre><code>[268302.145178] my_function:17: just print this message
+[268304.177223] my_function:17: just print this message
+[268306.177942] my_function:17: just print this message
+[268308.198624] my_function:17: just print this message
+[268310.201056] my_function:17: just print this message
+</code></pre>
+
+<p>关闭输出信息：</p>
+
+<pre><code class="language-bash">root@localhost #  echo -n &quot;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c -p&quot; &gt; /sys/kernel/debug/dynamic_debug/control  
+</code></pre>
+
+<h3 id="参考文档">参考文档</h3>
+
+<ul>
+<li><a href="https://www.kernel.org/doc/html/latest/admin-guide/dynamic-debug-howto.html">https://www.kernel.org/doc/html/latest/admin-guide/dynamic-debug-howto.html</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-03-13</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/kernel-dynamic-debug/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+          <a href="/tags/dyndbg/">dyndbg</a>
+          
+          <a href="/tags/debug/">debug</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/rw-semaphore/">
+            <span class="next-text nav-default">内核基础设施——读写信号量</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

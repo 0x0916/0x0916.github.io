@@ -3,6 +3,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://linux.laoqinren.net/kernel/kernel-dynamic-debug/</loc>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/rw-semaphore/</loc>
     <lastmod>2019-03-02T14:10:37+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -347,7 +354,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/kernel/</loc>
-    <lastmod>2019-03-02T14:10:37+08:00</lastmod>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -417,7 +424,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/debug/</loc>
-    <lastmod>2018-08-09T22:46:11+08:00</lastmod>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -425,6 +432,13 @@
   <url>
     <loc>http://linux.laoqinren.net/categories/development/</loc>
     <lastmod>2017-04-01T19:20:04-07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/dyndbg/</loc>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -501,14 +515,14 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/kernel/</loc>
-    <lastmod>2019-03-02T14:10:37+08:00</lastmod>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/categories/kernel/</loc>
-    <lastmod>2019-03-02T14:10:37+08:00</lastmod>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -522,7 +536,7 @@
   
   <url>
     <loc>http://linux.laoqinren.net/tags/linux/</loc>
-    <lastmod>2019-03-02T14:10:37+08:00</lastmod>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
