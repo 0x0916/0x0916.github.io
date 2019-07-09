@@ -17,10 +17,8 @@
 
 
 <meta name="author" content="laoqinren" />
-  <meta name="description" content="CPU统计（CPU accounting）cpuacct子系统会自动生成报告来显示cgroup任务所使用的CPU资源，其中包括子群组任务。报告有三种：
- cpuacct.usage：报告此cgroup中所有任务（包括其子孙层级中的所有任务）使用CPU的总时间（纳秒）,该文件时可以写入0值的，用来进行重置统计信息。 cpuacct.stat：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：
- user——用户模式中任务使用的CPU时间 system——系统模式中任务使用的CPU时间 其单位为USER_HZ  cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的所有任务）在每个CPU中使用的CPU时间（纳秒）
-   注意：本文中引用的内核代码版本为v4.4.128
+  <meta name="description" content="cpuacct子系统（CPU accounting）会自动生成报告来显示cgroup中任务所使用的CPU资源，其中包括子群组任务。报告有两大类：
+ usage: 统计cgroup中进程使用CPU的时间，单位为纳秒。 stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。   注意：本文中引用的内核代码版本为v5.2
  
 " />
 
@@ -55,24 +53,15 @@
 
 
 <meta property="og:title" content="Cgroup之cpuacct子系统" />
-<meta property="og:description" content="CPU统计（CPU accounting）cpuacct子系统会自动生成报告来显示cgroup任务所使用的CPU资源，其中包括子群组任务。报告有三种：
+<meta property="og:description" content="cpuacct子系统（CPU accounting）会自动生成报告来显示cgroup中任务所使用的CPU资源，其中包括子群组任务。报告有两大类：
 
 
-cpuacct.usage：报告此cgroup中所有任务（包括其子孙层级中的所有任务）使用CPU的总时间（纳秒）,该文件时可以写入0值的，用来进行重置统计信息。
-
-cpuacct.stat：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：
-
-
-user——用户模式中任务使用的CPU时间
-system——系统模式中任务使用的CPU时间
-其单位为USER_HZ
-
-
-cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的所有任务）在每个CPU中使用的CPU时间（纳秒）
+usage: 统计cgroup中进程使用CPU的时间，单位为纳秒。
+stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。
 
 
 
-注意：本文中引用的内核代码版本为v4.4.128
+注意：本文中引用的内核代码版本为v5.2
 
 
 " />
@@ -96,24 +85,15 @@ cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的�
 
 
 <meta itemprop="name" content="Cgroup之cpuacct子系统">
-<meta itemprop="description" content="CPU统计（CPU accounting）cpuacct子系统会自动生成报告来显示cgroup任务所使用的CPU资源，其中包括子群组任务。报告有三种：
+<meta itemprop="description" content="cpuacct子系统（CPU accounting）会自动生成报告来显示cgroup中任务所使用的CPU资源，其中包括子群组任务。报告有两大类：
 
 
-cpuacct.usage：报告此cgroup中所有任务（包括其子孙层级中的所有任务）使用CPU的总时间（纳秒）,该文件时可以写入0值的，用来进行重置统计信息。
-
-cpuacct.stat：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：
-
-
-user——用户模式中任务使用的CPU时间
-system——系统模式中任务使用的CPU时间
-其单位为USER_HZ
-
-
-cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的所有任务）在每个CPU中使用的CPU时间（纳秒）
+usage: 统计cgroup中进程使用CPU的时间，单位为纳秒。
+stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。
 
 
 
-注意：本文中引用的内核代码版本为v4.4.128
+注意：本文中引用的内核代码版本为v5.2
 
 
 ">
@@ -121,31 +101,22 @@ cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的�
 
 <meta itemprop="datePublished" content="2018-05-20T20:57:16&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-20T20:57:16&#43;08:00" />
-<meta itemprop="wordCount" content="1725">
+<meta itemprop="wordCount" content="2754">
 
 
 
 <meta itemprop="keywords" content="kernel,linux,cgroup,cpuacct," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Cgroup之cpuacct子系统"/>
-<meta name="twitter:description" content="CPU统计（CPU accounting）cpuacct子系统会自动生成报告来显示cgroup任务所使用的CPU资源，其中包括子群组任务。报告有三种：
+<meta name="twitter:description" content="cpuacct子系统（CPU accounting）会自动生成报告来显示cgroup中任务所使用的CPU资源，其中包括子群组任务。报告有两大类：
 
 
-cpuacct.usage：报告此cgroup中所有任务（包括其子孙层级中的所有任务）使用CPU的总时间（纳秒）,该文件时可以写入0值的，用来进行重置统计信息。
-
-cpuacct.stat：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：
-
-
-user——用户模式中任务使用的CPU时间
-system——系统模式中任务使用的CPU时间
-其单位为USER_HZ
-
-
-cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的所有任务）在每个CPU中使用的CPU时间（纳秒）
+usage: 统计cgroup中进程使用CPU的时间，单位为纳秒。
+stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。
 
 
 
-注意：本文中引用的内核代码版本为v4.4.128
+注意：本文中引用的内核代码版本为v5.2
 
 
 "/>
@@ -234,8 +205,8 @@ cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的�
               <a href="/categories/cgroup/"> cgroup </a>
             
           </div>
-        <span class="more-meta"> 1725 words </span>
-        <span class="more-meta"> 4 mins read </span>
+        <span class="more-meta"> 2754 words </span>
+        <span class="more-meta"> 6 mins read </span>
         
       </div>
     </header>
@@ -250,16 +221,24 @@ cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的�
 <ul>
 <li>
 <ul>
+<li><a href="#统计文件示例">统计文件示例</a>
+<ul>
+<li><a href="#usage">usage*</a></li>
+<li><a href="#stat">stat</a></li>
+</ul></li>
 <li><a href="#示例">示例</a>
 <ul>
 <li><a href="#查看使用cpu的总时间">查看使用cpu的总时间</a></li>
-<li><a href="#查看用户时间和系统时间">查看用户时间和系统时间</a></li>
-<li><a href="#查看每个cpu-core的时间">查看每个cpu core的时间</a></li>
+<li><a href="#查看用户态和内核态的cpu时间">查看用户态和内核态的CPU时间</a></li>
+<li><a href="#查看cpuacct-usage-all">查看cpuacct.usage_all</a></li>
 <li><a href="#重置统计值">重置统计值</a></li>
+<li><a href="#查看stat">查看stat</a></li>
+<li><a href="#usage-和-stat-到底有什么区别呢">Usage 和 Stat 到底有什么区别呢？</a></li>
 </ul></li>
 <li><a href="#内核实现">内核实现</a>
 <ul>
 <li><a href="#结构体struct-cpuacct">结构体struct cpuacct</a></li>
+<li><a href="#结构体-struct-cpuacct-usage">结构体 struct cpuacct_usage</a></li>
 <li><a href="#结构体-struct-kernel-cpustat">结构体 struct kernel_cpustat</a></li>
 <li><a href="#变量root-cpuacct">变量root_cpuacct</a></li>
 <li><a href="#那么哪些函数会调用-cpuacct-charge-呢">那么哪些函数会调用<code>cpuacct_charge</code>呢？</a></li>
@@ -274,6 +253,12 @@ cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的�
 <li><a href="#account-steal-time">account_steal_time</a></li>
 <li><a href="#account-guest-time">account_guest_time</a></li>
 </ul></li>
+<li><a href="#其它相关问题">其它相关问题</a>
+<ul>
+<li><a href="#root-cpuacct的数据来源">root cpuacct的数据来源？</a></li>
+<li><a href="#proc-stat中cpu相关统计信息来自哪里">/proc/stat中cpu相关统计信息来自哪里？</a></li>
+<li><a href="#docker如何计算容器的-cpu-利用率">docker如何计算容器的<code>cpu</code>利用率？</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </nav>
@@ -282,79 +267,158 @@ cpuacct.usage_percpu:报告cgroup的所有任务（包括其子孙层级中的�
 
     
     <div class="post-content">
-      <p>CPU统计（CPU accounting）<code>cpuacct子系统</code>会自动生成报告来显示cgroup任务所使用的CPU资源，其中包括子群组任务。报告有三种：</p>
+      <p><code>cpuacct子系统</code>（CPU accounting）会自动生成报告来显示<code>cgroup中</code>任务所使用的<code>CPU</code>资源，其中包括子群组任务。报告有两大类：</p>
 
 <ul>
-<li><code>cpuacct.usage</code>：报告此cgroup中所有任务（包括其子孙层级中的所有任务）使用CPU的总时间（纳秒）,该文件时可以写入0值的，用来进行重置统计信息。</li>
+<li><code>usage</code>: 统计<code>cgroup</code>中进程使用CPU的时间，单位为纳秒。</li>
+<li><code>stat</code>: 统计<code>cgroup</code>中进程使用CPU的时间，单位为<code>USER_HZ</code>。</li>
+</ul>
 
-<li><p><code>cpuacct.stat</code>：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：</p>
+<blockquote>
+<p>注意：本文中引用的内核代码版本为<code>v5.2</code></p>
+</blockquote>
+
+<p></p>
+
+<p><img src="./pic.jpg" alt="" /></p>
+
+<h2 id="统计文件示例">统计文件示例</h2>
+
+<h3 id="usage">usage*</h3>
+
+<ul>
+<li><code>cpuacct.usage</code> : 报告一个<code>cgroup</code>中所有任务（包括其子孙层级中的所有任务）使用<code>CPU</code>的总时间（纳秒）,该文件时可以写入<code>0</code>值的，用来进行重置统计信息。</li>
+<li><code>cpuacct.usage_percpu</code>: 报告一个<code>cgroup</code>中所有任务（包括其子孙层级中的所有任务）在每个<code>CPU</code>使用<code>CPU</code>的时间（纳秒）。</li>
+<li><code>cpuacct.usage_user</code>: 报告一个<code>cgroup</code>中所有任务（包括其子孙层级中的所有任务）使用用户态<code>CPU</code>的总时间（纳秒）。</li>
+<li><code>cpuacct.usage_percpu_user</code>  报告一个<code>cgroup</code>中所有任务（包括其子孙层级中的所有任务）在每个<code>CPU</code>上使用用户态<code>CPU</code>的时间（纳秒）。</li>
+<li><code>cpuacct.usage_sys</code>: 报告一个<code>cgroup</code>中所有任务（包括其子孙层级中的所有任务）使用内核态<code>CPU</code>的总时间（纳秒）。</li>
+<li><code>cpuacct.usage_percpu_sys</code>：报告一个<code>cgroup</code>中所有任务（包括其子孙层级中的所有任务）在每个<code>CPU</code>上使用内核态<code>CPU</code>的时间（纳秒）。</li>
+<li><code>cpuacct.usage_all</code>：详细输出文件<code>cpuacct.usage_percpu_user</code>和<code>cpuacct.usage_percpu_sys</code>的内容。</li>
+</ul>
+
+<h3 id="stat">stat</h3>
+
+<ul>
+<li><code>cpuacct.stat</code>：报告cgroup的所有任务（包括其子孙层级中的所有任务）使用的用户和系统CPU时间，方式如下：
 
 <ul>
 <li><code>user</code>——用户模式中任务使用的CPU时间</li>
 <li><code>system</code>——系统模式中任务使用的CPU时间</li>
 <li>其单位为<code>USER_HZ</code></li>
 </ul></li>
-
-<li><p><code>cpuacct.usage_percpu</code>:报告cgroup的所有任务（包括其子孙层级中的所有任务）在每个CPU中使用的CPU时间（纳秒）</p></li>
 </ul>
-
-<blockquote>
-<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code></p>
-</blockquote>
-
-<p></p>
 
 <h2 id="示例">示例</h2>
 
 <h3 id="查看使用cpu的总时间">查看使用cpu的总时间</h3>
 
-<pre><code class="language-Bash">$ cat /sys/fs/cgroup/cpuacct/cpuacct.usage
-9564131657896
+<pre><code class="language-Bash">root@2d1230403171:~# cat /sys/fs/cgroup/cpuacct/cpuacct.usage
+3907906171712
+root@2d1230403171:~# cat /sys/fs/cgroup/cpuacct/cpuacct.usage_percpu
+982052931576 496801928082 1119303415003 1309764865266 
 </code></pre>
 
-<h3 id="查看用户时间和系统时间">查看用户时间和系统时间</h3>
+<h3 id="查看用户态和内核态的cpu时间">查看用户态和内核态的CPU时间</h3>
 
-<pre><code class="language-bash">$ cat /sys/fs/cgroup/cpuacct/cpuacct.stat 
-user 805389
-system 131491
+<pre><code class="language-Bash">root@2d1230403171:~# cat /sys/fs/cgroup/cpuacct/cpuacct.usage_user 
+3907908045318
+root@2d1230403171:~# cat /sys/fs/cgroup/cpuacct/cpuacct.usage_percpu_user                                                                                                    
+982051860949 496800539857 1119297079712 1309763110228 
+root@2d1230403171:~# cat /sys/fs/cgroup/cpuacct/cpuacct.usage_sys         
+0
+root@2d1230403171:~# cat /sys/fs/cgroup/cpuacct/cpuacct.usage_percpu_user 
+982052487842 496801115881 1119301915660 1309764696892 
 </code></pre>
 
-<h3 id="查看每个cpu-core的时间">查看每个cpu core的时间</h3>
+<h3 id="查看cpuacct-usage-all">查看cpuacct.usage_all</h3>
 
-<pre><code class="language-bash">$ cat /sys/fs/cgroup/cpuacct/cpuacct.usage_percpu 
-637358491256 277363499820 315319354313 262949375399 266258588259 222694029292 243511265151 271766486802 296183439108 187266048691 350328567867 202707870444 219737114177 204076133037 208793307513 170673884207 167408270598 170118215735 143558044613 258292673744 273473635687 1910497659425 229618074925 99164716015 42271944626 45446517389 34458890249 45563767142 25218323972 20379223760 20791799486 1315535916629 153794699753 77972099731 38310521396 32196073743 40292640344 59351377303 29113752724 29925834137
+<pre><code class="language-Bash">root@2d1230403171:~# cat /sys/fs/cgroup/cpuacct/cpuacct.usage_all   
+cpu user system
+0 982052931576 0
+1 496802375225 0
+2 1119304751435 0
+3 1309766189582 0
 </code></pre>
 
 <h3 id="重置统计值">重置统计值</h3>
 
-<pre><code class="language-bash">$ echo 0 &gt; /sys/fs/cgroup/cpuacct/cpuacct.usage
+<pre><code class="language-bash">root@2d1230403171:~# echo 0 &gt; /sys/fs/cgroup/cpuacct/cpuacct.usage
 </code></pre>
+
+<blockquote>
+<p>注意：需要有相应的权限才能重置。</p>
+</blockquote>
+
+<h3 id="查看stat">查看stat</h3>
+
+<pre><code class="language-bash">root@2d1230403171:~# cat /sys/fs/cgroup/cpuacct/cpuacct.stat      
+user 389913
+system 403
+</code></pre>
+
+<h3 id="usage-和-stat-到底有什么区别呢">Usage 和 Stat 到底有什么区别呢？</h3>
+
+<pre><code class="language-Bash">root@2d1230403171:~# cd /sys/fs/cgroup/cpuacct
+root@2d1230403171:/sys/fs/cgroup/cpuacct# cat cpuacct.stat ; cat cpuacct.usage_user;  cat cpuacct.usage_sys
+user 124526 
+system 468815
+4070860587371
+354066574154
+</code></pre>
+
+<p>我们可以看到，<code>stat</code>中的<code>user</code>时间加上的<code>system</code>时间和<code>cpuacct.usage_user</code>的时间加上<code>cpuacct.usage_sys</code>的时间不相等。到底哪个比较精确呢？</p>
+
+<p><code>cpuacct.usage</code> 统计了所有 <code>CPU</code> 核的累加使用时间，单位是<strong>纳秒</strong>。在 <code>cpuacct.stat</code> 中统计了该控制组中进程用户态和内核态的<code>CPU</code>使用量，其单位是<code>USER_HZ</code>。</p>
+
+<p>注意，相比 <code>cpuacct.stat</code> 来说，<code>cpuacct.usage</code> 的值会更加精确一些。</p>
 
 <h2 id="内核实现">内核实现</h2>
 
 <h3 id="结构体struct-cpuacct">结构体struct cpuacct</h3>
 
-<p>数据结构定义如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cpuacct.c?h=v4.4.128#n29"> kernel/sched/cpuacct.c(line 29) </a></p>
+<p><code>cpuacct</code>的内核实现中，对<code>cpu</code>时间的统计结果都存放到数据结构<code>struct cpuacct</code>中，数据结构定义如下：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cpuacct.c#L27#L33"> kernel/sched/cpuacct.c(line 27-33) </a></p>
 
-<pre><code class="language-C">/* track cpu usage of a group of tasks and its child groups */
+<pre><code class="language-C">/* track CPU usage of a group of tasks and its child groups */
 struct cpuacct {
-	struct cgroup_subsys_state css;
-	/* cpuusage holds pointer to a u64-type object on every cpu */
-	u64 __percpu *cpuusage;
-	struct kernel_cpustat __percpu *cpustat;
+	struct cgroup_subsys_state	css;
+	/* cpuusage holds pointer to a u64-type object on every CPU */
+	struct cpuacct_usage __percpu	*cpuusage;
+	struct kernel_cpustat __percpu	*cpustat;
 };
 </code></pre>
 
 <p>除了css外，其他两个成员都是<code>__percpu</code>类型。</p>
 
 <ul>
-<li><code>cpuusge</code> 记录每个cpu使用的时间</li>
-<li><code>cpustat</code> 记录每个cpu使用的用户和系统CPU时间</li>
+<li><code>cpuusge</code> 记录每个<code>cpu</code>使用的时间, 单位为纳秒</li>
+<li><code>cpustat</code> 记录每个<code>cpu</code>使用的用户和系统<code>CPU</code>时间，单位为<code>USER_HZ</code></li>
 </ul>
+
+<h3 id="结构体-struct-cpuacct-usage">结构体 struct cpuacct_usage</h3>
+
+<p>数据结构定义如下：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cpuacct.c#L10#L25"> kernel/sched/cpuacct.c(line 10-25) </a></p>
+
+<pre><code class="language-C">/* Time spent by the tasks of the CPU accounting group executing in ... */
+enum cpuacct_stat_index {
+	CPUACCT_STAT_USER,	/* ... user mode */
+	CPUACCT_STAT_SYSTEM,	/* ... kernel mode */
+
+	CPUACCT_STAT_NSTATS,
+};
+
+static const char * const cpuacct_stat_desc[] = {
+	[CPUACCT_STAT_USER] = &quot;user&quot;,
+	[CPUACCT_STAT_SYSTEM] = &quot;system&quot;,
+};
+
+struct cpuacct_usage {
+	u64	usages[CPUACCT_STAT_NSTATS];
+};
+</code></pre>
 
 <h3 id="结构体-struct-kernel-cpustat">结构体 struct kernel_cpustat</h3>
 
-<p>数据结构定义如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/kernel_stat.h?h=v4.4.128#n20"> include/linux/kernel_stat.h(line 20) </a></p>
+<p>数据结构定义如下：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/include/linux/kernel_stat.h#L14#L36"> include/linux/kernel_stat.h(line 14-36) </a></p>
 
 <pre><code class="language-C">/*
  * 'kernel_stat.h' contains the definitions needed for doing
@@ -381,9 +445,16 @@ struct kernel_cpustat {
 };
 </code></pre>
 
+<p><code>cpuacct.stat</code>中的统计时间主要来源于该结构体，其中</p>
+
+<ul>
+<li>user时间包括：CPUTIME_USER + CPUTIME_NICE</li>
+<li>system时间包括：CPUTIME_IRQ + CPUTIME_SOFTIRQ + CPUTIME_SYSTEM</li>
+</ul>
+
 <h3 id="变量root-cpuacct">变量root_cpuacct</h3>
 
-<p>定义如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cpuacct.c?h=v4.4.128#n52"> kernel/sched/cpuacct.c(line 52) </a> 和<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/kernel_stat.h?h=v4.4.128#n38"> include/linux/kernel_stat.h(line 38) </a></p>
+<p>定义如下：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cpuacct.c#L51#L55"> kernel/sched/cpuacct.c(line 51-55) </a> 和  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/include/linux/kernel_stat.h"> include/linux/kernel_stat.h </a></p>
 
 <pre><code class="language-C">struct kernel_cpustat {                                                                                                           
         u64 cpustat[NR_STATS];
@@ -392,21 +463,27 @@ struct kernel_cpustat {
 DECLARE_PER_CPU(struct kernel_cpustat, kernel_cpustat);
 
 
-static DEFINE_PER_CPU(u64, root_cpuacct_cpuusage);
+static DEFINE_PER_CPU(struct cpuacct_usage, root_cpuacct_cpuusage);
 static struct cpuacct root_cpuacct = {
 	.cpustat	= &amp;kernel_cpustat,
 	.cpuusage	= &amp;root_cpuacct_cpuusage,
 };
+
 </code></pre>
 
-<p><code>/sys/fs/cgroup/cpuacct</code>就是通过<code>cpuacct</code>结构体中的统计值来输出信息的。而cpu时间信息的更新则由如下函数完成(<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cpuacct.h?h=v4.4.128#n3"> kernel/sched/cpuacct.h(line 3) </a>)。</p>
+<p>通过上面的数据结构分析，我们可以画出<code>struct cpuacct</code>的结构示意图：
+<img src="./cpuacct.png" alt="" /></p>
+
+<p><code>/sys/fs/cgroup/cpuacct</code>下所有统计文件就是通过<code>cpuacct</code>结构体中的统计值来输出信息的。</p>
+
+<p>而<code>cpu</code>时间信息的更新则由如下函数完成(  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/include/linux/cgroup.h#L753#L763"> include/linux/cgroup.h(line 753-763) </a>)。</p>
 
 <ul>
 <li><code>cpuacct_charge</code></li>
 </ul>
 
 <blockquote>
-<p>用于更新cpuusage(<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cpuacct.c?h=v4.4.128#n235"> kernel/sched/cpuacct.c(line 235) </a>)</p>
+<p>用于更新cpuusage(  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cpuacct.c#L333#L353"> kernel/sched/cpuacct.c(line 333-353) </a>), 该函数更新所有的<code>cpuacct cgroup</code>，包括根<code>root cpuacct cgroup</code>。</p>
 </blockquote>
 
 <ul>
@@ -414,7 +491,7 @@ static struct cpuacct root_cpuacct = {
 </ul>
 
 <blockquote>
-<p>用于更新cpustat(<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cpuacct.c?h=v4.4.128#n263"> kernel/sched/cpuacct.c(line 263) </a>)</p>
+<p>用于更新cpustat(  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cpuacct.c#L355#L368"> kernel/sched/cpuacct.c(line 355-368) </a>)，该函数更新所有的<code>cpuacct cgroup</code>，但不包括<code>root cpuacct  cgroup</code>。</p>
 </blockquote>
 
 <h3 id="那么哪些函数会调用-cpuacct-charge-呢">那么哪些函数会调用<code>cpuacct_charge</code>呢？</h3>
@@ -422,10 +499,10 @@ static struct cpuacct root_cpuacct = {
 <p>如下函数会去调用<code>cpuacct_charge</code>:</p>
 
 <ul>
-<li>update_curr(struct cfs_rq *cfs_rq)</li>
-<li>update_curr_rt(struct rq *rq)</li>
-<li>update_curr_dl(struct rq *rq)</li>
-<li>put_prev_task_stop(struct rq *rq, struct task_struct *prev)</li>
+<li><code>update_curr(struct cfs_rq *cfs_rq)</code>-&gt;<code>cgroup_account_cputime</code>-&gt;<code>cpuacct_charge</code></li>
+<li><code>update_curr_rt(struct rq *rq)</code>-&gt;<code>cgroup_account_cputime</code>-&gt;<code>cpuacct_charge</code></li>
+<li><code>update_curr_dl(struct rq *rq)</code>-&gt;<code>cgroup_account_cputime</code>-&gt;<code>cpuacct_charge</code></li>
+<li><code>put_prev_task_stop(struct rq *rq, struct task_struct *prev)</code>-&gt;<code>cgroup_account_cputime</code>-&gt;<code>cpuacct_charge</code></li>
 </ul>
 
 <h3 id="那么哪些函数会调用-cpuacct-account-field-呢">那么哪些函数会调用<code>cpuacct_account_field</code>呢？</h3>
@@ -433,12 +510,19 @@ static struct cpuacct root_cpuacct = {
 <p>如下函数会去调用<code>cpuacct_account_field</code>:</p>
 
 <ul>
-<li><code>account_system_time</code>-&gt;<code>__account_system_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cpuacct_account_field</code></li>
-<li><code>irqtime_account_process_tick</code>-&gt;<code>__account_system_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cpuacct_account_field</code></li>
-<li><code>account_user_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cpuacct_account_field</code></li>
+<li><code>account_process_tick</code>-&gt;<code>account_user_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cgroup_account_cputime_field</code>-&gt;<code>cpuacct_account_field</code></li>
+<li><code>irqtime_account_process_tick</code>-&gt;<code>account_user_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cgroup_account_cputime_field</code>-&gt;<code>cpuacct_account_field</code></li>
+
+<li><p><code>vtime_user_exit</code>-&gt;<code>account_user_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cgroup_account_cputime_field</code>-&gt;<code>cpuacct_account_field</code></p></li>
+
+<li><p><code>account_process_tick</code>-&gt;<code>account_system_time</code>-&gt;<code>account_system_index_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cgroup_account_cputime_field</code>-&gt;<code>cpuacct_account_field</code></p></li>
+
+<li><p><code>irqtime_account_process_tick</code>-&gt;<code>account_system_index_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cgroup_account_cputime_field</code>-&gt;<code>cpuacct_account_field</code></p></li>
+
+<li><p><code>__vtime_account_system</code>-&gt;<code>account_system_time</code>-&gt;<code>account_system_index_time</code>-&gt;<code>task_group_account_field</code>-&gt;<code>cgroup_account_cputime_field</code>-&gt;<code>cpuacct_account_field</code></p></li>
 </ul>
 
-<p>除此之外，还有如下函数会更新cupstat</p>
+<p>除此之外，还有如下函数会更新<code>cupstat</code></p>
 
 <ul>
 <li><code>account_idle_time</code></li>
@@ -448,28 +532,28 @@ static struct cpuacct root_cpuacct = {
 
 <h3 id="总结一下">总结一下</h3>
 
-<p>更新cpustat的接口有如下四个：</p>
+<p>更新cpustat的接口有如下几个：</p>
 
 <ul>
-<li>account_user_time</li>
-<li>account_system_time</li>
-<li>irqtime_account_process_tick</li>
-<li>account_idle_time</li>
-<li>account_steal_time</li>
-<li>account_guest_time</li>
+<li><code>account_user_time</code></li>
+<li><code>account_system_time</code></li>
+<li><code>irqtime_account_process_tick</code></li>
+<li><code>account_idle_time</code></li>
+<li><code>account_steal_time</code></li>
+<li><code>account_guest_time</code></li>
 </ul>
 
 <h2 id="分析更新cpustat的接口实现">分析更新cpustat的接口实现</h2>
 
 <h3 id="account-user-time">account_user_time</h3>
 
-<p>代码地址为：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cputime.c?h=v4.4.128#n135"> kernel/sched/cputime.c(line 135) </a></p>
+<p>代码地址为：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cputime.c#L112#L132"> kernel/sched/cputime.c(line 112-132) </a></p>
 
 <p>该接口根据<code>task_nice(p)</code>是否为真，更新<code>CPUTIME_NICE</code>或者<code>CPUTIME_NICE</code></p>
 
 <h3 id="account-system-time">account_system_time</h3>
 
-<p>代码地址为：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cputime.c?h=v4.4.128#n211"> kernel/sched/cputime.c(line 211) </a></p>
+<p>代码地址为：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cputime.c#L178#L201"> kernel/sched/cputime.c(line 178-201) </a></p>
 
 <p>该接口根据不同的情况可能更新<code>CPUTIME_IRQ</code> 或者 <code>CPUTIME_SOFTIRQ</code> 或者 <code>CPUTIME_SYSTEM</code></p>
 
@@ -479,21 +563,48 @@ static struct cpuacct root_cpuacct = {
 
 <h3 id="account-idle-time">account_idle_time</h3>
 
-<p>代码地址为：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cputime.c?h=v4.4.128#n246"> kernel/sched/cputime.c(line 246) </a></p>
+<p>代码地址为：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cputime.c#L214#L227"> kernel/sched/cputime.c(line 214-227) </a></p>
 
-<p>该接口更新了<code>CPUTIME_IDLE</code>或者<code>CPUTIME_IOWAIT</code>，只更新了顶级的cpuacct，即idle时间不是cgroup aware的。</p>
+<p>该接口更新了<code>CPUTIME_IDLE</code>或者<code>CPUTIME_IOWAIT</code>，只更新了<code>root cpuacct</code>，即<code>idle</code>时间不是<code>cgroup aware</code>的。</p>
 
 <h3 id="account-steal-time">account_steal_time</h3>
 
-<p>代码地址为：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cputime.c?h=v4.4.128#n235"> kernel/sched/cputime.c(line 235) </a></p>
+<p>代码地址为：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cputime.c#L203#L212"> kernel/sched/cputime.c(line 203-212) </a></p>
 
-<p>该接口更新了<code>CPUTIME_STEAL</code>，只更新了顶级的cpuacct，即steal时间不是cgroup aware的。</p>
+<p>该接口更新了<code>CPUTIME_STEAL</code>，只更新了<code>root cpuacct</code>，即<code>steal</code>时间不是<code>cgroup aware</code>的。</p>
 
 <h3 id="account-guest-time">account_guest_time</h3>
 
-<p>代码地址为：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/sched/cputime.c?h=v4.4.128#n160"> kernel/sched/cputime.c(line 160) </a></p>
+<p>代码地址为：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/sched/cputime.c#L134#L156"> kernel/sched/cputime.c(line 134-156) </a></p>
 
-<p>该接口根据<code>task_nice(p)</code>是否为真，更新<code>CPUTIME_NICE and CPUTIME_GUEST_NICE</code>或者<code>CPUTIME_USER and CPUTIME_GUEST</code>, 只更新了顶级的cpuacct，即guest时间不是cgroup aware的。</p>
+<p>该接口根据<code>task_nice(p)</code>是否为真，更新<code>CPUTIME_NICE and CPUTIME_GUEST_NICE</code>或者<code>CPUTIME_USER and CPUTIME_GUEST</code>, 只更新了<code>root cpuacct</code>，即<code>guest</code>时间不是<code>cgroup aware</code>的。</p>
+
+<h2 id="其它相关问题">其它相关问题</h2>
+
+<h3 id="root-cpuacct的数据来源">root cpuacct的数据来源？</h3>
+
+<ul>
+<li><code>root cpuacct cgroup</code>中<code>usage</code>来源于变量<code>root_cpuacct_cpuusage</code>，在<code>cpuacct_charge</code>中会更新它的值。</li>
+<li><code>root cpuacct cgroup</code>中<code>cpustat</code>来源于变量<code>kernel_cpustat</code>,<code>cpuacct_account_field</code>并不会更新它，而是有系统上其它部分去更新。</li>
+</ul>
+
+<h3 id="proc-stat中cpu相关统计信息来自哪里">/proc/stat中cpu相关统计信息来自哪里？</h3>
+
+<ul>
+<li><code>/proc/stat</code>中cpu相关统计数据来自于变量<code>kernel_cpustat</code>,这个跟<code>root cpuacct cgroup</code>的数据来源是一样的。</li>
+</ul>
+
+<h3 id="docker如何计算容器的-cpu-利用率">docker如何计算容器的<code>cpu</code>利用率？</h3>
+
+<p><code>docker</code>容器的的cpu利用率计算公司如下：</p>
+
+<pre><code>	(cpuuasge的delta值/墙上时间delta) * 100%
+</code></pre>
+
+<ul>
+<li><code>cpuuasge</code>的<code>delta</code>值： 通过两次读取<code>cpuacct.useage</code>得到</li>
+<li>墙上时间<code>delta</code>： 通过两地读取<code>/proc/stat</code>的第一行得到，由于该行的值为<strong>墙上时间*cpu核数</strong>，所以该值应该再除以<code>cpu</code>核数。</li>
+</ul>
     </div>
 
     

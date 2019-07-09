@@ -18,7 +18,7 @@
 
 <meta name="author" content="laoqinren" />
   <meta name="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
- 注意：本文中引用的内核代码版本为v4.4.128
+ 注意：本文中引用的内核代码版本为v5.2
  
 " />
 
@@ -56,7 +56,7 @@
 <meta property="og:description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
 
-注意：本文中引用的内核代码版本为v4.4.128
+注意：本文中引用的内核代码版本为v5.2
 
 
 " />
@@ -83,7 +83,7 @@
 <meta itemprop="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
 
-注意：本文中引用的内核代码版本为v4.4.128
+注意：本文中引用的内核代码版本为v5.2
 
 
 ">
@@ -91,7 +91,7 @@
 
 <meta itemprop="datePublished" content="2018-05-10T18:26:35&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-10T18:26:35&#43;08:00" />
-<meta itemprop="wordCount" content="2854">
+<meta itemprop="wordCount" content="2717">
 
 
 
@@ -101,7 +101,7 @@
 <meta name="twitter:description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
 
-注意：本文中引用的内核代码版本为v4.4.128
+注意：本文中引用的内核代码版本为v5.2
 
 
 "/>
@@ -190,7 +190,7 @@
               <a href="/categories/cgroup/"> cgroup </a>
             
           </div>
-        <span class="more-meta"> 2854 words </span>
+        <span class="more-meta"> 2717 words </span>
         <span class="more-meta"> 6 mins read </span>
         
       </div>
@@ -227,50 +227,52 @@
 
     
     <div class="post-content">
-      <p>最近分析了内核<code>cpuset</code>的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。</p>
+      <p>最近分析了内核<code>cpuset</code>的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的<code>docker</code>也只是使用了其最简单的功能。本文对<code>cpuset</code>进行了简要总结，并总结了<code>docker</code>如何使用它。</p>
 
 <blockquote>
-<p>注意：本文中引用的内核代码版本为<code>v4.4.128</code></p>
+<p>注意：本文中引用的内核代码版本为<code>v5.2</code></p>
 </blockquote>
 
 <p></p>
 
+<p><img src="./pic.jpg" alt="" /></p>
+
 <h2 id="什么是cpuset">什么是cpuset ?</h2>
 
-<p>man手册中对其的描述为：<code>cpuset - confine processes to processor and memory node subsets</code>，cpuset用于限制一组进程只运行在特定的cpu节点上和只在特定的mem节点上分配内存。</p>
+<p>man手册中对其的描述为：<code>cpuset - confine processes to processor and memory node subsets</code>，<code>cpuset</code>用于限制一组进程只运行在特定的<code>cpu</code>节点上和只在特定的<code>mem</code>节点上分配内存。</p>
 
-<p>具体为什么需要<code>cpuset</code>，其和<code>sched_setaffinity(2)</code>，<code>mbind(2)</code>和<code>set_mempolicy(2)</code>系统调用的实现关系，可以参考<a href="https://www.kernel.org/doc/Documentation/cgroup-v1/cpusets.txt">https://www.kernel.org/doc/Documentation/cgroup-v1/cpusets.txt</a></p>
+<p>具体为什么需要<code>cpuset</code>，其和<code>sched_setaffinity(2)</code>，<code>mbind(2)</code>和<code>set_mempolicy(2)</code>系统调用的实现关系，可以参考<a href="https://www.kernel.org/doc/Documentation/cgroup-v1/cpusets.txt">cpuset文档</a>。</p>
 
 <h2 id="cpusets-是如何实现的">cpusets 是如何实现的？</h2>
 
-<p>由于linux kernel在实现cpusets之前，就有<code>sched_setaffinity(2)</code>，<code>mbind(2)</code>和<code>set_mempolicy(2)</code>等系统调用完成类似的功能。cpusets扩展了这些机制。</p>
+<p>由于<code>linux kernel</code>在实现<code>cpusets</code>之前，就有<code>sched_setaffinity(2)</code>，<code>mbind(2)</code>和<code>set_mempolicy(2)</code>等系统调用完成类似的功能。<code>cpusets</code>扩展了这些机制。</p>
 
-<p>刚开始，cpusets作为一个单独的实现，有一个文件系统类型为cpusets。后面随着cgroup的发展，cpusets又集成到了cgroup中，成了cgroup的一个子系统。</p>
+<p>刚开始，<code>cpusets</code>作为一个单独的实现，有一个文件系统类型为<code>cpusets</code>。后面随着<code>cgroup</code>的发展，<code>cpusets</code>又集成到了<code>cgroup</code>中，成了<code>cgroup</code>的一个子系统。</p>
 
-<p>目前，作为cgroup的一个子系统，其遵循如下原则：</p>
-
-<ul>
-<li>每个进程的cpuset信息，保存在其task_struct中的cgroup的数据结构中。</li>
-<li>sched_setaffinity系统调用只被允许设置为进程的cpuset中的cpu。</li>
-<li>mbind and set_mempolicy系统调用只被允许设置为进程的cpuset中的mem。</li>
-<li>root cpuset包含系统上所有的cpu和mem。</li>
-<li>对于每一个cpuset，可以定义其子cpuset，子cpuset包含的mem和cpu是其parent的子集。</li>
-<li>可以查看某个cpuset中的所有进程列表。</li>
-</ul>
-
-<p>为了实现cpuset，只需在内核中添加一些hook，这些hook都不在性能关键路径中：</p>
+<p>目前，作为<code>cgroup</code>的一个子系统，其遵循如下原则：</p>
 
 <ul>
-<li>在 init/main.c, 在内核启动时，初始化root cpuset</li>
-<li>在fork和exit接口中，attach和detach一个进程到对应的cpuset中</li>
-<li>在sched_setaffinity实现中，添加cpuset的过滤</li>
-<li>在mbind and set_mempolicy的实现中，添加cpuset的过滤</li>
-<li>在 sched.c migrate_live_tasks()中，限制目标cpu为cpuset中所允许的</li>
-<li>在page_alloc.c，限制内存分配的节点为cpuset中所允许的内存节点上</li>
-<li>在vmscan.c,现在内存恢复到cpuset中所允许的内存节点上</li>
+<li>每个进程的<code>cpuset信息，保存在其</code>task_struct<code>中的</code>cgroup`的数据结构中。</li>
+<li><code>sched_setaffinity</code>系统调用只被允许设置为进程的<code>cpuset</code>中的<code>cpu</code>。</li>
+<li><code>mbind</code> and <code>set_mempolicy</code>系统调用只被允许设置为进程的<code>cpuset</code>中的<code>mem</code>。</li>
+<li><code>root cpuset</code>包含系统上所有的<code>cpu</code>和<code>mem</code>。</li>
+<li>对于每一个<code>cpuset</code>，可以定义其子<code>cpuset</code>，子<code>cpuset</code>包含的<code>mem</code>和<code>cpu</code>是其<code>parent</code>的子集。</li>
+<li>可以查看某个<code>cpuset</code>中的所有进程列表。</li>
 </ul>
 
-<p>另外，每一个进程对应的文件<code>/proc/&lt;pid&gt;/status</code>中有四行信息描述其cpuset信息：</p>
+<p>为了实现<code>cpuset</code>，只需在内核中添加一些<code>hook</code>，这些<code>hook</code>都不在性能关键路径中：</p>
+
+<ul>
+<li>在<code>init/main.c</code>, 在内核启动时，初始化<code>root cpuset</code></li>
+<li>在<code>fork</code>和<code>exit</code>接口中，<code>attach</code>和<code>detach</code>一个进程到对应的<code>cpuset</code>中</li>
+<li>在<code>sched_setaffinity</code>实现中，添加<code>cpuset</code>的过滤</li>
+<li>在<code>mbind</code> and <code>set_mempolicy</code>的实现中，添加<code>cpuset</code>的过滤</li>
+<li>在 <code>sched.c migrate_live_tasks()</code>中，限制目标<code>cpu</code>为<code>cpuset</code>中所允许的</li>
+<li>在<code>page_alloc.c</code>，限制内存分配的节点为<code>cpuset</code>中所允许的内存节点上</li>
+<li>在<code>vmscan.c</code>,现在内存恢复到<code>cpuset</code>中所允许的内存节点上</li>
+</ul>
+
+<p>另外，每一个进程对应的文件<code>/proc/&lt;pid&gt;/status</code>中有四行信息描述其<code>cpuset</code>信息：</p>
 
 <pre><code>  Cpus_allowed:   ffffffff,ffffffff,ffffffff,ffffffff
   Cpus_allowed_list:      0-127
@@ -278,7 +280,7 @@
   Mems_allowed_list:      0-63
 </code></pre>
 
-<p>每一个进程对应的文件<code>/proc/&lt;pid&gt;/cpuset</code>中展示了其对应的cgroup路径信息。</p>
+<p>每一个进程对应的文件<code>/proc/&lt;pid&gt;/cpuset</code>中展示了其对应的<code>cgroup</code>路径信息。</p>
 
 <h2 id="cpuset-cgroup控制文件">cpuset cgroup控制文件</h2>
 
@@ -295,57 +297,67 @@
 <tbody>
 <tr>
 <td>cpuset.cpus</td>
-<td>限制一组进程所能使用的cpu</td>
+<td>限制一组进程所能使用的<code>cpu</code>, 供用户进行设置</td>
 </tr>
 
 <tr>
 <td>cpuset.mems</td>
-<td>限制一组进程所能使用的mem</td>
+<td>限制一组进程所能使用的<code>mem</code>，供用户进行设置</td>
+</tr>
+
+<tr>
+<td>cpuset.effective_cpus</td>
+<td>显示实际进程可以使用的<code>cpu</code></td>
+</tr>
+
+<tr>
+<td>cpuset.effective_mems</td>
+<td>显示实际进程可以使用的<code>mem</code></td>
 </tr>
 
 <tr>
 <td>cpuset.memory_migrate</td>
-<td>flag: 设置为1时，使能memory migration, 即内存结点改变后迁移内存，默认为0</td>
+<td><code>flag</code>: 设置为<code>1</code>时，使能<code>memory migration</code>, 即内存结点改变后迁移内存，默认为<code>0</code></td>
 </tr>
 
 <tr>
 <td>cpuset.cpu_exclusive</td>
-<td>flag：设置为1时，说明独占指定cpus，默认为0</td>
+<td><code>flag</code>：设置为<code>1</code>时，说明独占指定<code>cpus</code>，默认为<code>0</code></td>
 </tr>
 
 <tr>
 <td>cpuset.mem_exclusive</td>
-<td>flag：设置为1时，说明独占指定mem，默认为0</td>
+<td><code>flag</code>：设置为<code>1</code>时，说明独占指定<code>mem</code>，默认为<code>0</code></td>
 </tr>
 
 <tr>
 <td>cpuset.mem_hardwall</td>
-<td>flag：设置为1时，说明cpuset为Hardwall，默认为0</td>
+<td><code>flag</code>：设置为<code>1</code>时，说明<code>cpuset</code>为<code>Hardwall</code>，默认为<code>0</code></td>
 </tr>
 
 <tr>
 <td>cpuset.memory_pressure</td>
-<td>显示该cpuset中的内存压力，只读文件</td>
+<td>显示该<code>cpuset</code>中的内存压力，只读文件</td>
 </tr>
 
 <tr>
 <td>cpuset.memory_spread_page</td>
-<td>flag：设置为1时，内核page cache将会均匀的分布在不同的节点上，默认值为0</td>
+<td><code>flag</code>：设置为<code>1</code>时，内核<code>page cache</code>将会均匀的分布在不同的节点上，默认值为<code>0</code></td>
 </tr>
 
 <tr>
 <td>cpuset.memory_spread_slab</td>
-<td>flag：设置为1时，内核slab cache将会均匀的分布在不同的节点上，默认值为0</td>
+<td><code>flag</code>：设置为<code>1</code>时，内核<code>slab cache</code>将会均匀的分布在不同的节点上，默认值为<code>0</code></td>
 </tr>
 
 <tr>
 <td>cpuset.sched_load_balance</td>
-<td>flag：默认为值1，表示进程会在该cpuset中允许的cpu上进行负载均衡</td>
+<td><code>flag</code>：默认为值<code>1</code>，表示进程会在该<code>cpuset</code>中允许的<code>cpu</code>上进行负载均衡</td>
 </tr>
 
 <tr>
 <td>cpuset.sched_relax_domain_level</td>
-<td>可设置的值为-1到一个较小的整数值，只有sched_load_balance为1时生效，值越大，表示负载均衡时查找的cpu范围越大</td>
+<td>可设置的值为<code>-1</code>到一个较小的整数值，只有<code>sched_load_balance</code>为<code>1</code>时生效，值越大，表示负载均衡时查找的<code>cpu</code>范围越大</td>
 </tr>
 </tbody>
 </table>
@@ -363,14 +375,14 @@
 <tbody>
 <tr>
 <td>cpuset.memory_pressure_enabled</td>
-<td>flag: 设置为1，表示计算每个cpuset的内存压力，此时memory_pressure的输出才有意义，该值默认为0</td>
+<td><code>flag</code>: 设置为<code>1</code>，表示计算每个<code>cpuset</code>的内存压力，此时<code>memory_pressure</code>的输出才有意义，该值默认为<code>0</code></td>
 </tr>
 </tbody>
 </table>
 
 <h2 id="docker中cpuset的使用">docker中cpuset的使用</h2>
 
-<p>docker中对cpuset的复杂功能都没有使用，即上面提到的各种flags都是用的默认值（即都未使能），docker只导出了两个接口：mems和cpus：</p>
+<p><code>docker</code>中对<code>cpuset</code>的复杂功能都没有使用，即上面提到的各种<code>flags</code>都是用的默认值（即都未使能），<code>docker</code>只导出了两个接口：<code>mems</code>和<code>cpus</code>：</p>
 
 <pre><code># docker run --help
 
@@ -388,53 +400,47 @@ Options:
 ...
 </code></pre>
 
-<p>其实现请参考：<a href="https://github.com/opencontainers/runc/blob/v1.0.0-rc5/libcontainer/cgroups/fs/cpuset.go#L32:L44">https://github.com/opencontainers/runc/blob/v1.0.0-rc5/libcontainer/cgroups/fs/cpuset.go#L32:L44</a></p>
+<p>其实现请参考：<a href="https://github.com/opencontainers/runc/blob/v1.0.0-rc5/libcontainer/cgroups/fs/cpuset.go#L32:L44">runc代码</a></p>
 
-<p>在实现中，新建cpuset时mems和cpus的值默认为其parent cpuset的mems和cpus的值。</p>
+<p>在实现中，新建<code>cpuset</code>时<code>mems</code>和<code>cpus</code>的值默认为其<code>parent cpuset</code>的<code>mems</code>和<code>cpus</code>的值。</p>
 
 <h2 id="cpuset-扩展功能">cpuset 扩展功能</h2>
 
 <h3 id="什么是-exclusive-cpusets">什么是 exclusive cpusets ?</h3>
 
-<p>如果一个cpuset是cpu 或者mem exclusive，那么没有其他cpuset（直接parent和其子cpuset除外）会和其共享相同的cpus和mems。</p>
+<p>如果一个<code>cpuset</code>是<code>cpu 或者</code>mem exclusive<code>，那么没有其他</code>cpuset<code>（直接</code>parent<code>和其子</code>cpuset<code>除外）会和其共享相同的</code>cpus<code>和</code>mems`。</p>
 
 <h3 id="什么是-memory-pressure">什么是 memory_pressure ?</h3>
 
-<p><code>memory_pressure</code>反应了cpuset中的这组进程尝试释放内存的频率，一般用户可以监控该文件，然后做出合理的反应。默认情况下，该功能是disable的。</p>
+<p><code>memory_pressure</code>反应了<code>cpuset</code>中的这组进程尝试释放内存的频率，一般用户可以监控该文件，然后做出合理的反应。默认情况下，该功能是<code>disable</code>的。</p>
 
 <h3 id="什么是-memory-spread">什么是  memory spread ?</h3>
 
-<p>当进行内存分配时，默认从当前运行的cpu所在的node上分配内存（<code>page cache</code> or  <code>slab cache</code>），当配置了<code>memory_spread_page</code>和<code>memory_spread_slab</code>后，分配内存时就会使用轮询算法。默认情况下，该功能是<code>disable</code>的。</p>
+<p>当进行内存分配时，默认从当前运行的<code>cpu</code>所在的<code>node</code>上分配内存（<code>page cache</code> or  <code>slab cache</code>），当配置了<code>memory_spread_page</code>和<code>memory_spread_slab</code>后，分配内存时就会使用轮询算法。默认情况下，该功能是<code>disable</code>的。</p>
 
-<p>代码如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/cpuset.c?h=v4.4.128#n2630"> kernel/cpuset.c(line 2630) </a></p>
+<p>代码如下：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/cgroup/cpuset.c#L3449#L3472"> kernel/cgroup/cpuset.c(line 3449-3472) </a></p>
 
 <pre><code class="language-c">static int cpuset_spread_node(int *rotor)
 {
-        int node;
-
-        node = next_node(*rotor, current-&gt;mems_allowed);
-        if (node == MAX_NUMNODES)
-                node = first_node(current-&gt;mems_allowed);
-        *rotor = node;
-        return node;
+	return *rotor = next_node_in(*rotor, current-&gt;mems_allowed);
 }
 
 int cpuset_mem_spread_node(void)
 {
-        if (current-&gt;cpuset_mem_spread_rotor == NUMA_NO_NODE)
-                current-&gt;cpuset_mem_spread_rotor =
-                        node_random(&amp;current-&gt;mems_allowed);
+	if (current-&gt;cpuset_mem_spread_rotor == NUMA_NO_NODE)
+		current-&gt;cpuset_mem_spread_rotor =
+			node_random(&amp;current-&gt;mems_allowed);
 
-        return cpuset_spread_node(&amp;current-&gt;cpuset_mem_spread_rotor);
+	return cpuset_spread_node(&amp;current-&gt;cpuset_mem_spread_rotor);
 }
 
 int cpuset_slab_spread_node(void)
 {
-        if (current-&gt;cpuset_slab_spread_rotor == NUMA_NO_NODE)
-                current-&gt;cpuset_slab_spread_rotor =
-                        node_random(&amp;current-&gt;mems_allowed);
+	if (current-&gt;cpuset_slab_spread_rotor == NUMA_NO_NODE)
+		current-&gt;cpuset_slab_spread_rotor =
+			node_random(&amp;current-&gt;mems_allowed);
 
-        return cpuset_spread_node(&amp;current-&gt;cpuset_slab_spread_rotor);
+	return cpuset_spread_node(&amp;current-&gt;cpuset_slab_spread_rotor);
 }
 
 EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
@@ -442,15 +448,15 @@ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
 
 <h3 id="什么是-sched-load-balance">什么是 sched_load_balance ?</h3>
 
-<p>该值默认为1，即打开调度CPU的负载均衡，这里指的是cpuset拥有的sched_domain，默认全局的CPU调度是本来就有负载均衡的。</p>
+<p>该值默认为<code>1</code>，即打开调度<code>CPU</code>的负载均衡，这里指的是<code>cpuset</code>拥有的<code>sched_domain</code>，默认全局的<code>CPU</code>调度是本来就有负载均衡的。</p>
 
 <p>简单说一下<code>sched_domain</code>的作用，其实就是划定了负载均衡的<code>CPU</code>范围，默认是有一个全局的<code>sched_domain</code>，对所有<code>CPU</code>做负载均衡的，现在再划分出一个<code>sched_domain</code>把<code>CPU</code>的某个子集作为负载均衡的单元。</p>
 
-<p>对应到cpuset中，即将该cpuset所运行的cpu集合作为一个负载均衡在单元。</p>
+<p>对应到<code>cpuset</code>中，即将该<code>cpuset</code>所运行的<code>cpu</code>集合作为一个负载均衡在单元。</p>
 
 <h3 id="什么是-sched-relax-domain-level">什么是 sched_relax_domain_level ?</h3>
 
-<p>当sched_load_balance使能后，该值代表寻找cpu的范围,该值有几个等级，越大越优先，表示迁移时搜索CPU的范围，这个主要开启了负载均衡选项的时候才有用。具体值代表的范围如下：</p>
+<p>当<code>sched_load_balance</code>使能后，该值代表寻找<code>cpu</code>的范围,该值有几个等级，越大越优先，表示迁移时搜索<code>CPU</code>的范围，这个主要开启了负载均衡选项的时候才有用。具体值代表的范围如下：</p>
 
 <pre><code>  -1  : no request. use system default or follow request of others.
    0  : no search.
@@ -461,10 +467,13 @@ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
    5  : search system wide [on NUMA system]
 </code></pre>
 
-<p>什么时候有用呢？
-（1）当进程在cpu间迁移时代价足够小
-（2）searching cost 足够小，对我们没有影响
-（3）低延迟是相比cache miss更重要的场景</p>
+<p>什么时候有用呢？</p>
+
+<ol>
+<li>当进程在cpu间迁移时代价足够小</li>
+<li>searching cost 足够小，对我们没有影响</li>
+<li>低延迟是相比cache miss更重要的场景</li>
+</ol>
 
 <h2 id="参考文档">参考文档</h2>
 
