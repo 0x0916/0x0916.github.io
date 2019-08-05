@@ -12,6 +12,15 @@
     
     
     <item>
+      <title>内核基础设施——static_key</title>
+      <link>http://linux.laoqinren.net/kernel/static_key/</link>
+      <pubDate>Mon, 05 Aug 2019 19:43:48 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/static_key/</guid>
+      <description>&lt;p&gt;本节介绍了&lt;code&gt;static_key&lt;/code&gt;这个内核基础设施。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>内核调试——dyndbg特性</title>
       <link>http://linux.laoqinren.net/kernel/kernel-dynamic-debug/</link>
       <pubDate>Wed, 13 Mar 2019 22:30:09 +0800</pubDate>

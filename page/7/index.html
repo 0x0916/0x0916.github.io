@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-06-23T17:38:10&#43;08:00"/>
+<meta property="og:updated_time" content="2018-06-27T21:18:15&#43;08:00"/>
 
 
 
@@ -152,6 +152,36 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/posts/use-high-version-of-gcc-in-centos7/">在centos7中使用高版本的GCC</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-06-27 </span>
+      <div class="post-category">
+          
+            <a href="/categories/gcc/"> gcc </a>
+          
+        </div>
+      <span class="more-meta"> 506 words </span>
+      <span class="more-meta"> 2 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>在<code>centos</code>上进行内核开发时，由于一些内核特性依赖于高版本的<code>GCC特性</code>（<code>gcc &gt; 5.0</code>），而<code>centos</code>默认的GCC一般为<code>4.8.x</code>。</p>
+
+<p>本文记录一种非常简单的在<code>centos</code>上使用高版本的<code>GCC</code>的方法。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/posts/use-high-version-of-gcc-in-centos7/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">
@@ -302,40 +332,6 @@
     </div>
     <div class="read-more">
       <a href="/linux/cgroup-cpuset/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/wait-queue/">内核基础设施——wait queue</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-05-07 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2883 words </span>
-      <span class="more-meta"> 6 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <h2 id="什么是等待队列">什么是等待队列？</h2>
-
-<p>在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。<code>Linux</code>中提供了等待队列的机制，该机制在内核中应用很广泛。</p>
-
-<p>等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。</p>
-
-<p>在<code>Linux</code>内核中使用等待队列的过程很简单，首先定义一个<code>wait_queue_head</code>，然后如果一个<code>task</code>想等待某种事件，那么调用<code>wait_event（等待队列，事件）</code>就可以了。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/wait-queue/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
