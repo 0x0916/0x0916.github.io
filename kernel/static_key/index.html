@@ -77,7 +77,7 @@
 
 <meta itemprop="datePublished" content="2019-08-05T19:43:48&#43;08:00" />
 <meta itemprop="dateModified" content="2019-08-05T19:43:48&#43;08:00" />
-<meta itemprop="wordCount" content="2387">
+<meta itemprop="wordCount" content="2386">
 
 
 
@@ -168,7 +168,7 @@
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 2387 words </span>
+        <span class="more-meta"> 2386 words </span>
         <span class="more-meta"> 5 mins read </span>
         
       </div>
@@ -211,7 +211,7 @@
 
 <h3 id="理解问题">理解问题</h3>
 
-<p>在<code>linux</code>内核中，<code>control cgroup</code>是实现容器技术的核心技术之一，在<code>control cgroup</code>中有一个叫做<code>cpu cgroup</code>的子系统，它用来限制一组进程的<code>cpu</code>使用量。为了达到限制的目的，就需要对进程单位时间内使用的<code>cpu</code>时间进行统计，而统计会耗费一定的代价，所以内核设计者为了减少系统损耗，只有当系统删有<code>cpu cgroup</code>且被设置了<code>cpu</code>限制时，采用执行统计<code>cpu</code>时间信息的代码。</p>
+<p>在<code>linux</code>内核中，<code>control cgroup</code>是实现容器的核心技术之一，在<code>control cgroup</code>中有一个叫做<code>cpu cgroup</code>的子系统，它用来限制一组进程的<code>cpu</code>使用量。为了达到限制的目的，就需要对进程单位时间内使用的<code>cpu</code>时间进行统计，而统计会耗费一定的代价，所以内核设计者为了减少系统损耗，只有当系统启用了<code>cpu cgroup</code>且被设置了<code>cpu</code>限制时，采用执行统计<code>cpu</code>时间信息的代码。</p>
 
 <p>内核中有一个全局的变量<code>__cfs_bandwidth_used</code>，初始化时，其值为<code>0</code>，</p>
 
