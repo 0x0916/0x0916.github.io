@@ -12,6 +12,15 @@
     
     
     <item>
+      <title>内核基础设施——per cpu变量</title>
+      <link>http://linux.laoqinren.net/kernel/percpu-var/</link>
+      <pubDate>Thu, 14 Nov 2019 15:55:10 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/percpu-var/</guid>
+      <description>&lt;p&gt;本节介绍了&lt;code&gt;per-cpu 变量&lt;/code&gt;这个内核基础设施。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>内核基础设施——static_key</title>
       <link>http://linux.laoqinren.net/kernel/static_key/</link>
       <pubDate>Mon, 05 Aug 2019 19:43:48 +0800</pubDate>

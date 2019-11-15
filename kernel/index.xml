@@ -6,10 +6,19 @@
     <description>Recent content on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 05 Aug 2019 19:43:48 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 14 Nov 2019 15:55:10 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>内核基础设施——per cpu变量</title>
+      <link>http://linux.laoqinren.net/kernel/percpu-var/</link>
+      <pubDate>Thu, 14 Nov 2019 15:55:10 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/percpu-var/</guid>
+      <description>&lt;p&gt;本节介绍了&lt;code&gt;per-cpu 变量&lt;/code&gt;这个内核基础设施。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>内核基础设施——static_key</title>
