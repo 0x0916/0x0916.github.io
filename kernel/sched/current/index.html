@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Linux调度——神奇的current - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中" />
+<meta name="keywords" content="sched, 调度" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/sched/current/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="Linux调度——神奇的current" />
+<meta property="og:description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/sched/current/" />
+
+
+
+<meta property="article:published_time" content="2019-11-16T10:26:50&#43;08:00"/>
+
+<meta property="article:modified_time" content="2019-11-16T10:26:50&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Linux调度——神奇的current">
+<meta itemprop="description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中">
+
+
+<meta itemprop="datePublished" content="2019-11-16T10:26:50&#43;08:00" />
+<meta itemprop="dateModified" content="2019-11-16T10:26:50&#43;08:00" />
+<meta itemprop="wordCount" content="1284">
+
+
+
+<meta itemprop="keywords" content="kernel,linux," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Linux调度——神奇的current"/>
+<meta name="twitter:description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Linux调度——神奇的current</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-11-16 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 1284 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#current的作用">current的作用</a></li>
+<li><a href="#current的通用实现方法">current的通用实现方法</a></li>
+<li><a href="#current在x86架构上的实现">current在x86架构上的实现</a></li>
+<li><a href="#实验示例">实验示例</a>
+<ul>
+<li><a href="#x86也支持-current-thread-info-task-方式">x86也支持<code>current_thread_info()-&gt;task</code>方式</a></li>
+<li><a href="#验证一下-task-current-和-thread-info-的关系">验证一下<code>task_current</code>和<code>thread_info</code>的关系</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>本文介绍了<code>linux</code>内核中经常出现的<code>current</code>宏，并分析其通用的实现方法，已经其在<code>x86-64</code>下的实现方法。</p>
+
+<h3 id="current的作用">current的作用</h3>
+
+<p>在内核中，访问任务通常需要获得指向其的<code>struct task_struct</code>指针。实际上，内核中大部分处理进程的代码都是通过<code>struct task_struct</code>进行的。因此，通过<code>current</code>宏查找当前正在运行进程的进程描述符就显得尤为重要。硬件体系不同，该宏的实现方式也就不同。有的硬件体系结构可以专门拿出一个寄存器存放指向当前进程的<code>struct task_struct</code>指针，用于加快访问速度。而有些像<code>x86</code>这样的体系结构（其寄存器并不富余），就只能在内核栈的底端创建<code>struct thread_info</code>结构，通过计算偏移间接地查找<code>struct task_struct</code>结构。</p>
+
+<h3 id="current的通用实现方法">current的通用实现方法</h3>
+
+<p>所以通过<code>esp</code>寄存器的值和内核栈大小，就可以方便的计算出内核栈的栈底地址，该地址其实就是进程对应的<code>struct thread_info</code>结构的地址。相关代码如下：</p>
+
+<pre><code class="language-c">#ifndef __ASM_GENERIC_CURRENT_H
+#define __ASM_GENERIC_CURRENT_H
+
+#include &lt;linux/thread_info.h&gt;
+
+#define get_current() (current_thread_info()-&gt;task)
+#define current get_current()
+
+#endif /* __ASM_GENERIC_CURRENT_H */
+
+
+/* how to get the current stack pointer from C */ 
+register unsigned long current_stack_pointer asm(&quot;esp&quot;) __used; 
+
+/* how to get the thread information struct from C */ 
+static inline struct thread_info *current_thread_info(void)                 
+{
+        return (struct thread_info *)
+                (current_stack_pointer &amp; ~(THREAD_SIZE - 1));
+}
+</code></pre>
+
+<h3 id="current在x86架构上的实现">current在x86架构上的实现</h3>
+
+<p>理解了如上信息后，x86架构进一步对<code>current</code>宏进行了优化实现：</p>
+
+<pre><code class="language-c">#ifndef _ASM_X86_CURRENT_H
+#define _ASM_X86_CURRENT_H
+
+#include &lt;linux/compiler.h&gt;
+#include &lt;asm/percpu.h&gt;
+
+#ifndef __ASSEMBLY__
+struct task_struct;
+
+DECLARE_PER_CPU(struct task_struct *, current_task);
+
+static __always_inline struct task_struct *get_current(void)
+{
+        return this_cpu_read_stable(current_task);
+}
+
+#define current get_current()
+
+#endif /* __ASSEMBLY__ */
+
+#endif /* _ASM_X86_CURRENT_H */
+</code></pre>
+
+<p>在<code>x86</code>体系结构中，使用了<code>current_task</code>这个每CPU变量，来存储当前正在使用<code>cpu</code>的进程的<code>struct task_struct</code>。</p>
+
+<blockquote>
+<p>注意： 通过<code>current_thread_info()-&gt;task</code>得到<code>struct task_struct</code>在x86上也是支持的。</p>
+</blockquote>
+
+<h3 id="实验示例">实验示例</h3>
+
+<h4 id="x86也支持-current-thread-info-task-方式">x86也支持<code>current_thread_info()-&gt;task</code>方式</h4>
+
+<pre><code class="language-c?linenums">#include &lt;linux/module.h&gt;
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/init.h&gt;
+#include &lt;linux/sched.h&gt;
+
+static int __init test_thread_info_init(void)
+{
+        struct thread_info *ti = NULL;
+        struct task_struct *head = NULL;
+
+        printk(KERN_ALERT &quot;[Hello] test_thread_info \n&quot;);
+        ti = (struct thread_info*)((unsigned long)&amp;ti &amp; ~(THREAD_SIZE - 1));
+        head = ti-&gt;task;
+
+        printk(&quot;kernel stack size = %lx\n&quot;, THREAD_SIZE);
+        printk(&quot;name is %s\n&quot;, head-&gt;comm);
+
+        return 0;
+}
+
+static void __exit test_thread_info_exit(void)
+{
+        printk(KERN_ALERT &quot;[Goodbye] test_thread_info\n&quot;);
+}
+
+module_init(test_thread_info_init);
+module_exit(test_thread_info_exit);
+MODULE_LICENSE(&quot;GPL&quot;);
+</code></pre>
+
+<ul>
+<li>上述模块初始化代码中，<code>ti</code>作为局部变量，存储在内核栈中，所以<code>12</code>行代码可以获取<code>struct thread_info</code>结构体的地址。</li>
+<li>插入模块，打印出进程的名称<code>insmod</code>，说明结果符合预期。</li>
+</ul>
+
+<h4 id="验证一下-task-current-和-thread-info-的关系">验证一下<code>task_current</code>和<code>thread_info</code>的关系</h4>
+
+<p>实验方法：
+（1）启动一个stress进程，持续占用CPU。</p>
+
+<pre><code class="language-bash"># stress -c 1
+</code></pre>
+
+<p>（2）获得stress进程的进程号，使用taskset将其绑定到cpu1上。</p>
+
+<pre><code class="language-bash"># ps aux | grep stress
+root      3427  0.0  0.0   7308   424 pts/2    S+   15:25   0:00 stress -c 1
+root      3428 99.9  0.0   7308   100 pts/2    R+   15:25   6:21 stress -c 1
+root      3918  0.0  0.0 112708   968 pts/3    S+   15:31   0:00 grep --color=auto stress
+ # taskset -p 02 3428
+pid 3428's current affinity mask: f
+pid 3428's new affinity mask: 2
+</code></pre>
+
+<p>此时，我们可以通过<code>crash</code>查看这些数据的关系：</p>
+
+<pre><code>crash&gt; p current_task:1
+per_cpu(current_task, 1) = $1 = (struct task_struct *) 0xffff95c498211fc0
+crash&gt; task_struct.comm 0xffff95c498211fc0
+  comm = &quot;stress\000\000\060\000\000\000\000\000\000&quot;
+crash&gt; task_struct.stack 0xffff95c498211fc0
+  stack = 0xffff95c407c28000
+crash&gt; thread_info.task 0xffff95c407c28000
+  task = 0xffff95c498211fc0 
+</code></pre>
+
+<ul>
+<li><code>cpu1</code>上正在执行的进程的描述符地址为：<code>0xffff95c498211fc0</code>。</li>
+<li>其进程名称为我们期望的<code>stress</code>。</li>
+<li>通过描述符的<code>stack</code>域，可以得到进程的栈底地址为：<code>0xffff95c407c28000</code>，其实也就是<code>thread_info</code>的地址。</li>
+<li>通过<code>thread_info</code>的<code>task</code>域可以看出，其值和<code>current_task:1</code>的值一样。</li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-11-16</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/sched/current/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/sched/task_struct/">
+            <span class="next-text nav-default">Linux调度——进程描述符</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

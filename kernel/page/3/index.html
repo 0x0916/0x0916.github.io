@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2019-01-05T21:08:28&#43;08:00"/>
+<meta property="og:updated_time" content="2019-01-12T12:06:18&#43;08:00"/>
 
 
 
@@ -155,6 +155,70 @@
     
       <article class="post">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/memory-compaction/">内存规整（memory compaction）</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2019-01-12 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 2866 words </span>
+      <span class="more-meta"> 6 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：<strong>内存规整</strong>。</p>
+
+<p>包括如下内容：</p>
+
+<ul>
+<li>内存规整相关的内存管理参数</li>
+<li>描述内存碎片化程度的指数：<code>extfrag_index</code>和<code>unusable_index</code></li>
+<li><code>extfrag_threshold</code>内存管理参数</li>
+</ul>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/memory-compaction/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/vm-sysctl-lowmem_reserve_ratio/">内存管理参数lowmem_reserve_ratio分析</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2019-01-06 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 1556 words </span>
+      <span class="more-meta"> 4 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>在<code>Linux</code>系统中，有很多内存管理的配置参数，本文就详细分析<code>lowmem_reserve_ratio</code>参数。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/vm-sysctl-lowmem_reserve_ratio/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/kernel/vm-sysctl-min_free_kbytes/">内存管理参数min_free_kbytes 分析</a></h1>
     <div class="post-meta">
       <span class="post-time"> 2019-01-05 </span>
@@ -238,86 +302,6 @@
     </div>
     <div class="read-more">
       <a href="/kernel/radix-tree/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-default-file/">cgroup源码分析6——cgroup 中默认控制文件的内核实现分析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-26 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 3362 words </span>
-      <span class="more-meta"> 7 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。</p>
-
-<p>这些文件包括：</p>
-
-<ul>
-<li>notify_on_release</li>
-<li>release_agent</li>
-<li>cgroup.procs</li>
-<li>tasks</li>
-<li>cgroup.clone_children</li>
-<li>cgroup.event_control</li>
-<li>cgroup.sane_behavior</li>
-</ul>
-
-<blockquote>
-<p>注意：本文分析中引用的代码来自于centos系统自带的内核：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm">kernel-3.10.0-862.9.1.el7</a></p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-default-file/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-proc-pid-cgroup/">cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-25 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 587 words </span>
-      <span class="more-meta"> 2 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文详细分析了<code>/proc/pid/cgroup</code>文件的内核实现。</p>
-
-<blockquote>
-<p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-proc-pid-cgroup/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>

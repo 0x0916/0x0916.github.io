@@ -6,10 +6,30 @@
     <description>Recent content on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 14 Nov 2019 15:55:10 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 16 Nov 2019 10:26:50 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/kernel/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Linux调度——神奇的current</title>
+      <link>http://linux.laoqinren.net/kernel/sched/current/</link>
+      <pubDate>Sat, 16 Nov 2019 10:26:50 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/sched/current/</guid>
+      <description>本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中</description>
+    </item>
+    
+    <item>
+      <title>Linux调度——进程描述符</title>
+      <link>http://linux.laoqinren.net/kernel/sched/task_struct/</link>
+      <pubDate>Sat, 16 Nov 2019 10:15:48 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/sched/task_struct/</guid>
+      <description>&lt;p&gt;在&lt;code&gt;linux&lt;/code&gt;系统中，每个进程都会有自己的进程描述符，它用结构体&lt;code&gt;struct task_struct&lt;/code&gt;来表示，其描述了一个具体进程的所有信息。
+本文对&lt;strong&gt;进程描述符&lt;/strong&gt;进行了详细的介绍。
+&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>内核基础设施——per cpu变量</title>

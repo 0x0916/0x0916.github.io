@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Linux调度——进程描述符 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="在linux系统中，每个进程都会有自己的进程描述符，它用结构体struct task_struct来表示，其描述了一个具体进程的所有信息。 本文对进程描述符进行了详细的介绍。 " />
+<meta name="keywords" content="sched, 调度" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.37.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/sched/task_struct/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="Linux调度——进程描述符" />
+<meta property="og:description" content="在linux系统中，每个进程都会有自己的进程描述符，它用结构体struct task_struct来表示，其描述了一个具体进程的所有信息。
+本文对进程描述符进行了详细的介绍。
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/sched/task_struct/" />
+
+
+
+<meta property="article:published_time" content="2019-11-16T10:15:48&#43;08:00"/>
+
+<meta property="article:modified_time" content="2019-11-16T10:15:48&#43;08:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Linux调度——进程描述符">
+<meta itemprop="description" content="在linux系统中，每个进程都会有自己的进程描述符，它用结构体struct task_struct来表示，其描述了一个具体进程的所有信息。
+本文对进程描述符进行了详细的介绍。
+">
+
+
+<meta itemprop="datePublished" content="2019-11-16T10:15:48&#43;08:00" />
+<meta itemprop="dateModified" content="2019-11-16T10:15:48&#43;08:00" />
+<meta itemprop="wordCount" content="647">
+
+
+
+<meta itemprop="keywords" content="kernel,linux," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Linux调度——进程描述符"/>
+<meta name="twitter:description" content="在linux系统中，每个进程都会有自己的进程描述符，它用结构体struct task_struct来表示，其描述了一个具体进程的所有信息。
+本文对进程描述符进行了详细的介绍。
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Linux调度——进程描述符</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-11-16 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 647 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#进程描述符-task-struct">进程描述符:task_struct</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>在<code>linux</code>系统中，每个进程都会有自己的进程描述符，它用结构体<code>struct task_struct</code>来表示，其描述了一个具体进程的所有信息。
+本文对<strong>进程描述符</strong>进行了详细的介绍。
+</p>
+
+<h3 id="进程描述符-task-struct">进程描述符:task_struct</h3>
+
+<p><code>struct task_struct</code>相对较大，在<code>64</code>位系统上，它大约有<code>4.1KB</code>。但考虑到该结构体内包含了内核管理一个进程所需的所有信息，那么它的大小也算相当小了。</p>
+
+<p>在内核中，我们需要非常高效的获取进程的<code>struct task_struct</code>结构体，在现在的内核版本中，会在内核栈底（对于向下增长的栈来说）创建一个新的结构<code>struct thread_info</code>:</p>
+
+<pre><code>struct thread_info {
+        struct task_struct      *task;          /* main task structure */
+        struct exec_domain      *exec_domain;   /* execution domain */
+        __u32                   flags;          /* low level flags */
+        __u32                   status;         /* thread synchronous flags */
+        __u32                   cpu;            /* current CPU */
+        int                     preempt_count;  /* 0 =&gt; preemptable,
+                                                   &lt;0 =&gt; BUG */
+        mm_segment_t            addr_limit;
+        struct restart_block    restart_block;
+        void __user             *sysenter_return;
+#ifdef CONFIG_X86_32
+        unsigned long           previous_esp;   /* ESP of the previous stack in
+                                                   case of nested (IRQ) stacks
+                                                */
+        __u8                    supervisor_stack[0];
+#endif
+        unsigned int            sig_on_uaccess_error:1;
+        unsigned int            uaccess_err:1;  /* uaccess failed */
+};
+</code></pre>
+
+<p>该结构体中的<code>task</code>域中存放着指向该任务实际<code>task_struct</code>的指针。而<code>struct task_struct</code>中的<code>stack</code>域指向了该进程的内核栈的栈底（对于向下增长的栈来说）。</p>
+
+<p><code>task_struct</code>和内核栈的关系如下图所示：
+<img src="./task_struct-thread_info-stack.png" alt="" /></p>
+
+<p>在<code>x86-64</code>位系统上，进程内核栈的大小为<code>16KB</code>，用如下数据结构表示：</p>
+
+<pre><code class="language-c">union thread_union { 
+        struct thread_info thread_info;
+        unsigned long stack[THREAD_SIZE/sizeof(long)];  
+}; 
+</code></pre>
+
+<p>我们可以使用<code>crash</code>工具查看<code>struct task_struct</code>的<code>stack</code>域和进程<code>thread_info</code>的关系，这里我查看了系统上<code>init</code>进程（进程号为<code>1</code>）的信息：</p>
+
+<pre><code class="language-c">crash&gt; union thread_union
+union thread_union {
+    struct thread_info thread_info;
+    unsigned long stack[2048];
+}
+SIZE: 16384  //这里可以看出内核栈大小为16KB。
+crash&gt; task -R stack 1
+PID: 1      TASK: ffff95c499450000  CPU: 1   COMMAND: &quot;systemd&quot;
+  stack = 0xffff95c49944c000, 
+crash&gt; thread_info.task 0xffff95c49944c000
+  task = 0xffff95c499450000
+</code></pre>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-11-16</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/sched/task_struct/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/kernel/sched/current/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Linux调度——神奇的current</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/kernel/percpu-var/">
+            <span class="next-text nav-default">内核基础设施——per cpu变量</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

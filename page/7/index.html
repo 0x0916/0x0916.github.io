@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-07-16T10:28:23&#43;08:00"/>
+<meta property="og:updated_time" content="2018-08-06T16:10:14&#43;08:00"/>
 
 
 
@@ -152,6 +152,64 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/posts/rbtree-linux-kernel/">红黑树(二)——linux 内核的设计实现</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-08-06 </span>
+      <div class="post-category">
+          
+            <a href="/categories/algorithm/"> algorithm </a>
+          
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+          
+        </div>
+      <span class="more-meta"> 1637 words </span>
+      <span class="more-meta"> 4 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本文介绍了红黑树在linux kernel中实现，使用的内核版本为：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm">centos 3.10.0-693.11.6</a></p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/posts/rbtree-linux-kernel/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/posts/process_resource/">Process Resource</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-07-30 </span>
+      <div class="post-category">
+          
+            <a href="/categories/linux/"> linux </a>
+          
+        </div>
+      <span class="more-meta"> 1820 words </span>
+      <span class="more-meta"> 4 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/posts/process_resource/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">
@@ -252,94 +310,6 @@
     </div>
     <div class="read-more">
       <a href="/kernel/list/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/hlist/">内核基础设施——hlist_head/hlist_node结构解析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-06-20 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2018 words </span>
-      <span class="more-meta"> 5 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <blockquote>
-<p>注意：本文中的代码参考于linux v4.16。</p>
-</blockquote>
-
-<h2 id="数据结构">数据结构</h2>
-
-<p><code>hlist_head</code>和<code>hlist_node</code>用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:</p>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190"> include/linux/types.h(line 190) </a>
-
-<pre><code class="language-c">struct hlist_head {
-	struct hlist_node *first;
-};
-</code></pre>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
-
-<pre><code class="language-c">struct hlist_node {
-	struct hlist_node *next, **pprev;
-};
-
-</code></pre>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/hlist/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-cpuacct/">Cgroup之cpuacct子系统</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-05-20 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 2754 words </span>
-      <span class="more-meta"> 6 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p><code>cpuacct子系统</code>（CPU accounting）会自动生成报告来显示<code>cgroup中</code>任务所使用的<code>CPU</code>资源，其中包括子群组任务。报告有两大类：</p>
-
-<ul>
-<li><code>usage</code>: 统计<code>cgroup</code>中进程使用CPU的时间，单位为纳秒。</li>
-<li><code>stat</code>: 统计<code>cgroup</code>中进程使用CPU的时间，单位为<code>USER_HZ</code>。</li>
-</ul>
-
-<blockquote>
-<p>注意：本文中引用的内核代码版本为<code>v5.2</code></p>
-</blockquote>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-cpuacct/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
