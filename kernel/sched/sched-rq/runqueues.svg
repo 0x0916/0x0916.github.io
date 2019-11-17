@@ -1,0 +1,71 @@
+<svg width="1253" height="230" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+ <g>
+  <title>background</title>
+  <rect fill="#fff" id="canvas_background" height="232" width="1255" y="-1" x="-1"/>
+  <g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"/>
+  </g>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <rect stroke="#000" id="svg_1" height="29" width="150.000001" y="38" x="99.250006" stroke-width="1.5" fill="#0000ff"/>
+  <text stroke="#000" transform="matrix(0.7344398498535156,0,0,0.6727272868156433,42.14107632637024,15.177272073924541) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_3" y="66.891892" x="147.890878" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">CPU0</text>
+  <rect stroke="#000" id="svg_4" height="28" width="150.999999" y="109" x="98.750008" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="#fff"/>
+  <text stroke="#000" transform="matrix(0.6929615125182955,0,0,1,39.90941563354684,0) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_5" y="129" x="123.819831" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">runqueues[0]</text>
+  <text stroke="#000" transform="matrix(0.6666666865348816,0,0,0.6727272868156433,9.166666120290756,12.436363101005554) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_6" y="60" x="27.5" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">处理器</text>
+  <text stroke="#000" transform="matrix(0.6666666865348816,0,0,0.6727272868156433,9.166666120290756,12.436363101005554) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_7" y="175.945944" x="12.5" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">struct rq</text>
+  <rect id="svg_20" height="29" width="85" y="185" x="133" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_21" y="207.751262" x="150.843609" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">rt_rq</text>
+  <rect id="svg_22" height="29" width="85" y="185" x="35" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <rect id="svg_24" height="29" width="85" y="185" x="242" stroke-width="1.5" stroke="#000" fill="#bf5f00"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_25" y="207.751262" x="251.708366" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">cfs_rq</text>
+  <line stroke="#000" transform="rotate(0.28153595328330994 120.5000000000046,160.49999999999753) " stroke-linecap="null" stroke-linejoin="null" id="svg_26" y2="183.947652" x2="76.499086" y1="137.052349" x1="164.500914" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_27" y2="184" x2="164.5" y1="137" x1="164.5" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_28" y2="138" x2="162.5" y1="184" x1="284.5" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_29" y="207.751262" x="52.702122" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">dl_rq</text>
+  <line stroke="#000" stroke-linecap="null" stroke-linejoin="null" id="svg_30" y2="111.000002" x2="165.5" y1="67" x1="166.5" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <rect stroke="#000" id="svg_31" height="29" width="150.000001" y="36" x="700.977265" stroke-width="1.5" fill="#0000ff"/>
+  <text style="cursor: move;" stroke="#000" transform="matrix(0.7344398498535156,0,0,0.6727272868156433,42.14107632637024,15.177272073924541) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_32" y="63.918919" x="967.191819" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">CPU2</text>
+  <rect stroke="#000" id="svg_33" height="28" width="150.999999" y="107" x="700.477267" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="#fff"/>
+  <text style="cursor: move;" stroke="#000" transform="matrix(0.6929615125182955,0,0,1,39.90941563354684,0) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_34" y="127" x="992.161361" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">runqueues[2]</text>
+  <rect id="svg_35" height="29" width="85" y="183" x="734.72726" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_36" y="205.751262" x="752.570869" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">rt_rq</text>
+  <rect id="svg_37" height="29" width="85" y="183" x="636.72726" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <rect id="svg_38" height="29" width="85" y="183" x="843.72726" stroke-width="1.5" stroke="#000" fill="#bf5f00"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_39" y="205.751262" x="853.435626" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">cfs_rq</text>
+  <line stroke="#000" transform="rotate(0.28153595328330994 722.2272949218774,158.4999999999903) " stroke-linecap="null" stroke-linejoin="null" id="svg_40" y2="181.947652" x2="678.226345" y1="135.052349" x1="766.228173" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_41" y2="182" x2="766.22726" y1="135" x1="766.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_42" y2="136" x2="764.22726" y1="182" x1="886.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_43" y="205.751262" x="654.429382" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">dl_rq</text>
+  <line stroke="#000" stroke-linecap="null" stroke-linejoin="null" id="svg_44" y2="109.000002" x2="767.22726" y1="65" x1="768.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <rect stroke="#000" id="svg_45" height="29" width="150.000001" y="36" x="1018.977265" stroke-width="1.5" fill="#0000ff"/>
+  <text style="cursor: move;" stroke="#000" transform="matrix(0.7344398498535156,0,0,0.6727272868156433,42.14107632637024,15.177272073924541) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_46" y="63.918919" x="1400.17486" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">CPU3</text>
+  <rect stroke="#000" id="svg_47" height="28" width="150.999999" y="107" x="1018.477267" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="#fff"/>
+  <text style="cursor: move;" stroke="#000" transform="matrix(0.6929615125182955,0,0,1,39.90941563354684,0) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_48" y="127" x="1451.061306" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">runqueues[3]</text>
+  <rect id="svg_49" height="29" width="85" y="183" x="1052.72726" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_50" y="205.751262" x="1070.570869" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">rt_rq</text>
+  <rect id="svg_51" height="29" width="85" y="183" x="954.72726" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <rect id="svg_52" height="29" width="85" y="183" x="1161.72726" stroke-width="1.5" stroke="#000" fill="#bf5f00"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_53" y="205.751262" x="1171.435626" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">cfs_rq</text>
+  <line stroke="#000" transform="rotate(0.28153595328330994 1040.2270507812493,158.50000000002257) " stroke-linecap="null" stroke-linejoin="null" id="svg_54" y2="181.947652" x2="996.226345" y1="135.052349" x1="1084.228173" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_55" y2="182" x2="1084.22726" y1="135" x1="1084.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_56" y2="136" x2="1082.22726" y1="182" x1="1204.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_57" y="205.751262" x="972.429382" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">dl_rq</text>
+  <line stroke="#000" stroke-linecap="null" stroke-linejoin="null" id="svg_58" y2="109.000002" x2="1085.22726" y1="65" x1="1086.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <rect stroke="#000" id="svg_59" height="29" width="150.000001" y="37" x="400.977265" stroke-width="1.5" fill="#0000ff"/>
+  <text style="cursor: move;" stroke="#000" transform="matrix(0.7344398498535156,0,0,0.6727272868156433,42.14107632637024,15.177272073924541) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_60" y="65.405405" x="558.717251" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">CPU1</text>
+  <rect stroke="#000" id="svg_61" height="28" width="150.999999" y="108" x="400.477267" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="#fff"/>
+  <text style="cursor: move;" stroke="#000" transform="matrix(0.6929615125182955,0,0,1,39.90941563354684,0) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_62" y="128" x="559.236884" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">runqueues[1]</text>
+  <rect id="svg_63" height="29" width="85" y="184" x="434.72726" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_64" y="206.751262" x="452.570869" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">rt_rq</text>
+  <rect id="svg_65" height="29" width="85" y="184" x="336.72726" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <rect id="svg_66" height="29" width="85" y="184" x="543.72726" stroke-width="1.5" stroke="#000" fill="#bf5f00"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_67" y="206.751262" x="553.435626" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">cfs_rq</text>
+  <line stroke="#000" transform="rotate(0.28153595328330994 422.2272949218774,159.5000000000022) " stroke-linecap="null" stroke-linejoin="null" id="svg_68" y2="182.947652" x2="378.226345" y1="136.052349" x1="466.228173" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_69" y2="183" x2="466.22726" y1="136" x1="466.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_70" y2="137" x2="464.22726" y1="183" x1="586.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <text stroke="#000" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_71" y="206.751262" x="354.429382" fill-opacity="null" stroke-opacity="null" stroke-width="0" fill="#000000">dl_rq</text>
+  <line stroke="#000" stroke-linecap="null" stroke-linejoin="null" id="svg_72" y2="110.000002" x2="467.22726" y1="66" x1="468.22726" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+ </g>
+</svg>

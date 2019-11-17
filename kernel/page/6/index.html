@@ -57,7 +57,7 @@
 
 
 
-<meta property="og:updated_time" content="2018-05-07T18:27:48&#43;08:00"/>
+<meta property="og:updated_time" content="2018-05-20T20:57:16&#43;08:00"/>
 
 
 
@@ -152,6 +152,45 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-cpuacct/">Cgroup之cpuacct子系统</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-05-20 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+            <a href="/categories/cgroup/"> cgroup </a>
+          
+        </div>
+      <span class="more-meta"> 2754 words </span>
+      <span class="more-meta"> 6 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p><code>cpuacct子系统</code>（CPU accounting）会自动生成报告来显示<code>cgroup中</code>任务所使用的<code>CPU</code>资源，其中包括子群组任务。报告有两大类：</p>
+
+<ul>
+<li><code>usage</code>: 统计<code>cgroup</code>中进程使用CPU的时间，单位为纳秒。</li>
+<li><code>stat</code>: 统计<code>cgroup</code>中进程使用CPU的时间，单位为<code>USER_HZ</code>。</li>
+</ul>
+
+<blockquote>
+<p>注意：本文中引用的内核代码版本为<code>v5.2</code></p>
+</blockquote>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/cgroup-cpuacct/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">
@@ -288,34 +327,6 @@
     </div>
     <div class="read-more">
       <a href="/kernel/floating-proportions/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/hungtask/">hungtask 机制分析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-04-16 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2532 words </span>
-      <span class="more-meta"> 6 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>本文分析了内核中<code>hungtask</code>机制，下文中代码基于社区稳定版本内核，版本为：<code>v4.4.128</code>。</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/hungtask/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
