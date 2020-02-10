@@ -18,7 +18,6 @@
 
 <meta name="author" content="laoqinren" />
   <meta name="description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。
-
 " />
 <meta name="keywords" content="getrlimit, setrlimit, getrusage, prlimit" />
 
@@ -28,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/process_resource/" />
@@ -52,32 +51,13 @@
 
 
 <meta property="og:title" content="Process Resource" />
-<meta property="og:description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。
-
-" />
+<meta property="og:description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/posts/process_resource/" />
-
-
-
-<meta property="article:published_time" content="2018-07-30T19:02:06&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-07-30T19:02:06&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-07-30T19:02:06+08:00" />
+<meta property="article:modified_time" content="2018-07-30T19:02:06+08:00" />
 <meta itemprop="name" content="Process Resource">
-<meta itemprop="description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。
-
-">
+<meta itemprop="description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。">
 
 
 <meta itemprop="datePublished" content="2018-07-30T19:02:06&#43;08:00" />
@@ -89,9 +69,7 @@
 <meta itemprop="keywords" content="ulimit,getrusage,prlimit," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Process Resource"/>
-<meta name="twitter:description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。
-
-"/>
+<meta name="twitter:description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -210,8 +188,6 @@
     
     <div class="post-content">
       <p>每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。</p>
-
-<p></p>
 
 <h2 id="进程资源使用情况">进程资源使用情况</h2>
 
@@ -540,7 +516,7 @@ $ docker run -d -u daemon --ulimit nproc=3 busybox top
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

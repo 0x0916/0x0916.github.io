@@ -1,3 +1,4 @@
+
 红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。
 
 > 注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm

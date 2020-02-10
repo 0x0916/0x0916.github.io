@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Notes about linux and my work</title>
@@ -23,9 +23,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;本文所有例子在&lt;code&gt;centos 7.5&lt;/code&gt; 下执行通过&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -37,8 +35,8 @@
       <description>&lt;p&gt;红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。&lt;/p&gt;
 
 &lt;blockquote&gt;
-&lt;p&gt;注意：本文中的代码来自于：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&#34;&gt;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&lt;/a&gt;
-&lt;/p&gt;</description>
+&lt;p&gt;注意：本文中的代码来自于：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&#34;&gt;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -47,9 +45,7 @@
       <pubDate>Mon, 06 Aug 2018 16:10:14 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/posts/rbtree-linux-kernel/</guid>
-      <description>&lt;p&gt;本文介绍了红黑树在linux kernel中实现，使用的内核版本为：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&#34;&gt;centos 3.10.0-693.11.6&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;本文介绍了红黑树在linux kernel中实现，使用的内核版本为：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&#34;&gt;centos 3.10.0-693.11.6&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -58,9 +54,7 @@
       <pubDate>Mon, 30 Jul 2018 19:02:06 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/posts/process_resource/</guid>
-      <description>&lt;p&gt;每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -81,9 +75,7 @@
 
 &lt;p&gt;了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。&lt;/p&gt;
 
-&lt;p&gt;自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;p&gt;自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -94,9 +86,7 @@
       <guid>http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/</guid>
       <description>&lt;p&gt;在&lt;code&gt;centos&lt;/code&gt;上进行内核开发时，由于一些内核特性依赖于高版本的&lt;code&gt;GCC特性&lt;/code&gt;（&lt;code&gt;gcc &amp;gt; 5.0&lt;/code&gt;），而&lt;code&gt;centos&lt;/code&gt;默认的GCC一般为&lt;code&gt;4.8.x&lt;/code&gt;。&lt;/p&gt;
 
-&lt;p&gt;本文记录一种非常简单的在&lt;code&gt;centos&lt;/code&gt;上使用高版本的&lt;code&gt;GCC&lt;/code&gt;的方法。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;p&gt;本文记录一种非常简单的在&lt;code&gt;centos&lt;/code&gt;上使用高版本的&lt;code&gt;GCC&lt;/code&gt;的方法。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -107,9 +97,7 @@
       <guid>http://linux.laoqinren.net/posts/boyer-moore-majority-vote-algorithm/</guid>
       <description>&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm&#34;&gt;Boyer-Moore majority vote algorithm&lt;/a&gt;(摩尔投票算法)是一种在线性时间&lt;code&gt;O(n)&lt;/code&gt;和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以&lt;code&gt;Robert S.Boyer&lt;/code&gt;和&lt;code&gt;J Strother Moore&lt;/code&gt;命名的，1981年发明的，是一种典型的流算法(&lt;code&gt;streaming algorithm&lt;/code&gt;)。&lt;/p&gt;
 
-&lt;p&gt;在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(&lt;code&gt;n/2&lt;/code&gt;)的元素。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;p&gt;在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(&lt;code&gt;n/2&lt;/code&gt;)的元素。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -122,9 +110,7 @@
 
 &lt;p&gt;&lt;code&gt;Tmux&lt;/code&gt; 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 &lt;code&gt;Tmux&lt;/code&gt; 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。&lt;/p&gt;
 
-&lt;p&gt;本文总结了&lt;code&gt;tmux&lt;/code&gt;常用的一些快捷键。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;p&gt;本文总结了&lt;code&gt;tmux&lt;/code&gt;常用的一些快捷键。&lt;/p&gt;</description>
     </item>
     
   </channel>

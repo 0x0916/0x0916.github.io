@@ -21,7 +21,6 @@
  注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。 本文中使用的内核版本为：3.10.0-693.21.1
  用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
 通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在Linux中用户态程序访问所有物理内存。
-
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -31,7 +30,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/reading-linux-physical-memory/" />
@@ -64,28 +63,11 @@
 
 用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
 
-通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在Linux中用户态程序访问所有物理内存。
-
-" />
+通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在Linux中用户态程序访问所有物理内存。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/reading-linux-physical-memory/" />
-
-
-
-<meta property="article:published_time" content="2018-04-28T15:06:33&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-04-28T15:06:33&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-04-28T15:06:33+08:00" />
+<meta property="article:modified_time" content="2018-04-28T15:06:33+08:00" />
 <meta itemprop="name" content="Linux用户程序如何访问物理内存">
 <meta itemprop="description" content="本文转载于：http://ilinuxkernel.com/?p=1248
 
@@ -96,9 +78,7 @@
 
 用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
 
-通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在Linux中用户态程序访问所有物理内存。
-
-">
+通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在Linux中用户态程序访问所有物理内存。">
 
 
 <meta itemprop="datePublished" content="2018-04-28T15:06:33&#43;08:00" />
@@ -119,9 +99,7 @@
 
 用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
 
-通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在Linux中用户态程序访问所有物理内存。
-
-"/>
+通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在Linux中用户态程序访问所有物理内存。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -253,8 +231,6 @@
 <p>用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。</p>
 
 <p>通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在<code>Linux</code>中用户态程序访问所有物理内存。</p>
-
-<p></p>
 
 <h2 id="内核模块编写">内核模块编写</h2>
 
@@ -449,7 +425,7 @@ make[1]: Leaving directory `/usr/src/kernels/3.10.0-693.21.1.el7.x86_64'
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

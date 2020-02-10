@@ -20,7 +20,6 @@
   <meta name="description" content="本文将创建并挂载一颗不和任何subsystem系统绑定的cgroup树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个cgroup中默认都有的几个文件的含义。
 最后，介绍了这样使用cgroup的一个用户。
  本文所有例子在centos 7.5 下执行通过
- 
 " />
 <meta name="keywords" content="cgroup" />
 
@@ -30,7 +29,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/hierarchy-without-controller-group/" />
@@ -60,28 +59,11 @@
 
 
 本文所有例子在centos 7.5 下执行通过
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/posts/hierarchy-without-controller-group/" />
-
-
-
-<meta property="article:published_time" content="2018-08-14T19:59:57&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-08-14T19:59:57&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-08-14T19:59:57+08:00" />
+<meta property="article:modified_time" content="2018-08-14T19:59:57+08:00" />
 <meta itemprop="name" content="Cgroup之不绑定任何subsystem">
 <meta itemprop="description" content="本文将创建并挂载一颗不和任何subsystem系统绑定的cgroup树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个cgroup中默认都有的几个文件的含义。
 
@@ -89,8 +71,6 @@
 
 
 本文所有例子在centos 7.5 下执行通过
-
-
 ">
 
 
@@ -109,8 +89,6 @@
 
 
 本文所有例子在centos 7.5 下执行通过
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -237,8 +215,6 @@
 <p>本文所有例子在<code>centos 7.5</code> 下执行通过</p>
 </blockquote>
 
-<p></p>
-
 <h3 id="挂载cgroup树">挂载cgroup树</h3>
 
 <p>开始使用<code>cgroup</code>前需要先挂载<code>cgroup</code>树，下面先看看如何挂载一颗<code>cgroup</code>树，然后再查看其根目录下生成的文件</p>
@@ -337,8 +313,8 @@ cgroup.clone_children  cgroup.event_control  cgroup.procs  notify_on_release  ta
 <li>再一颗cgroup树里面，一个进程必须且只能属于一个cgroup。</li>
 <li>新创建的子进程会自动添加到父进程所在的cgroup中。</li>
 <li>从一个cgroup移动一个进程到另外一个cgroup中，只要有目的cgroup的写入权限就可以了，系统不会检查源cgroup里的权限。</li>
-<li>用户只能操作属于自己的进程，不能操作其他用户的进程，root账号除外。</li>
-</ul>
+
+<li><p>用户只能操作属于自己的进程，不能操作其他用户的进程，root账号除外。</p>
 
 <pre><code class="language-bash"># 第一个shell窗口
 ~/cgroup/demo  # mkdir test
@@ -387,7 +363,8 @@ root     18389 17939  0 22:31 pts/3    00:00:00 grep --color=auto top
 ~/cgroup/demo  # # 然后删除创建的cgroup
 ~/cgroup/demo  # rmdir test
 
-</code></pre>
+</code></pre></li>
+</ul>
 
 <h3 id="procs-和tasks-的区别">procs 和tasks 的区别</h3>
 
@@ -675,7 +652,7 @@ int cg_enumerate_processes(const char *controller, const char *path, FILE **_f) 
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

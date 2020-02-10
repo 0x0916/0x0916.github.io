@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="本文详细介绍了Linux的Radix树。
  注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
- 
 " />
 <meta name="keywords" content="radix-tree, linux, kernel" />
 
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/radix-tree/" />
@@ -57,35 +56,16 @@
 
 
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/radix-tree/" />
-
-
-
-<meta property="article:published_time" content="2018-09-09T13:36:38&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-09-09T13:36:38&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-09-09T13:36:38+08:00" />
+<meta property="article:modified_time" content="2018-09-09T13:36:38+08:00" />
 <meta itemprop="name" content="Radix Tree ">
 <meta itemprop="description" content="本文详细介绍了Linux的Radix树。
 
 
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
-
-
 ">
 
 
@@ -102,8 +82,6 @@
 
 
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -244,8 +222,6 @@
 <blockquote>
 <p>注意：本文分析中引用的代码来自于centos系统自带的内核：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm">kernel-3.10.0-862.9.1.el7</a></p>
 </blockquote>
-
-<p></p>
 
 <h3 id="radix-tree介绍">Radix Tree介绍</h3>
 
@@ -400,17 +376,18 @@ void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
 
 <ul>
 <li><code>radix_tree_lookup</code>在树中查找指定键值的条目，查找成功，返回该条目的指针，否则，返回NULL.</li>
-<li><code>radix_tree_lookup_slot</code>返回指向slot的指针，该slot含有指向查找到条目的指针</li>
-</ul>
+
+<li><p><code>radix_tree_lookup_slot</code>返回指向slot的指针，该slot含有指向查找到条目的指针</p>
 
 <pre><code class="language-c">unsigned int radix_tree_gang_lookup(struct radix_tree_root *root,                                                                                             
-                        void **results, unsigned long first_index,                                                   
-                        unsigned int max_items);                                                                     
+                    void **results, unsigned long first_index,                                                   
+                    unsigned int max_items);                                                                     
 unsigned int radix_tree_gang_lookup_slot(struct radix_tree_root *root,                                               
-                        void ***results, unsigned long *indices,                                                     
-                        unsigned long first_index, unsigned int max_items); 
+                    void ***results, unsigned long *indices,                                                     
+                    unsigned long first_index, unsigned int max_items); 
 
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p><code>radix_tree_gang_lookup</code>多键值查找，max_items为需要查找的item个数，results表示查询结果。查询时键值索引从first_index开始</p>
 
@@ -531,7 +508,7 @@ int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="cpuacct子系统（CPU accounting）会自动生成报告来显示cgroup中任务所使用的CPU资源，其中包括子群组任务。报告有两大类：
  usage: 统计cgroup中进程使用CPU的时间，单位为纳秒。 stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。   注意：本文中引用的内核代码版本为v5.2
- 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-cpuacct/" />
@@ -62,28 +61,11 @@ stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。
 
 
 注意：本文中引用的内核代码版本为v5.2
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-cpuacct/" />
-
-
-
-<meta property="article:published_time" content="2018-05-20T20:57:16&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-05-20T20:57:16&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-05-20T20:57:16+08:00" />
+<meta property="article:modified_time" content="2018-05-20T20:57:16+08:00" />
 <meta itemprop="name" content="Cgroup之cpuacct子系统">
 <meta itemprop="description" content="cpuacct子系统（CPU accounting）会自动生成报告来显示cgroup中任务所使用的CPU资源，其中包括子群组任务。报告有两大类：
 
@@ -94,8 +76,6 @@ stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。
 
 
 注意：本文中引用的内核代码版本为v5.2
-
-
 ">
 
 
@@ -117,8 +97,6 @@ stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。
 
 
 注意：本文中引用的内核代码版本为v5.2
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -277,8 +255,6 @@ stat: 统计cgroup中进程使用CPU的时间，单位为USER_HZ。
 <blockquote>
 <p>注意：本文中引用的内核代码版本为<code>v5.2</code></p>
 </blockquote>
-
-<p></p>
 
 <p><img src="./pic.jpg" alt="" /></p>
 
@@ -699,7 +675,7 @@ static struct cpuacct root_cpuacct = {
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

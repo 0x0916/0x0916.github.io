@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
  注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
- 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/" />
@@ -57,35 +56,16 @@
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/" />
-
-
-
-<meta property="article:published_time" content="2018-08-25T16:32:32&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-08-25T16:32:32&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-08-25T16:32:32+08:00" />
+<meta property="article:modified_time" content="2018-08-25T16:32:32+08:00" />
 <meta itemprop="name" content="cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析">
 <meta itemprop="description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 ">
 
 
@@ -102,8 +82,6 @@
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -224,8 +202,6 @@
 <blockquote>
 <p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
 </blockquote>
-
-<p></p>
 
 <h3 id="proc-pid-cgroup-实现">/proc/pid/cgroup 实现</h3>
 
@@ -430,7 +406,7 @@ out:
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -1,4 +1,5 @@
-本文介绍了`linux`内核中经常出现的`current`宏，并分析其通用的实现方法，已经其在`x86-64`下的实现方法。
+
+本文介绍了`linux`内核中经常出现的`current`宏，并分析其通用的实现方法，以及其在`x86-64`下的实现方法。
 
 ### current的作用
 
@@ -60,12 +61,30 @@ static __always_inline struct task_struct *get_current(void)
 ```
 
 在`x86`体系结构中，使用了`current_task`这个每CPU变量，来存储当前正在使用`cpu`的进程的`struct task_struct`。
+由于采用了每`cpu`变量`current_task`来保存当前运行进程的`task_struct`，所以在进程切换时，就需要更新该变量。
 
-> 注意： 通过`current_thread_info()->task`得到`struct task_struct`在x86上也是支持的。
+在`arch/x86/kernel/process_64.c`文件中的`__switch_to`函数中有如下代码：
+```c
+this_cpu_write(current_task, next_p);  
+```
+
+
+> 注意：在早期的内核中，通过`current_thread_info()->task`得到`struct task_struct`在x86上也是支持的。不过在最新的内核中，该方法已经不支持了。
+	因为新版本的内核中`thread_info`中已经不存在`task`这个成员了。
+```c
+struct thread_info {
+	unsigned long flags;
+	u32 status;
+}
+SIZE: 16
+```
+
 
 ### 实验示例
 
-#### x86也支持`current_thread_info()->task`方式
+> 注意：本示例是在x86支持`current_thread_info()->task`的内核上进行的
+
+#### x86支持`current_thread_info()->task`方式
 
 ```c?linenums
 #include <linux/module.h>

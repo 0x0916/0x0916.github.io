@@ -21,7 +21,6 @@
 当我们新创建一个进程时，新进程的task_struct-&amp;gt;cgroups的值继承自其父进程。此后，如果我们将新创建的进程添加到一个新的cgroup中时，就需要重新给task_struct-&amp;gt;cgroups赋值，这个值要么是一个已经存在的css_set结构的指针，要么是新创建的css_set的结构的指针。
 所以，我们就需要通过进程的cgroup信息，快速查找其对应的css_set结构是否存在，如果不存在的话就去创建它。linux kernel 使用一个hash表来完成这个工作。本文主要分析该hash表的实现。
  注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
- 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -31,7 +30,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/" />
@@ -63,28 +62,11 @@
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/" />
-
-
-
-<meta property="article:published_time" content="2018-08-25T16:31:46&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-08-25T16:31:46&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-08-25T16:31:46+08:00" />
+<meta property="article:modified_time" content="2018-08-25T16:31:46+08:00" />
 <meta itemprop="name" content="cgroup源码分析4——css_set的哈希表分析">
 <meta itemprop="description" content="在描述进程的结构体task_struct中有一个类型为css_set的成员cgroups，它描述了进程的所有cgroup信息，从前面的分析文章中我们已经知道通过task_struct-&gt;cgroups可以找到进程的所有不同cgroup控制器的信息。
 
@@ -94,8 +76,6 @@
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 ">
 
 
@@ -116,8 +96,6 @@
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -246,8 +224,6 @@
 <blockquote>
 <p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
 </blockquote>
-
-<p></p>
 
 <h3 id="数据结构">数据结构</h3>
 
@@ -423,63 +399,64 @@ int __init_or_module cgroup_load_subsys(struct cgroup_subsys *ss)
 <ul>
 <li><code>oldcg</code>为该进程原来的<code>css_set</code></li>
 <li><code>cgrp</code>为要将进程添加进这个<code>cgroup</code></li>
-<li><code>template</code>为临时变量，用来传递进程最终的<code>cgroup</code>信息</li>
-</ul>
+
+<li><p><code>template</code>为临时变量，用来传递进程最终的<code>cgroup</code>信息</p>
 
 <pre><code class="language-c">/*
- * find_existing_css_set() is a helper for
- * find_css_set(), and checks to see whether an existing
- * css_set is suitable.
- *
- * oldcg: the cgroup group that we're using before the cgroup
- * transition
- *
- * cgrp: the cgroup that we're moving into
- *
- * template: location in which to build the desired set of subsystem
- * state objects for the new cgroup group
- */
+* find_existing_css_set() is a helper for
+* find_css_set(), and checks to see whether an existing
+* css_set is suitable.
+*
+* oldcg: the cgroup group that we're using before the cgroup
+* transition
+*
+* cgrp: the cgroup that we're moving into
+*
+* template: location in which to build the desired set of subsystem
+* state objects for the new cgroup group
+*/
 static struct css_set *find_existing_css_set(
-        struct css_set *oldcg,
-        struct cgroup *cgrp,
-        struct cgroup_subsys_state *template[])
+    struct css_set *oldcg,
+    struct cgroup *cgrp,
+    struct cgroup_subsys_state *template[])
 {
-        int i;
-        struct cgroupfs_root *root = cgrp-&gt;root;
-        struct css_set *cg;
-        unsigned long key;
+    int i;
+    struct cgroupfs_root *root = cgrp-&gt;root;
+    struct css_set *cg;
+    unsigned long key;
 
-        /*
-         * Build the set of subsystem state objects that we want to see in the
-         * new css_set. while subsystems can change globally, the entries here
-         * won't change, so no need for locking.
-         */
-        for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
-                if (root-&gt;subsys_mask &amp; (1UL &lt;&lt; i)) {
-                        /* Subsystem is in this hierarchy. So we want
-                         * the subsystem state from the new
-                         * cgroup */
-                        template[i] = cgrp-&gt;subsys[i];
-                } else {
-                        /* Subsystem is not in this hierarchy, so we
-                         * don't want to change the subsystem state */
-                        template[i] = oldcg-&gt;subsys[i];
-                }
-        }
+    /*
+     * Build the set of subsystem state objects that we want to see in the
+     * new css_set. while subsystems can change globally, the entries here
+     * won't change, so no need for locking.
+     */
+    for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
+            if (root-&gt;subsys_mask &amp; (1UL &lt;&lt; i)) {
+                    /* Subsystem is in this hierarchy. So we want
+                     * the subsystem state from the new
+                     * cgroup */
+                    template[i] = cgrp-&gt;subsys[i];
+            } else {
+                    /* Subsystem is not in this hierarchy, so we
+                     * don't want to change the subsystem state */
+                    template[i] = oldcg-&gt;subsys[i];
+            }
+    }
 
-        key = css_set_hash(template);
-        hash_for_each_possible(css_set_table, cg, hlist, key) {
-                if (!compare_css_sets(cg, oldcg, cgrp, template))
-                        continue;
+    key = css_set_hash(template);
+    hash_for_each_possible(css_set_table, cg, hlist, key) {
+            if (!compare_css_sets(cg, oldcg, cgrp, template))
+                    continue;
 
-                /* This css_set matches what we need */
-                return cg;
-        }
+            /* This css_set matches what we need */
+            return cg;
+    }
 
-        /* No existing cgroup group matched */
-        return NULL;
+    /* No existing cgroup group matched */
+    return NULL;
 }
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>在查找过程中，如果判断两个css_set相等呢？这个重任就交给了函数<code>compare_css_sets</code>:</p>
 
@@ -913,7 +890,7 @@ crash&gt;
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

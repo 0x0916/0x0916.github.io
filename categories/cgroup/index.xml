@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Cgroup on Notes about linux and my work</title>
+    <title>cgroup on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/categories/cgroup/</link>
-    <description>Recent content in Cgroup on Notes about linux and my work</description>
+    <description>Recent content in cgroup on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sun, 26 Aug 2018 10:09:56 +0800</lastBuildDate>
@@ -33,9 +33,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -48,9 +46,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -67,9 +63,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -82,9 +76,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -97,9 +89,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -112,9 +102,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -129,9 +117,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;本文所有例子在&lt;code&gt;centos 7.5&lt;/code&gt; 下执行通过&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -146,9 +132,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意: 内核代码采用&lt;code&gt;linux-3.10.0-862.9.1.el7&lt;/code&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -166,9 +150,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -181,9 +163,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
   </channel>

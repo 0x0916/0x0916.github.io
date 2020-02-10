@@ -18,7 +18,6 @@
 
 <meta name="author" content="laoqinren" />
   <meta name="description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。
-
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -28,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/passing-file-descriptors/" />
@@ -52,32 +51,13 @@
 
 
 <meta property="og:title" content="传递文件描述符" />
-<meta property="og:description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。
-
-" />
+<meta property="og:description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/passing-file-descriptors/" />
-
-
-
-<meta property="article:published_time" content="2018-09-16T18:06:34&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-09-16T18:06:34&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-09-16T18:06:34+08:00" />
+<meta property="article:modified_time" content="2018-09-16T18:06:34+08:00" />
 <meta itemprop="name" content="传递文件描述符">
-<meta itemprop="description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。
-
-">
+<meta itemprop="description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。">
 
 
 <meta itemprop="datePublished" content="2018-09-16T18:06:34&#43;08:00" />
@@ -89,9 +69,7 @@
 <meta itemprop="keywords" content="kernel,linux,socket," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="传递文件描述符"/>
-<meta name="twitter:description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。
-
-"/>
+<meta name="twitter:description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -208,8 +186,6 @@
     
     <div class="post-content">
       <p><code>Unix domain socket</code>具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。</p>
-
-<p></p>
 
 <h3 id="api">API</h3>
 
@@ -524,7 +500,7 @@ Hello, passing file descriptor
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

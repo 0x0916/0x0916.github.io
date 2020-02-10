@@ -1,9 +1,49 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <?xml-stylesheet type="text/xsl" href="http://linux.laoqinren.net/sitemap.xsl"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://linux.laoqinren.net/kernel/</loc>
+    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/</loc>
+    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/kernel/</loc>
+    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/kernel/</loc>
+    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/linux/</loc>
+    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/sched/intro/</loc>
+    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/</loc>
     <lastmod>2019-11-17T19:52:36+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -45,6 +85,20 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/debug/</loc>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/dyndbg/</loc>
+    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/kernel-dynamic-debug/</loc>
     <lastmod>2019-03-13T22:30:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -52,8 +106,35 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/rw_semaphore/</loc>
+    <lastmod>2019-03-02T14:10:37+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/</loc>
+    <lastmod>2019-03-02T14:10:37+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/rw-semaphore/</loc>
     <lastmod>2019-03-02T14:10:37+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/linux/</loc>
+    <lastmod>2019-02-10T20:20:18+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/linux/</loc>
+    <lastmod>2019-02-10T20:20:18+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -129,6 +210,13 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/memory/</loc>
+    <lastmod>2018-12-30T17:37:29+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/memory-page/</loc>
     <lastmod>2018-12-30T17:37:29+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -143,8 +231,29 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/categories/socket/</loc>
+    <lastmod>2018-09-16T18:06:34+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/socket/</loc>
+    <lastmod>2018-09-16T18:06:34+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/linux/passing-file-descriptors/</loc>
     <lastmod>2018-09-16T18:06:34+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/file-system/</loc>
+    <lastmod>2018-09-15T20:10:34+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -157,8 +266,43 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/libfuse/</loc>
+    <lastmod>2018-09-15T20:10:34+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/radix-tree/</loc>
     <lastmod>2018-09-09T13:36:38+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/radix-tree/</loc>
+    <lastmod>2018-09-09T13:36:38+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/radix-tree/</loc>
+    <lastmod>2018-09-09T13:36:38+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/cgroup/</loc>
+    <lastmod>2018-08-26T10:09:56+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/cgroup/</loc>
+    <lastmod>2018-08-26T10:09:56+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -206,6 +350,12 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/posts/</loc>
+    <lastmod>2018-08-14T19:59:57+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/posts/hierarchy-without-controller-group/</loc>
     <lastmod>2018-08-14T19:59:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -215,6 +365,20 @@
   <url>
     <loc>http://linux.laoqinren.net/kernel/cgroup-debug/</loc>
     <lastmod>2018-08-09T22:46:11+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/algorithm/</loc>
+    <lastmod>2018-08-06T16:17:53+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/%E7%AE%97%E6%B3%95/</loc>
+    <lastmod>2018-08-06T16:17:53+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -234,7 +398,28 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/getrusage/</loc>
+    <lastmod>2018-07-30T19:02:06+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/prlimit/</loc>
+    <lastmod>2018-07-30T19:02:06+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/posts/process_resource/</loc>
+    <lastmod>2018-07-30T19:02:06+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/ulimit/</loc>
     <lastmod>2018-07-30T19:02:06+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -248,6 +433,20 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/categories/gcc/</loc>
+    <lastmod>2018-06-27T21:18:15+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/gcc/</loc>
+    <lastmod>2018-06-27T21:18:15+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/</loc>
     <lastmod>2018-06-27T21:18:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -255,8 +454,29 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/list_head/</loc>
+    <lastmod>2018-06-23T17:38:10+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/list/</loc>
     <lastmod>2018-06-23T17:38:10+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/hlist_head/</loc>
+    <lastmod>2018-06-20T23:08:40+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/hlist_node/</loc>
+    <lastmod>2018-06-20T23:08:40+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -276,8 +496,29 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/cpuacct/</loc>
+    <lastmod>2018-05-20T20:57:16+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/linux/cgroup-cpuset/</loc>
     <lastmod>2015-06-10T18:26:35+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/cpuset/</loc>
+    <lastmod>2015-06-10T18:26:35+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/wait-queue/</loc>
+    <lastmod>2019-02-21T18:27:48+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -291,6 +532,13 @@
   
   <url>
     <loc>http://linux.laoqinren.net/linux/linux-swap/</loc>
+    <lastmod>2018-05-04T21:07:38+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/swap/</loc>
     <lastmod>2018-05-04T21:07:38+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -311,8 +559,22 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/environment/</loc>
+    <lastmod>2018-04-19T20:49:45+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/linux/environment-list/</loc>
     <lastmod>2018-04-19T20:49:45+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/flex_proporitions/</loc>
+    <lastmod>2018-04-17T12:50:56+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -325,6 +587,13 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/hungtask/</loc>
+    <lastmod>2018-04-16T12:14:18+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/hungtask/</loc>
     <lastmod>2018-04-16T12:14:18+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -332,8 +601,29 @@
   </url>
   
   <url>
+    <loc>http://linux.laoqinren.net/tags/percpu_counter/</loc>
+    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://linux.laoqinren.net/kernel/percpu-counter/</loc>
     <lastmod>2018-04-13T20:50:15+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/api/</loc>
+    <lastmod>2018-04-12T22:45:09+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/eventfd/</loc>
+    <lastmod>2018-04-12T22:45:09+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -347,6 +637,13 @@
   
   <url>
     <loc>http://linux.laoqinren.net/linux/out-of-memory/</loc>
+    <lastmod>2018-04-11T12:24:17+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/oom/</loc>
     <lastmod>2018-04-11T12:24:17+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -381,339 +678,31 @@
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/posts/tmux/</loc>
-    <lastmod>2017-04-01T19:20:04-07:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/</loc>
-    <lastmod>2018-04-28T15:06:33+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/kernel/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/linux/</loc>
-    <lastmod>2019-02-10T20:20:18+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/posts/</loc>
-    <lastmod>2018-08-14T19:59:57+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/algorithm/</loc>
-    <lastmod>2018-08-06T16:17:53+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/api/</loc>
-    <lastmod>2018-04-12T22:45:09+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/</loc>
-    <lastmod>2018-08-06T16:17:53+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/cgroup/</loc>
-    <lastmod>2018-08-26T10:09:56+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/cgroup/</loc>
-    <lastmod>2018-08-26T10:09:56+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/cpuacct/</loc>
-    <lastmod>2018-05-20T20:57:16+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/cpuset/</loc>
-    <lastmod>2015-06-10T18:26:35+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/debug/</loc>
-    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>http://linux.laoqinren.net/categories/development/</loc>
     <lastmod>2017-04-01T19:20:04-07:00</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/dyndbg/</loc>
-    <lastmod>2019-03-13T22:30:09+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/environment/</loc>
-    <lastmod>2018-04-19T20:49:45+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/eventfd/</loc>
-    <lastmod>2018-04-12T22:45:09+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/file-system/</loc>
-    <lastmod>2018-09-15T20:10:34+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/flex_proporitions/</loc>
-    <lastmod>2018-04-17T12:50:56+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/gcc/</loc>
-    <lastmod>2018-06-27T21:18:15+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/gcc/</loc>
-    <lastmod>2018-06-27T21:18:15+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/getrusage/</loc>
-    <lastmod>2018-07-30T19:02:06+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/hlist_head/</loc>
-    <lastmod>2018-06-20T23:08:40+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/hlist_node/</loc>
-    <lastmod>2018-06-20T23:08:40+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/hungtask/</loc>
-    <lastmod>2018-04-16T12:14:18+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/kernel/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/kernel/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/libfuse/</loc>
-    <lastmod>2018-09-15T20:10:34+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/linux/</loc>
-    <lastmod>2019-02-10T20:20:18+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/linux/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/list_head/</loc>
-    <lastmod>2018-06-23T17:38:10+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/memory/</loc>
-    <lastmod>2018-12-30T17:37:29+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/oom/</loc>
-    <lastmod>2018-04-11T12:24:17+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
+    <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/tags/others/</loc>
     <lastmod>2017-04-01T19:20:04-07:00</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/percpu_counter/</loc>
-    <lastmod>2018-04-13T20:50:15+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/prlimit/</loc>
-    <lastmod>2018-07-30T19:02:06+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/radix-tree/</loc>
-    <lastmod>2018-09-09T13:36:38+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/radix-tree/</loc>
-    <lastmod>2018-09-09T13:36:38+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/rw_semaphore/</loc>
-    <lastmod>2019-03-02T14:10:37+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/socket/</loc>
-    <lastmod>2018-09-16T18:06:34+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/socket/</loc>
-    <lastmod>2018-09-16T18:06:34+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/swap/</loc>
-    <lastmod>2018-05-04T21:07:38+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/</loc>
-    <lastmod>2018-04-28T15:06:33+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
+    <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/tags/terminal/</loc>
     <lastmod>2017-04-01T19:20:04-07:00</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0</priority>
+    <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/tags/ulimit/</loc>
-    <lastmod>2018-07-30T19:02:06+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/posts/tmux/</loc>
+    <lastmod>2017-04-01T19:20:04-07:00</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/wait-queue/</loc>
-    <lastmod>2019-02-21T18:27:48+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/</loc>
-    <lastmod>2019-03-02T14:10:37+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/categories/%E7%AE%97%E6%B3%95/</loc>
-    <lastmod>2018-08-06T16:17:53+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
+    <priority>0.5</priority>
   </url>
   
 </urlset>

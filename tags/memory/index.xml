@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Memory on Notes about linux and my work</title>
+    <title>memory on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/memory/</link>
-    <description>Recent content in Memory on Notes about linux and my work</description>
+    <description>Recent content in memory on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sun, 30 Dec 2018 17:37:29 +0800</lastBuildDate>
@@ -17,9 +17,7 @@
       <pubDate>Sun, 30 Dec 2018 17:37:29 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/kernel/memory-page/</guid>
-      <description>&lt;p&gt;内存管理基本上是以数据结构&lt;code&gt;struct page&lt;/code&gt;展开的，本文将详细围绕&lt;code&gt;struct page&lt;/code&gt;展开。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;内存管理基本上是以数据结构&lt;code&gt;struct page&lt;/code&gt;展开的，本文将详细围绕&lt;code&gt;struct page&lt;/code&gt;展开。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -37,9 +35,7 @@
 &lt;li&gt;对于体系结构相关的代码,使用&lt;code&gt;x86&lt;/code&gt;架构中的代码&lt;/li&gt;
 &lt;li&gt;对代码格式进行调整&lt;/li&gt;
 &lt;li&gt;会添加一些内容，便于更进一步的理解&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/ol&gt;</description>
     </item>
     
   </channel>

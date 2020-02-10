@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="本文详细分析了cgroup初始化的过程。
  本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
- 
 " />
 <meta name="keywords" content="cgroup" />
 
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_init/" />
@@ -57,35 +56,16 @@
 
 
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_init/" />
-
-
-
-<meta property="article:published_time" content="2018-08-23T22:50:33&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-08-23T22:50:33&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-08-23T22:50:33+08:00" />
+<meta property="article:modified_time" content="2018-08-23T22:50:33+08:00" />
 <meta itemprop="name" content="cgroup源码分析2——cgroup的初始化">
 <meta itemprop="description" content="本文详细分析了cgroup初始化的过程。
 
 
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 ">
 
 
@@ -102,8 +82,6 @@
 
 
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -235,8 +213,6 @@
 <blockquote>
 <p>本文基于<code>3.10.0-862.el7.x86_64</code>版本kernel进行分析。</p>
 </blockquote>
-
-<p></p>
 
 <p>在分析初始化之前，我们需要看一下层级和子系统对应的结构体以及几个重要的全局变量。</p>
 
@@ -698,124 +674,116 @@ net_prio	0	1	1
 <p>此时，我们就可以通过crash来分析这些数据结构的关系：</p>
 
 <ul>
-<li>由于系统上挂载了systemd这个cgroup，再加上rootnode这个dummy cgrouproot_fs，总共有两个cgrouproot_fs，所以root_count=2，而只有systemd对应的cgroupfs_root被链接到了roots这个链表上。</li>
-</ul>
+<li><p>由于系统上挂载了systemd这个cgroup，再加上rootnode这个dummy cgrouproot_fs，总共有两个cgrouproot_fs，所以root_count=2，而只有systemd对应的cgroupfs_root被链接到了roots这个链表上。</p>
 
 <pre><code>crash&gt; p root_count
 root_count = $1 = 2
 crash&gt; list -l cgroupfs_root.root_list -s cgroupfs_root.name -H roots
 ffff9d7d56f94308
-  name = &quot;systemd\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000&quot;
-</code></pre>
+name = &quot;systemd\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000&quot;
+</code></pre></li>
 
-<ul>
-<li>rootnode的subsys_list应该包含了那13个未挂载的cgroup_subsys</li>
-</ul>
+<li><p>rootnode的subsys_list应该包含了那13个未挂载的cgroup_subsys</p>
 
 <pre><code>crash&gt; struct -o cgroupfs_root.subsys_list rootnode
 struct cgroupfs_root {
-  [ffffffffa03ff020] struct list_head subsys_list;
+[ffffffffa03ff020] struct list_head subsys_list;
 }
 crash&gt; list  -l cgroup_subsys.sibling -s cgroup_subsys.name,subsys_id -H ffffffffa03ff020
 ffffffff9ebf9f70
-  name = 0xffffffff9ea9a8cc &quot;pids&quot;
-  subsys_id = 11
+name = 0xffffffff9ea9a8cc &quot;pids&quot;
+subsys_id = 11
 ffffffff9ec83270
-  name = 0xffffffff9eacb432 &quot;devices&quot;
-  subsys_id = 5
+name = 0xffffffff9eacb432 &quot;devices&quot;
+subsys_id = 5
 ffffffff9ebfb590
-  name = 0xffffffff9eaa6abb &quot;cpuset&quot;
-  subsys_id = 0
+name = 0xffffffff9eaa6abb &quot;cpuset&quot;
+subsys_id = 0
 ffffffff9ec98e10
-  name = 0xffffffff9eac4e39 &quot;blkio&quot;
-  subsys_id = 8
+name = 0xffffffff9eac4e39 &quot;blkio&quot;
+subsys_id = 8
 ffffffff9ebf7ff0
-  name = 0xffffffff9ea99ec6 &quot;debug&quot;
-  subsys_id = 1
+name = 0xffffffff9ea99ec6 &quot;debug&quot;
+subsys_id = 1
 ffffffff9ed2f730
-  name = 0xffffffff9eaa7164 &quot;hugetlb&quot;
-  subsys_id = 10
+name = 0xffffffff9eaa7164 &quot;hugetlb&quot;
+subsys_id = 10
 ffffffff9ec54230
-  name = 0xffffffff9ea9e4ec &quot;perf_event&quot;
-  subsys_id = 9
+name = 0xffffffff9ea9e4ec &quot;perf_event&quot;
+subsys_id = 9
 ffffffff9ed2f590
-  name = 0xffffffff9eaaf4d8 &quot;memory&quot;
-  subsys_id = 4
+name = 0xffffffff9eaaf4d8 &quot;memory&quot;
+subsys_id = 4
 ffffffff9ebf9df0
-  name = 0xffffffff9ea97da3 &quot;freezer&quot;
-  subsys_id = 6
+name = 0xffffffff9ea97da3 &quot;freezer&quot;
+subsys_id = 6
 ffffffff9ebf1050
-  name = 0xffffffff9ea97b50 &quot;cpuacct&quot;
-  subsys_id = 3
+name = 0xffffffff9ea97b50 &quot;cpuacct&quot;
+subsys_id = 3
 ffffffff9ebeda90
-  name = 0xffffffff9ea9baca &quot;cpu&quot;
-  subsys_id = 2
+name = 0xffffffff9ea9baca &quot;cpu&quot;
+subsys_id = 2
 ffffffff9ece34b0
-  name = 0xffffffff9eb2289a &quot;net_prio&quot;
-  subsys_id = 12
+name = 0xffffffff9eb2289a &quot;net_prio&quot;
+subsys_id = 12
 ffffffff9ece3dd0
-  name = 0xffffffff9eb22a9e &quot;net_cls&quot;
-  subsys_id = 7
-</code></pre>
+name = 0xffffffff9eb22a9e &quot;net_cls&quot;
+subsys_id = 7
+</code></pre></li>
 
-<ul>
-<li>系统上这些cgroup对应的cgroup_subsys的成员root都执行了rootnode：</li>
-</ul>
+<li><p>系统上这些cgroup对应的cgroup_subsys的成员root都执行了rootnode：</p>
 
 <pre><code>crash&gt; struct -o cgroupfs_root.subsys_list rootnode
 struct cgroupfs_root {
-  [ffffffffa03ff020] struct list_head subsys_list;
+[ffffffffa03ff020] struct list_head subsys_list;
 }
 crash&gt; p &amp;rootnode
 $13 = (struct cgroupfs_root *) 0xffffffffa03ff000
 crash&gt;  list  -l cgroup_subsys.sibling -s cgroup_subsys.root  -H ffffffffa03ff020
 ffffffff9ebf9f70
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ec83270
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ebfb590
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ec98e10
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ebf7ff0
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ed2f730
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ec54230
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ed2f590
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ebf9df0
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ebf1050
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ebeda90
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ece34b0
-  root = 0xffffffffa03ff000
+root = 0xffffffffa03ff000
 ffffffff9ece3dd0
-  root = 0xffffffffa03ff000
-</code></pre>
+root = 0xffffffffa03ff000
+</code></pre></li>
 
-<ul>
-<li>这个时刻，系统上只有一个css_set，即<code>init_css_set</code>, 所有的进程的css_set都执向它：</li>
-</ul>
+<li><p>这个时刻，系统上只有一个css_set，即<code>init_css_set</code>, 所有的进程的css_set都执向它：</p>
 
 <pre><code>crash&gt; p css_set_count
 css_set_count = $1 = 1
-</code></pre>
+</code></pre></li>
 
-<ul>
-<li>dummytop和init_css_set的成员subsys执行的css都相同：</li>
-</ul>
+<li><p>dummytop和init_css_set的成员subsys执行的css都相同：</p>
 
 <pre><code>crash&gt; p &amp;rootnode.top_cgroup
 $18 = (struct cgroup *) 0xffffffffa03ff030
 crash&gt; cgroup.subsys 0xffffffffa03ff030
-  subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
+subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
 crash&gt; css_set.subsys init_css_set
-  subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
-</code></pre>
+subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
+</code></pre></li>
+</ul>
 
 <p>所以，<code>cgroup_init_early</code> 和<code>cgroup_init</code> 执行完后，这些数据结构之间的关系如下图所示：</p>
 
@@ -1205,7 +1173,7 @@ crash&gt; cgroup_name.name 0xffffffffa3ff9740
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

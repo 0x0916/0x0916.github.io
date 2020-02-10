@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="laoqinren" />
-  <meta name="description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中" />
+  <meta name="description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，以及其在x86-64下的实现方法。 current的作用 在内核中" />
 <meta name="keywords" content="sched, 调度" />
 
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/sched/current/" />
@@ -50,40 +50,25 @@
 
 
 <meta property="og:title" content="Linux调度——神奇的current" />
-<meta property="og:description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中" />
+<meta property="og:description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，以及其在x86-64下的实现方法。 current的作用 在内核中" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/sched/current/" />
-
-
-
-<meta property="article:published_time" content="2019-11-16T10:26:50&#43;08:00"/>
-
-<meta property="article:modified_time" content="2019-11-16T10:26:50&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2019-11-16T10:26:50+08:00" />
+<meta property="article:modified_time" content="2019-11-16T10:26:50+08:00" />
 <meta itemprop="name" content="Linux调度——神奇的current">
-<meta itemprop="description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中">
+<meta itemprop="description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，以及其在x86-64下的实现方法。 current的作用 在内核中">
 
 
 <meta itemprop="datePublished" content="2019-11-16T10:26:50&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-16T10:26:50&#43;08:00" />
-<meta itemprop="wordCount" content="1284">
+<meta itemprop="wordCount" content="1547">
 
 
 
 <meta itemprop="keywords" content="kernel,linux," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux调度——神奇的current"/>
-<meta name="twitter:description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，已经其在x86-64下的实现方法。 current的作用 在内核中"/>
+<meta name="twitter:description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，以及其在x86-64下的实现方法。 current的作用 在内核中"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -167,8 +152,8 @@
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 1284 words </span>
-        <span class="more-meta"> 3 mins read </span>
+        <span class="more-meta"> 1547 words </span>
+        <span class="more-meta"> 4 mins read </span>
         
       </div>
     </header>
@@ -190,7 +175,7 @@
 <li><a href="#current在x86架构上的实现">current在x86架构上的实现</a></li>
 <li><a href="#实验示例">实验示例</a>
 <ul>
-<li><a href="#x86也支持-current-thread-info-task-方式">x86也支持<code>current_thread_info()-&gt;task</code>方式</a></li>
+<li><a href="#x86支持-current-thread-info-task-方式">x86支持<code>current_thread_info()-&gt;task</code>方式</a></li>
 <li><a href="#验证一下-task-current-和-thread-info-的关系">验证一下<code>task_current</code>和<code>thread_info</code>的关系</a></li>
 </ul></li>
 </ul></li>
@@ -204,7 +189,7 @@
     <div class="post-content">
       
 
-<p>本文介绍了<code>linux</code>内核中经常出现的<code>current</code>宏，并分析其通用的实现方法，已经其在<code>x86-64</code>下的实现方法。</p>
+<p>本文介绍了<code>linux</code>内核中经常出现的<code>current</code>宏，并分析其通用的实现方法，以及其在<code>x86-64</code>下的实现方法。</p>
 
 <h3 id="current的作用">current的作用</h3>
 
@@ -263,15 +248,33 @@ static __always_inline struct task_struct *get_current(void)
 #endif /* _ASM_X86_CURRENT_H */
 </code></pre>
 
-<p>在<code>x86</code>体系结构中，使用了<code>current_task</code>这个每CPU变量，来存储当前正在使用<code>cpu</code>的进程的<code>struct task_struct</code>。</p>
+<p>在<code>x86</code>体系结构中，使用了<code>current_task</code>这个每CPU变量，来存储当前正在使用<code>cpu</code>的进程的<code>struct task_struct</code>。
+由于采用了每<code>cpu</code>变量<code>current_task</code>来保存当前运行进程的<code>task_struct</code>，所以在进程切换时，就需要更新该变量。</p>
+
+<p>在<code>arch/x86/kernel/process_64.c</code>文件中的<code>__switch_to</code>函数中有如下代码：</p>
+
+<pre><code class="language-c">this_cpu_write(current_task, next_p);  
+</code></pre>
 
 <blockquote>
-<p>注意： 通过<code>current_thread_info()-&gt;task</code>得到<code>struct task_struct</code>在x86上也是支持的。</p>
+<p>注意：在早期的内核中，通过<code>current_thread_info()-&gt;task</code>得到<code>struct task_struct</code>在x86上也是支持的。不过在最新的内核中，该方法已经不支持了。
+    因为新版本的内核中<code>thread_info</code>中已经不存在<code>task</code>这个成员了。</p>
+
+<pre><code class="language-c">struct thread_info {
+	unsigned long flags;
+	u32 status;
+}
+SIZE: 16
+</code></pre>
 </blockquote>
 
 <h3 id="实验示例">实验示例</h3>
 
-<h4 id="x86也支持-current-thread-info-task-方式">x86也支持<code>current_thread_info()-&gt;task</code>方式</h4>
+<blockquote>
+<p>注意：本示例是在x86支持<code>current_thread_info()-&gt;task</code>的内核上进行的</p>
+</blockquote>
+
+<h4 id="x86支持-current-thread-info-task-方式">x86支持<code>current_thread_info()-&gt;task</code>方式</h4>
 
 <pre><code class="language-c?linenums">#include &lt;linux/module.h&gt;
 #include &lt;linux/kernel.h&gt;
@@ -436,7 +439,7 @@ crash&gt; thread_info.task 0xffff95c407c28000
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

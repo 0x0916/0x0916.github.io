@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Socket on Notes about linux and my work</title>
+    <title>socket on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/socket/</link>
-    <description>Recent content in Socket on Notes about linux and my work</description>
+    <description>Recent content in socket on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sun, 16 Sep 2018 18:06:34 +0800</lastBuildDate>
@@ -17,9 +17,7 @@
       <pubDate>Sun, 16 Sep 2018 18:06:34 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/passing-file-descriptors/</guid>
-      <description>&lt;p&gt;&lt;code&gt;Unix domain socket&lt;/code&gt;具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;code&gt;Unix domain socket&lt;/code&gt;具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。&lt;/p&gt;</description>
     </item>
     
   </channel>

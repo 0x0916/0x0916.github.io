@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
  注意：本文的中的代码来自于内核版本v4.16。
- 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/list/" />
@@ -57,35 +56,16 @@
 
 
 注意：本文的中的代码来自于内核版本v4.16。
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/list/" />
-
-
-
-<meta property="article:published_time" content="2018-06-23T17:38:10&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-06-23T17:38:10&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-06-23T17:38:10+08:00" />
+<meta property="article:modified_time" content="2018-06-23T17:38:10+08:00" />
 <meta itemprop="name" content="内核基础设施——list_head结构解析">
 <meta itemprop="description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
 
 
 注意：本文的中的代码来自于内核版本v4.16。
-
-
 ">
 
 
@@ -102,8 +82,6 @@
 
 
 注意：本文的中的代码来自于内核版本v4.16。
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -229,8 +207,6 @@
 <blockquote>
 <p>注意：本文的中的代码来自于内核版本<code>v4.16</code>。</p>
 </blockquote>
-
-<p></p>
 
 <h2 id="数据结构">数据结构</h2>
 
@@ -807,7 +783,7 @@ static inline void list_replace(struct list_head *old,
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

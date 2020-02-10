@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Flex_proporitions on Notes about linux and my work</title>
+    <title>flex_proporitions on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/flex_proporitions/</link>
-    <description>Recent content in Flex_proporitions on Notes about linux and my work</description>
+    <description>Recent content in flex_proporitions on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Tue, 17 Apr 2018 12:50:56 +0800</lastBuildDate>
@@ -21,9 +21,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意，本文中的代码是基于稳定版本的内核&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
   </channel>

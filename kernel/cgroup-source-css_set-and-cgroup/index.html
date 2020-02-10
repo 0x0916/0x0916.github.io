@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
  本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
- 
 " />
 <meta name="keywords" content="cgroup" />
 
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/" />
@@ -57,35 +56,16 @@
 
 
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/" />
-
-
-
-<meta property="article:published_time" content="2018-08-23T15:19:35&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-08-23T15:19:35&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-08-23T15:19:35+08:00" />
+<meta property="article:modified_time" content="2018-08-23T15:19:35+08:00" />
 <meta itemprop="name" content="cgroup源码分析1—— css_set和cgroup的关系">
 <meta itemprop="description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
 
 
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 ">
 
 
@@ -102,8 +82,6 @@
 
 
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -239,8 +217,6 @@
 <blockquote>
 <p>本文基于<code>3.10.0-862.el7.x86_64</code>版本kernel进行分析。</p>
 </blockquote>
-
-<p></p>
 
 <h2 id="基本概念">基本概念</h2>
 
@@ -843,7 +819,7 @@ css_set_count = $1 = 48
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

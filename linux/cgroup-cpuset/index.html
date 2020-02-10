@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
  注意：本文中引用的内核代码版本为v5.2
- 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/cgroup-cpuset/" />
@@ -57,40 +56,21 @@
 
 
 注意：本文中引用的内核代码版本为v5.2
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/cgroup-cpuset/" />
-
-
-
-<meta property="article:published_time" content="2018-05-10T18:26:35&#43;08:00"/>
-
-<meta property="article:modified_time" content="2015-06-10T18:26:35&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-05-10T18:26:35+08:00" />
+<meta property="article:modified_time" content="2015-06-10T18:26:35+08:00" />
 <meta itemprop="name" content="Cgroup之cpuset子系统">
 <meta itemprop="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
 
 注意：本文中引用的内核代码版本为v5.2
-
-
 ">
 
 
 <meta itemprop="datePublished" content="2018-05-10T18:26:35&#43;08:00" />
-<meta itemprop="dateModified" content="2018-05-10T18:26:35&#43;08:00" />
+<meta itemprop="dateModified" content="2015-06-10T18:26:35&#43;08:00" />
 <meta itemprop="wordCount" content="2717">
 
 
@@ -102,8 +82,6 @@
 
 
 注意：本文中引用的内核代码版本为v5.2
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -232,8 +210,6 @@
 <blockquote>
 <p>注意：本文中引用的内核代码版本为<code>v5.2</code></p>
 </blockquote>
-
-<p></p>
 
 <p><img src="./pic.jpg" alt="" /></p>
 
@@ -572,7 +548,7 @@ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

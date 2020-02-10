@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>List_head on Notes about linux and my work</title>
+    <title>list_head on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/list_head/</link>
-    <description>Recent content in List_head on Notes about linux and my work</description>
+    <description>Recent content in list_head on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sat, 23 Jun 2018 17:38:10 +0800</lastBuildDate>
@@ -21,9 +21,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文的中的代码来自于内核版本&lt;code&gt;v4.16&lt;/code&gt;。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
   </channel>

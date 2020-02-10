@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Hlist_node on Notes about linux and my work</title>
+    <title>hlist_node on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/hlist_node/</link>
-    <description>Recent content in Hlist_node on Notes about linux and my work</description>
+    <description>Recent content in hlist_node on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Wed, 20 Jun 2018 23:08:40 +0800</lastBuildDate>
@@ -38,9 +38,7 @@
 	struct hlist_node *next, **pprev;
 };
 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     
   </channel>

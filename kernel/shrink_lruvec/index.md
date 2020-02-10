@@ -1,3 +1,4 @@
+
 `Linux`内存回收操作的核心就是扫描`LRU`链表，完成该工作的函数名称为`shrink_lruvec`，本文首先介绍了`LRU`链表，然后详细分析了`shrink_lruvec`函数。
 
 <!--more-->

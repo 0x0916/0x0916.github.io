@@ -18,7 +18,6 @@
 
 <meta name="author" content="laoqinren" />
   <meta name="description" content="本文介绍了Linux调度中的CPU运行队列。
-
 " />
 <meta name="keywords" content="sched, 调度" />
 
@@ -28,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/sched/sched-rq/" />
@@ -52,32 +51,13 @@
 
 
 <meta property="og:title" content="Linux调度——CPU运行队列" />
-<meta property="og:description" content="本文介绍了Linux调度中的CPU运行队列。
-
-" />
+<meta property="og:description" content="本文介绍了Linux调度中的CPU运行队列。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/sched/sched-rq/" />
-
-
-
-<meta property="article:published_time" content="2019-11-17T19:39:29&#43;08:00"/>
-
-<meta property="article:modified_time" content="2019-11-17T19:39:29&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2019-11-17T19:39:29+08:00" />
+<meta property="article:modified_time" content="2019-11-17T19:39:29+08:00" />
 <meta itemprop="name" content="Linux调度——CPU运行队列">
-<meta itemprop="description" content="本文介绍了Linux调度中的CPU运行队列。
-
-">
+<meta itemprop="description" content="本文介绍了Linux调度中的CPU运行队列。">
 
 
 <meta itemprop="datePublished" content="2019-11-17T19:39:29&#43;08:00" />
@@ -89,9 +69,7 @@
 <meta itemprop="keywords" content="kernel,linux," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux调度——CPU运行队列"/>
-<meta name="twitter:description" content="本文介绍了Linux调度中的CPU运行队列。
-
-"/>
+<meta name="twitter:description" content="本文介绍了Linux调度中的CPU运行队列。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -194,8 +172,6 @@
     
     <div class="post-content">
       <p>本文介绍了Linux调度中的CPU运行队列。</p>
-
-<p></p>
 
 <p>每个<code>CPU</code>都有自己的 <code>struct rq</code> 结构，其用于描述在此<code>CPU</code>上所运行的所有进程，其包括一个<strong>实时进程队列</strong>和一个<strong>根CFS</strong>运行队列，在调度时，调度器首先会先去实时进程队列找是否有实时进程需要运行，如果没有才会去<code>CFS</code>运行队列是否有进行需要运行，这就是为什么常说的实时进程优先级比普通进程高，不仅仅体现在<code>prio</code>优先级上，还体现在调度器的设计上。</p>
 
@@ -467,7 +443,7 @@ PER-CPU ADDRESSES:
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

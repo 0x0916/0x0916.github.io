@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Wait Queue on Notes about linux and my work</title>
+    <title>wait queue on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/wait-queue/</link>
-    <description>Recent content in Wait Queue on Notes about linux and my work</description>
+    <description>Recent content in wait queue on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Mon, 07 May 2018 18:27:48 +0800</lastBuildDate>
@@ -23,9 +23,7 @@
 
 &lt;p&gt;等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。&lt;/p&gt;
 
-&lt;p&gt;在&lt;code&gt;Linux&lt;/code&gt;内核中使用等待队列的过程很简单，首先定义一个&lt;code&gt;wait_queue_head&lt;/code&gt;，然后如果一个&lt;code&gt;task&lt;/code&gt;想等待某种事件，那么调用&lt;code&gt;wait_event（等待队列，事件）&lt;/code&gt;就可以了。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;p&gt;在&lt;code&gt;Linux&lt;/code&gt;内核中使用等待队列的过程很简单，首先定义一个&lt;code&gt;wait_queue_head&lt;/code&gt;，然后如果一个&lt;code&gt;task&lt;/code&gt;想等待某种事件，那么调用&lt;code&gt;wait_event（等待队列，事件）&lt;/code&gt;就可以了。&lt;/p&gt;</description>
     </item>
     
   </channel>

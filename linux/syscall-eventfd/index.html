@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="eventfd 是linux特有的API，用于通知/等待机制的实现,该函数一般有两个使用场景：
  （1）用来实现用户态进程(线程)间的等待/通知(wait/notify) 机制 （2）内核用来通知用户态应用程序某个事件的发生。  第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。
-
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/syscall-eventfd/" />
@@ -60,28 +59,11 @@
 （2）内核用来通知用户态应用程序某个事件的发生。
 
 
-第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。
-
-" />
+第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/syscall-eventfd/" />
-
-
-
-<meta property="article:published_time" content="2018-04-12T22:45:09&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-04-12T22:45:09&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-04-12T22:45:09+08:00" />
+<meta property="article:modified_time" content="2018-04-12T22:45:09+08:00" />
 <meta itemprop="name" content="Linux 系统调用 eventfd">
 <meta itemprop="description" content="eventfd 是linux特有的API，用于通知/等待机制的实现,该函数一般有两个使用场景：
 
@@ -90,9 +72,7 @@
 （2）内核用来通知用户态应用程序某个事件的发生。
 
 
-第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。
-
-">
+第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。">
 
 
 <meta itemprop="datePublished" content="2018-04-12T22:45:09&#43;08:00" />
@@ -111,9 +91,7 @@
 （2）内核用来通知用户态应用程序某个事件的发生。
 
 
-第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。
-
-"/>
+第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -241,8 +219,6 @@
 </ul>
 
 <p>第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。</p>
-
-<p></p>
 
 <h3 id="eventfd-函数">eventfd 函数</h3>
 
@@ -517,7 +493,7 @@ Parent read 1 (0x1) from efd
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

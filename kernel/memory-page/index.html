@@ -18,7 +18,6 @@
 
 <meta name="author" content="laoqinren" />
   <meta name="description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。
-
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -28,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/memory-page/" />
@@ -52,32 +51,13 @@
 
 
 <meta property="og:title" content="struct page结构体" />
-<meta property="og:description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。
-
-" />
+<meta property="og:description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/memory-page/" />
-
-
-
-<meta property="article:published_time" content="2018-12-30T17:37:29&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-12-30T17:37:29&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-12-30T17:37:29+08:00" />
+<meta property="article:modified_time" content="2018-12-30T17:37:29+08:00" />
 <meta itemprop="name" content="struct page结构体">
-<meta itemprop="description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。
-
-">
+<meta itemprop="description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。">
 
 
 <meta itemprop="datePublished" content="2018-12-30T17:37:29&#43;08:00" />
@@ -89,9 +69,7 @@
 <meta itemprop="keywords" content="kernel,linux,memory," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="struct page结构体"/>
-<meta name="twitter:description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。
-
-"/>
+<meta name="twitter:description" content="内存管理基本上是以数据结构struct page展开的，本文将详细围绕struct page展开。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -207,8 +185,6 @@
     <div class="post-content">
       <p>内存管理基本上是以数据结构<code>struct page</code>展开的，本文将详细围绕<code>struct page</code>展开。</p>
 
-<p></p>
-
 <h2 id="struct-page-结构体"><code>struct page</code>结构体</h2>
 
 <p><code>Linux</code>内核内存管理的实现是以<code>struct page</code>为核心，实际上每个物理页面都需要一个<code>struct page</code>数据结构来描述，因此为了降低成本，该结构中大量使用了<code>C</code>语言的联合体<code>Union</code>来优化其大小。</p>
@@ -320,22 +296,23 @@ PG_slob_free      11  0000800
 <ul>
 <li><code>PageXXX()</code>用于检查页面是否设置了<code>PG_XXX</code>标志位；</li>
 <li><code>SetPageXXX()</code>设置页面的<code>PG_XXX</code>标志位；</li>
-<li><code>ClearPageXXX()</code>用于无条件的清除<code>PG_XXX</code>标志位。</li>
-</ul>
+
+<li><p><code>ClearPageXXX()</code>用于无条件的清除<code>PG_XXX</code>标志位。</p>
 
 <pre><code class="language-c">#define TESTPAGEFLAG(uname, lname)                                      \
 static inline int Page##uname(const struct page *page)                  \
-                        { return test_bit(PG_##lname, &amp;page-&gt;flags); }
+                    { return test_bit(PG_##lname, &amp;page-&gt;flags); }
 
 #define SETPAGEFLAG(uname, lname)                                       \
 static inline void SetPage##uname(struct page *page)                    \
-                        { set_bit(PG_##lname, &amp;page-&gt;flags); }
+                    { set_bit(PG_##lname, &amp;page-&gt;flags); }
 
 #define CLEARPAGEFLAG(uname, lname)                                     \
 static inline void ClearPage##uname(struct page *page)                  \
-                        { clear_bit(PG_##lname, &amp;page-&gt;flags); }
+                    { clear_bit(PG_##lname, &amp;page-&gt;flags); }
 
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p><code>flags</code>成员除了存放以上重要的标志位以外，还有另外一个很重要的作用，就是存放<code>section</code>编号、<code>node</code>结点编号、<code>zone</code>结点编号和<code>LAST_CPUPID</code>等。具体存放内容与内核配置有关。</p>
 
@@ -396,67 +373,66 @@ static inline int PageAnon(struct page *page)
 
 <ul>
 <li><code>lock_page()</code>函数用于申请页面锁，如果页面锁被其它进程占用了，就会睡眠等待；</li>
-<li><code>trylock_page()</code>函数用于去尝试申请页面锁，如果<code>PG_locked</code> 已经置位了，该函数返回<code>false</code>，说明有其他进程已经锁住了该页面，返回<code>true</code>表示获取页面锁成功。</li>
-</ul>
+
+<li><p><code>trylock_page()</code>函数用于去尝试申请页面锁，如果<code>PG_locked</code> 已经置位了，该函数返回<code>false</code>，说明有其他进程已经锁住了该页面，返回<code>true</code>表示获取页面锁成功。</p>
 
 <pre><code class="language-c">
 /**
- * __lock_page - get a lock on the page, assuming we need to sleep to get it
- * @page: the page to lock
- */
+* __lock_page - get a lock on the page, assuming we need to sleep to get it
+* @page: the page to lock
+*/
 void __lock_page(struct page *page)                                                                                                                                               
 {
-        DEFINE_WAIT_BIT(wait, &amp;page-&gt;flags, PG_locked);
+    DEFINE_WAIT_BIT(wait, &amp;page-&gt;flags, PG_locked);
 
-        __wait_on_bit_lock(page_waitqueue(page), &amp;wait, bit_wait_io,
-                                                        TASK_UNINTERRUPTIBLE);
+    __wait_on_bit_lock(page_waitqueue(page), &amp;wait, bit_wait_io,
+                                                    TASK_UNINTERRUPTIBLE);
 }
 EXPORT_SYMBOL(__lock_page);
 
 /*
- * lock_page may only be called if we have the page's inode pinned.
- */
+* lock_page may only be called if we have the page's inode pinned.
+*/
 static inline void lock_page(struct page *page) 
 {
-        might_sleep(); 
-        if (!trylock_page(page)) 
-                __lock_page(page);  
+    might_sleep(); 
+    if (!trylock_page(page)) 
+            __lock_page(page);  
 }
 
 
 static inline int trylock_page(struct page *page) 
 {                                                   
-        return (likely(!test_and_set_bit_lock(PG_locked, &amp;page-&gt;flags)));
+    return (likely(!test_and_set_bit_lock(PG_locked, &amp;page-&gt;flags)));
 }
-</code></pre>
+</code></pre></li>
 
-<ul>
-<li><code>unlock_page()</code>函数用于释放页面锁，并唤醒等待页面锁的进程。</li>
-</ul>
+<li><p><code>unlock_page()</code>函数用于释放页面锁，并唤醒等待页面锁的进程。</p>
 
 <pre><code class="language-c">/**
- * unlock_page - unlock a locked page
- * @page: the page
- *
- * Unlocks the page and wakes up sleepers in ___wait_on_page_locked().
- * Also wakes sleepers in wait_on_page_writeback() because the wakeup
- * mechananism between PageLocked pages and PageWriteback pages is shared.
- * But that's OK - sleepers in wait_on_page_writeback() just go back to sleep.
- *
- * The mb is necessary to enforce ordering between the clear_bit and the read
- * of the waitqueue (to avoid SMP races with a parallel wait_on_page_locked()).
- */
+* unlock_page - unlock a locked page
+* @page: the page
+*
+* Unlocks the page and wakes up sleepers in ___wait_on_page_locked().
+* Also wakes sleepers in wait_on_page_writeback() because the wakeup
+* mechananism between PageLocked pages and PageWriteback pages is shared.
+* But that's OK - sleepers in wait_on_page_writeback() just go back to sleep.
+*
+* The mb is necessary to enforce ordering between the clear_bit and the read
+* of the waitqueue (to avoid SMP races with a parallel wait_on_page_locked()).
+*/
 void unlock_page(struct page *page)
 {
-        VM_BUG_ON_PAGE(!PageLocked(page), page);
-        clear_bit_unlock(PG_locked, &amp;page-&gt;flags);
-        smp_mb__after_clear_bit();
+    VM_BUG_ON_PAGE(!PageLocked(page), page);
+    clear_bit_unlock(PG_locked, &amp;page-&gt;flags);
+    smp_mb__after_clear_bit();
 
-        wake_up_page(page, PG_locked);
+    wake_up_page(page, PG_locked);
 }
 EXPORT_SYMBOL(unlock_page);
 
-</code></pre>
+</code></pre></li>
+</ul>
 
 <h2 id="struct-page-数组"><code>struct page</code>数组</h2>
 
@@ -623,7 +599,7 @@ FLAGS: 1fffff00004080
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

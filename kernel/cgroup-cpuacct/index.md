@@ -1,3 +1,6 @@
+
+
+
 `cpuacct子系统`（CPU accounting）会自动生成报告来显示`cgroup中`任务所使用的`CPU`资源，其中包括子群组任务。报告有两大类：
 
 * `usage`: 统计`cgroup`中进程使用CPU的时间，单位为纳秒。

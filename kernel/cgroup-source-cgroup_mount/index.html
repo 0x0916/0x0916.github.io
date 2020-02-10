@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
  注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
- 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/" />
@@ -57,35 +56,16 @@
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/" />
-
-
-
-<meta property="article:published_time" content="2018-08-25T10:54:09&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-08-25T10:54:09&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-08-25T10:54:09+08:00" />
+<meta property="article:modified_time" content="2018-08-25T10:54:09+08:00" />
 <meta itemprop="name" content="cgroup源码分析3——cgroup层级的mount流程">
 <meta itemprop="description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 ">
 
 
@@ -102,8 +82,6 @@
 
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -236,8 +214,6 @@
 <blockquote>
 <p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
 </blockquote>
-
-<p></p>
 
 <h3 id="mount流程整体流程介绍">mount流程整体流程介绍</h3>
 
@@ -561,8 +537,7 @@ static DEFINE_SPINLOCK(hierarchy_id_lock);
 </code></pre>
 
 <ul>
-<li><code>cgroup_set_super</code>的目的是设置新创建的<code>super_block</code>的一些属性</li>
-</ul>
+<li><p><code>cgroup_set_super</code>的目的是设置新创建的<code>super_block</code>的一些属性</p>
 
 <pre><code>static int cgroup_set_super(struct super_block *sb, void *data)
 {
@@ -589,7 +564,8 @@ static DEFINE_SPINLOCK(hierarchy_id_lock);
 
 	return 0;
 }
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>看这里的<code>cgroup_ops</code>：</p>
 
@@ -1043,7 +1019,7 @@ static struct cftype files[] = {
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

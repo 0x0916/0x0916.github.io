@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Hungtask on Notes about linux and my work</title>
+    <title>hungtask on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/hungtask/</link>
-    <description>Recent content in Hungtask on Notes about linux and my work</description>
+    <description>Recent content in hungtask on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Mon, 16 Apr 2018 12:14:18 +0800</lastBuildDate>
@@ -17,9 +17,7 @@
       <pubDate>Mon, 16 Apr 2018 12:14:18 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/kernel/hungtask/</guid>
-      <description>&lt;p&gt;本文分析了内核中&lt;code&gt;hungtask&lt;/code&gt;机制，下文中代码基于社区稳定版本内核，版本为：&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;本文分析了内核中&lt;code&gt;hungtask&lt;/code&gt;机制，下文中代码基于社区稳定版本内核，版本为：&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;</description>
     </item>
     
   </channel>

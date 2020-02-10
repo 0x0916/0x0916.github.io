@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Linux on Notes about linux and my work</title>
+    <title>linux on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/categories/linux/</link>
-    <description>Recent content in Linux on Notes about linux and my work</description>
+    <description>Recent content in linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sun, 10 Feb 2019 20:20:18 +0800</lastBuildDate>
@@ -17,9 +17,7 @@
       <pubDate>Sun, 10 Feb 2019 20:20:18 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/build-auto-install-centos7-iso/</guid>
-      <description>&lt;p&gt;本文以&lt;code&gt;centos 7.6&lt;/code&gt; 的&lt;code&gt;ISO&lt;/code&gt;为例，构建了用于自动化安装的&lt;code&gt;ISO&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;本文以&lt;code&gt;centos 7.6&lt;/code&gt; 的&lt;code&gt;ISO&lt;/code&gt;为例，构建了用于自动化安装的&lt;code&gt;ISO&lt;/code&gt;。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -78,9 +76,7 @@
 &lt;li&gt;现在的内核中，内存管理最大概念为&lt;code&gt;node&lt;/code&gt;。&lt;/li&gt;
 &lt;li&gt;在node上再分为一个或者几个&lt;code&gt;zone&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;每个&lt;code&gt;zone&lt;/code&gt;中又分为不同的迁移类型&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/ul&gt;</description>
     </item>
     
     <item>
@@ -91,9 +87,7 @@
       <guid>http://linux.laoqinren.net/linux/get-init-pid-for-any-task/</guid>
       <description>&lt;p&gt;本文题目为『&lt;strong&gt;获取容器中init进程的pid&lt;/strong&gt;』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的&lt;code&gt;pid namespace&lt;/code&gt;中，而我们有时需要在顶级的&lt;code&gt;pid namespace&lt;/code&gt;中获取其&lt;code&gt;init&lt;/code&gt;进程对应的在顶级&lt;code&gt;pid namespace&lt;/code&gt;的&lt;code&gt;pid&lt;/code&gt;。&lt;/p&gt;
 
-&lt;p&gt;本文简要介绍了完成这个任务的一种方法。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;p&gt;本文简要介绍了完成这个任务的一种方法。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -102,9 +96,7 @@
       <pubDate>Sun, 16 Sep 2018 18:06:34 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/passing-file-descriptors/</guid>
-      <description>&lt;p&gt;&lt;code&gt;Unix domain socket&lt;/code&gt;具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;code&gt;Unix domain socket&lt;/code&gt;具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -113,9 +105,7 @@
       <pubDate>Sat, 15 Sep 2018 20:10:34 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/fuse/</guid>
-      <description>&lt;p&gt;本文介绍了&lt;code&gt;FUSE&lt;/code&gt;（用户态文件系统），和其相应的编程库&lt;code&gt;libfuse&lt;/code&gt;，并给出了示例程序。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;本文介绍了&lt;code&gt;FUSE&lt;/code&gt;（用户态文件系统），和其相应的编程库&lt;code&gt;libfuse&lt;/code&gt;，并给出了示例程序。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -124,9 +114,7 @@
       <pubDate>Mon, 30 Jul 2018 19:02:06 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/posts/process_resource/</guid>
-      <description>&lt;p&gt;每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -139,9 +127,7 @@
 
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;/blockquote&gt;</description>
     </item>
     
     <item>
@@ -152,9 +138,7 @@
       <guid>http://linux.laoqinren.net/linux/linux-swap/</guid>
       <description>&lt;p&gt;本文转载于：&lt;a href=&#34;https://segmentfault.com/a/1190000008125116&#34;&gt;https://segmentfault.com/a/1190000008125116&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;p&gt;每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -163,9 +147,7 @@
       <pubDate>Thu, 19 Apr 2018 20:49:45 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/environment-list/</guid>
-      <description>&lt;p&gt;说起&lt;code&gt;linux&lt;/code&gt;环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;说起&lt;code&gt;linux&lt;/code&gt;环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -181,9 +163,7 @@
 &lt;li&gt;（2）内核用来通知用户态应用程序某个事件的发生。&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+&lt;p&gt;第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -192,9 +172,7 @@
       <pubDate>Wed, 11 Apr 2018 12:24:17 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/out-of-memory/</guid>
-      <description>&lt;p&gt;本文简要介绍了&lt;code&gt;Linux OOM&lt;/code&gt;机制，并详细分析了&lt;code&gt;OOM&lt;/code&gt;机制的全局参数配置和进程级别的参数配置。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;本文简要介绍了&lt;code&gt;Linux OOM&lt;/code&gt;机制，并详细分析了&lt;code&gt;OOM&lt;/code&gt;机制的全局参数配置和进程级别的参数配置。&lt;/p&gt;</description>
     </item>
     
   </channel>

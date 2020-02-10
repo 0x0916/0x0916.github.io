@@ -19,8 +19,7 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
    文件 描述     /proc/buddyinfo 展示系统上各个zone的buddy信息，主要用来分析内存碎片问题   /proc/pagetypeinfo 输出系统上各个zone中的不同迁移类型的详细状态信息   /proc/vmstat 描述内存统计信息   /proc/zoneinfo 输出系统上各个内存zone的详细信息    在详细介绍这些接口之前，我们先要明确一下几点：
- 现在的内核中，内存管理最大概念为node。 在node上再分为一个或者几个zone 每个zone中又分为不同的迁移类型  
-" />
+ 现在的内核中，内存管理最大概念为node。 在node上再分为一个或者几个zone 每个zone中又分为不同的迁移类型 " />
 <meta name="keywords" content="zoneinfo, buddyinfo, vmstat, pagetypeinfo" />
 
 
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/proc-memory/" />
@@ -92,28 +91,11 @@
 现在的内核中，内存管理最大概念为node。
 在node上再分为一个或者几个zone
 每个zone中又分为不同的迁移类型
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/proc-memory/" />
-
-
-
-<meta property="article:published_time" content="2019-01-13T10:28:37&#43;08:00"/>
-
-<meta property="article:modified_time" content="2019-01-13T10:28:37&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2019-01-13T10:28:37+08:00" />
+<meta property="article:modified_time" content="2019-01-13T10:28:37+08:00" />
 <meta itemprop="name" content="内核中内存信息的展示">
 <meta itemprop="description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
 
@@ -154,8 +136,6 @@
 现在的内核中，内存管理最大概念为node。
 在node上再分为一个或者几个zone
 每个zone中又分为不同的迁移类型
-
-
 ">
 
 
@@ -207,8 +187,6 @@
 现在的内核中，内存管理最大概念为node。
 在node上再分为一个或者几个zone
 每个zone中又分为不同的迁移类型
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -366,8 +344,6 @@
 <li>在node上再分为一个或者几个<code>zone</code></li>
 <li>每个<code>zone</code>中又分为不同的迁移类型</li>
 </ul>
-
-<p></p>
 
 <p><img src="./pic.jpg" alt="" /></p>
 
@@ -637,319 +613,319 @@ Node 1, zone   Normal         1009         1602        30157            0       
 </ol>
 
 <ul>
-<li>在本示例输出中，<code>node0</code>有<code>DMA</code>、 <code>DMA32</code>、<code>Normal</code>这三个<code>zone</code>，<code>node1</code>只有一个<code>Normal zone</code>。</li>
-</ul>
+<li><p>在本示例输出中，<code>node0</code>有<code>DMA</code>、 <code>DMA32</code>、<code>Normal</code>这三个<code>zone</code>，<code>node1</code>只有一个<code>Normal zone</code>。</p>
 
 <pre><code class="language-bash">$ cat /proc/zoneinfo
 Node 0, zone      DMA		// node信息，zone名称
-  pages free     3039		// 空闲page个数
-        min      2			// min水位
-        low      2			//low 水位
-        high     3			// high 水位
-        scanned  0
-        spanned  4095		// spanned_pages = zone_end_pfn - zone_start_pfn (包含hole)
-        present  3997		// present_pages = spanned_pages - absent_pages(pages in holes)
-        managed  3976		// managed_pages = present_pages - reserved_pages(buddy管理的页面个数)
-    nr_free_pages 3039  // 以下38行统计了该zone中不同用途类型的page的个数
-    nr_alloc_batch 1
-    nr_inactive_anon 0
-    nr_active_anon 0
-    nr_inactive_file 0
-    nr_active_file 0
-    nr_unevictable 0
-    nr_mlock     0
-    nr_anon_pages 0
-    nr_mapped    0
-    nr_file_pages 0
-    nr_dirty     0
-    nr_writeback 0
-    nr_slab_reclaimable 0
-    nr_slab_unreclaimable 0
-    nr_page_table_pages 0
-    nr_kernel_stack 0
-    nr_unstable  0
-    nr_bounce    0
-    nr_vmscan_write 0
-    nr_vmscan_immediate_reclaim 0
-    nr_writeback_temp 0
-    nr_isolated_anon 0
-    nr_isolated_file 0
-    nr_shmem     0
-    nr_dirtied   0
-    nr_written   0
-    numa_hit     1675
-    numa_miss    0
-    numa_foreign 0
-    numa_interleave 0
-    numa_local   1586
-    numa_other   89
-    workingset_refault 0
-    workingset_activate 0
-    workingset_nodereclaim 0
-    nr_anon_transparent_hugepages 0
-    nr_free_cma  0
-        protection: (0, 1383, 63848, 63848)
-  pagesets
-    cpu: 0
-              count: 0
-              high:  0
-              batch: 1
-  vm stats threshold: 12
-    cpu: 1
-              count: 0
-              high:  0
-              batch: 1
-  vm stats threshold: 12
+pages free     3039		// 空闲page个数
+    min      2			// min水位
+    low      2			//low 水位
+    high     3			// high 水位
+    scanned  0
+    spanned  4095		// spanned_pages = zone_end_pfn - zone_start_pfn (包含hole)
+    present  3997		// present_pages = spanned_pages - absent_pages(pages in holes)
+    managed  3976		// managed_pages = present_pages - reserved_pages(buddy管理的页面个数)
+nr_free_pages 3039  // 以下38行统计了该zone中不同用途类型的page的个数
+nr_alloc_batch 1
+nr_inactive_anon 0
+nr_active_anon 0
+nr_inactive_file 0
+nr_active_file 0
+nr_unevictable 0
+nr_mlock     0
+nr_anon_pages 0
+nr_mapped    0
+nr_file_pages 0
+nr_dirty     0
+nr_writeback 0
+nr_slab_reclaimable 0
+nr_slab_unreclaimable 0
+nr_page_table_pages 0
+nr_kernel_stack 0
+nr_unstable  0
+nr_bounce    0
+nr_vmscan_write 0
+nr_vmscan_immediate_reclaim 0
+nr_writeback_temp 0
+nr_isolated_anon 0
+nr_isolated_file 0
+nr_shmem     0
+nr_dirtied   0
+nr_written   0
+numa_hit     1675
+numa_miss    0
+numa_foreign 0
+numa_interleave 0
+numa_local   1586
+numa_other   89
+workingset_refault 0
+workingset_activate 0
+workingset_nodereclaim 0
+nr_anon_transparent_hugepages 0
+nr_free_cma  0
+    protection: (0, 1383, 63848, 63848)
+pagesets
+cpu: 0
+          count: 0
+          high:  0
+          batch: 1
+vm stats threshold: 12
+cpu: 1
+          count: 0
+          high:  0
+          batch: 1
+vm stats threshold: 12
 ...
 ...
 ...
 ...
-    cpu: 38
-              count: 0
-              high:  0
-              batch: 1
-  vm stats threshold: 12
-    cpu: 39
-              count: 0
-              high:  0
-              batch: 1
-  vm stats threshold: 12
-  all_unreclaimable: 0
-  start_pfn:         1
-  inactive_ratio:    1
+cpu: 38
+          count: 0
+          high:  0
+          batch: 1
+vm stats threshold: 12
+cpu: 39
+          count: 0
+          high:  0
+          batch: 1
+vm stats threshold: 12
+all_unreclaimable: 0
+start_pfn:         1
+inactive_ratio:    1
 Node 0, zone    DMA32
-  pages free     310887
-        min      242
-        low      302
-        high     363
-        scanned  0
-        spanned  1044480
-        present  417248
-        managed  354201
-    nr_free_pages 310887
-    nr_alloc_batch 61
-    nr_inactive_anon 13164
-    nr_active_anon 477
-    nr_inactive_file 806
-    nr_active_file 1797
-    nr_unevictable 0
-    nr_mlock     0
-    nr_anon_pages 729
-    nr_mapped    194
-    nr_file_pages 14973
-    nr_dirty     0
-    nr_writeback 0
-    nr_slab_reclaimable 7453
-    nr_slab_unreclaimable 1325
-    nr_page_table_pages 37
-    nr_kernel_stack 6
-    nr_unstable  0
-    nr_bounce    0
-    nr_vmscan_write 0
-    nr_vmscan_immediate_reclaim 0
-    nr_writeback_temp 0
-    nr_isolated_anon 0
-    nr_isolated_file 0
-    nr_shmem     12370
-    nr_dirtied   8381421
-    nr_written   5315197
-    numa_hit     854956447
-    numa_miss    153095
-    numa_foreign 0
-    numa_interleave 0
-    numa_local   854952367
-    numa_other   157175
-    workingset_refault 10804
-    workingset_activate 97
-    workingset_nodereclaim 0
-    nr_anon_transparent_hugepages 1
-    nr_free_cma  0
-        protection: (0, 0, 62464, 62464)
-  pagesets
-    cpu: 0
-              count: 158
-              high:  186
-              batch: 31
-  vm stats threshold: 60
-    cpu: 1
-              count: 170
-              high:  186
-              batch: 31
-  vm stats threshold: 60
-    cpu: 2
-              count: 182
-              high:  186
-              batch: 31
-  vm stats threshold: 60
+pages free     310887
+    min      242
+    low      302
+    high     363
+    scanned  0
+    spanned  1044480
+    present  417248
+    managed  354201
+nr_free_pages 310887
+nr_alloc_batch 61
+nr_inactive_anon 13164
+nr_active_anon 477
+nr_inactive_file 806
+nr_active_file 1797
+nr_unevictable 0
+nr_mlock     0
+nr_anon_pages 729
+nr_mapped    194
+nr_file_pages 14973
+nr_dirty     0
+nr_writeback 0
+nr_slab_reclaimable 7453
+nr_slab_unreclaimable 1325
+nr_page_table_pages 37
+nr_kernel_stack 6
+nr_unstable  0
+nr_bounce    0
+nr_vmscan_write 0
+nr_vmscan_immediate_reclaim 0
+nr_writeback_temp 0
+nr_isolated_anon 0
+nr_isolated_file 0
+nr_shmem     12370
+nr_dirtied   8381421
+nr_written   5315197
+numa_hit     854956447
+numa_miss    153095
+numa_foreign 0
+numa_interleave 0
+numa_local   854952367
+numa_other   157175
+workingset_refault 10804
+workingset_activate 97
+workingset_nodereclaim 0
+nr_anon_transparent_hugepages 1
+nr_free_cma  0
+    protection: (0, 0, 62464, 62464)
+pagesets
+cpu: 0
+          count: 158
+          high:  186
+          batch: 31
+vm stats threshold: 60
+cpu: 1
+          count: 170
+          high:  186
+          batch: 31
+vm stats threshold: 60
+cpu: 2
+          count: 182
+          high:  186
+          batch: 31
+vm stats threshold: 60
 ...
 ...
 ...
-    cpu: 38
-              count: 0
-              high:  186
-              batch: 31
-  vm stats threshold: 60
-    cpu: 39
-              count: 0
-              high:  186
-              batch: 31
-  vm stats threshold: 60
-  all_unreclaimable: 0
-  start_pfn:         4096				// 开始的pfn号
-  inactive_ratio:    3
+cpu: 38
+          count: 0
+          high:  186
+          batch: 31
+vm stats threshold: 60
+cpu: 39
+          count: 0
+          high:  186
+          batch: 31
+vm stats threshold: 60
+all_unreclaimable: 0
+start_pfn:         4096				// 开始的pfn号
+inactive_ratio:    3
 Node 0, zone   Normal
-  pages free     14351077
-        min      10962
-        low      13702
-        high     16443
-        scanned  0
-        spanned  16252928
-        present  16252928
-        managed  15991024
-    nr_free_pages 14351077
-    nr_alloc_batch 1381
-    nr_inactive_anon 557945
-    nr_active_anon 49324
-    nr_inactive_file 30342
-    nr_active_file 56404
-    nr_unevictable 0
-    nr_mlock     0
-    nr_anon_pages 31468
-    nr_mapped    12918
-    nr_file_pages 643281
-    nr_dirty     59
-    nr_writeback 0
-    nr_slab_reclaimable 416893
-    nr_slab_unreclaimable 71886
-    nr_page_table_pages 1351
-    nr_kernel_stack 519
-    nr_unstable  0
-    nr_bounce    0
-    nr_vmscan_write 25
-    nr_vmscan_immediate_reclaim 0
-    nr_writeback_temp 0
-    nr_isolated_anon 0
-    nr_isolated_file 0
-    nr_shmem     556532
-    nr_dirtied   598988584
-    nr_written   419469120
-    numa_hit     60842388353
-    numa_miss    2044762264
-    numa_foreign 59136456
-    numa_interleave 35507
-    numa_local   60842226428
-    numa_other   2044924189
-    workingset_refault 610786
-    workingset_activate 22873
-    workingset_nodereclaim 0
-    nr_anon_transparent_hugepages 37
-    nr_free_cma  0
-        protection: (0, 0, 0, 0)
-  pagesets
-    cpu: 0
-              count: 125
-              high:  186
-              batch: 31
-  vm stats threshold: 120
-    cpu: 1
-              count: 162
-              high:  186
-              batch: 31
-  vm stats threshold: 120
+pages free     14351077
+    min      10962
+    low      13702
+    high     16443
+    scanned  0
+    spanned  16252928
+    present  16252928
+    managed  15991024
+nr_free_pages 14351077
+nr_alloc_batch 1381
+nr_inactive_anon 557945
+nr_active_anon 49324
+nr_inactive_file 30342
+nr_active_file 56404
+nr_unevictable 0
+nr_mlock     0
+nr_anon_pages 31468
+nr_mapped    12918
+nr_file_pages 643281
+nr_dirty     59
+nr_writeback 0
+nr_slab_reclaimable 416893
+nr_slab_unreclaimable 71886
+nr_page_table_pages 1351
+nr_kernel_stack 519
+nr_unstable  0
+nr_bounce    0
+nr_vmscan_write 25
+nr_vmscan_immediate_reclaim 0
+nr_writeback_temp 0
+nr_isolated_anon 0
+nr_isolated_file 0
+nr_shmem     556532
+nr_dirtied   598988584
+nr_written   419469120
+numa_hit     60842388353
+numa_miss    2044762264
+numa_foreign 59136456
+numa_interleave 35507
+numa_local   60842226428
+numa_other   2044924189
+workingset_refault 610786
+workingset_activate 22873
+workingset_nodereclaim 0
+nr_anon_transparent_hugepages 37
+nr_free_cma  0
+    protection: (0, 0, 0, 0)
+pagesets
+cpu: 0
+          count: 125
+          high:  186
+          batch: 31
+vm stats threshold: 120
+cpu: 1
+          count: 162
+          high:  186
+          batch: 31
+vm stats threshold: 120
 ...
 ...
 ...
 ...
-    cpu: 38
-              count: 176
-              high:  186
-              batch: 31
-  vm stats threshold: 120
-    cpu: 39
-              count: 174
-              high:  186
-              batch: 31
-  vm stats threshold: 120
-  all_unreclaimable: 0
-  start_pfn:         1048576
-  inactive_ratio:    24
+cpu: 38
+          count: 176
+          high:  186
+          batch: 31
+vm stats threshold: 120
+cpu: 39
+          count: 174
+          high:  186
+          batch: 31
+vm stats threshold: 120
+all_unreclaimable: 0
+start_pfn:         1048576
+inactive_ratio:    24
 Node 1, zone   Normal
-  pages free     14993432
-        min      11320
-        low      14150
-        high     16980
-        scanned  0
-        spanned  16777216
-        present  16777216
-        managed  16514229
-    nr_free_pages 14993432
-    nr_alloc_batch 894
-    nr_inactive_anon 534587
-    nr_active_anon 95276
-    nr_inactive_file 46704
-    nr_active_file 87189
-    nr_unevictable 0
-    nr_mlock     0
-    nr_anon_pages 59220
-    nr_mapped    17798
-    nr_file_pages 625093
-    nr_dirty     90
-    nr_writeback 0
-    nr_slab_reclaimable 521541
-    nr_slab_unreclaimable 71127
-    nr_page_table_pages 1682
-    nr_kernel_stack 459
-    nr_unstable  0
-    nr_bounce    0
-    nr_vmscan_write 107
-    nr_vmscan_immediate_reclaim 0
-    nr_writeback_temp 0
-    nr_isolated_anon 0
-    nr_isolated_file 0
-    nr_shmem     491196
-    nr_dirtied   492864604
-    nr_written   339759696
-    numa_hit     55865496981
-    numa_miss    59136456
-    numa_foreign 2044915359
-    numa_interleave 35516
-    numa_local   55865257923
-    numa_other   59375514
-    workingset_refault 792520
-    workingset_activate 104322
-    workingset_nodereclaim 0
-    nr_anon_transparent_hugepages 155
-    nr_free_cma  0
-        protection: (0, 0, 0, 0)
-  pagesets
-    cpu: 0
-              count: 157
-              high:  186
-              batch: 31
-  vm stats threshold: 120
-    cpu: 1
-              count: 181
-              high:  186
-              batch: 31
-  vm stats threshold: 120
+pages free     14993432
+    min      11320
+    low      14150
+    high     16980
+    scanned  0
+    spanned  16777216
+    present  16777216
+    managed  16514229
+nr_free_pages 14993432
+nr_alloc_batch 894
+nr_inactive_anon 534587
+nr_active_anon 95276
+nr_inactive_file 46704
+nr_active_file 87189
+nr_unevictable 0
+nr_mlock     0
+nr_anon_pages 59220
+nr_mapped    17798
+nr_file_pages 625093
+nr_dirty     90
+nr_writeback 0
+nr_slab_reclaimable 521541
+nr_slab_unreclaimable 71127
+nr_page_table_pages 1682
+nr_kernel_stack 459
+nr_unstable  0
+nr_bounce    0
+nr_vmscan_write 107
+nr_vmscan_immediate_reclaim 0
+nr_writeback_temp 0
+nr_isolated_anon 0
+nr_isolated_file 0
+nr_shmem     491196
+nr_dirtied   492864604
+nr_written   339759696
+numa_hit     55865496981
+numa_miss    59136456
+numa_foreign 2044915359
+numa_interleave 35516
+numa_local   55865257923
+numa_other   59375514
+workingset_refault 792520
+workingset_activate 104322
+workingset_nodereclaim 0
+nr_anon_transparent_hugepages 155
+nr_free_cma  0
+    protection: (0, 0, 0, 0)
+pagesets
+cpu: 0
+          count: 157
+          high:  186
+          batch: 31
+vm stats threshold: 120
+cpu: 1
+          count: 181
+          high:  186
+          batch: 31
+vm stats threshold: 120
 ...
 ...
 ...
 ...
-    cpu: 38
-              count: 158
-              high:  186
-              batch: 31
-  vm stats threshold: 120
-    cpu: 39
-              count: 125
-              high:  186
-              batch: 31
-  vm stats threshold: 120
-  all_unreclaimable: 0
-  start_pfn:         17301504
-  inactive_ratio:    24
-</code></pre>
+cpu: 38
+          count: 158
+          high:  186
+          batch: 31
+vm stats threshold: 120
+cpu: 39
+          count: 125
+          high:  186
+          batch: 31
+vm stats threshold: 120
+all_unreclaimable: 0
+start_pfn:         17301504
+inactive_ratio:    24
+</code></pre></li>
+</ul>
 
 <h3 id="参考文章">参考文章</h3>
 
@@ -1046,7 +1022,7 @@ Node 1, zone   Normal
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

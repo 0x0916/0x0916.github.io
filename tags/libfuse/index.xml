@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Libfuse on Notes about linux and my work</title>
+    <title>libfuse on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/libfuse/</link>
-    <description>Recent content in Libfuse on Notes about linux and my work</description>
+    <description>Recent content in libfuse on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sat, 15 Sep 2018 20:10:34 +0800</lastBuildDate>
@@ -17,9 +17,7 @@
       <pubDate>Sat, 15 Sep 2018 20:10:34 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/fuse/</guid>
-      <description>&lt;p&gt;本文介绍了&lt;code&gt;FUSE&lt;/code&gt;（用户态文件系统），和其相应的编程库&lt;code&gt;libfuse&lt;/code&gt;，并给出了示例程序。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;本文介绍了&lt;code&gt;FUSE&lt;/code&gt;（用户态文件系统），和其相应的编程库&lt;code&gt;libfuse&lt;/code&gt;，并给出了示例程序。&lt;/p&gt;</description>
     </item>
     
   </channel>

@@ -1,3 +1,4 @@
+
 本文转载于：http://www.wowotech.net/memory_management/memory_model.html
 
 在原文的基础上，做了如下的改动：

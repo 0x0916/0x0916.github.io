@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
  注意：本文中引用的内核代码版本为v4.4.128。
- 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/percpu-counter/" />
@@ -57,35 +56,16 @@
 
 
 注意：本文中引用的内核代码版本为v4.4.128。
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/percpu-counter/" />
-
-
-
-<meta property="article:published_time" content="2018-04-13T20:50:15&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-04-13T20:50:15&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-04-13T20:50:15+08:00" />
+<meta property="article:modified_time" content="2018-04-13T20:50:15+08:00" />
 <meta itemprop="name" content="内核基础设施——percpu_counter">
 <meta itemprop="description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
 
 
 注意：本文中引用的内核代码版本为v4.4.128。
-
-
 ">
 
 
@@ -102,8 +82,6 @@
 
 
 注意：本文中引用的内核代码版本为v4.4.128。
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -226,8 +204,6 @@
 <p>注意：本文中引用的内核代码版本为<code>v4.4.128</code>。</p>
 </blockquote>
 
-<p></p>
-
 <h3 id="对于单核">对于单核</h3>
 
 <p>其数据结构定义<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/percpu_counter.h?h=v4.4.128#n94"> include/linux/percpu_counter.h(line 94) </a>如下：</p>
@@ -286,28 +262,28 @@
 
 <li><p><code>percpu_counter_destroy</code> 释放<code>percpu_counter_init</code>中分配的每<code>cpu</code>变量<code>counters</code>;</p></li>
 
-<li><p><code>percpu_counter_inc/percpu_counter_dec/percpu_counter_add/percpu_counter_sub</code>四个方法主要对计数器进行操作，修改其值。修改过程中，就是用上面提到的技巧，尽可能少的加锁。<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n75"> lib/percpu_counter.c(line 75) </a></p></li>
-</ul>
+<li><p><code>percpu_counter_inc/percpu_counter_dec/percpu_counter_add/percpu_counter_sub</code>四个方法主要对计数器进行操作，修改其值。修改过程中，就是用上面提到的技巧，尽可能少的加锁。<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n75"> lib/percpu_counter.c(line 75) </a></p>
 
 <pre><code class="language-c">void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch)
 {
-        s64 count;
+    s64 count;
 
-        preempt_disable();
-        count = __this_cpu_read(*fbc-&gt;counters) + amount;
-        if (count &gt;= batch || count &lt;= -batch) {
-                unsigned long flags;
-                raw_spin_lock_irqsave(&amp;fbc-&gt;lock, flags);
-                fbc-&gt;count += count;
-                __this_cpu_sub(*fbc-&gt;counters, count - amount); // 清零
-                raw_spin_unlock_irqrestore(&amp;fbc-&gt;lock, flags);
-        } else {
-                this_cpu_add(*fbc-&gt;counters, amount);
-        }
-        preempt_enable();
+    preempt_disable();
+    count = __this_cpu_read(*fbc-&gt;counters) + amount;
+    if (count &gt;= batch || count &lt;= -batch) {
+            unsigned long flags;
+            raw_spin_lock_irqsave(&amp;fbc-&gt;lock, flags);
+            fbc-&gt;count += count;
+            __this_cpu_sub(*fbc-&gt;counters, count - amount); // 清零
+            raw_spin_unlock_irqrestore(&amp;fbc-&gt;lock, flags);
+    } else {
+            this_cpu_add(*fbc-&gt;counters, amount);
+    }
+    preempt_enable();
 }
 EXPORT_SYMBOL(__percpu_counter_add);
-</code></pre>
+</code></pre></li>
+</ul>
 
 <blockquote>
 <p>技巧：这里特别注意<code>__this_cpu_sub(*fbc-&gt;counters, count - amount)</code>，乍一看，这里就是清零，为什么要写这么复杂呢？因为在计算<code>count</code>值到该行代码之间，该<code>cpu</code>对应的<code>percpu_counter</code>计数可能增加，所以只有这样写才是最正确的。</p>
@@ -318,36 +294,36 @@ EXPORT_SYMBOL(__percpu_counter_add);
 
 <li><p><code>percpu_counter_read/percpu_counter_read_positive</code>读出该计数器的粗略的数值，不需要加锁, 区别是<code>percpu_counter_read_positive</code>返回值最小为0；</p></li>
 
-<li><p><code>percpu_counter_compare</code> 用来比较计数器的数值和给定的数值的大小，这里也用到了上面提到的编程技巧，尽可能少的加锁。先通过<code>percpu_counter_read</code>计算计数器的粗略值，此时不需要加锁，如果可以判断结果的话，就直接返回；如果判断不了结果的话，就得通过<code>percpu_counter_sum</code>来进一步加锁计算精确的计数值来进行比较，代码可参考：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n200"> lib/percpu_counter.c(line 200) </a></p></li>
-</ul>
+<li><p><code>percpu_counter_compare</code> 用来比较计数器的数值和给定的数值的大小，这里也用到了上面提到的编程技巧，尽可能少的加锁。先通过<code>percpu_counter_read</code>计算计数器的粗略值，此时不需要加锁，如果可以判断结果的话，就直接返回；如果判断不了结果的话，就得通过<code>percpu_counter_sum</code>来进一步加锁计算精确的计数值来进行比较，代码可参考：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n200"> lib/percpu_counter.c(line 200) </a></p>
 
 <pre><code class="language-c">/*                                                                                                                                             
- * Compare counter against given value.
- * Return 1 if greater, 0 if equal and -1 if less
- */
+* Compare counter against given value.
+* Return 1 if greater, 0 if equal and -1 if less
+*/
 int __percpu_counter_compare(struct percpu_counter *fbc, s64 rhs, s32 batch)
 {
-        s64     count;
+    s64     count;
 
-        count = percpu_counter_read(fbc);       // 读出大概值
-        /* Check to see if rough count will be sufficient for comparison */
-        if (abs(count - rhs) &gt; (batch * num_online_cpus())) {
-                if (count &gt; rhs)
-                        return 1;
-                else
-                        return -1;
-        }
-        /* Need to use precise count */
-        count = percpu_counter_sum(fbc);
-        if (count &gt; rhs)
-                return 1;
-        else if (count &lt; rhs)
-                return -1;
-        else
-                return 0;
+    count = percpu_counter_read(fbc);       // 读出大概值
+    /* Check to see if rough count will be sufficient for comparison */
+    if (abs(count - rhs) &gt; (batch * num_online_cpus())) {
+            if (count &gt; rhs)
+                    return 1;
+            else
+                    return -1;
+    }
+    /* Need to use precise count */
+    count = percpu_counter_sum(fbc);
+    if (count &gt; rhs)
+            return 1;
+    else if (count &lt; rhs)
+            return -1;
+    else
+            return 0;
 }
 EXPORT_SYMBOL(__percpu_counter_compare);
-</code></pre>
+</code></pre></li>
+</ul>
 
 <h3 id="batch大小">batch大小</h3>
 
@@ -536,7 +512,7 @@ static DEFINE_SPINLOCK(percpu_counters_lock);
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

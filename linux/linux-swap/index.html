@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="本文转载于：https://segmentfault.com/a/1190000008125116
 每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。
-
 " />
 <meta name="keywords" content="linux, swap" />
 
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/linux-swap/" />
@@ -55,34 +54,15 @@
 <meta property="og:title" content="Linux交换空间" />
 <meta property="og:description" content="本文转载于：https://segmentfault.com/a/1190000008125116
 
-每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。
-
-" />
+每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/linux-swap/" />
-
-
-
-<meta property="article:published_time" content="2018-05-04T21:07:38&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-05-04T21:07:38&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-05-04T21:07:38+08:00" />
+<meta property="article:modified_time" content="2018-05-04T21:07:38+08:00" />
 <meta itemprop="name" content="Linux交换空间">
 <meta itemprop="description" content="本文转载于：https://segmentfault.com/a/1190000008125116
 
-每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。
-
-">
+每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。">
 
 
 <meta itemprop="datePublished" content="2018-05-04T21:07:38&#43;08:00" />
@@ -96,9 +76,7 @@
 <meta name="twitter:title" content="Linux交换空间"/>
 <meta name="twitter:description" content="本文转载于：https://segmentfault.com/a/1190000008125116
 
-每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。
-
-"/>
+每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -233,8 +211,6 @@
       <p>本文转载于：<a href="https://segmentfault.com/a/1190000008125116">https://segmentfault.com/a/1190000008125116</a></p>
 
 <p>每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。</p>
-
-<p></p>
 
 <h2 id="什么是swap">什么是swap?</h2>
 
@@ -516,22 +492,20 @@ Swap:             0           0           0
 <p>Ubuntu的desktop和server的默认配置都是60(可能会随着版本变化)，对于桌面环境来说，界面的响应速度直接关系到系统的流畅程度，如果内存比较充裕的话，可以将这个值设置的小一点，这样就尽可能的把数据留在内存中，从而唤醒后台界面程序会更快一些，Ubuntu desktop建议将该值设置为10，当然大家可以根据swap空间的实际使用情况，任意调整这个参数，直到自己满意的水平为止。对于服务器来说，主要性能衡量标准是整体的处理能力，而不是具体某一次的响应速度，能把更多的内存用来做I/O cache可能效果更好，所以Ubuntu server建议保持60的默认值。</p>
 
 <ul>
-<li>查看当前系统中swappiness的值</li>
-</ul>
+<li><p>查看当前系统中swappiness的值</p>
 
 <pre><code class="language-bash">dev@dev:~$ cat /proc/sys/vm/swappiness
 60
-</code></pre>
+</code></pre></li>
 
-<ul>
-<li>修改当前系统中swappiness的值</li>
-</ul>
+<li><p>修改当前系统中swappiness的值</p>
 
 <pre><code class="language-bash">dev@dev:~$ sudo sysctl vm.swappiness=10
 vm.swappiness = 10
 dev@dev:~$ cat /proc/sys/vm/swappiness
 10
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>上面通过sysctl修改的swappiness值在系统重启后会失效，要想重启后继续生效，需要修改配置文件/etc/sysctl.conf，将下面这行修改成10，如果文件中找不到这行的话，在文件末位加上这行就可以了</p>
 
@@ -629,7 +603,7 @@ dev@dev:~$ cat /proc/sys/vm/swappiness
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

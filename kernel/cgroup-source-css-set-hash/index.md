@@ -1,3 +1,4 @@
+
 在描述进程的结构体`task_struct`中有一个类型为`css_set`的成员`cgroups`，它描述了进程的所有`cgroup`信息，从前面的分析文章中我们已经知道通过`task_struct->cgroups`可以找到进程的所有不同`cgroup`控制器的信息。
 
 当我们新创建一个进程时，新进程的`task_struct->cgroups`的值继承自其`父进程`。此后，如果我们将新创建的进程添加到一个新的`cgroup`中时，就需要重新给`task_struct->cgroups`赋值，这个值要么是一个已经存在的`css_set`结构的指针，要么是新创建的`css_set`的结构的指针。

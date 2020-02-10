@@ -18,7 +18,6 @@
 
 <meta name="author" content="laoqinren" />
   <meta name="description" content="本文分析了内核中hungtask机制，下文中代码基于社区稳定版本内核，版本为：v4.4.128。
-
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -28,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/hungtask/" />
@@ -52,32 +51,13 @@
 
 
 <meta property="og:title" content="hungtask 机制分析" />
-<meta property="og:description" content="本文分析了内核中hungtask机制，下文中代码基于社区稳定版本内核，版本为：v4.4.128。
-
-" />
+<meta property="og:description" content="本文分析了内核中hungtask机制，下文中代码基于社区稳定版本内核，版本为：v4.4.128。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/hungtask/" />
-
-
-
-<meta property="article:published_time" content="2018-04-16T12:14:18&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-04-16T12:14:18&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-04-16T12:14:18+08:00" />
+<meta property="article:modified_time" content="2018-04-16T12:14:18+08:00" />
 <meta itemprop="name" content="hungtask 机制分析">
-<meta itemprop="description" content="本文分析了内核中hungtask机制，下文中代码基于社区稳定版本内核，版本为：v4.4.128。
-
-">
+<meta itemprop="description" content="本文分析了内核中hungtask机制，下文中代码基于社区稳定版本内核，版本为：v4.4.128。">
 
 
 <meta itemprop="datePublished" content="2018-04-16T12:14:18&#43;08:00" />
@@ -89,9 +69,7 @@
 <meta itemprop="keywords" content="kernel,linux,hungtask," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="hungtask 机制分析"/>
-<meta name="twitter:description" content="本文分析了内核中hungtask机制，下文中代码基于社区稳定版本内核，版本为：v4.4.128。
-
-"/>
+<meta name="twitter:description" content="本文分析了内核中hungtask机制，下文中代码基于社区稳定版本内核，版本为：v4.4.128。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -209,8 +187,6 @@
     
     <div class="post-content">
       <p>本文分析了内核中<code>hungtask</code>机制，下文中代码基于社区稳定版本内核，版本为：<code>v4.4.128</code>。</p>
-
-<p></p>
 
 <h2 id="相关知识介绍">相关知识介绍</h2>
 
@@ -513,7 +489,7 @@ static void check_hung_uninterruptible_tasks(unsigned long timeout)
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

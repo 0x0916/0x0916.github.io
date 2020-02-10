@@ -20,7 +20,6 @@
   <meta name="description" content="cgroup的debug子系统其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核cgroup框架的使用方法，同时也展示了cgroup框架中各个数据结构之间的关系。
 本文就通过研究debug子系统，来展示cgroup框架中各个数据结构的关系。
  注意: 内核代码采用linux-3.10.0-862.9.1.el7
- 
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -30,7 +29,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-debug/" />
@@ -60,28 +59,11 @@
 
 
 注意: 内核代码采用linux-3.10.0-862.9.1.el7
-
-
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-debug/" />
-
-
-
-<meta property="article:published_time" content="2018-08-09T22:46:11&#43;08:00"/>
-
-<meta property="article:modified_time" content="2018-08-09T22:46:11&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2018-08-09T22:46:11+08:00" />
+<meta property="article:modified_time" content="2018-08-09T22:46:11+08:00" />
 <meta itemprop="name" content="cgroup之debug子系统">
 <meta itemprop="description" content="cgroup的debug子系统其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核cgroup框架的使用方法，同时也展示了cgroup框架中各个数据结构之间的关系。
 
@@ -89,8 +71,6 @@
 
 
 注意: 内核代码采用linux-3.10.0-862.9.1.el7
-
-
 ">
 
 
@@ -109,8 +89,6 @@
 
 
 注意: 内核代码采用linux-3.10.0-862.9.1.el7
-
-
 "/>
 
 <!--[if lte IE 9]>
@@ -239,8 +217,6 @@
 <blockquote>
 <p>注意: 内核代码采用<code>linux-3.10.0-862.9.1.el7</code></p>
 </blockquote>
-
-<p></p>
 
 <h3 id="使能debug子系统">使能debug子系统</h3>
 
@@ -637,7 +613,7 @@ css_set ffff8800d0a39e40
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Environment on Notes about linux and my work</title>
+    <title>environment on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/environment/</link>
-    <description>Recent content in Environment on Notes about linux and my work</description>
+    <description>Recent content in environment on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Thu, 19 Apr 2018 20:49:45 +0800</lastBuildDate>
@@ -17,9 +17,7 @@
       <pubDate>Thu, 19 Apr 2018 20:49:45 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/environment-list/</guid>
-      <description>&lt;p&gt;说起&lt;code&gt;linux&lt;/code&gt;环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;说起&lt;code&gt;linux&lt;/code&gt;环境变量，大家都不陌生，但最近在面试过程中，发现大家对其理解的还不是很准确，本文想专门对环境变量进行一些深入的介绍。&lt;/p&gt;</description>
     </item>
     
   </channel>

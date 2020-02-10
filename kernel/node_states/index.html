@@ -19,7 +19,6 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content="在内存管理和调度负载均衡中，有许多代码逻辑要遍历node上的内存和cpu信息，加上现在的内核都支持内存和cpu的热插拔，所以系统上node的状态在内核上要有专门的数据结构进行描述。
 本文就研究一下用于描述node信息的数据结构。
-
 " />
 <meta name="keywords" content="cpu, node, node_states, memory" />
 
@@ -29,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.37.1" />
+<meta name="generator" content="Hugo 0.59.1" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/node_states/" />
@@ -55,34 +54,15 @@
 <meta property="og:title" content="描述系统上cpu和memory的状态:node_states" />
 <meta property="og:description" content="在内存管理和调度负载均衡中，有许多代码逻辑要遍历node上的内存和cpu信息，加上现在的内核都支持内存和cpu的热插拔，所以系统上node的状态在内核上要有专门的数据结构进行描述。
 
-本文就研究一下用于描述node信息的数据结构。
-
-" />
+本文就研究一下用于描述node信息的数据结构。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/node_states/" />
-
-
-
-<meta property="article:published_time" content="2019-01-20T11:24:14&#43;08:00"/>
-
-<meta property="article:modified_time" content="2019-01-20T11:24:14&#43;08:00"/>
-
-
-
-
-
-
-
-
-
-
-
+<meta property="article:published_time" content="2019-01-20T11:24:14+08:00" />
+<meta property="article:modified_time" content="2019-01-20T11:24:14+08:00" />
 <meta itemprop="name" content="描述系统上cpu和memory的状态:node_states">
 <meta itemprop="description" content="在内存管理和调度负载均衡中，有许多代码逻辑要遍历node上的内存和cpu信息，加上现在的内核都支持内存和cpu的热插拔，所以系统上node的状态在内核上要有专门的数据结构进行描述。
 
-本文就研究一下用于描述node信息的数据结构。
-
-">
+本文就研究一下用于描述node信息的数据结构。">
 
 
 <meta itemprop="datePublished" content="2019-01-20T11:24:14&#43;08:00" />
@@ -96,9 +76,7 @@
 <meta name="twitter:title" content="描述系统上cpu和memory的状态:node_states"/>
 <meta name="twitter:description" content="在内存管理和调度负载均衡中，有许多代码逻辑要遍历node上的内存和cpu信息，加上现在的内核都支持内存和cpu的热插拔，所以系统上node的状态在内核上要有专门的数据结构进行描述。
 
-本文就研究一下用于描述node信息的数据结构。
-
-"/>
+本文就研究一下用于描述node信息的数据结构。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -216,8 +194,6 @@
 
 <p>本文就研究一下用于描述<code>node</code>信息的数据结构。</p>
 
-<p></p>
-
 <p><img src="./pic.jpg" alt="" /></p>
 
 <h3 id="系统环境">系统环境</h3>
@@ -295,12 +271,13 @@ nodemask_t node_states[5];
 <li><code>N_MEMORY</code>：描述对应的<code>node</code>是否有内存</li>
 <li><code>N_CPU</code>：描述对应的<code>node</code>上是否有<code>cpu</code></li>
 </ul></li>
-<li>通过<code>nodemask_t</code>可以看出，系统上最大支持<code>1024</code>（<code>16*64</code>）个node，其实，通过内核的<code>config</code>，也可以计算出系统最大支持<code>1024</code>个<code>node</code>，这里的<code>CONFIG_NODES_SHIFT</code>为<code>10</code>。</li>
-</ul>
+
+<li><p>通过<code>nodemask_t</code>可以看出，系统上最大支持<code>1024</code>（<code>16*64</code>）个node，其实，通过内核的<code>config</code>，也可以计算出系统最大支持<code>1024</code>个<code>node</code>，这里的<code>CONFIG_NODES_SHIFT</code>为<code>10</code>。</p>
 
 <pre><code class="language-c">#define NODES_SHIFT     CONFIG_NODES_SHIFT
 #define MAX_NUMNODES    (1 &lt;&lt; NODES_SHIFT)
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>我所查看的机器上有两个<code>node</code>，那么接下来我们通过<code>crash</code>查看一下<code>node_states</code>的值：</p>
 
@@ -437,7 +414,7 @@ node_states = $1 = {
     &copy; 
     
       2016 - 
-    2019
+    2020
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>
