@@ -2,48 +2,68 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://linux.laoqinren.net/kernel/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/posts/</loc>
+    <lastmod>2020-07-28T16:03:59+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/categories/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/</loc>
+    <lastmod>2020-07-28T16:03:59+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/tags/kernel/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/kernel/</loc>
+    <lastmod>2020-07-18T13:06:53+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/</loc>
+    <lastmod>2020-07-18T13:06:53+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/categories/kernel/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <lastmod>2020-07-18T13:06:53+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/tags/kernel/</loc>
+    <lastmod>2020-07-18T13:06:53+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/tags/linux/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/kernel/sched/intro/</loc>
-    <lastmod>2019-11-17T19:52:36+08:00</lastmod>
+    <lastmod>2020-07-18T13:06:53+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/tags/</loc>
+    <lastmod>2020-07-18T13:06:53+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/kernel/xarray/</loc>
+    <lastmod>2020-07-18T13:06:53+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/kernel/sched/intro/</loc>
     <lastmod>2019-11-17T19:52:36+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -231,14 +251,14 @@
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/categories/socket/</loc>
+    <loc>http://linux.laoqinren.net/tags/socket/</loc>
     <lastmod>2018-09-16T18:06:34+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/tags/socket/</loc>
+    <loc>http://linux.laoqinren.net/categories/socket/</loc>
     <lastmod>2018-09-16T18:06:34+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -280,13 +300,6 @@
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/categories/radix-tree/</loc>
-    <lastmod>2018-09-09T13:36:38+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
     <loc>http://linux.laoqinren.net/tags/radix-tree/</loc>
     <lastmod>2018-09-09T13:36:38+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -294,14 +307,21 @@
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/categories/cgroup/</loc>
-    <lastmod>2018-08-26T10:09:56+08:00</lastmod>
+    <loc>http://linux.laoqinren.net/categories/radix-tree/</loc>
+    <lastmod>2018-09-09T13:36:38+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://linux.laoqinren.net/tags/cgroup/</loc>
+    <lastmod>2018-08-26T10:09:56+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://linux.laoqinren.net/categories/cgroup/</loc>
     <lastmod>2018-08-26T10:09:56+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -347,12 +367,6 @@
     <lastmod>2018-08-23T15:19:35+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://linux.laoqinren.net/posts/</loc>
-    <lastmod>2018-08-14T19:59:57+08:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -433,14 +447,14 @@
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/categories/gcc/</loc>
+    <loc>http://linux.laoqinren.net/tags/gcc/</loc>
     <lastmod>2018-06-27T21:18:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://linux.laoqinren.net/tags/gcc/</loc>
+    <loc>http://linux.laoqinren.net/categories/gcc/</loc>
     <lastmod>2018-06-27T21:18:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>

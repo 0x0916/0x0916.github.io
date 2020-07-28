@@ -6,10 +6,21 @@
     <description>Recent content on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 14 Aug 2018 19:59:57 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 28 Jul 2020 16:03:59 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>关于x86-64的栈布局和函数调用约定</title>
+      <link>http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/</link>
+      <pubDate>Tue, 28 Jul 2020 16:03:59 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/</guid>
+      <description>&lt;p&gt;在内核&lt;code&gt;panic&lt;/code&gt;时，会打印出出问题的调用栈信息，同时也可以通过&lt;code&gt;kdump&lt;/code&gt;结合&lt;code&gt;crash&lt;/code&gt;进行更深入的分析定位问题。&lt;/p&gt;
+
+&lt;p&gt;本文分析了&lt;code&gt;x86-64&lt;/code&gt;的栈帧结构，为分析问题提供帮助。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Cgroup之不绑定任何subsystem</title>

@@ -12,6 +12,30 @@
     
     
     <item>
+      <title>关于x86-64的栈布局和函数调用约定</title>
+      <link>http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/</link>
+      <pubDate>Tue, 28 Jul 2020 16:03:59 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/</guid>
+      <description>&lt;p&gt;在内核&lt;code&gt;panic&lt;/code&gt;时，会打印出出问题的调用栈信息，同时也可以通过&lt;code&gt;kdump&lt;/code&gt;结合&lt;code&gt;crash&lt;/code&gt;进行更深入的分析定位问题。&lt;/p&gt;
+
+&lt;p&gt;本文分析了&lt;code&gt;x86-64&lt;/code&gt;的栈帧结构，为分析问题提供帮助。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>内核基础设施——XArray</title>
+      <link>http://linux.laoqinren.net/kernel/xarray/</link>
+      <pubDate>Sat, 18 Jul 2020 13:06:53 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/xarray/</guid>
+      <description>&lt;p&gt;本文详细介绍了Linux的XArray数据结构。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;注意：本文分析中引用的代码来自于：&lt;a href=&#34;https://kernel.org/pub/linux/kernel/v5.x/linux-5.1.21.tar.xz&#34;&gt;linux-5.1.21.tar.xz&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</description>
+    </item>
+    
+    <item>
       <title>Linux调度——概述</title>
       <link>http://linux.laoqinren.net/kernel/sched/intro/</link>
       <pubDate>Sun, 17 Nov 2019 19:52:36 +0800</pubDate>

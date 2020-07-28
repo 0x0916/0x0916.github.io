@@ -1,0 +1,106 @@
+
+<svg width="319px" height="593px" viewBox="0 0 319 593" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="Xarray" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M116.5,521.75 L193,521.75" id="Line-4" stroke="#000000" stroke-linecap="square"></path>
+        <text id="xa_node" font-family="PingFangSC-Medium, PingFang SC" font-size="24" font-weight="400" fill="#000000">
+            <tspan x="28.292" y="173">xa_node</tspan>
+        </text>
+        <rect id="Rectangle" stroke="#000000" fill="#F8E71C" x="69.5" y="178.5" width="195" height="312"></rect>
+        <text id="offset=随机" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="119.804" y="237">offset=随机</tspan>
+        </text>
+        <text id="shift=0" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="135.06" y="204">shift=0</tspan>
+        </text>
+        <text id="count=2" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="125.516" y="269">count=2</tspan>
+        </text>
+        <path d="M70,213.5 L265,213.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M70,246.5 L265,246.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <text id="parent=null" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="120.124" y="331">parent=null</tspan>
+        </text>
+        <text id="nr_value=2" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="121.596" y="302">nr_value=2</tspan>
+        </text>
+        <text id="xarray" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="141.052" y="366">xarray</tspan>
+        </text>
+        <path d="M69,312.5 L265,312.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M69,279.5 L265,279.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M70,343.5 L266,343.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <text id="tags[3][1]/marks[3][" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="85.096" y="434">tags[3][1]/marks[3][1]</tspan>
+        </text>
+        <text id="private_list/rcu_hea" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="86.44" y="397">private_list/rcu_head</tspan>
+        </text>
+        <path d="M70,409.5 L265,409.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M69,375.5 L265,375.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <text id="slots[64]" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="0.096" y="485">slots[64]</tspan>
+        </text>
+        <path d="M69,461.5 L265,461.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M80.5,462.5 L80.5,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M100.5,462.5 L100.5,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M90.75,462.5 L90.75,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M122.5,462.5 L122.5,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M142.5,462.5 L142.5,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M110.75,462.5 L110.75,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M132.75,462.5 L132.75,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M199.5,462.5 L199.5,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M219.5,462.5 L219.5,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M187.75,462.5 L187.75,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M209.75,462.5 L209.75,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M241.5,462.5 L241.5,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M229.75,462.5 L229.75,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M251.75,462.5 L251.75,490.5" id="Line-2" stroke="#000000" stroke-linecap="square"></path>
+        <text id="……" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="146" y="480">……</tspan>
+        </text>
+        <text id="0" font-family="PingFangSC-Medium, PingFang SC" font-size="12" font-weight="400" fill="#000000">
+            <tspan x="72.4" y="458">0</tspan>
+        </text>
+        <text id="63" font-family="PingFangSC-Medium, PingFang SC" font-size="12" font-weight="400" fill="#000000">
+            <tspan x="250.3" y="457">63</tspan>
+        </text>
+        <path id="Line-3" d="M274.5,179.5 L318,179.5 L318.5,179.5 L318.5,180.5 L318,180.5 L274.5,180.5 L274.5,184.5 L265.5,180 L274.5,175.5 L274.5,179.5 Z" fill="#000000" fill-rule="nonzero"></path>
+        <path d="M318,180 L318.5,113" id="Line-3" stroke="#000000" stroke-linecap="square"></path>
+        <path id="Line-3" d="M74,545.5 L74,480 L74,479.5 L75,479.5 L75,480 L75,545.5 L79,545.5 L74.5,554.5 L70,545.5 L74,545.5 Z" fill="#000000" fill-rule="nonzero"></path>
+        <text id="slots[0]" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="12.896" y="541">slots[0]</tspan>
+        </text>
+        <rect id="Rectangle" stroke="#979797" fill="#D8D8D8" x="36.5" y="555.5" width="85" height="18"></rect>
+        <text id="0000000000000001" font-family="PingFangSC-Medium, PingFang SC" font-size="8" font-weight="400" fill="#000000">
+            <tspan x="40.868" y="566">0000000000000001</tspan>
+        </text>
+        <path id="Line-3" d="M192.5,545.5 L192.5,522 L192.5,521.5 L193.5,521.5 L193.5,522 L193.5,545.5 L197.5,545.5 L193,554.5 L188.5,545.5 L192.5,545.5 Z" fill="#000000" fill-rule="nonzero"></path>
+        <text id="slots[4]" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="129.896" y="540">slots[4]</tspan>
+        </text>
+        <rect id="Rectangle" stroke="#979797" fill="#D8D8D8" x="153" y="554.5" width="85" height="18"></rect>
+        <text id="0000000000000009" font-family="PingFangSC-Medium, PingFang SC" font-size="8" font-weight="400" fill="#000000">
+            <tspan x="157.1" y="565">0000000000000009</tspan>
+        </text>
+        <rect id="Rectangle" stroke="#000000" fill="#B8E986" x="83.5" y="28.5" width="159" height="91"></rect>
+        <text id="xarray" font-family="PingFangSC-Medium, PingFang SC" font-size="24" font-weight="400" fill="#000000">
+            <tspan x="127.328" y="13">xarray</tspan>
+        </text>
+        <text id="xa_flags" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="131.26" y="79">xa_flags</tspan>
+        </text>
+        <text id="xa_lock" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="134.092" y="52">xa_lock</tspan>
+        </text>
+        <text id="xa_head" font-family="PingFangSC-Medium, PingFang SC" font-size="16" font-weight="400" fill="#000000">
+            <tspan x="130.284" y="111">xa_head</tspan>
+        </text>
+        <path d="M83,59.5 L243,59.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M83,91.5 L243,91.5" id="Line" stroke="#000000" stroke-linecap="square"></path>
+        <path d="M206,112 L319,112.75" id="Line-4" stroke="#000000" stroke-linecap="square"></path>
+        <text id="最低位为1，表示是一个value" font-family="PingFangSC-Medium, PingFang SC" font-size="8" font-weight="400" fill="#000000">
+            <tspan x="103.028" y="591">最低位为1，表示是一个value</tspan>
+        </text>
+        <path d="M116.5,480 L116.5,521.75" id="Line-5" stroke="#000000" stroke-linecap="square"></path>
+    </g>
+</svg>
