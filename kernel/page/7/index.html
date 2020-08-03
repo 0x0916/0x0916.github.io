@@ -55,7 +55,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/" />
 
-<meta property="og:updated_time" content="2020-07-18T13:06:53+08:00" />
+<meta property="og:updated_time" content="2020-08-03T17:47:08+08:00" />
 <meta itemprop="name" content="">
 <meta itemprop="description" content="Notes about my work and linux kernel">
 
@@ -140,6 +140,41 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/reading-linux-physical-memory/">Linux用户程序如何访问物理内存</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2018-04-28 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 971 words </span>
+      <span class="more-meta"> 2 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本文转载于：<a href="http://ilinuxkernel.com/?p=1248">http://ilinuxkernel.com/?p=1248</a></p>
+
+<blockquote>
+<p>注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。
+本文中使用的内核版本为：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.21.1.el7.src.rpm">3.10.0-693.21.1</a></p>
+</blockquote>
+
+<p>用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。</p>
+
+<p>通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在<code>Linux</code>中用户态程序访问所有物理内存。</p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/reading-linux-physical-memory/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">

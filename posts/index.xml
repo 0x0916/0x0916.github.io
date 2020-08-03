@@ -6,10 +6,20 @@
     <description>Recent content on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 28 Jul 2020 16:03:59 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 03 Aug 2020 18:02:43 +0800</lastBuildDate>
     
 	<atom:link href="http://linux.laoqinren.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>do{}while(0)为什么要这样写呢？</title>
+      <link>http://linux.laoqinren.net/posts/do-while-zero/</link>
+      <pubDate>Mon, 03 Aug 2020 18:02:43 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/do-while-zero/</guid>
+      <description>&lt;p&gt;内核里有很多代码里有类似&lt;code&gt;do{}while(0)&lt;/code&gt;这样的写法，这个写法有两个不同的用法。
+本文介绍了&lt;code&gt;do{}while(0)&lt;/code&gt;的两个不同的用法。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>关于x86-64的栈布局和函数调用约定</title>

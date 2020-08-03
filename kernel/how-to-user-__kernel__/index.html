@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>__KERNEL__宏的作用是什么呢？该如何使用呢？ - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="__KERNEL__宏的作用是什么呢？该如何使用呢？本文将详细介绍。
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.59.1" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/how-to-user-__kernel__/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="__KERNEL__宏的作用是什么呢？该如何使用呢？" />
+<meta property="og:description" content="__KERNEL__宏的作用是什么呢？该如何使用呢？本文将详细介绍。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/how-to-user-__kernel__/" />
+<meta property="article:published_time" content="2020-08-03T17:47:08+08:00" />
+<meta property="article:modified_time" content="2020-08-03T17:47:08+08:00" />
+<meta itemprop="name" content="__KERNEL__宏的作用是什么呢？该如何使用呢？">
+<meta itemprop="description" content="__KERNEL__宏的作用是什么呢？该如何使用呢？本文将详细介绍。">
+
+
+<meta itemprop="datePublished" content="2020-08-03T17:47:08&#43;08:00" />
+<meta itemprop="dateModified" content="2020-08-03T17:47:08&#43;08:00" />
+<meta itemprop="wordCount" content="964">
+
+
+
+<meta itemprop="keywords" content="kernel,linux," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="__KERNEL__宏的作用是什么呢？该如何使用呢？"/>
+<meta name="twitter:description" content="__KERNEL__宏的作用是什么呢？该如何使用呢？本文将详细介绍。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">__KERNEL__宏的作用是什么呢？该如何使用呢？</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2020-08-03 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 964 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#kernel-宏的作用是什么呢"><code>__KERNEL__</code>宏的作用是什么呢?</a></li>
+<li><a href="#什么样的场景中会使用-kernel-宏呢">什么样的场景中会使用<code>__KERNEL__</code>宏呢？</a></li>
+<li><a href="#参考文章">参考文章</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p><code>__KERNEL__</code>宏的作用是什么呢？该如何使用呢？本文将详细介绍。</p>
+
+<h3 id="kernel-宏的作用是什么呢"><code>__KERNEL__</code>宏的作用是什么呢?</h3>
+
+<p>这个宏在内核和应用程序代码中均能看到。它仅起到判断作用。例如：在代码中一般有</p>
+
+<pre><code>#ifdef __KERNEL__
+some code
+some code
+#endif 
+</code></pre>
+
+<p>或者</p>
+
+<pre><code>#ifndef __KERNEL__
+some code
+some code
+#endif
+</code></pre>
+
+<p>其目的非常简单，就是如果定义了宏<code>__KERNEL__</code>，或者没有定义<code>__KERNEL__</code>时，就包含<code>some code</code>这些代码片段。</p>
+
+<p>那么在哪里来定义宏<code>__KERNEL__</code>呢？先看一段代码，我们编译内核或者内核模块是，gcc完整命令类似如下：</p>
+
+<pre><code>  if objdump -h /root/dive-in-kernel/h045_test_xarray/test_xarray.o | grep -q __ksymtab;
+ then gcc -E -D__GENKSYMS__ -Wp,-MD,/root/dive-in-kernel/h045_test_xarray/.test_xarray.o.d
+  -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I./arch/x86/include
+ -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include
+/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/kconfig.h
+ -include ./include/linux/compiler_types.h -D__KERNEL__ -Wall -Wundef -Werror=strict-prototypes
+ -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE
+ -Werror=implicit-function-declaration -Werror=implicit-int -Wno-format-security -std=gnu89 
+-mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -m64 -falign-jumps=1 -falign-loops=1 
+-mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mtune=generic -mno-red-zone 
+-mcmodel=kernel -DCONFIG_AS_CFI=1 -DCONFIG_AS_CFI_SIGNAL_FRAME=1 -DCONFIG_AS_CFI_SECTIONS=1 
+-DCONFIG_AS_SSSE3=1 -DCONFIG_AS_AVX=1 -DCONFIG_AS_AVX2=1 -DCONFIG_AS_AVX512=1 
+-DCONFIG_AS_SHA1_NI=1 -DCONFIG_AS_SHA256_NI=1 -Wno-sign-compare -fno-asynchronous-unwind-tables
+ -mindirect-branch=thunk-extern -mindirect-branch-register -fno-jump-tables 
+-fno-delete-null-pointer-checks -O2 -Wno-maybe-uninitialized --param=allow-store-data-races=0
+ -Wframe-larger-than=2048 -fstack-protector-strong -Wno-unused-but-set-variable 
+-fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -g -pg 
+-mfentry -DCC_USING_FENTRY -fno-inline-functions-called-once -Wdeclaration-after-statement 
+-Wvla -Wno-pointer-sign -fno-strict-overflow -fno-merge-all-constants -fmerge-constants 
+-fno-stack-check -fconserve-stack  -DMODULE  -DKBUILD_BASENAME='&quot;test_xarray&quot;' 
+-DKBUILD_MODNAME='&quot;test_xarray&quot;' /root/dive-in-kernel/h045_test_xarray/test_xarray.c | 
+scripts/genksyms/genksyms    -r /dev/null &gt; /root/dive-in-kernel/h045_test_xarray/.tmp_test_xarray.ver;
+...
+...
+</code></pre>
+
+<p>可以看到<code>gcc -D__KERNEL__</code>  ，其实几乎所有内核编译参数都包括它，对于</p>
+
+<pre><code>#ifdef __KERNEL__
+some code
+some code
+#endif 
+</code></pre>
+
+<p>如果定义了<code>__KERNEL__</code> 则会多编译一段代码。而多编译的这一段代码是只有像内核才会用到的。一般用户态的程序编译参数是不会有<code>gcc -D__KERNEL__</code>的。</p>
+
+<h3 id="什么样的场景中会使用-kernel-宏呢">什么样的场景中会使用<code>__KERNEL__</code>宏呢？</h3>
+
+<p>这样考虑一下：我为某个设备写了一个设备驱动，毫无疑问编译的时候肯定会加上<code>__KERNEL__</code>，然后这个驱动往往还要提供一个库文件，为应用程序提供访问某些变量或函数的接口。最后我们要写一个应用程序来操纵设备。那么在编写这个应用程序的时候假如库文件提供的东西还不够，比如库文件没有定义上述的<code>#define CLONE_DETACHED 0x00400000</code>，而库文件的API函数包含返回<code>CLONE_DETACHED</code> 的可能，那么就无法用<code>if(CLONE_DETACHED==fun(arg))</code>来做判断了（当然你可以去扒内核代码去比较<code>0x004000000</code>）。</p>
+
+<p>那么应用程序代码中肯定要包含这内核头文件了（现在不推荐这样做了），那么就出现了一个问题，让应用程序引用内核头文件会暴露很多内核的细节和增加目标文件的大小，因为很多内核结构或变量，应用程序几乎用不着。那么就要设置一个边界，设定哪些是只有给内核代码可见的，哪些是开放给所有代码可见的。 这个边界就是<code>__KERNEL__</code> 宏。其实实际的做法是所有该引用的内核头文件，变量或结构都要库的头文件中包含，这些属于内核的东东往往要重新定义在库的头文件中，然后再提供给应用程序去引用。</p>
+
+<h3 id="参考文章">参考文章</h3>
+
+<ul>
+<li><a href="https://lp007819.wordpress.com/2011/07/24/__kernel__-%e5%ae%8f%e4%bd%9c%e7%94%a8%e6%98%af%e4%bb%80%e4%b9%88%ef%bc%9f/">https://lp007819.wordpress.com/2011/07/24/__kernel__-%e5%ae%8f%e4%bd%9c%e7%94%a8%e6%98%af%e4%bb%80%e4%b9%88%ef%bc%9f/</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2020-08-03</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/how-to-user-__kernel__/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/xarray/">
+            <span class="next-text nav-default">内核基础设施——XArray</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
