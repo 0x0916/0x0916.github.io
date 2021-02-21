@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/kswapd-thread/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2019-01-26T07:07:32+08:00" />
 <meta itemprop="name" content="kswapd内核线程">
 <meta itemprop="description" content="Linux 内核在系统内存紧张时，会唤醒内核线程kswapd进行内存回收，从而释放掉一些不用的内存。本文将详细分析kswapd的工作流程。">
-
-
-<meta itemprop="datePublished" content="2019-01-26T07:07:32&#43;08:00" />
-<meta itemprop="dateModified" content="2019-01-26T07:07:32&#43;08:00" />
+<meta itemprop="datePublished" content="2019-01-26T07:07:32+08:00" />
+<meta itemprop="dateModified" content="2019-01-26T07:07:32+08:00" />
 <meta itemprop="wordCount" content="4778">
 
 
@@ -166,19 +164,17 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#系统环境">系统环境</a></li>
-<li><a href="#kswapd内核线程">kswapd内核线程</a></li>
-<li><a href="#balance-pgdat函数">balance_pgdat函数</a></li>
-<li><a href="#kswapd-shrink-zone函数">kswapd_shrink_zone函数</a></li>
-<li><a href="#shrink-zone">shrink_zone</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#系统环境">系统环境</a></li>
+        <li><a href="#kswapd内核线程">kswapd内核线程</a></li>
+        <li><a href="#balance_pgdat函数">balance_pgdat函数</a></li>
+        <li><a href="#kswapd_shrink_zone函数">kswapd_shrink_zone函数</a></li>
+        <li><a href="#shrink_zone">shrink_zone</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -186,82 +182,68 @@
     
     <div class="post-content">
       <p><code>Linux</code> 内核在系统内存紧张时，会唤醒内核线程<code>kswapd</code>进行内存回收，从而释放掉一些不用的内存。本文将详细分析<code>kswapd</code>的工作流程。</p>
-
-<p><img src="./pic.jpg" alt="" /></p>
-
+<p><img src="./pic.jpg" alt="" title=""></p>
 <h3 id="系统环境">系统环境</h3>
-
 <ul>
 <li>发行版：<code>centos7.5</code></li>
 <li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
 <li>处理器：<code>40core（Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz）</code></li>
 <li>内存：<code>128GB</code>，两个<code>NUMA node</code></li>
 </ul>
-
 <h3 id="kswapd内核线程">kswapd内核线程</h3>
-
 <p><code>Linux</code>内核中有一个非常重要的内核线程<code>kswapd</code>，负责在内存不足的情况下回收页面，系统初始化时，会为每一个<code>NUMA</code>内存节点创建一个名为<code>kswapd%d</code>的内核线程：</p>
-
-<pre><code class="language-c">static int __init kswapd_init(void)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">kswapd_init</span>(<span style="color:#66d9ef">void</span>)
 {
-        int nid;
+        <span style="color:#66d9ef">int</span> nid;
 
-        swap_setup(); //初始化swap使用的bdi和page_cluster, page_cluser 一般为3
-        for_each_node_state(nid, N_MEMORY)
-                kswapd_run(nid); //对于每个有内存的node结点，创建一个kswpad%d的内核线程
-        hotcpu_notifier(cpu_callback, 0);
-        return 0;
+        swap_setup(); <span style="color:#75715e">//初始化swap使用的bdi和page_cluster, page_cluser 一般为3
+</span><span style="color:#75715e"></span>        for_each_node_state(nid, N_MEMORY)
+                kswapd_run(nid); <span style="color:#75715e">//对于每个有内存的node结点，创建一个kswpad%d的内核线程
+</span><span style="color:#75715e"></span>        hotcpu_notifier(cpu_callback, <span style="color:#ae81ff">0</span>);
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 module_init(kswapd_init)
 
-/*
- * This kswapd start function will be called by init and node-hot-add.
- * On node-hot-add, kswapd will moved to proper cpus if cpus are hot-added.
- */ // 在启动时和热插拔时会执行该函数
-int kswapd_run(int nid)
+<span style="color:#75715e">/*
+</span><span style="color:#75715e"> * This kswapd start function will be called by init and node-hot-add.
+</span><span style="color:#75715e"> * On node-hot-add, kswapd will moved to proper cpus if cpus are hot-added.
+</span><span style="color:#75715e"> */</span> <span style="color:#75715e">// 在启动时和热插拔时会执行该函数
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> kswapd_run(<span style="color:#66d9ef">int</span> nid)
 {
-        pg_data_t *pgdat = NODE_DATA(nid);
-        int ret = 0;
+        pg_data_t <span style="color:#f92672">*</span>pgdat <span style="color:#f92672">=</span> NODE_DATA(nid);
+        <span style="color:#66d9ef">int</span> ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 
-        if (pgdat-&gt;kswapd)
-                return 0;
-        // 为系统上每个numa 内存结点创建一个kswaped%d的内核线程,线程的task_struct保存到node对应的pg_data_t-&gt;kswpad成员中
-        pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, &quot;kswapd%d&quot;, nid);
-        if (IS_ERR(pgdat-&gt;kswapd)) {
-                /* failure at boot is fatal */
-                BUG_ON(system_state == SYSTEM_BOOTING);
-                pr_err(&quot;Failed to start kswapd on node %d\n&quot;, nid);
-                ret = PTR_ERR(pgdat-&gt;kswapd);
-                pgdat-&gt;kswapd = NULL;
+        <span style="color:#66d9ef">if</span> (pgdat<span style="color:#f92672">-&gt;</span>kswapd)
+                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+        <span style="color:#75715e">// 为系统上每个numa 内存结点创建一个kswaped%d的内核线程,线程的task_struct保存到node对应的pg_data_t-&gt;kswpad成员中
+</span><span style="color:#75715e"></span>        pgdat<span style="color:#f92672">-&gt;</span>kswapd <span style="color:#f92672">=</span> kthread_run(kswapd, pgdat, <span style="color:#e6db74">&#34;kswapd%d&#34;</span>, nid);
+        <span style="color:#66d9ef">if</span> (IS_ERR(pgdat<span style="color:#f92672">-&gt;</span>kswapd)) {
+                <span style="color:#75715e">/* failure at boot is fatal */</span>
+                BUG_ON(system_state <span style="color:#f92672">==</span> SYSTEM_BOOTING);
+                pr_err(<span style="color:#e6db74">&#34;Failed to start kswapd on node %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, nid);
+                ret <span style="color:#f92672">=</span> PTR_ERR(pgdat<span style="color:#f92672">-&gt;</span>kswapd);
+                pgdat<span style="color:#f92672">-&gt;</span>kswapd <span style="color:#f92672">=</span> NULL;
         }
-        return ret;
+        <span style="color:#66d9ef">return</span> ret;
 }
-</code></pre>
-
-<p>在<code>NUMA</code>系统中，每一个<code>node</code>节点都有一个类型为<code>pg_data_t</code> 的数据结构描述物理内存布局，<code>kswapd</code>传递的参数就是这个<code>pg_data_t</code>数据结构。</p>
-
-<pre><code class="language-c">typedef struct pglist_data { 
+</code></pre></div><p>在<code>NUMA</code>系统中，每一个<code>node</code>节点都有一个类型为<code>pg_data_t</code> 的数据结构描述物理内存布局，<code>kswapd</code>传递的参数就是这个<code>pg_data_t</code>数据结构。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> pglist_data { 
 	...
 	wait_queue_head_t kswapd_wait;
-	struct task_struct *kswapd; 
+	<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>kswapd; 
 	
-	int kswapd_max_order;
-	enum zone_type classzone_idx;
+	<span style="color:#66d9ef">int</span> kswapd_max_order;
+	<span style="color:#66d9ef">enum</span> zone_type classzone_idx;
 	...
 } pg_data_t;
-</code></pre>
-
-<p>和<code>kswapd</code>相关的参数有<code>kswapd_wait</code>、<code>kswapd</code>、<code>kswapd_max_order</code>和<code>classzone_idx</code>等。</p>
-
+</code></pre></div><p>和<code>kswapd</code>相关的参数有<code>kswapd_wait</code>、<code>kswapd</code>、<code>kswapd_max_order</code>和<code>classzone_idx</code>等。</p>
 <ul>
 <li><code>kswapd_wait</code> 时一个等待队列，每个<code>pg_data_t</code>数据结构都有这样一个队列。它是在<code>free_area_init_core</code>函数中被初始化的；</li>
 <li><code>kswapd</code>保存的是内核线程<code>kswapd%d</code>对应的<code>task_struct</code>结构体；</li>
 <li><code>kswapd_max_order</code>和<code>classzone_idx</code>是作为参数传递给<code>kswapd</code>内核线程的，一般在页面分配路径上的唤醒函数<code>wakeup_kswapd</code>会给这两个参数赋值。</li>
 </ul>
-
 <p>在分配内存的路径上，如果在低水位的情况下还无法成功分配内存，那么会通过<code>wakeup_kswapd()</code>函数唤醒<code>kswapd</code>内核线程来回收页面，以便释放一些内存。</p>
-
-<pre><code class="language-c?linenums">/*                                                                                                                                       
+<pre><code class="language-c?linenums" data-lang="c?linenums">/*                                                                                                                                       
  * A zone is low on free memory, so wake its kswapd task to service it. 
  */ //当一个zone的空闲内存不足时，会唤醒kswpad内核线程 
 void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx)
@@ -287,23 +269,20 @@ void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx)
         trace_mm_vmscan_wakeup_kswapd(pgdat-&gt;node_id, zone_idx(zone), order);  
         wake_up_interruptible(&amp;pgdat-&gt;kswapd_wait); //唤醒操作                                                                           
 } 
-</code></pre>
-
-<p>第<code>16-17</code>行给<code>kswapd_max_order</code>和<code>classzone_idx</code>赋值，其中<code>kswapd_max_order</code>不能小于<code>alloc_pages()</code>分配内存的<code>order</code>，<code>classzone_idx</code>是在<code>__alloc_pages_nodemask()</code>中计算第一个最合适分配内存的<code>zone</code>序号。 这两个参数会传递给<code>kswapd</code>内核线程中，<code>classzone_idx</code>是理解页面分配器和页面回收内核线程<code>kswapd</code>如何协同工作的一个关键点。</p>
-
-<pre><code class="language-c">struct page *
-__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
-		struct zonelist *zonelist, nodemask_t *nodemask) 
+</code></pre><p>第<code>16-17</code>行给<code>kswapd_max_order</code>和<code>classzone_idx</code>赋值，其中<code>kswapd_max_order</code>不能小于<code>alloc_pages()</code>分配内存的<code>order</code>，<code>classzone_idx</code>是在<code>__alloc_pages_nodemask()</code>中计算第一个最合适分配内存的<code>zone</code>序号。 这两个参数会传递给<code>kswapd</code>内核线程中，<code>classzone_idx</code>是理解页面分配器和页面回收内核线程<code>kswapd</code>如何协同工作的一个关键点。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> page <span style="color:#f92672">*</span>
+<span style="color:#a6e22e">__alloc_pages_nodemask</span>(gfp_t gfp_mask, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order,
+		<span style="color:#66d9ef">struct</span> zonelist <span style="color:#f92672">*</span>zonelist, nodemask_t <span style="color:#f92672">*</span>nodemask) 
 {
 ...
 ...
-        /* The preferred zone is used for statistics later */                                                                            
+        <span style="color:#75715e">/* The preferred zone is used for statistics later */</span>                                                                            
         first_zones_zonelist(zonelist, high_zoneidx,                                                                                     
-                                nodemask ? : &amp;cpuset_current_mems_allowed,                                                               
-                                &amp;preferred_zone);  
+                                nodemask <span style="color:#f92672">?</span> <span style="color:#f92672">:</span> <span style="color:#f92672">&amp;</span>cpuset_current_mems_allowed,                                                               
+                                <span style="color:#f92672">&amp;</span>preferred_zone);  
 ...
 ...
-                page = __alloc_pages_slowpath(gfp_mask, order,
+                page <span style="color:#f92672">=</span> __alloc_pages_slowpath(gfp_mask, order,
                                 zonelist, high_zoneidx, nodemask,
                                 preferred_zone, migratetype);
 ...
@@ -311,36 +290,33 @@ __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
 }
 
 
-static inline struct page *
-__alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
-        struct zonelist *zonelist, enum zone_type high_zoneidx,
-        nodemask_t *nodemask, struct zone *preferred_zone,
-        int migratetype)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">struct</span> page <span style="color:#f92672">*</span>
+<span style="color:#a6e22e">__alloc_pages_slowpath</span>(gfp_t gfp_mask, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order,
+        <span style="color:#66d9ef">struct</span> zonelist <span style="color:#f92672">*</span>zonelist, <span style="color:#66d9ef">enum</span> zone_type high_zoneidx,
+        nodemask_t <span style="color:#f92672">*</span>nodemask, <span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>preferred_zone,
+        <span style="color:#66d9ef">int</span> migratetype)
 {
 ...
 ...
-        if (!(gfp_mask &amp; __GFP_NO_KSWAPD))
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>(gfp_mask <span style="color:#f92672">&amp;</span> __GFP_NO_KSWAPD))
                 wake_all_kswapds(order, zonelist, high_zoneidx, preferred_zone);
 ...
 ...
 }
 
-static void wake_all_kswapds(unsigned int order,
-                             struct zonelist *zonelist,
-                             enum zone_type high_zoneidx,
-                             struct zone *preferred_zone)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">wake_all_kswapds</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order,
+                             <span style="color:#66d9ef">struct</span> zonelist <span style="color:#f92672">*</span>zonelist,
+                             <span style="color:#66d9ef">enum</span> zone_type high_zoneidx,
+                             <span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>preferred_zone)
 {
-        struct zoneref *z;
-        struct zone *zone;
+        <span style="color:#66d9ef">struct</span> zoneref <span style="color:#f92672">*</span>z;
+        <span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone;
 
         for_each_zone_zonelist(zone, z, zonelist, high_zoneidx)
                 wakeup_kswapd(zone, order, zone_idx(preferred_zone));
 }
-</code></pre>
-
-<p><code>kswapd</code> 内核线程的执行函数如下：</p>
-
-<pre><code class="language-c?linenums">
+</code></pre></div><p><code>kswapd</code> 内核线程的执行函数如下：</p>
+<pre><code class="language-c?linenums" data-lang="c?linenums">
 /*
  * The background pageout daemon, started as a kernel thread
  * from the init process.
@@ -427,12 +403,8 @@ static int kswapd(void *p)
 
         return 0;
 }
-</code></pre>
-
-<p>函数的核心部分集中在<code>31-79</code>行代码的<code>for</code>循环中。这里有很多局部变量控制程序的走向。其中最重要的就是前面提到的<code>kswapd_max_order</code>和<code>classzone_idx</code>。</p>
-
+</code></pre><p>函数的核心部分集中在<code>31-79</code>行代码的<code>for</code>循环中。这里有很多局部变量控制程序的走向。其中最重要的就是前面提到的<code>kswapd_max_order</code>和<code>classzone_idx</code>。</p>
 <p>系统启动时，会在<code>kswapd_try_to_sleep()</code>函数中睡眠并且让出<code>CPU</code>控制权。当系统内存紧张时，一般在<code>alloc_pages()</code>在低水位中无法分配出内存，这时分配器会调用<code>wakeup_kswapd()</code>来唤醒<code>kswapd</code>内核线程，唤醒点在<code>kswapd_try_to_sleep()</code>中，<code>kswapd</code>内核线程被唤醒后，调用<code>balance_pgdat()</code>来回收页面。再我所分析的内核中调用逻辑如下：</p>
-
 <pre><code>alloc_pages()
 	alloc_pages_current()
 		__alloc_pages_nodemask()
@@ -443,57 +415,50 @@ static int kswapd(void *p)
 						wake_up(kswapd_wait)
 										kswapd内核线程被唤醒
 											-&gt;balance_pgdat()
-</code></pre>
-
-<h3 id="balance-pgdat函数">balance_pgdat函数</h3>
-
+</code></pre><h3 id="balance_pgdat函数">balance_pgdat函数</h3>
 <p><code>balance_pgdat()</code>是回收页面的主函数，该函数比较长，首先看一下框架：</p>
-
-<pre><code class="language-c">static unsigned long balance_pgdat(pg_data_t *pgdat, int order,int *classzone_idx)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#a6e22e">balance_pgdat</span>(pg_data_t <span style="color:#f92672">*</span>pgdat, <span style="color:#66d9ef">int</span> order,<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>classzone_idx)
 {
-	do {
-		//从高段zone向低端zone方向查找第一个处于不平衡状态的end_zone
-		for (i = pgdat-&gt;nr_zones - 1; i &gt;= 0; i--) {
-			struct zone *zone = pgdat-&gt;node_zones + i;
-			if (!zone_balanced(zone, order, 0, 0)) {
-					end_zone = i;
-					break;
+	<span style="color:#66d9ef">do</span> {
+		<span style="color:#75715e">//从高段zone向低端zone方向查找第一个处于不平衡状态的end_zone
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> pgdat<span style="color:#f92672">-&gt;</span>nr_zones <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>; i<span style="color:#f92672">--</span>) {
+			<span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone <span style="color:#f92672">=</span> pgdat<span style="color:#f92672">-&gt;</span>node_zones <span style="color:#f92672">+</span> i;
+			<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>zone_balanced(zone, order, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)) {
+					end_zone <span style="color:#f92672">=</span> i;
+					<span style="color:#66d9ef">break</span>;
 			}
 		}
 		
 		
-		// 从低端zone开始进行页面回收,一直到end_zone
-		for (i = 0; i &lt;= end_zone; i++) {
-			struct zone *zone = pgdat-&gt;node_zones + i;
+		<span style="color:#75715e">// 从低端zone开始进行页面回收,一直到end_zone
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;=</span> end_zone; i<span style="color:#f92672">++</span>) {
+			<span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone <span style="color:#f92672">=</span> pgdat<span style="color:#f92672">-&gt;</span>node_zones <span style="color:#f92672">+</span> i;
 			
 			mem_cgroup_soft_limit_reclaim();
 			kswapd_shrink_zone();
 		}
 	
-	//不断加大扫描粒度，并且检查最低端的zone到classzone_idx的zone是否处于平衡状态
-	}while(sc.priority &gt;= 1 &amp;&amp; !pgdat_balanced(pgdat, order, *classzone_idx));
+	<span style="color:#75715e">//不断加大扫描粒度，并且检查最低端的zone到classzone_idx的zone是否处于平衡状态
+</span><span style="color:#75715e"></span>	}<span style="color:#66d9ef">while</span>(sc.priority <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>pgdat_balanced(pgdat, order, <span style="color:#f92672">*</span>classzone_idx));
 }
 
-</code></pre>
-
-<ul>
-<li><p><code>zone_balanced()</code>函数用于判断一个内存<code>zone</code>是否处于平衡状态，返回<code>true</code>，表示处于平衡状态。</p>
-
+</code></pre></div><ul>
+<li>
+<p><code>zone_balanced()</code>函数用于判断一个内存<code>zone</code>是否处于平衡状态，返回<code>true</code>，表示处于平衡状态。</p>
 <ul>
 <li>如果一个内存<code>zone</code>中，其空闲页面处于<code>WMARK_HIGH</code>水位之上，则返回<code>TRUE</code>，说明该<code>zone</code>是平衡的。</li>
-</ul></li>
-
-<li><p><code>pgdat_balanced()</code>函数判断一个内存节点上的物理页面是否处于平衡状态，返回<code>true</code>，表示处于平衡状态。</p>
-
+</ul>
+</li>
+<li>
+<p><code>pgdat_balanced()</code>函数判断一个内存节点上的物理页面是否处于平衡状态，返回<code>true</code>，表示处于平衡状态。</p>
 <ul>
 <li>对于<code>order</code>为<code>0</code>的情况，所有的<code>zone</code>都是平衡的</li>
 <li>对于<code>order</code>大于<code>0</code>的内存分配，需要统计从<strong>最低端zone</strong>到<strong>classzone_idx zone</strong>中所有处于平衡状态<code>zone</code>的页面数量（<code>balanced_pages</code>），当大于这个节点从<strong>最低端zone</strong>到<strong>classzone_idx zone</strong>中的所有管理的页面<code>managed_pages</code>的<strong>25%</strong>，那么就认为这个内存节点已经处于平衡状态。</li>
-</ul></li>
 </ul>
-
-<h3 id="kswapd-shrink-zone函数">kswapd_shrink_zone函数</h3>
-
-<pre><code class="language-c?linenums">static bool kswapd_shrink_zone(struct zone *zone,
+</li>
+</ul>
+<h3 id="kswapd_shrink_zone函数">kswapd_shrink_zone函数</h3>
+<pre><code class="language-c?linenums" data-lang="c?linenums">static bool kswapd_shrink_zone(struct zone *zone,
                                int classzone_idx,
                                struct scan_control *sc,
                                unsigned long lru_pages,
@@ -571,27 +536,29 @@ static int kswapd(void *p)
         //当zone处于平衡状态时也会返回true，返回true只会影响balance_pgdat函数的扫描粒度
         return sc-&gt;nr_scanned &gt;= sc-&gt;nr_to_reclaim;
 }
-</code></pre>
-
-<ul>
-<li><p>第<code>17</code>行代码计算一轮扫描最多回收的页面个数。<code>SWAP_CLUSTER_MAX</code>宏定义为<code>32</code>个页面，<code>high_wmark_pages()</code>宏计算需要最多回收多少个页面才能达到<code>WMARK_HIGH</code>水位，这里比较两者，去其最大值。</p></li>
-
-<li><p>第<code>36</code>行代码，<code>balance_gap</code>相当于再判断<code>zone</code>是否处于平衡状态时增加了一些难度，原来只要判断空闲页面是否超过了高水位<code>WMARK_HIGH</code>即可，现在需要判断是否超过了（高水位<code>WMARK_HIGH+balance_gap</code>）。<code>balance_gap</code>的值比较小，一般取低水位或者<code>zone</code>管理页面的1%。</p></li>
-
-<li><p>在调用<code>shrink_zone</code>函数前，需要判断当前<code>zone</code>的页面是否已经处于平衡状态，即当前水位是否已经高于<code>WMARK_HIGH+balance_gap</code>。如果已经处于平衡状态，直接返回即可。</p></li>
-
-<li><p>第<code>49</code>行代码，<code>shrink_zone</code>函数去尝试回收<code>zone</code>页面，它是<code>kswapd</code>内核线程的核心函数。后面会继续介绍这个函数。</p></li>
-
-<li><p>第<code>52</code>行代码，<code>shrink_slab</code>函数会调用内存管理系统中的<code>shrinker</code>接口，很多系统都会注册<code>shrinker</code>接口来回收内存。</p></li>
-
-<li><p>第<code>69-73</code>行代码，回收完内存后，继续判断当前<code>zone</code>的页面是否已经处于平衡状态</p></li>
+</code></pre><ul>
+<li>
+<p>第<code>17</code>行代码计算一轮扫描最多回收的页面个数。<code>SWAP_CLUSTER_MAX</code>宏定义为<code>32</code>个页面，<code>high_wmark_pages()</code>宏计算需要最多回收多少个页面才能达到<code>WMARK_HIGH</code>水位，这里比较两者，去其最大值。</p>
+</li>
+<li>
+<p>第<code>36</code>行代码，<code>balance_gap</code>相当于再判断<code>zone</code>是否处于平衡状态时增加了一些难度，原来只要判断空闲页面是否超过了高水位<code>WMARK_HIGH</code>即可，现在需要判断是否超过了（高水位<code>WMARK_HIGH+balance_gap</code>）。<code>balance_gap</code>的值比较小，一般取低水位或者<code>zone</code>管理页面的1%。</p>
+</li>
+<li>
+<p>在调用<code>shrink_zone</code>函数前，需要判断当前<code>zone</code>的页面是否已经处于平衡状态，即当前水位是否已经高于<code>WMARK_HIGH+balance_gap</code>。如果已经处于平衡状态，直接返回即可。</p>
+</li>
+<li>
+<p>第<code>49</code>行代码，<code>shrink_zone</code>函数去尝试回收<code>zone</code>页面，它是<code>kswapd</code>内核线程的核心函数。后面会继续介绍这个函数。</p>
+</li>
+<li>
+<p>第<code>52</code>行代码，<code>shrink_slab</code>函数会调用内存管理系统中的<code>shrinker</code>接口，很多系统都会注册<code>shrinker</code>接口来回收内存。</p>
+</li>
+<li>
+<p>第<code>69-73</code>行代码，回收完内存后，继续判断当前<code>zone</code>的页面是否已经处于平衡状态</p>
+</li>
 </ul>
-
 <p>如果扫描的页面大于等于扫描目标的话，表示扫描了足够的页面，则返回<code>true</code>，扫描了足够多的页面，也可能一无所获。返回<code>true</code>只会影响<code>balance_pgdat</code>函数的扫描粒度。</p>
-
-<h3 id="shrink-zone">shrink_zone</h3>
-
-<pre><code class="language-c?linenums">//用于扫描zone中所有可回收的页面
+<h3 id="shrink_zone">shrink_zone</h3>
+<pre><code class="language-c?linenums" data-lang="c?linenums">//用于扫描zone中所有可回收的页面
 static void shrink_zone(struct zone *zone, struct scan_control *sc)
 {
         unsigned long nr_reclaimed, nr_scanned;
@@ -646,22 +613,23 @@ static void shrink_zone(struct zone *zone, struct scan_control *sc)
         } while (should_continue_reclaim(zone, sc-&gt;nr_reclaimed - nr_reclaimed,
                                          sc-&gt;nr_scanned - nr_scanned, sc));
 }
-</code></pre>
-
-<p><code>shrink_zone</code>函数用于扫描<code>zone</code>中所有可回收的页面，参数<code>zone</code>表示即将要扫描的<code>zone</code>，<code>sc</code>表示扫描控制参数。</p>
-
+</code></pre><p><code>shrink_zone</code>函数用于扫描<code>zone</code>中所有可回收的页面，参数<code>zone</code>表示即将要扫描的<code>zone</code>，<code>sc</code>表示扫描控制参数。</p>
 <ul>
-<li><p><code>6-53</code>行代码是大循环，判断添加是<code>should_continue_reclaim</code>函数，通过一轮的回收页面的数量和扫描页面的数量来判断是否要需要继续扫描。<code>should_continue_reclaim</code>的判断标准为：</p>
-
+<li>
+<p><code>6-53</code>行代码是大循环，判断添加是<code>should_continue_reclaim</code>函数，通过一轮的回收页面的数量和扫描页面的数量来判断是否要需要继续扫描。<code>should_continue_reclaim</code>的判断标准为：</p>
 <ul>
 <li>已经回收的页面数小于<code>2 &lt;&lt; sc-&gt;order</code>，且不活跃页面数大于<code>2 &lt;&lt; sc-&gt;order</code>则继续回收页面。</li>
-</ul></li>
-
-<li><p>第<code>18-47</code>行代码是内部的<code>while</code>循环，遍历所有的<code>memory cgroup</code>，<code>28</code>行获取<code>memory cgroup</code>对应的<code>LRU</code>链表(<code>lruvec</code>)。</p></li>
-
-<li><p>第<code>30</code>行调用<code>shrink_lruvec</code>来进行内存的回收，它是扫描<code>LRU</code>链表的核心函数，后面会专门的去分析该函数。</p></li>
-
-<li><p><code>shrink_lruvec</code>和<code>shrink_slab</code>会有专门的文章去分析。</p></li>
+</ul>
+</li>
+<li>
+<p>第<code>18-47</code>行代码是内部的<code>while</code>循环，遍历所有的<code>memory cgroup</code>，<code>28</code>行获取<code>memory cgroup</code>对应的<code>LRU</code>链表(<code>lruvec</code>)。</p>
+</li>
+<li>
+<p>第<code>30</code>行调用<code>shrink_lruvec</code>来进行内存的回收，它是扫描<code>LRU</code>链表的核心函数，后面会专门的去分析该函数。</p>
+</li>
+<li>
+<p><code>shrink_lruvec</code>和<code>shrink_slab</code>会有专门的文章去分析。</p>
+</li>
 </ul>
     </div>
 
@@ -753,7 +721,7 @@ static void shrink_zone(struct zone *zone, struct scan_control *sc)
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/how-to-user-__kernel__/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2020-08-03T17:47:08+08:00" />
 <meta itemprop="name" content="__KERNEL__宏的作用是什么呢？该如何使用呢？">
 <meta itemprop="description" content="__KERNEL__宏的作用是什么呢？该如何使用呢？本文将详细介绍。">
-
-
-<meta itemprop="datePublished" content="2020-08-03T17:47:08&#43;08:00" />
-<meta itemprop="dateModified" content="2020-08-03T17:47:08&#43;08:00" />
+<meta itemprop="datePublished" content="2020-08-03T17:47:08+08:00" />
+<meta itemprop="dateModified" content="2020-08-03T17:47:08+08:00" />
 <meta itemprop="wordCount" content="964">
 
 
@@ -166,17 +164,15 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#kernel-宏的作用是什么呢"><code>__KERNEL__</code>宏的作用是什么呢?</a></li>
-<li><a href="#什么样的场景中会使用-kernel-宏呢">什么样的场景中会使用<code>__KERNEL__</code>宏呢？</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#__kernel__宏的作用是什么呢"><code>__KERNEL__</code>宏的作用是什么呢?</a></li>
+        <li><a href="#什么样的场景中会使用__kernel__-宏呢">什么样的场景中会使用<code>__KERNEL__ </code>宏呢？</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -184,29 +180,19 @@
     
     <div class="post-content">
       <p><code>__KERNEL__</code>宏的作用是什么呢？该如何使用呢？本文将详细介绍。</p>
-
-<h3 id="kernel-宏的作用是什么呢"><code>__KERNEL__</code>宏的作用是什么呢?</h3>
-
+<h3 id="__kernel__宏的作用是什么呢"><code>__KERNEL__</code>宏的作用是什么呢?</h3>
 <p>这个宏在内核和应用程序代码中均能看到。它仅起到判断作用。例如：在代码中一般有</p>
-
 <pre><code>#ifdef __KERNEL__
 some code
 some code
 #endif 
-</code></pre>
-
-<p>或者</p>
-
+</code></pre><p>或者</p>
 <pre><code>#ifndef __KERNEL__
 some code
 some code
 #endif
-</code></pre>
-
-<p>其目的非常简单，就是如果定义了宏<code>__KERNEL__</code>，或者没有定义<code>__KERNEL__</code>时，就包含<code>some code</code>这些代码片段。</p>
-
+</code></pre><p>其目的非常简单，就是如果定义了宏<code>__KERNEL__</code>，或者没有定义<code>__KERNEL__</code>时，就包含<code>some code</code>这些代码片段。</p>
 <p>那么在哪里来定义宏<code>__KERNEL__</code>呢？先看一段代码，我们编译内核或者内核模块是，gcc完整命令类似如下：</p>
-
 <pre><code>  if objdump -h /root/dive-in-kernel/h045_test_xarray/test_xarray.o | grep -q __ksymtab;
  then gcc -E -D__GENKSYMS__ -Wp,-MD,/root/dive-in-kernel/h045_test_xarray/.test_xarray.o.d
   -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/4.8.5/include -I./arch/x86/include
@@ -231,26 +217,16 @@ some code
 scripts/genksyms/genksyms    -r /dev/null &gt; /root/dive-in-kernel/h045_test_xarray/.tmp_test_xarray.ver;
 ...
 ...
-</code></pre>
-
-<p>可以看到<code>gcc -D__KERNEL__</code>  ，其实几乎所有内核编译参数都包括它，对于</p>
-
+</code></pre><p>可以看到<code>gcc -D__KERNEL__</code>  ，其实几乎所有内核编译参数都包括它，对于</p>
 <pre><code>#ifdef __KERNEL__
 some code
 some code
 #endif 
-</code></pre>
-
-<p>如果定义了<code>__KERNEL__</code> 则会多编译一段代码。而多编译的这一段代码是只有像内核才会用到的。一般用户态的程序编译参数是不会有<code>gcc -D__KERNEL__</code>的。</p>
-
-<h3 id="什么样的场景中会使用-kernel-宏呢">什么样的场景中会使用<code>__KERNEL__</code>宏呢？</h3>
-
-<p>这样考虑一下：我为某个设备写了一个设备驱动，毫无疑问编译的时候肯定会加上<code>__KERNEL__</code>，然后这个驱动往往还要提供一个库文件，为应用程序提供访问某些变量或函数的接口。最后我们要写一个应用程序来操纵设备。那么在编写这个应用程序的时候假如库文件提供的东西还不够，比如库文件没有定义上述的<code>#define CLONE_DETACHED 0x00400000</code>，而库文件的API函数包含返回<code>CLONE_DETACHED</code> 的可能，那么就无法用<code>if(CLONE_DETACHED==fun(arg))</code>来做判断了（当然你可以去扒内核代码去比较<code>0x004000000</code>）。</p>
-
+</code></pre><p>如果定义了<code>__KERNEL__</code> 则会多编译一段代码。而多编译的这一段代码是只有像内核才会用到的。一般用户态的程序编译参数是不会有<code>gcc -D__KERNEL__</code>的。</p>
+<h3 id="什么样的场景中会使用__kernel__-宏呢">什么样的场景中会使用<code>__KERNEL__ </code>宏呢？</h3>
+<p>这样考虑一下：我为某个设备写了一个设备驱动，毫无疑问编译的时候肯定会加上<code>__KERNEL__</code>，然后这个驱动往往还要提供一个库文件，为应用程序提供访问某些变量或函数的接口。最后我们要写一个应用程序来操纵设备。那么在编写这个应用程序的时候假如库文件提供的东西还不够，比如库文件没有定义上述的<code>#define CLONE_DETACHED 0x00400000</code>，而库文件的API函数包含返回<code>CLONE_DETACHED</code> 的可能，那么就无法用<code>if(CLONE_DETACHED==fun(arg)) </code>来做判断了（当然你可以去扒内核代码去比较<code>0x004000000</code>）。</p>
 <p>那么应用程序代码中肯定要包含这内核头文件了（现在不推荐这样做了），那么就出现了一个问题，让应用程序引用内核头文件会暴露很多内核的细节和增加目标文件的大小，因为很多内核结构或变量，应用程序几乎用不着。那么就要设置一个边界，设定哪些是只有给内核代码可见的，哪些是开放给所有代码可见的。 这个边界就是<code>__KERNEL__</code> 宏。其实实际的做法是所有该引用的内核头文件，变量或结构都要库的头文件中包含，这些属于内核的东东往往要重新定义在库的头文件中，然后再提供给应用程序去引用。</p>
-
 <h3 id="参考文章">参考文章</h3>
-
 <ul>
 <li><a href="https://lp007819.wordpress.com/2011/07/24/__kernel__-%e5%ae%8f%e4%bd%9c%e7%94%a8%e6%98%af%e4%bb%80%e4%b9%88%ef%bc%9f/">https://lp007819.wordpress.com/2011/07/24/__kernel__-%e5%ae%8f%e4%bd%9c%e7%94%a8%e6%98%af%e4%bb%80%e4%b9%88%ef%bc%9f/</a></li>
 </ul>
@@ -288,6 +264,11 @@ some code
       
       <nav class="post-nav">
         
+          <a class="prev" href="/kernel/linux-kprobe/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Linux内核跟踪技术之——kprobe技术</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
         
           <a class="next" href="/kernel/xarray/">
             <span class="next-text nav-default">内核基础设施——XArray</span>
@@ -339,7 +320,7 @@ some code
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

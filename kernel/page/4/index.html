@@ -25,7 +25,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/" />
@@ -54,11 +54,9 @@
 <meta property="og:description" content="Notes about my work and linux kernel" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/" />
-
-<meta property="og:updated_time" content="2020-08-03T17:47:08+08:00" />
+<meta property="og:updated_time" content="2020-08-30T10:08:20+08:00" />
 <meta itemprop="name" content="">
 <meta itemprop="description" content="Notes about my work and linux kernel">
-
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content=""/>
 <meta name="twitter:description" content="Notes about my work and linux kernel"/>
@@ -140,6 +138,38 @@
 
   <section id="posts" class="posts">
     
+    
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/memory-compaction/">内存规整（memory compaction）</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2019-01-12 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 2866 words </span>
+      <span class="more-meta"> 6 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：<strong>内存规整</strong>。</p>
+<p>包括如下内容：</p>
+<ul>
+<li>内存规整相关的内存管理参数</li>
+<li>描述内存碎片化程度的指数：<code>extfrag_index</code>和<code>unusable_index</code></li>
+<li><code>extfrag_threshold</code>内存管理参数</li>
+</ul>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/memory-compaction/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
     
       <article class="post">
   <header class="post-header">
@@ -239,57 +269,12 @@
   <div class="post-content">
     <div class="post-summary">
       <p>本文详细介绍了Linux的Radix树。</p>
-
 <blockquote>
 <p>注意：本文分析中引用的代码来自于centos系统自带的内核：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm">kernel-3.10.0-862.9.1.el7</a></p>
 </blockquote>
     </div>
     <div class="read-more">
       <a href="/kernel/radix-tree/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/cgroup-source-default-file/">cgroup源码分析6——cgroup 中默认控制文件的内核实现分析</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2018-08-26 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-            <a href="/categories/cgroup/"> cgroup </a>
-          
-        </div>
-      <span class="more-meta"> 3362 words </span>
-      <span class="more-meta"> 7 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。</p>
-
-<p>这些文件包括：</p>
-
-<ul>
-<li>notify_on_release</li>
-<li>release_agent</li>
-<li>cgroup.procs</li>
-<li>tasks</li>
-<li>cgroup.clone_children</li>
-<li>cgroup.event_control</li>
-<li>cgroup.sane_behavior</li>
-</ul>
-
-<blockquote>
-<p>注意：本文分析中引用的代码来自于centos系统自带的内核：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm">kernel-3.10.0-862.9.1.el7</a></p>
-</blockquote>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/cgroup-source-default-file/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -338,7 +323,7 @@
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -29,7 +29,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-default-file/" />
@@ -54,9 +54,7 @@
 
 <meta property="og:title" content="cgroup源码分析6——cgroup 中默认控制文件的内核实现分析" />
 <meta property="og:description" content="cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。
-
 这些文件包括：
-
 
 notify_on_release
 release_agent
@@ -65,7 +63,6 @@ tasks
 cgroup.clone_children
 cgroup.event_control
 cgroup.sane_behavior
-
 
 
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
@@ -76,9 +73,7 @@ cgroup.sane_behavior
 <meta property="article:modified_time" content="2018-08-26T10:09:56+08:00" />
 <meta itemprop="name" content="cgroup源码分析6——cgroup 中默认控制文件的内核实现分析">
 <meta itemprop="description" content="cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。
-
 这些文件包括：
-
 
 notify_on_release
 release_agent
@@ -89,13 +84,10 @@ cgroup.event_control
 cgroup.sane_behavior
 
 
-
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
 ">
-
-
-<meta itemprop="datePublished" content="2018-08-26T10:09:56&#43;08:00" />
-<meta itemprop="dateModified" content="2018-08-26T10:09:56&#43;08:00" />
+<meta itemprop="datePublished" content="2018-08-26T10:09:56+08:00" />
+<meta itemprop="dateModified" content="2018-08-26T10:09:56+08:00" />
 <meta itemprop="wordCount" content="3362">
 
 
@@ -104,9 +96,7 @@ cgroup.sane_behavior
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="cgroup源码分析6——cgroup 中默认控制文件的内核实现分析"/>
 <meta name="twitter:description" content="cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。
-
 这些文件包括：
-
 
 notify_on_release
 release_agent
@@ -115,7 +105,6 @@ tasks
 cgroup.clone_children
 cgroup.event_control
 cgroup.sane_behavior
-
 
 
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
@@ -218,21 +207,19 @@ cgroup.sane_behavior
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#notify-on-release">notify_on_release</a></li>
-<li><a href="#release-agent">release_agent</a></li>
-<li><a href="#cgroup-procs-和tasks">cgroup.procs 和tasks</a></li>
-<li><a href="#cgroup-clone-children">cgroup.clone_children</a></li>
-<li><a href="#cgroup-event-control">cgroup.event_control</a></li>
-<li><a href="#cgroup-sane-behavior">cgroup.sane_behavior</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#notify_on_release">notify_on_release</a></li>
+        <li><a href="#release_agent">release_agent</a></li>
+        <li><a href="#cgroupprocs-和tasks">cgroup.procs 和tasks</a></li>
+        <li><a href="#cgroupclone_children">cgroup.clone_children</a></li>
+        <li><a href="#cgroupevent_control">cgroup.event_control</a></li>
+        <li><a href="#cgroupsane_behavior">cgroup.sane_behavior</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -240,9 +227,7 @@ cgroup.sane_behavior
     
     <div class="post-content">
       <p>cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。</p>
-
 <p>这些文件包括：</p>
-
 <ul>
 <li>notify_on_release</li>
 <li>release_agent</li>
@@ -252,97 +237,81 @@ cgroup.sane_behavior
 <li>cgroup.event_control</li>
 <li>cgroup.sane_behavior</li>
 </ul>
-
 <blockquote>
 <p>注意：本文分析中引用的代码来自于centos系统自带的内核：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm">kernel-3.10.0-862.9.1.el7</a></p>
 </blockquote>
-
-<h3 id="notify-on-release">notify_on_release</h3>
-
+<h3 id="notify_on_release">notify_on_release</h3>
 <p><code>notify_on_release</code>接口在每个cgroup都存在，对其读写本质上是修改该<code>cgroup-&gt;flags</code>的<code>CGRP_NOTIFY_ON_RELEASE</code>, 后续cgroup释放时，会根据该flags进行相应的操作。</p>
-
-<pre><code class="language-c">static struct cftype files[] = {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> cftype files[] <span style="color:#f92672">=</span> {
 	... 
 	... 
 	{
-                .name = &quot;notify_on_release&quot;,
-                .read_u64 = cgroup_read_notify_on_release,
-                .write_u64 = cgroup_write_notify_on_release,
+                .name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;notify_on_release&#34;</span>,
+                .read_u64 <span style="color:#f92672">=</span> cgroup_read_notify_on_release,
+                .write_u64 <span style="color:#f92672">=</span> cgroup_write_notify_on_release,
         },
 	... 
 	... 
 	{}
 };
 
-static u64 cgroup_read_notify_on_release(struct cgroup *cgrp,
-                                            struct cftype *cft)
+<span style="color:#66d9ef">static</span> u64 <span style="color:#a6e22e">cgroup_read_notify_on_release</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp,
+                                            <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft)
 {
-        return notify_on_release(cgrp);
+        <span style="color:#66d9ef">return</span> notify_on_release(cgrp);
 }
 
-static int cgroup_write_notify_on_release(struct cgroup *cgrp,
-                                          struct cftype *cft,
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_write_notify_on_release</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp,
+                                          <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft,
                                           u64 val)
 {
-        clear_bit(CGRP_RELEASABLE, &amp;cgrp-&gt;flags);
-        if (val)
-                set_bit(CGRP_NOTIFY_ON_RELEASE, &amp;cgrp-&gt;flags);
-        else
-                clear_bit(CGRP_NOTIFY_ON_RELEASE, &amp;cgrp-&gt;flags);
-        return 0;
+        clear_bit(CGRP_RELEASABLE, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>flags);
+        <span style="color:#66d9ef">if</span> (val)
+                set_bit(CGRP_NOTIFY_ON_RELEASE, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>flags);
+        <span style="color:#66d9ef">else</span>
+                clear_bit(CGRP_NOTIFY_ON_RELEASE, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>flags);
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
-</code></pre>
-
-<p>从<code>cgroup_write_notify_on_release</code>可以看出:</p>
-
+</code></pre></div><p>从<code>cgroup_write_notify_on_release</code>可以看出:</p>
 <ul>
 <li>写入0或者空都可以清除CGRP_NOTIFY_ON_RELEASE这个flags</li>
 <li>写入1或者任意正整数，都可以置位CGRP_NOTIFY_ON_RELEASE这个flags</li>
 </ul>
-
 <p>示例如下：</p>
-
-<pre><code class="language-bash">~  # # 进入memory cgroup，准备实验
-~  # cd /sys/fs/cgroup/memory/
-/sys/fs/cgroup/memory  # # 创建测试用的cgroup
-/sys/fs/cgroup/memory  # mkdir test1 test2
-/sys/fs/cgroup/memory  # cat test1/notify_on_release 
-0
-/sys/fs/cgroup/memory  # cat test2/notify_on_release 
-0
-/sys/fs/cgroup/memory  # # 写入0或者一个正数
-/sys/fs/cgroup/memory  # echo 1 &gt; test1/notify_on_release 
-/sys/fs/cgroup/memory  # echo 40 &gt; test2/notify_on_release 
-/sys/fs/cgroup/memory  # # 查看结果，notify_on_release都置位为1
-/sys/fs/cgroup/memory  # cat test1/notify_on_release 
-1
-/sys/fs/cgroup/memory  # cat test2/notify_on_release 
-1
-/sys/fs/cgroup/memory  # # 写入0或者空清除该flags
-/sys/fs/cgroup/memory  # echo &gt; test1/notify_on_release 
-/sys/fs/cgroup/memory  # echo 0 &gt; test2/notify_on_release 
-/sys/fs/cgroup/memory  # # 查看结果，notify_on_release都置位为0
-/sys/fs/cgroup/memory  # cat test1/notify_on_release 
-0
-/sys/fs/cgroup/memory  # cat test2/notify_on_release 
-0
-/sys/fs/cgroup/memory  # # 清理
-/sys/fs/cgroup/memory  # rmdir test1 test2
-</code></pre>
-
-<h3 id="release-agent">release_agent</h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~  <span style="color:#75715e"># # 进入memory cgroup，准备实验</span>
+~  <span style="color:#75715e"># cd /sys/fs/cgroup/memory/</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># # 创建测试用的cgroup</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># mkdir test1 test2</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test1/notify_on_release </span>
+<span style="color:#ae81ff">0</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test2/notify_on_release </span>
+<span style="color:#ae81ff">0</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># # 写入0或者一个正数</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># echo 1 &gt; test1/notify_on_release </span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># echo 40 &gt; test2/notify_on_release </span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># # 查看结果，notify_on_release都置位为1</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test1/notify_on_release </span>
+<span style="color:#ae81ff">1</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test2/notify_on_release </span>
+<span style="color:#ae81ff">1</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># # 写入0或者空清除该flags</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># echo &gt; test1/notify_on_release </span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># echo 0 &gt; test2/notify_on_release </span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># # 查看结果，notify_on_release都置位为0</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test1/notify_on_release </span>
+<span style="color:#ae81ff">0</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test2/notify_on_release </span>
+<span style="color:#ae81ff">0</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># # 清理</span>
+/sys/fs/cgroup/memory  <span style="color:#75715e"># rmdir test1 test2</span>
+</code></pre></div><h3 id="release_agent">release_agent</h3>
 <p>release_agent里面包含了cgroup退出时将会执行的命令，系统调用该命令时会将相应cgroup的相对路径当作参数传进去。</p>
-
 <blockquote>
 <p>注意：这个文件只会存在于root cgroup下面，其他cgroup里面不会有这个文件。</p>
 </blockquote>
-
 <p>当cgroup退出是，如果notify_on_release为1，则会调用release_agent里面配置的命令。</p>
-
 <p>内核中，该文件对应的就是一个字符串，其保存在<code>cgroup-&gt;root-&gt;release_agent_path</code>中。 对该文件的读写就不分析了，这里主要分析一下内核中如何实现<code>cgroup</code>退出时，执行<code>release_agent</code>中指定的命令。</p>
-
 <pre><code>/* the list of cgroups eligible for automatic release. Protected by
  * release_list_lock */
 static LIST_HEAD(release_list);
@@ -350,301 +319,265 @@ static DEFINE_RAW_SPINLOCK(release_list_lock);
 static void cgroup_release_agent(struct work_struct *work);
 static DECLARE_WORK(release_agent_work, cgroup_release_agent);
 static void check_for_release(struct cgroup *cgrp);
-</code></pre>
-
-<ul>
+</code></pre><ul>
 <li>在<code>cgroup_destroy_locked</code>和<code>__put_css_set</code>等<code>cgroup</code>退出的代码路径中，都会调用<code>check_for_release</code>函数，该函数用来判断是否需要执行<code>release_agent</code>指定的命令，如果需要，就将该cgroup添加到链表<code>release_list</code>中,并调度<code>schedule_work(&amp;release_agent_work);</code>。</li>
-
-<li><p><code>cgroup_release_agent</code>这个方法，从<code>release_list</code>链表中循环读取要退出的cgroup，然后构建执行环境，去执行指定的命令。</p>
-
-<pre><code class="language-c">static void cgroup_release_agent(struct work_struct *work)
-{
-    BUG_ON(work != &amp;release_agent_work);
-    mutex_lock(&amp;cgroup_mutex);
-    raw_spin_lock(&amp;release_list_lock);
-    while (!list_empty(&amp;release_list)) {
-            char *argv[3], *envp[3];
-            int i;
-            char *pathbuf = NULL, *agentbuf = NULL;
-            struct cgroup *cgrp = list_entry(release_list.next,
-                                                struct cgroup,
-                                                release_list);
-            list_del_init(&amp;cgrp-&gt;release_list);
-            raw_spin_unlock(&amp;release_list_lock);
-            pathbuf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-            if (!pathbuf)
-                    goto continue_free;
-            if (cgroup_path(cgrp, pathbuf, PAGE_SIZE) &lt; 0)
-                    goto continue_free;
-            agentbuf = kstrdup(cgrp-&gt;root-&gt;release_agent_path, GFP_KERNEL);
-            if (!agentbuf)
-                    goto continue_free;
-
-            i = 0;
-            argv[i++] = agentbuf;
-            argv[i++] = pathbuf;
-            argv[i] = NULL;
-
-            i = 0;
-            /* minimal command environment */
-            envp[i++] = &quot;HOME=/&quot;;
-            envp[i++] = &quot;PATH=/sbin:/bin:/usr/sbin:/usr/bin&quot;;
-            envp[i] = NULL;
-
-            /* Drop the lock while we invoke the usermode helper,
-             * since the exec could involve hitting disk and hence
-             * be a slow process */
-            mutex_unlock(&amp;cgroup_mutex);
-            call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
-            mutex_lock(&amp;cgroup_mutex);
-continue_free:
-            kfree(pathbuf);
-            kfree(agentbuf);
-            raw_spin_lock(&amp;release_list_lock);
-    }
-    raw_spin_unlock(&amp;release_list_lock);
-    mutex_unlock(&amp;cgroup_mutex);
-}
-</code></pre></li>
+<li><code>cgroup_release_agent</code>这个方法，从<code>release_list</code>链表中循环读取要退出的cgroup，然后构建执行环境，去执行指定的命令。</li>
 </ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">cgroup_release_agent</span>(<span style="color:#66d9ef">struct</span> work_struct <span style="color:#f92672">*</span>work)
+{
+        BUG_ON(work <span style="color:#f92672">!=</span> <span style="color:#f92672">&amp;</span>release_agent_work);
+        mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
+        raw_spin_lock(<span style="color:#f92672">&amp;</span>release_list_lock);
+        <span style="color:#66d9ef">while</span> (<span style="color:#f92672">!</span>list_empty(<span style="color:#f92672">&amp;</span>release_list)) {
+                <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[<span style="color:#ae81ff">3</span>], <span style="color:#f92672">*</span>envp[<span style="color:#ae81ff">3</span>];
+                <span style="color:#66d9ef">int</span> i;
+                <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pathbuf <span style="color:#f92672">=</span> NULL, <span style="color:#f92672">*</span>agentbuf <span style="color:#f92672">=</span> NULL;
+                <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp <span style="color:#f92672">=</span> list_entry(release_list.next,
+                                                    <span style="color:#66d9ef">struct</span> cgroup,
+                                                    release_list);
+                list_del_init(<span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>release_list);
+                raw_spin_unlock(<span style="color:#f92672">&amp;</span>release_list_lock);
+                pathbuf <span style="color:#f92672">=</span> kmalloc(PAGE_SIZE, GFP_KERNEL);
+                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>pathbuf)
+                        <span style="color:#66d9ef">goto</span> continue_free;
+                <span style="color:#66d9ef">if</span> (cgroup_path(cgrp, pathbuf, PAGE_SIZE) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+                        <span style="color:#66d9ef">goto</span> continue_free;
+                agentbuf <span style="color:#f92672">=</span> kstrdup(cgrp<span style="color:#f92672">-&gt;</span>root<span style="color:#f92672">-&gt;</span>release_agent_path, GFP_KERNEL);
+                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>agentbuf)
+                        <span style="color:#66d9ef">goto</span> continue_free;
 
-<p>可以看出，<code>release_agent</code> 中指定的命令的执行时，其<code>HOME</code>目录为<code>/</code>。另外，这种设计可以让<code>cgroup</code>退出和执行<code>release_agent</code> 中指定的命令异步进行。</p>
+                i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+                argv[i<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> agentbuf;
+                argv[i<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> pathbuf;
+                argv[i] <span style="color:#f92672">=</span> NULL;
 
-<h3 id="cgroup-procs-和tasks">cgroup.procs 和tasks</h3>
+                i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+                <span style="color:#75715e">/* minimal command environment */</span>
+                envp[i<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;HOME=/&#34;</span>;
+                envp[i<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;PATH=/sbin:/bin:/usr/sbin:/usr/bin&#34;</span>;
+                envp[i] <span style="color:#f92672">=</span> NULL;
 
-<p>cgroup.procs和tasks的区别，请参考<a href="../../posts/hierarchy-without-controller-group/#procs-和tasks-的区别">这篇博客</a>。</p>
-
+                <span style="color:#75715e">/* Drop the lock while we invoke the usermode helper,
+</span><span style="color:#75715e">                 * since the exec could involve hitting disk and hence
+</span><span style="color:#75715e">                 * be a slow process */</span>
+                mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
+                call_usermodehelper(argv[<span style="color:#ae81ff">0</span>], argv, envp, UMH_WAIT_EXEC);
+                mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
+ continue_free:
+                kfree(pathbuf);
+                kfree(agentbuf);
+                raw_spin_lock(<span style="color:#f92672">&amp;</span>release_list_lock);
+        }
+        raw_spin_unlock(<span style="color:#f92672">&amp;</span>release_list_lock);
+        mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
+}
+</code></pre></div><p>可以看出，<code>release_agent</code> 中指定的命令的执行时，其<code>HOME</code>目录为<code>/</code>。另外，这种设计可以让<code>cgroup</code>退出和执行<code>release_agent</code> 中指定的命令异步进行。</p>
+<h3 id="cgroupprocs-和tasks">cgroup.procs 和tasks</h3>
+<p>cgroup.procs和tasks的区别，请参考<a href="../../posts/hierarchy-without-controller-group/#procs-%E5%92%8Ctasks-%E7%9A%84%E5%8C%BA%E5%88%AB">这篇博客</a>。</p>
 <p>想这两个文件中写入一个进程号或者线程号时，内核中最终调用的函数为：<code>attach_task_by_pid</code>,其原型如下：</p>
-
-<pre><code class="language-c">/*
- * Find the task_struct of the task to attach by vpid and pass it along to the
- * function to attach either it or all tasks in its threadgroup. Will lock
- * cgroup_mutex and threadgroup; may take task_lock of task.
- */
-static int attach_task_by_pid(struct cgroup *cgrp, u64 pid, bool threadgroup);
-</code></pre>
-
-<p>根据threadgroup 是否为true，来决定写入的pid代表的是进程还是线程。即该函数是通过写cgroup.procs进入的时，threadgroup为ture，通过写tasks进入的时，threadgroup为false。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * Find the task_struct of the task to attach by vpid and pass it along to the
+</span><span style="color:#75715e"> * function to attach either it or all tasks in its threadgroup. Will lock
+</span><span style="color:#75715e"> * cgroup_mutex and threadgroup; may take task_lock of task.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">attach_task_by_pid</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, u64 pid, <span style="color:#66d9ef">bool</span> threadgroup);
+</code></pre></div><p>根据threadgroup 是否为true，来决定写入的pid代表的是进程还是线程。即该函数是通过写cgroup.procs进入的时，threadgroup为ture，通过写tasks进入的时，threadgroup为false。</p>
 <p>读取这两个文件的内容时,执行的函数分别为<code>cgroup_tasks_open</code>和<code>cgroup_procs_open</code>，最终都调用函数<code>cgroup_pidlist_open</code>，只是其中的第二个参数不同，内核中的实现如下：</p>
-
-<pre><code class="language-c">/*
- * The following functions handle opens on a file that displays a pidlist
- * (tasks or procs). Prepare an array of the process/thread IDs of whoever's
- * in the cgroup.
- */
-/* helper function for the two below it */
-static int cgroup_pidlist_open(struct file *file, enum cgroup_filetype type)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * The following functions handle opens on a file that displays a pidlist
+</span><span style="color:#75715e"> * (tasks or procs). Prepare an array of the process/thread IDs of whoever&#39;s
+</span><span style="color:#75715e"> * in the cgroup.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#75715e">/* helper function for the two below it */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_pidlist_open</span>(<span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file, <span style="color:#66d9ef">enum</span> cgroup_filetype type)
 {
-        struct cgroup *cgrp = __d_cgrp(file-&gt;f_dentry-&gt;d_parent);
-        struct cgroup_pidlist *l;
-        int retval;
+        <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp <span style="color:#f92672">=</span> __d_cgrp(file<span style="color:#f92672">-&gt;</span>f_dentry<span style="color:#f92672">-&gt;</span>d_parent);
+        <span style="color:#66d9ef">struct</span> cgroup_pidlist <span style="color:#f92672">*</span>l;
+        <span style="color:#66d9ef">int</span> retval;
 
-        /* Nothing to do for write-only files */
-        if (!(file-&gt;f_mode &amp; FMODE_READ))
-                return 0;
+        <span style="color:#75715e">/* Nothing to do for write-only files */</span>
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>(file<span style="color:#f92672">-&gt;</span>f_mode <span style="color:#f92672">&amp;</span> FMODE_READ))
+                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 
-        /* have the array populated */
-        retval = pidlist_array_load(cgrp, type, &amp;l);
-        if (retval)
-                return retval;
-        /* configure file information */
-        file-&gt;f_op = &amp;cgroup_pidlist_operations;
+        <span style="color:#75715e">/* have the array populated */</span>
+        retval <span style="color:#f92672">=</span> pidlist_array_load(cgrp, type, <span style="color:#f92672">&amp;</span>l);
+        <span style="color:#66d9ef">if</span> (retval)
+                <span style="color:#66d9ef">return</span> retval;
+        <span style="color:#75715e">/* configure file information */</span>
+        file<span style="color:#f92672">-&gt;</span>f_op <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>cgroup_pidlist_operations;
 
-        retval = seq_open(file, &amp;cgroup_pidlist_seq_operations);
-        if (retval) {
+        retval <span style="color:#f92672">=</span> seq_open(file, <span style="color:#f92672">&amp;</span>cgroup_pidlist_seq_operations);
+        <span style="color:#66d9ef">if</span> (retval) {
                 cgroup_release_pid_array(l);
-                return retval;
+                <span style="color:#66d9ef">return</span> retval;
         }
-        ((struct seq_file *)file-&gt;private_data)-&gt;private = l;
-        return 0;
+        ((<span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>)file<span style="color:#f92672">-&gt;</span>private_data)<span style="color:#f92672">-&gt;</span>private <span style="color:#f92672">=</span> l;
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
-static int cgroup_tasks_open(struct inode *unused, struct file *file)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_tasks_open</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>unused, <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file)
 {
-        return cgroup_pidlist_open(file, CGROUP_FILE_TASKS);
+        <span style="color:#66d9ef">return</span> cgroup_pidlist_open(file, CGROUP_FILE_TASKS);
 }
-static int cgroup_procs_open(struct inode *unused, struct file *file)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_procs_open</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>unused, <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file)
 {
-        return cgroup_pidlist_open(file, CGROUP_FILE_PROCS);
+        <span style="color:#66d9ef">return</span> cgroup_pidlist_open(file, CGROUP_FILE_PROCS);
 }
-</code></pre>
-
-<p>在<code>cgroup_pidlist_open</code>中，关键的获取进程/线程 ID的函数为<code>pidlist_array_load</code>:</p>
-
-<pre><code class="language-c">/*
- * Load a cgroup's pidarray with either procs' tgids or tasks' pids
- */
-static int pidlist_array_load(struct cgroup *cgrp, enum cgroup_filetype type,
-                              struct cgroup_pidlist **lp)
+</code></pre></div><p>在<code>cgroup_pidlist_open</code>中，关键的获取进程/线程 ID的函数为<code>pidlist_array_load</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * Load a cgroup&#39;s pidarray with either procs&#39; tgids or tasks&#39; pids
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">pidlist_array_load</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, <span style="color:#66d9ef">enum</span> cgroup_filetype type,
+                              <span style="color:#66d9ef">struct</span> cgroup_pidlist <span style="color:#f92672">**</span>lp)
 {
-        pid_t *array;
-        int length;
-        int pid, n = 0; /* used for populating the array */
-        struct cgroup_iter it;
-        struct task_struct *tsk;
-        struct cgroup_pidlist *l;
+        pid_t <span style="color:#f92672">*</span>array;
+        <span style="color:#66d9ef">int</span> length;
+        <span style="color:#66d9ef">int</span> pid, n <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">/* used for populating the array */</span>
+        <span style="color:#66d9ef">struct</span> cgroup_iter it;
+        <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>tsk;
+        <span style="color:#66d9ef">struct</span> cgroup_pidlist <span style="color:#f92672">*</span>l;
 
-        /*
-         * If cgroup gets more users after we read count, we won't have
-         * enough space - tough.  This race is indistinguishable to the
-         * caller from the case that the additional cgroup users didn't
-         * show up until sometime later on.
-         */
-        length = cgroup_task_count(cgrp);
-        array = pidlist_allocate(length);
-        if (!array)
-                return -ENOMEM;
-        /* now, populate the array */
-        cgroup_iter_start(cgrp, &amp;it);
-        while ((tsk = cgroup_iter_next(cgrp, &amp;it))) {
-                if (unlikely(n == length))
-                        break;
-                /* get tgid or pid for procs or tasks file respectively */
-                if (type == CGROUP_FILE_PROCS)
-                        pid = task_tgid_vnr(tsk);
-                else
-                        pid = task_pid_vnr(tsk);
-                if (pid &gt; 0) /* make sure to only use valid results */
-                        array[n++] = pid;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * If cgroup gets more users after we read count, we won&#39;t have
+</span><span style="color:#75715e">         * enough space - tough.  This race is indistinguishable to the
+</span><span style="color:#75715e">         * caller from the case that the additional cgroup users didn&#39;t
+</span><span style="color:#75715e">         * show up until sometime later on.
+</span><span style="color:#75715e">         */</span>
+        length <span style="color:#f92672">=</span> cgroup_task_count(cgrp);
+        array <span style="color:#f92672">=</span> pidlist_allocate(length);
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>array)
+                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>ENOMEM;
+        <span style="color:#75715e">/* now, populate the array */</span>
+        cgroup_iter_start(cgrp, <span style="color:#f92672">&amp;</span>it);
+        <span style="color:#66d9ef">while</span> ((tsk <span style="color:#f92672">=</span> cgroup_iter_next(cgrp, <span style="color:#f92672">&amp;</span>it))) {
+                <span style="color:#66d9ef">if</span> (unlikely(n <span style="color:#f92672">==</span> length))
+                        <span style="color:#66d9ef">break</span>;
+                <span style="color:#75715e">/* get tgid or pid for procs or tasks file respectively */</span>
+                <span style="color:#66d9ef">if</span> (type <span style="color:#f92672">==</span> CGROUP_FILE_PROCS)
+                        pid <span style="color:#f92672">=</span> task_tgid_vnr(tsk);
+                <span style="color:#66d9ef">else</span>
+                        pid <span style="color:#f92672">=</span> task_pid_vnr(tsk);
+                <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) <span style="color:#75715e">/* make sure to only use valid results */</span>
+                        array[n<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> pid;
         }
-        cgroup_iter_end(cgrp, &amp;it);
-        length = n;
-        /* now sort &amp; (if procs) strip out duplicates */
-        sort(array, length, sizeof(pid_t), cmppid, NULL);
-        if (type == CGROUP_FILE_PROCS)
-                length = pidlist_uniq(array, length);
-        l = cgroup_pidlist_find(cgrp, type);
-        if (!l) {
+        cgroup_iter_end(cgrp, <span style="color:#f92672">&amp;</span>it);
+        length <span style="color:#f92672">=</span> n;
+        <span style="color:#75715e">/* now sort &amp; (if procs) strip out duplicates */</span>
+        sort(array, length, <span style="color:#66d9ef">sizeof</span>(pid_t), cmppid, NULL);
+        <span style="color:#66d9ef">if</span> (type <span style="color:#f92672">==</span> CGROUP_FILE_PROCS)
+                length <span style="color:#f92672">=</span> pidlist_uniq(array, length);
+        l <span style="color:#f92672">=</span> cgroup_pidlist_find(cgrp, type);
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>l) {
                 pidlist_free(array);
-                return -ENOMEM;
+                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>ENOMEM;
         }
-        /* store array, freeing old if necessary - lock already held */
-        pidlist_free(l-&gt;list);
-        l-&gt;list = array;
-        l-&gt;length = length;
-        l-&gt;use_count++;
-        up_write(&amp;l-&gt;mutex);
-        *lp = l;
-        return 0;
+        <span style="color:#75715e">/* store array, freeing old if necessary - lock already held */</span>
+        pidlist_free(l<span style="color:#f92672">-&gt;</span>list);
+        l<span style="color:#f92672">-&gt;</span>list <span style="color:#f92672">=</span> array;
+        l<span style="color:#f92672">-&gt;</span>length <span style="color:#f92672">=</span> length;
+        l<span style="color:#f92672">-&gt;</span>use_count<span style="color:#f92672">++</span>;
+        up_write(<span style="color:#f92672">&amp;</span>l<span style="color:#f92672">-&gt;</span>mutex);
+        <span style="color:#f92672">*</span>lp <span style="color:#f92672">=</span> l;
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
-</code></pre>
-
-<ul>
+</code></pre></div><ul>
 <li>第20行通过cgroup_task_count获取该cgroup中的进程个数</li>
 <li>第21行分配存放结果的数组array</li>
 <li>第25-37行代码填充数组array</li>
 <li>第40-42行代码对array进行排序，并当时cgroup.procs时进行去重</li>
 </ul>
-
-<h3 id="cgroup-clone-children">cgroup.clone_children</h3>
-
+<h3 id="cgroupclone_children">cgroup.clone_children</h3>
 <p>这个文件只对<code>cpuset（subsystem）</code>有影响，当该文件的内容为<code>1</code>时，新创建的<code>cgroup</code>将会继承父<code>cgroup</code>的配置，即从父<code>cgroup</code>里面拷贝配置文件来初始化新<code>cgroup</code></p>
-
 <p>其内核代码实现也比较简单，对其读写本质上是修改该<code>cgroup-&gt;flags</code>的<code>CGRP_CPUSET_CLONE_CHILDREN</code> 位。</p>
-
 <blockquote>
 <p>More: 按理说，该配置只对<code>cpuset（subsystem）</code>有用，应该放到cpuset的subsystem中，但是由于历史原因，其放到了全局cgroup文件中。</p>
 </blockquote>
-
 <p>在 <code>centos 7.5</code>中，<code>cgroup.clone_children</code>的值默认为0.</p>
-
-<h3 id="cgroup-event-control">cgroup.event_control</h3>
-
+<h3 id="cgroupevent_control">cgroup.event_control</h3>
 <p>该文件是用于eventfd的接口。</p>
-
 <p>具体用法，请参考： <a href="url">文章引用</a></p>
-
 <p>TODO： 其内核实现分析，稍后补充。</p>
-
-<h3 id="cgroup-sane-behavior">cgroup.sane_behavior</h3>
-
+<h3 id="cgroupsane_behavior">cgroup.sane_behavior</h3>
 <p>这个文件只会存在于root cgroup下面，其他cgroup里面不会有这个文件。该文件也是控制了<code>cgroup-&gt;flags</code>的一个叫做<code>CGRP_ROOT_SANE_BEHAVIOR</code>的位。</p>
-
 <p>由于cgroup一直再发展，很多子系统有很多不同的特性，内核用<code>CGRP_ROOT_SANE_BEHAVIOR</code>来控制使能某些特性和关闭某些特性。</p>
-
 <blockquote>
 <p>注意： 该文件是只读的，也就是说不能随便修改该值，只有在mount各个子系统时，指定mount选项<code>__DEVEL__sane_behavior</code>是，该位的值才会置位1。</p>
 </blockquote>
-
-<pre><code class="language-c">static struct cftype files[] = {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> cftype files[] <span style="color:#f92672">=</span> {
 	... 
 	... 
         {
-                .name = &quot;cgroup.sane_behavior&quot;,
-                .flags = CFTYPE_ONLY_ON_ROOT,
-                .read_seq_string = cgroup_sane_behavior_show,
+                .name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;cgroup.sane_behavior&#34;</span>,
+                .flags <span style="color:#f92672">=</span> CFTYPE_ONLY_ON_ROOT,
+                .read_seq_string <span style="color:#f92672">=</span> cgroup_sane_behavior_show,
         },
 	... 
 	... 
         {}
 };
 
-// 关于CGRP_ROOT_SANE_BEHAVIOR的描述信息：
+<span style="color:#75715e">// 关于CGRP_ROOT_SANE_BEHAVIOR的描述信息：
+</span><span style="color:#75715e"></span>
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * Unfortunately, cgroup core and various controllers are riddled
+</span><span style="color:#75715e">         * with idiosyncrasies and pointless options.  The following flag,
+</span><span style="color:#75715e">         * when set, will force sane behavior - some options are forced on,
+</span><span style="color:#75715e">         * others are disallowed, and some controllers will change their
+</span><span style="color:#75715e">         * hierarchical or other behaviors.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * The set of behaviors affected by this flag are still being
+</span><span style="color:#75715e">         * determined and developed and the mount option for this flag is
+</span><span style="color:#75715e">         * prefixed with __DEVEL__.  The prefix will be dropped once we
+</span><span style="color:#75715e">         * reach the point where all behaviors are compatible with the
+</span><span style="color:#75715e">         * planned unified hierarchy, which will automatically turn on this
+</span><span style="color:#75715e">         * flag.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * The followings are the behaviors currently affected this flag.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * - Mount options &#34;noprefix&#34; and &#34;clone_children&#34; are disallowed.
+</span><span style="color:#75715e">         *   Also, cgroupfs file cgroup.clone_children is not created.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * - When mounting an existing superblock, mount options should
+</span><span style="color:#75715e">         *   match.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * - Remount is disallowed.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * - cpuset: tasks will be kept in empty cpusets when hotplug happens
+</span><span style="color:#75715e">         *   and take masks of ancestors with non-empty cpus/mems, instead of
+</span><span style="color:#75715e">         *   being moved to an ancestor.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * - cpuset: a task can be moved into an empty cpuset, and again it
+</span><span style="color:#75715e">         *   takes masks of ancestors.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * - memcg: use_hierarchy is on by default and the cgroup file for
+</span><span style="color:#75715e">         *   the flag is not created.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * - blkcg: blk-throttle becomes properly hierarchical.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * The followings are planned changes.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * - release_agent will be disallowed once replacement notification
+</span><span style="color:#75715e">         *   mechanism is implemented.
+</span><span style="color:#75715e">         */</span>
+        CGRP_ROOT_SANE_BEHAVIOR <span style="color:#f92672">=</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">0</span>),
 
-        /*
-         * Unfortunately, cgroup core and various controllers are riddled
-         * with idiosyncrasies and pointless options.  The following flag,
-         * when set, will force sane behavior - some options are forced on,
-         * others are disallowed, and some controllers will change their
-         * hierarchical or other behaviors.
-         *
-         * The set of behaviors affected by this flag are still being
-         * determined and developed and the mount option for this flag is
-         * prefixed with __DEVEL__.  The prefix will be dropped once we
-         * reach the point where all behaviors are compatible with the
-         * planned unified hierarchy, which will automatically turn on this
-         * flag.
-         *
-         * The followings are the behaviors currently affected this flag.
-         *
-         * - Mount options &quot;noprefix&quot; and &quot;clone_children&quot; are disallowed.
-         *   Also, cgroupfs file cgroup.clone_children is not created.
-         *
-         * - When mounting an existing superblock, mount options should
-         *   match.
-         *
-         * - Remount is disallowed.
-         *
-         * - cpuset: tasks will be kept in empty cpusets when hotplug happens
-         *   and take masks of ancestors with non-empty cpus/mems, instead of
-         *   being moved to an ancestor.
-         *
-         * - cpuset: a task can be moved into an empty cpuset, and again it
-         *   takes masks of ancestors.
-         *
-         * - memcg: use_hierarchy is on by default and the cgroup file for
-         *   the flag is not created.
-         *
-         * - blkcg: blk-throttle becomes properly hierarchical.
-         *
-         * The followings are planned changes.
-         *
-         * - release_agent will be disallowed once replacement notification
-         *   mechanism is implemented.
-         */
-        CGRP_ROOT_SANE_BEHAVIOR = (1 &lt;&lt; 0),
-
-</code></pre>
-
-<p>在centos 7.5 上，该flags默认都没有打开：</p>
-
-<pre><code class="language-bash">~  # mount | grep cgroup
-tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,mode=755)
-cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xattr,release_agent=/usr/lib/systemd/systemd-cgroups-agent,name=systemd)
-cgroup on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,memory)
-cgroup on /sys/fs/cgroup/cpuset type cgroup (rw,nosuid,nodev,noexec,relatime,cpuset)
-cgroup on /sys/fs/cgroup/debug type cgroup (rw,nosuid,nodev,noexec,relatime,debug)
-cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,cpuacct,cpu)
-cgroup on /sys/fs/cgroup/perf_event type cgroup (rw,nosuid,nodev,noexec,relatime,perf_event)
-cgroup on /sys/fs/cgroup/hugetlb type cgroup (rw,nosuid,nodev,noexec,relatime,hugetlb)
-cgroup on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,blkio)
-cgroup on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,pids)
-cgroup on /sys/fs/cgroup/freezer type cgroup (rw,nosuid,nodev,noexec,relatime,freezer)
-cgroup on /sys/fs/cgroup/devices type cgroup (rw,nosuid,nodev,noexec,relatime,devices)
-cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,net_prio,net_cls)
-root@3(NXDOMAIN)::[20:05:09]::[Exit Code: 0] -&gt;
-~  # cd /sys/fs/cgroup/
-/sys/fs/cgroup  # find . -name &quot;cgroup.sane_behavior&quot;
+</code></pre></div><p>在centos 7.5 上，该flags默认都没有打开：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~  <span style="color:#75715e"># mount | grep cgroup</span>
+tmpfs on /sys/fs/cgroup type tmpfs <span style="color:#f92672">(</span>ro,nosuid,nodev,noexec,mode<span style="color:#f92672">=</span>755<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span style="color:#f92672">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span style="color:#f92672">=</span>systemd<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/memory type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,memory<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/cpuset type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,cpuset<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/debug type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,debug<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,cpuacct,cpu<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/perf_event type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,perf_event<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/hugetlb type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,hugetlb<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/blkio type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,blkio<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/pids type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,pids<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/freezer type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,freezer<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/devices type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,devices<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,net_prio,net_cls<span style="color:#f92672">)</span>
+root@3<span style="color:#f92672">(</span>NXDOMAIN<span style="color:#f92672">)</span>::<span style="color:#f92672">[</span>20:05:09<span style="color:#f92672">]</span>::<span style="color:#f92672">[</span>Exit Code: 0<span style="color:#f92672">]</span> -&gt;
+~  <span style="color:#75715e"># cd /sys/fs/cgroup/</span>
+/sys/fs/cgroup  <span style="color:#75715e"># find . -name &#34;cgroup.sane_behavior&#34;</span>
 ./net_cls,net_prio/cgroup.sane_behavior
 ./devices/cgroup.sane_behavior
 ./freezer/cgroup.sane_behavior
@@ -657,22 +590,20 @@ root@3(NXDOMAIN)::[20:05:09]::[Exit Code: 0] -&gt;
 ./cpuset/cgroup.sane_behavior
 ./memory/cgroup.sane_behavior
 ./systemd/cgroup.sane_behavior
-/sys/fs/cgroup  # find . -name &quot;cgroup.sane_behavior&quot; | xargs cat 
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-</code></pre>
-
-<h3 id="参考文章">参考文章</h3>
+/sys/fs/cgroup  <span style="color:#75715e"># find . -name &#34;cgroup.sane_behavior&#34; | xargs cat </span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+<span style="color:#ae81ff">0</span>
+</code></pre></div><h3 id="参考文章">参考文章</h3>
     </div>
 
     
@@ -765,7 +696,7 @@ root@3(NXDOMAIN)::[20:05:09]::[Exit Code: 0] -&gt;
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/memory-compaction/" />
@@ -53,9 +53,7 @@
 
 <meta property="og:title" content="内存规整（memory compaction）" />
 <meta property="og:description" content="伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：内存规整。
-
 包括如下内容：
-
 
 内存规整相关的内存管理参数
 描述内存碎片化程度的指数：extfrag_index和unusable_index
@@ -67,18 +65,14 @@ extfrag_threshold内存管理参数
 <meta property="article:modified_time" content="2019-01-12T12:06:18+08:00" />
 <meta itemprop="name" content="内存规整（memory compaction）">
 <meta itemprop="description" content="伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：内存规整。
-
 包括如下内容：
-
 
 内存规整相关的内存管理参数
 描述内存碎片化程度的指数：extfrag_index和unusable_index
 extfrag_threshold内存管理参数
 ">
-
-
-<meta itemprop="datePublished" content="2019-01-12T12:06:18&#43;08:00" />
-<meta itemprop="dateModified" content="2019-01-12T12:06:18&#43;08:00" />
+<meta itemprop="datePublished" content="2019-01-12T12:06:18+08:00" />
+<meta itemprop="dateModified" content="2019-01-12T12:06:18+08:00" />
 <meta itemprop="wordCount" content="2866">
 
 
@@ -87,9 +81,7 @@ extfrag_threshold内存管理参数
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内存规整（memory compaction）"/>
 <meta name="twitter:description" content="伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：内存规整。
-
 包括如下内容：
-
 
 内存规整相关的内存管理参数
 描述内存碎片化程度的指数：extfrag_index和unusable_index
@@ -191,24 +183,18 @@ extfrag_threshold内存管理参数
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#系统环境">系统环境</a></li>
-<li><a href="#内存规整的时机">内存规整的时机</a></li>
-<li><a href="#内存碎片化相关-extfag-文件">内存碎片化相关<code>extfag</code>文件</a>
-<ul>
-<li><a href="#内存碎片化指数-unusable-index">内存碎片化指数<code>unusable_index</code></a></li>
-<li><a href="#内存分配失败原因-extfrag-index">内存分配失败原因<code>extfrag_index</code></a></li>
-</ul></li>
-<li><a href="#如何决定一个内存区是否需要内存规整">如何决定一个内存区是否需要内存规整</a></li>
-<li><a href="#统计内存规整信息">统计内存规整信息</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#系统环境">系统环境</a></li>
+        <li><a href="#内存规整的时机">内存规整的时机</a></li>
+        <li><a href="#内存碎片化相关extfag文件">内存碎片化相关<code>extfag</code>文件</a></li>
+        <li><a href="#如何决定一个内存区是否需要内存规整">如何决定一个内存区是否需要内存规整</a></li>
+        <li><a href="#统计内存规整信息">统计内存规整信息</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -216,254 +202,213 @@ extfrag_threshold内存管理参数
     
     <div class="post-content">
       <p>伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：<strong>内存规整</strong>。</p>
-
 <p>包括如下内容：</p>
-
 <ul>
 <li>内存规整相关的内存管理参数</li>
 <li>描述内存碎片化程度的指数：<code>extfrag_index</code>和<code>unusable_index</code></li>
 <li><code>extfrag_threshold</code>内存管理参数</li>
 </ul>
-
-<p><img src="./pic.jpg" alt="" /></p>
-
+<p><img src="./pic.jpg" alt="" title=""></p>
 <h3 id="系统环境">系统环境</h3>
-
 <ul>
 <li>发行版：<code>centos7.5</code></li>
 <li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
 <li>处理器：<code>40core（Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz）</code></li>
 <li>内存：<code>128GB</code>，两个<code>NUMA node</code></li>
 </ul>
-
 <h3 id="内存规整的时机">内存规整的时机</h3>
-
 <p>内存规整的时机包括如下两个：</p>
-
 <ul>
 <li>分配大块内存时(order &gt; 1) ，在低水位情况下分配失败，唤醒kswapd线程后依然无法分配内存，这时调用<code>__alloc_pages_direct_compact</code>来进行内存规整，然后再尝试分配所需的内存。</li>
 <li>手动进行内存规整<code>echo 1 &gt; /proc/sys/vm/compact_memory</code></li>
 </ul>
-
-<h3 id="内存碎片化相关-extfag-文件">内存碎片化相关<code>extfag</code>文件</h3>
-
+<h3 id="内存碎片化相关extfag文件">内存碎片化相关<code>extfag</code>文件</h3>
 <p>在开启了内核配置 <code>CONFIG_DEBUG_FS</code>和<code>CONFIG_COMPACTION</code>后，内核通过<code>module_init(extfrag_debug_init);</code>在<code>debugfs</code>中创建了如下两个文件：</p>
-
 <ul>
 <li><code>/sys/kernel/debug/extfrag/extfrag_index</code></li>
 <li><code>/sys/kernel/debug/extfrag/unusable_index</code></li>
 </ul>
-
 <p>这两个文件的含义是什么呢？下面我们仔细分析一下:</p>
-
-<h4 id="内存碎片化指数-unusable-index">内存碎片化指数<code>unusable_index</code></h4>
-
+<h4 id="内存碎片化指数unusable_index">内存碎片化指数<code>unusable_index</code></h4>
 <p><code>unusable_index</code>表示某个内存区域中各个<code>order</code>的内存碎片情况：</p>
-
 <p>在我的系统上输出如下：</p>
-
-<pre><code class="language-bash"># cat /sys/kernel/debug/extfrag/unusable_index 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cat /sys/kernel/debug/extfrag/unusable_index </span>
 Node 0, zone      DMA 0.000 0.000 0.000 0.002 0.004 0.010 0.010 0.031 0.073 0.157 0.326 
 Node 0, zone    DMA32 0.000 0.036 0.124 0.275 0.490 0.703 0.822 0.849 0.854 1.000 1.000 
 Node 0, zone   Normal 0.000 0.036 0.119 0.264 0.478 0.725 0.910 0.984 0.997 0.999 1.000 
 Node 1, zone   Normal 0.000 0.025 0.088 0.202 0.382 0.620 0.845 0.964 0.991 0.997 0.998 
-</code></pre>
-
-<p>首先解释一下该值的含义：</p>
-
+</code></pre></div><p>首先解释一下该值的含义：</p>
 <ul>
 <li>该值表示一个<code>zone</code>中所有的空闲内存中，有多少是不能满足分配<code>order</code>大小的内存</li>
 <li>该值的范围最小为<code>0</code>，最大为<code>1</code></li>
 <li><code>0</code>代表没有内存碎片，表示所有的空闲内存都能满足内存分配</li>
 <li><code>1</code>代表内存碎片严重，表示所有的空闲内存都不能满足内存分配</li>
 </ul>
-
-<p>例如：<code>Node1</code> 的<code>Normal</code> 区中，<code>order</code>为<code>10</code>的<code>unusable_index</code>的值为<code>0.998</code>，表示<code>99.8%</code>的空闲内存都不能满足<code>2^10</code>大小的内存分配请求。</p>
-
+<p>例如：<code>Node1</code> 的<code>Normal</code> 区中，<code>order</code>为<code>10</code>的<code>unusable_index</code>的值为<code> 0.998</code>，表示<code>99.8%</code>的空闲内存都不能满足<code>2^10</code>大小的内存分配请求。</p>
 <p>内核中计算该<code>unusable_index</code>的代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> contig_page_info {
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> free_pages;               <span style="color:#75715e">// 空闲page个数
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> free_blocks_total;        <span style="color:#75715e">// 总得空闲blocks
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> free_blocks_suitable;     <span style="color:#75715e">// 能够满足需求的空闲blocks
+</span><span style="color:#75715e"></span>};
 
-<pre><code class="language-c">struct contig_page_info {
-        unsigned long free_pages;               // 空闲page个数
-        unsigned long free_blocks_total;        // 总得空闲blocks
-        unsigned long free_blocks_suitable;     // 能够满足需求的空闲blocks
-};
-
-/*
- * Calculate the number of free pages in a zone, how many contiguous
- * pages are free and how many are large enough to satisfy an allocation of
- * the target size. Note that this function makes no attempt to estimate
- * how many suitable free blocks there *might* be if MOVABLE pages were
- * migrated. Calculating that is possible, but expensive and can be
- * figured out from userspace
- */
-static void fill_contig_page_info(struct zone *zone,
-                                unsigned int suitable_order,
-                                struct contig_page_info *info)
+<span style="color:#75715e">/*
+</span><span style="color:#75715e"> * Calculate the number of free pages in a zone, how many contiguous
+</span><span style="color:#75715e"> * pages are free and how many are large enough to satisfy an allocation of
+</span><span style="color:#75715e"> * the target size. Note that this function makes no attempt to estimate
+</span><span style="color:#75715e"> * how many suitable free blocks there *might* be if MOVABLE pages were
+</span><span style="color:#75715e"> * migrated. Calculating that is possible, but expensive and can be
+</span><span style="color:#75715e"> * figured out from userspace
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">fill_contig_page_info</span>(<span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone,
+                                <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> suitable_order,
+                                <span style="color:#66d9ef">struct</span> contig_page_info <span style="color:#f92672">*</span>info)
 {
-        unsigned int order;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order;
 
-        info-&gt;free_pages = 0;
-        info-&gt;free_blocks_total = 0;
-        info-&gt;free_blocks_suitable = 0;
+        info<span style="color:#f92672">-&gt;</span>free_pages <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+        info<span style="color:#f92672">-&gt;</span>free_blocks_total <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+        info<span style="color:#f92672">-&gt;</span>free_blocks_suitable <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 
-        for (order = 0; order &lt; MAX_ORDER; order++) {
-                unsigned long blocks;
+        <span style="color:#66d9ef">for</span> (order <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; order <span style="color:#f92672">&lt;</span> MAX_ORDER; order<span style="color:#f92672">++</span>) {
+                <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> blocks;
 
-                /* Count number of free blocks */
-                blocks = zone-&gt;free_area[order].nr_free;
-                info-&gt;free_blocks_total += blocks;
+                <span style="color:#75715e">/* Count number of free blocks */</span>
+                blocks <span style="color:#f92672">=</span> zone<span style="color:#f92672">-&gt;</span>free_area[order].nr_free;
+                info<span style="color:#f92672">-&gt;</span>free_blocks_total <span style="color:#f92672">+=</span> blocks;
 
-                /* Count free base pages */
-                info-&gt;free_pages += blocks &lt;&lt; order;
+                <span style="color:#75715e">/* Count free base pages */</span>
+                info<span style="color:#f92672">-&gt;</span>free_pages <span style="color:#f92672">+=</span> blocks <span style="color:#f92672">&lt;&lt;</span> order;
 
-                /* Count the suitable free blocks */
-                if (order &gt;= suitable_order)
-                        info-&gt;free_blocks_suitable += blocks &lt;&lt;
-                                                (order - suitable_order);
+                <span style="color:#75715e">/* Count the suitable free blocks */</span>
+                <span style="color:#66d9ef">if</span> (order <span style="color:#f92672">&gt;=</span> suitable_order)
+                        info<span style="color:#f92672">-&gt;</span>free_blocks_suitable <span style="color:#f92672">+=</span> blocks <span style="color:#f92672">&lt;&lt;</span>
+                                                (order <span style="color:#f92672">-</span> suitable_order);
         }
 }
-/*
- * Return an index indicating how much of the available free memory is
- * unusable for an allocation of the requested size.
- */
-static int unusable_free_index(unsigned int order,
-                                struct contig_page_info *info)
+<span style="color:#75715e">/*
+</span><span style="color:#75715e"> * Return an index indicating how much of the available free memory is
+</span><span style="color:#75715e"> * unusable for an allocation of the requested size.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">unusable_free_index</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order,
+                                <span style="color:#66d9ef">struct</span> contig_page_info <span style="color:#f92672">*</span>info)
 {
-        /* No free memory is interpreted as all free memory is unusable */
-        if (info-&gt;free_pages == 0)
-                return 1000; // 没有空闲内存，直接返回1000
-
-        /*
-         * Index should be a value between 0 and 1. Return a value to 3
-         * decimal places.
-         *
-         * 0 =&gt; no fragmentation
-         * 1 =&gt; high fragmentation
-         */
-        return div_u64((info-&gt;free_pages - (info-&gt;free_blocks_suitable &lt;&lt; order)) * 1000ULL, info-&gt;free_pages);
+        <span style="color:#75715e">/* No free memory is interpreted as all free memory is unusable */</span>
+        <span style="color:#66d9ef">if</span> (info<span style="color:#f92672">-&gt;</span>free_pages <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1000</span>; <span style="color:#75715e">// 没有空闲内存，直接返回1000
+</span><span style="color:#75715e"></span>
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * Index should be a value between 0 and 1. Return a value to 3
+</span><span style="color:#75715e">         * decimal places.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * 0 =&gt; no fragmentation
+</span><span style="color:#75715e">         * 1 =&gt; high fragmentation
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">return</span> div_u64((info<span style="color:#f92672">-&gt;</span>free_pages <span style="color:#f92672">-</span> (info<span style="color:#f92672">-&gt;</span>free_blocks_suitable <span style="color:#f92672">&lt;&lt;</span> order)) <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000ULL</span>, info<span style="color:#f92672">-&gt;</span>free_pages);
 
 }
 
-static void unusable_show_print(struct seq_file *m,
-                                        pg_data_t *pgdat, struct zone *zone)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">unusable_show_print</span>(<span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>m,
+                                        pg_data_t <span style="color:#f92672">*</span>pgdat, <span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone)
 {
-        unsigned int order;
-        int index;
-        struct contig_page_info info;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order;
+        <span style="color:#66d9ef">int</span> index;
+        <span style="color:#66d9ef">struct</span> contig_page_info info;
 
-        seq_printf(m, &quot;Node %d, zone %8s &quot;,
-                                pgdat-&gt;node_id,
-                                zone-&gt;name);
-        for (order = 0; order &lt; MAX_ORDER; ++order) {
-                fill_contig_page_info(zone, order, &amp;info);
-                index = unusable_free_index(order, &amp;info);
-                seq_printf(m, &quot;%d.%03d &quot;, index / 1000, index % 1000);
+        seq_printf(m, <span style="color:#e6db74">&#34;Node %d, zone %8s &#34;</span>,
+                                pgdat<span style="color:#f92672">-&gt;</span>node_id,
+                                zone<span style="color:#f92672">-&gt;</span>name);
+        <span style="color:#66d9ef">for</span> (order <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; order <span style="color:#f92672">&lt;</span> MAX_ORDER; <span style="color:#f92672">++</span>order) {
+                fill_contig_page_info(zone, order, <span style="color:#f92672">&amp;</span>info);
+                index <span style="color:#f92672">=</span> unusable_free_index(order, <span style="color:#f92672">&amp;</span>info);
+                seq_printf(m, <span style="color:#e6db74">&#34;%d.%03d &#34;</span>, index <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span>, index <span style="color:#f92672">%</span> <span style="color:#ae81ff">1000</span>);
         }
 
-        seq_putc(m, '\n');
+        seq_putc(m, <span style="color:#e6db74">&#39;\n&#39;</span>);
 }
-</code></pre>
-
-<p>计算公式为：</p>
-
+</code></pre></div><p>计算公式为：</p>
 <p>$$
-unusable\ index = \frac{ free\ pages - free\ blocks\ suitable &lt;&lt; order}{free\ pages}
+unusable\ index = \frac{ free\ pages - free\ blocks\ suitable &laquo; order}{free\ pages}
 $$</p>
-
-<h4 id="内存分配失败原因-extfrag-index">内存分配失败原因<code>extfrag_index</code></h4>
-
+<h4 id="内存分配失败原因extfrag_index">内存分配失败原因<code>extfrag_index</code></h4>
 <p>在我的系统上，输出如下：</p>
-
-<pre><code class="language-bash">$ cat /sys/kernel/debug/extfrag/extfrag_index 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat /sys/kernel/debug/extfrag/extfrag_index 
 Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 
 Node 0, zone    DMA32 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.988 0.994 
 Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.994 
 Node 1, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 
-</code></pre>
-
-<p>首先解释一下该值的含义：</p>
-
+</code></pre></div><p>首先解释一下该值的含义：</p>
 <ul>
 <li>该值有意义的是有前提的，只有内存预计内存分配将失败时，该值用来反映导致失败的原因</li>
 <li><code>0</code> 代表是由于内存不足导致</li>
 <li><code>1</code> 代表是由于内存碎片导致</li>
 <li>该值有特殊的值<code>-1</code>：表示内存分配不会失败</li>
 </ul>
-
 <p>内核中计算该<code>extfrag_index</code>的代码如下：</p>
-
-<pre><code class="language-c">/*
- * A fragmentation index only makes sense if an allocation of a requested
- * size would fail. If that is true, the fragmentation index indicates
- * whether external fragmentation or a lack of memory was the problem.
- * The value can be used to determine if page reclaim or compaction
- * should be used
- */
-static int __fragmentation_index(unsigned int order, struct contig_page_info *info)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * A fragmentation index only makes sense if an allocation of a requested
+</span><span style="color:#75715e"> * size would fail. If that is true, the fragmentation index indicates
+</span><span style="color:#75715e"> * whether external fragmentation or a lack of memory was the problem.
+</span><span style="color:#75715e"> * The value can be used to determine if page reclaim or compaction
+</span><span style="color:#75715e"> * should be used
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">__fragmentation_index</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order, <span style="color:#66d9ef">struct</span> contig_page_info <span style="color:#f92672">*</span>info)
 {
-        unsigned long requested = 1UL &lt;&lt; order;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> requested <span style="color:#f92672">=</span> <span style="color:#ae81ff">1UL</span> <span style="color:#f92672">&lt;&lt;</span> order;
 
-        if (!info-&gt;free_blocks_total) // 说明没有内存了
-                return 0;
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>info<span style="color:#f92672">-&gt;</span>free_blocks_total) <span style="color:#75715e">// 说明没有内存了
+</span><span style="color:#75715e"></span>                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 
-        /* Fragmentation index only makes sense when a request would fail */
-        if (info-&gt;free_blocks_suitable) // 说明有更大的内存blocks可以分割,来满足内存分配请求
-                return -1000;
+        <span style="color:#75715e">/* Fragmentation index only makes sense when a request would fail */</span>
+        <span style="color:#66d9ef">if</span> (info<span style="color:#f92672">-&gt;</span>free_blocks_suitable) <span style="color:#75715e">// 说明有更大的内存blocks可以分割,来满足内存分配请求
+</span><span style="color:#75715e"></span>                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1000</span>;
 
-        /*
-         * Index is between 0 and 1 so return within 3 decimal places
-         *
-         * 0 =&gt; allocation would fail due to lack of memory
-         * 1 =&gt; allocation would fail due to fragmentation
-         */
-        return 1000 - div_u64( (1000+(div_u64(info-&gt;free_pages * 1000ULL, requested))), info-&gt;free_blocks_total);
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * Index is between 0 and 1 so return within 3 decimal places
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * 0 =&gt; allocation would fail due to lack of memory
+</span><span style="color:#75715e">         * 1 =&gt; allocation would fail due to fragmentation
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1000</span> <span style="color:#f92672">-</span> div_u64( (<span style="color:#ae81ff">1000</span><span style="color:#f92672">+</span>(div_u64(info<span style="color:#f92672">-&gt;</span>free_pages <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000ULL</span>, requested))), info<span style="color:#f92672">-&gt;</span>free_blocks_total);
 }
 
-/* Same as __fragmentation index but allocs contig_page_info on stack */
-int fragmentation_index(struct zone *zone, unsigned int order)
+<span style="color:#75715e">/* Same as __fragmentation index but allocs contig_page_info on stack */</span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">fragmentation_index</span>(<span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order)
 {
-        struct contig_page_info info;
+        <span style="color:#66d9ef">struct</span> contig_page_info info;
 
-        fill_contig_page_info(zone, order, &amp;info);
-        return __fragmentation_index(order, &amp;info);
+        fill_contig_page_info(zone, order, <span style="color:#f92672">&amp;</span>info);
+        <span style="color:#66d9ef">return</span> __fragmentation_index(order, <span style="color:#f92672">&amp;</span>info);
 }
 
-static void extfrag_show_print(struct seq_file *m,
-                                        pg_data_t *pgdat, struct zone *zone)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">extfrag_show_print</span>(<span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>m,
+                                        pg_data_t <span style="color:#f92672">*</span>pgdat, <span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone)
 {
-        unsigned int order;
-        int index;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> order;
+        <span style="color:#66d9ef">int</span> index;
 
-        /* Alloc on stack as interrupts are disabled for zone walk */
-        struct contig_page_info info;
+        <span style="color:#75715e">/* Alloc on stack as interrupts are disabled for zone walk */</span>
+        <span style="color:#66d9ef">struct</span> contig_page_info info;
 
-        seq_printf(m, &quot;Node %d, zone %8s &quot;,
-                                pgdat-&gt;node_id,
-                                zone-&gt;name);
-        for (order = 0; order &lt; MAX_ORDER; ++order) {
-                fill_contig_page_info(zone, order, &amp;info);
-                index = __fragmentation_index(order, &amp;info);
-                seq_printf(m, &quot;%d.%03d &quot;, index / 1000, index % 1000);
+        seq_printf(m, <span style="color:#e6db74">&#34;Node %d, zone %8s &#34;</span>,
+                                pgdat<span style="color:#f92672">-&gt;</span>node_id,
+                                zone<span style="color:#f92672">-&gt;</span>name);
+        <span style="color:#66d9ef">for</span> (order <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; order <span style="color:#f92672">&lt;</span> MAX_ORDER; <span style="color:#f92672">++</span>order) {
+                fill_contig_page_info(zone, order, <span style="color:#f92672">&amp;</span>info);
+                index <span style="color:#f92672">=</span> __fragmentation_index(order, <span style="color:#f92672">&amp;</span>info);
+                seq_printf(m, <span style="color:#e6db74">&#34;%d.%03d &#34;</span>, index <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span>, index <span style="color:#f92672">%</span> <span style="color:#ae81ff">1000</span>);
         }
 
-        seq_putc(m, '\n');
+        seq_putc(m, <span style="color:#e6db74">&#39;\n&#39;</span>);
 }
 
-</code></pre>
-
-<p>计算公式为：</p>
-
+</code></pre></div><p>计算公式为：</p>
 <p>$$ extfrag\ index = 1000 - \frac{ \frac{free\ pages * 1000}{requested} + 1000 }{free\ blocks\ total} $$</p>
-
 <p>其中也遇到了上面提到的<code>fill_contig_page_info</code>函数，其用来统计内存信息，并填充数据结构<code>struct contig_page_info info</code>。</p>
-
 <p>另外，<code>fragmentation_index</code>的计算结果还被用来决策是否需要进行页面回收或者内存规整。</p>
-
 <h3 id="如何决定一个内存区是否需要内存规整">如何决定一个内存区是否需要内存规整</h3>
-
 <p><code>compaction_suitable()</code>函数主要根据当前<code>zone</code>的水位来判断是否需要内存规整:</p>
-
-<pre><code class="language-c?linenums">/*
+<pre><code class="language-c?linenums" data-lang="c?linenums">/*
  * compaction_suitable: Is this suitable to run compaction on this zone now?
  * Returns
  *   COMPACT_SKIPPED  - If there are too few free pages for compaction
@@ -513,52 +458,39 @@ unsigned long compaction_suitable(struct zone *zone, int order)
         return COMPACT_CONTINUE;
 }
 
-</code></pre>
-
-<p>该函数的逻辑如下：</p>
-
+</code></pre><p>该函数的逻辑如下：</p>
 <ol>
 <li>如果<code>order = -1</code>，无条件进行内存规整，这种情况一般是用户手动触发了内存规整（<code>echo 1 &gt; /proc/sys/vm/compact_memory</code>）</li>
 <li>接下来判断<code>zone</code>是否在<code>low_wmark_pages(zone) + (2UL &lt;&lt; order);</code>之上，如果达不到这个条件，说明<code>zone</code>中只有很少的空闲内存，不适合做内存规整，跳过这个<code>zone</code></li>
 <li>使用<code>fragmentation_index</code>函数计算该<code>zone</code>的碎片化指数
-
 <ul>
 <li><code>-1000</code>： 表示分配可能会成功，不需要内存规整</li>
 <li>趋向于<code>0</code>：表示是由于内存不足导致分配失败，不应该进行内存规整，因为规整完毕，也释放不出来足够的内存</li>
 <li>趋向于<code>1000</code>： 表示是由于内存碎片导致内存分配失败，如果该指数大于<code>/proc/sys/vm/extfrag_threshold</code>的值，则进行内存规整，该值默认为<code>500</code>.</li>
-</ul></li>
+</ul>
+</li>
 </ol>
-
 <p>再次看一下extfrag_index 的输出：</p>
-
-<pre><code class="language-bash">$ cat /sys/kernel/debug/extfrag/extfrag_index 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat /sys/kernel/debug/extfrag/extfrag_index 
 Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 
 Node 0, zone    DMA32 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.988 0.994 
 Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.994 
 Node 1, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 
-</code></pre>
-
-<p><code>extfrag_index</code> 大于<code>500</code>的一般处于<code>order</code>比较大的位置。</p>
-
+</code></pre></div><p><code>extfrag_index</code> 大于<code>500</code>的一般处于<code>order</code>比较大的位置。</p>
 <h3 id="统计内存规整信息">统计内存规整信息</h3>
-
 <p>一个系统上，内存规整模块的运行信息，可以通过文件<code>/proc/vmstat</code>来查看，如下：</p>
-
-<pre><code class="language-bash">$ cat /proc/vmstat  | grep compact
-compact_migrate_scanned 26654488
-compact_free_scanned 857655344
-compact_isolated 2530461
-compact_stall 355
-compact_fail 70
-compact_success 285
-</code></pre>
-
-<ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat /proc/vmstat  | grep compact
+compact_migrate_scanned <span style="color:#ae81ff">26654488</span>
+compact_free_scanned <span style="color:#ae81ff">857655344</span>
+compact_isolated <span style="color:#ae81ff">2530461</span>
+compact_stall <span style="color:#ae81ff">355</span>
+compact_fail <span style="color:#ae81ff">70</span>
+compact_success <span style="color:#ae81ff">285</span>
+</code></pre></div><ul>
 <li><code>compact_stall</code> 可以简单理解为系统进行内存规整的次数（不包括手动触发内存规整）</li>
 <li><code>compact_fail</code> 表示内存规整失败的次数</li>
 <li><code>compact_success</code> 表示内存规整成功的次数</li>
 </ul>
-
 <h3 id="参考文章">参考文章</h3>
     </div>
 
@@ -650,7 +582,7 @@ compact_success 285
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

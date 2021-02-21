@@ -6,11 +6,7 @@
     <description>Recent content in eventfd on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 12 Apr 2018 22:45:09 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/categories/eventfd/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Thu, 12 Apr 2018 22:45:09 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/categories/eventfd/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Linux 系统调用 eventfd</title>
       <link>http://linux.laoqinren.net/linux/syscall-eventfd/</link>
@@ -18,12 +14,10 @@
       
       <guid>http://linux.laoqinren.net/linux/syscall-eventfd/</guid>
       <description>&lt;p&gt;&lt;code&gt;eventfd&lt;/code&gt; 是&lt;code&gt;linux&lt;/code&gt;特有的&lt;code&gt;API&lt;/code&gt;，用于通知/等待机制的实现,该函数一般有两个使用场景：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;（1）用来实现用户态进程(线程)间的&lt;strong&gt;等待/通知(&lt;code&gt;wait/notify&lt;/code&gt;)&lt;/strong&gt; 机制&lt;/li&gt;
 &lt;li&gt;（2）内核用来通知用户态应用程序某个事件的发生。&lt;/li&gt;
 &lt;/ul&gt;
-
 &lt;p&gt;第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。&lt;/p&gt;</description>
     </item>
     

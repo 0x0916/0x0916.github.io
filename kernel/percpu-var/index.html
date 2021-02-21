@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/percpu-var/" />
@@ -58,11 +58,9 @@
 <meta property="article:modified_time" content="2019-11-14T15:55:10+08:00" />
 <meta itemprop="name" content="内核基础设施——per cpu变量">
 <meta itemprop="description" content="本节介绍了per-cpu 变量这个内核基础设施。">
-
-
-<meta itemprop="datePublished" content="2019-11-14T15:55:10&#43;08:00" />
-<meta itemprop="dateModified" content="2019-11-14T15:55:10&#43;08:00" />
-<meta itemprop="wordCount" content="2212">
+<meta itemprop="datePublished" content="2019-11-14T15:55:10+08:00" />
+<meta itemprop="dateModified" content="2019-11-14T15:55:10+08:00" />
+<meta itemprop="wordCount" content="2200">
 
 
 
@@ -153,7 +151,7 @@
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 2212 words </span>
+        <span class="more-meta"> 2200 words </span>
         <span class="more-meta"> 5 mins read </span>
         
       </div>
@@ -166,25 +164,16 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#linux-per-cpu变量介绍">Linux per-cpu变量介绍</a></li>
-<li><a href="#静态分配per-cpu变量">静态分配per-CPU变量</a>
-<ul>
-<li><a href="#实验示例">实验示例</a></li>
-<li><a href="#api">API</a></li>
-</ul></li>
-<li><a href="#动态分配per-cpu变量">动态分配per-CPU变量</a>
-<ul>
-<li><a href="#api-1">API</a></li>
-</ul></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#linux-per-cpu变量介绍">Linux per-cpu变量介绍</a></li>
+        <li><a href="#静态分配per-cpu变量">静态分配per-CPU变量</a></li>
+        <li><a href="#动态分配per-cpu变量">动态分配per-CPU变量</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -192,141 +181,121 @@
     
     <div class="post-content">
       <p>本节介绍了<code>per-cpu 变量</code>这个内核基础设施。</p>
-
-<p><img src="pic.jpg" alt="" /></p>
-
+<p><img src="pic.jpg" alt="" title=""></p>
 <h3 id="linux-per-cpu变量介绍">Linux per-cpu变量介绍</h3>
-
 <p>当创建一个<code>per-CPU</code>变量时,系统中的每个处理器都会获得它自己对这个变量的拷贝。存取<code>per-CPU</code>变量时几乎不需要加锁，<strong>因为每个处理器使用的都是它自己的拷贝</strong>。</p>
-
 <p><code>per-cpu</code>变量可以静态分配，也可以动态分配，下面就分布就这两种分配方法的原理进行简单的介绍。</p>
-
 <h3 id="静态分配per-cpu变量">静态分配per-CPU变量</h3>
-
 <p>静态<code>per-CPU</code>结构设计思路大体可以分为两个阶段：编译阶段和运行时阶段。</p>
-
 <p>在编译阶段，实际上只生成了一个<code>CPU</code>样本。系统中所有<code>per-CPU</code>结构都放到了一个叫做<code>.data..percpu</code>的<code>section</code>中，在<code>include/asm-generic/vmlinux.lds.h</code>链接脚本中有如下内容：</p>
-
-<pre><code class="language-c">/*
- * Helper macros to support writing architecture specific
- * linker scripts.
- *
- * A minimal linker scripts has following content:
- * [This is a sample, architectures may have special requiriements]
- *
- * OUTPUT_FORMAT(...)
- * OUTPUT_ARCH(...)
- * ENTRY(...)
- * SECTIONS
- * {
- *      . = START;
- *      __init_begin = .;
- *      HEAD_TEXT_SECTION
- *      INIT_TEXT_SECTION(PAGE_SIZE)
- *      INIT_DATA_SECTION(...)
- *      PERCPU_SECTION(CACHELINE_SIZE)		//请关注这里
- *      __init_end = .;
- *
- *      _stext = .;
- *      TEXT_SECTION = 0
- *      _etext = .;
- *
- *      _sdata = .;
- *      RO_DATA_SECTION(PAGE_SIZE)
- *      RW_DATA_SECTION(...)
- *      _edata = .;
- *
- *      EXCEPTION_TABLE(...)
- *      NOTES
- *
- *      BSS_SECTION(0, 0, 0)
- *      _end = .;
- *
- *      STABS_DEBUG
- *      DWARF_DEBUG
- *
- *      DISCARDS                // must be the last
- * }
- *
- * [__init_begin, __init_end] is the init section that may be freed after init
- * [_stext, _etext] is the text section
- * [_sdata, _edata] is the data section
- *
- * Some of the included output section have their own set of constants.
- * Examples are: [__initramfs_start, __initramfs_end] for initramfs and
- *               [__nosave_begin, __nosave_end] for the nosave data
- */
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * Helper macros to support writing architecture specific
+</span><span style="color:#75715e"> * linker scripts.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * A minimal linker scripts has following content:
+</span><span style="color:#75715e"> * [This is a sample, architectures may have special requiriements]
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * OUTPUT_FORMAT(...)
+</span><span style="color:#75715e"> * OUTPUT_ARCH(...)
+</span><span style="color:#75715e"> * ENTRY(...)
+</span><span style="color:#75715e"> * SECTIONS
+</span><span style="color:#75715e"> * {
+</span><span style="color:#75715e"> *      . = START;
+</span><span style="color:#75715e"> *      __init_begin = .;
+</span><span style="color:#75715e"> *      HEAD_TEXT_SECTION
+</span><span style="color:#75715e"> *      INIT_TEXT_SECTION(PAGE_SIZE)
+</span><span style="color:#75715e"> *      INIT_DATA_SECTION(...)
+</span><span style="color:#75715e"> *      PERCPU_SECTION(CACHELINE_SIZE)		//请关注这里
+</span><span style="color:#75715e"> *      __init_end = .;
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *      _stext = .;
+</span><span style="color:#75715e"> *      TEXT_SECTION = 0
+</span><span style="color:#75715e"> *      _etext = .;
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *      _sdata = .;
+</span><span style="color:#75715e"> *      RO_DATA_SECTION(PAGE_SIZE)
+</span><span style="color:#75715e"> *      RW_DATA_SECTION(...)
+</span><span style="color:#75715e"> *      _edata = .;
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *      EXCEPTION_TABLE(...)
+</span><span style="color:#75715e"> *      NOTES
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *      BSS_SECTION(0, 0, 0)
+</span><span style="color:#75715e"> *      _end = .;
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *      STABS_DEBUG
+</span><span style="color:#75715e"> *      DWARF_DEBUG
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *      DISCARDS                // must be the last
+</span><span style="color:#75715e"> * }
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * [__init_begin, __init_end] is the init section that may be freed after init
+</span><span style="color:#75715e"> * [_stext, _etext] is the text section
+</span><span style="color:#75715e"> * [_sdata, _edata] is the data section
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * Some of the included output section have their own set of constants.
+</span><span style="color:#75715e"> * Examples are: [__initramfs_start, __initramfs_end] for initramfs and
+</span><span style="color:#75715e"> *               [__nosave_begin, __nosave_end] for the nosave data
+</span><span style="color:#75715e"> */</span>
  
- /**                                                                                                                                      
- * PERCPU_INPUT - the percpu input sections                                                                                              
- * @cacheline: cacheline size                                                                                                            
- *                                                                                                                                       
- * The core percpu section names and core symbols which do not rely                                                                      
- * directly upon load addresses.                                                                                                         
- *                                                                                                                                       
- * @cacheline is used to align subsections to avoid false cacheline                                                                      
- * sharing between subsections for different purposes.                                                                                   
- */                                                                                                                                      
-#define PERCPU_INPUT(cacheline)                                         \
-        VMLINUX_SYMBOL(__per_cpu_start) = .;                            \
-        *(.data..percpu..first)                                         \
-        . = ALIGN(PAGE_SIZE);                                           \
-        VMLINUX_SYMBOL(__per_cpu_user_mapped_start) = .;                \ 
-        *(.data..percpu..user_mapped..page_aligned)                     \
-        . = ALIGN(cacheline);                                           \
-        *(.data..percpu..user_mapped)                                   \ 
-        *(.data..percpu..user_mapped..shared_aligned)                   \ 
-        VMLINUX_SYMBOL(__per_cpu_user_mapped_end) = .;                  \
-        . = ALIGN(PAGE_SIZE);                                           \
-        *(.data..percpu..page_aligned)                                  \ 
-        . = ALIGN(cacheline);                                           \
-        *(.data..percpu..readmostly)                                    \ 
-        . = ALIGN(cacheline);                                           \ 
-        *(.data..percpu)                                                \
-        *(.data..percpu..shared_aligned)                                \
-        VMLINUX_SYMBOL(__per_cpu_end) = .;  
+ <span style="color:#75715e">/**                                                                                                                                      
+</span><span style="color:#75715e"> * PERCPU_INPUT - the percpu input sections                                                                                              
+</span><span style="color:#75715e"> * @cacheline: cacheline size                                                                                                            
+</span><span style="color:#75715e"> *                                                                                                                                       
+</span><span style="color:#75715e"> * The core percpu section names and core symbols which do not rely                                                                      
+</span><span style="color:#75715e"> * directly upon load addresses.                                                                                                         
+</span><span style="color:#75715e"> *                                                                                                                                       
+</span><span style="color:#75715e"> * @cacheline is used to align subsections to avoid false cacheline                                                                      
+</span><span style="color:#75715e"> * sharing between subsections for different purposes.                                                                                   
+</span><span style="color:#75715e"> */</span>                                                                                                                                      
+<span style="color:#75715e">#define PERCPU_INPUT(cacheline)                                         \
+</span><span style="color:#75715e">        VMLINUX_SYMBOL(__per_cpu_start) = .;                            \
+</span><span style="color:#75715e">        *(.data..percpu..first)                                         \
+</span><span style="color:#75715e">        . = ALIGN(PAGE_SIZE);                                           \
+</span><span style="color:#75715e">        VMLINUX_SYMBOL(__per_cpu_user_mapped_start) = .;                \ 
+</span><span style="color:#75715e"></span>        <span style="color:#f92672">*</span>(.data..percpu..user_mapped..page_aligned)                     \
+        . <span style="color:#f92672">=</span> ALIGN(cacheline);                                           \
+        <span style="color:#f92672">*</span>(.data..percpu..user_mapped)                                   <span style="color:#960050;background-color:#1e0010">\</span> 
+        <span style="color:#f92672">*</span>(.data..percpu..user_mapped..shared_aligned)                   <span style="color:#960050;background-color:#1e0010">\</span> 
+        VMLINUX_SYMBOL(__per_cpu_user_mapped_end) <span style="color:#f92672">=</span> .;                  \
+        . <span style="color:#f92672">=</span> ALIGN(PAGE_SIZE);                                           \
+        <span style="color:#f92672">*</span>(.data..percpu..page_aligned)                                  <span style="color:#960050;background-color:#1e0010">\</span> 
+        . <span style="color:#f92672">=</span> ALIGN(cacheline);                                           \
+        <span style="color:#f92672">*</span>(.data..percpu..readmostly)                                    <span style="color:#960050;background-color:#1e0010">\</span> 
+        . <span style="color:#f92672">=</span> ALIGN(cacheline);                                           <span style="color:#960050;background-color:#1e0010">\</span> 
+        <span style="color:#f92672">*</span>(.data..percpu)                                                \
+        <span style="color:#f92672">*</span>(.data..percpu..shared_aligned)                                \
+        VMLINUX_SYMBOL(__per_cpu_end) <span style="color:#f92672">=</span> .;  
 		
-/**
- * PERCPU_SECTION - define output section for percpu area, simple version
- * @cacheline: cacheline size
- *
- * Align to PAGE_SIZE and outputs output section for percpu area.  This
- * macro doesn't manipulate @vaddr or @phdr and __per_cpu_load and
- * __per_cpu_start will be identical.
- *
- * This macro is equivalent to ALIGN(PAGE_SIZE); PERCPU_VADDR(@cacheline,,)
- * except that __per_cpu_load is defined as a relative symbol against
- * .data..percpu which is required for relocatable x86_32 configuration.
- */
-#define PERCPU_SECTION(cacheline)                                       \
-        . = ALIGN(PAGE_SIZE);                                           \
-        .data..percpu   : AT(ADDR(.data..percpu) - LOAD_OFFSET) {       \
-                VMLINUX_SYMBOL(__per_cpu_load) = .;                     \
-                PERCPU_INPUT(cacheline)                                 \
-        }
-</code></pre>
-
-<p>由这个链接脚本知道，<code>.data..percpu</code> <code>Section</code>是处于<code>init</code>数据段的，在系统初始化结束后将被回收。那么，系统如何维持<code>per-CPU</code>数据呢？这个任务在运行时完成。在系统初始化期间，<code>start_kernel()</code>函数中调用<code>setup_per_cpu_areas（）</code>函数，用于为每个<code>cpu</code>的<code>per-cpu</code>变量副本分配空间，该函数会分配 <code>NR_CPU * （ __per_cpu_end - __per_cpu_start）</code>大小的内存，然后将 <code>data..percpu</code>段中的<code>CPU原本</code>拷贝<code>NR_CPU份</code>到这块内存中。从此以后系统通过<code>get_cpu_var</code>访问<code>per-CPU变量</code>的时候就会根据自己的<code>cpu_id</code>找到对应的拷贝。</p>
-
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * PERCPU_SECTION - define output section for percpu area, simple version
+</span><span style="color:#75715e"> * @cacheline: cacheline size
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * Align to PAGE_SIZE and outputs output section for percpu area.  This
+</span><span style="color:#75715e"> * macro doesn&#39;t manipulate @vaddr or @phdr and __per_cpu_load and
+</span><span style="color:#75715e"> * __per_cpu_start will be identical.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * This macro is equivalent to ALIGN(PAGE_SIZE); PERCPU_VADDR(@cacheline,,)
+</span><span style="color:#75715e"> * except that __per_cpu_load is defined as a relative symbol against
+</span><span style="color:#75715e"> * .data..percpu which is required for relocatable x86_32 configuration.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#75715e">#define PERCPU_SECTION(cacheline)                                       \
+</span><span style="color:#75715e">        . = ALIGN(PAGE_SIZE);                                           \
+</span><span style="color:#75715e">        .data..percpu   : AT(ADDR(.data..percpu) - LOAD_OFFSET) {       \
+</span><span style="color:#75715e">                VMLINUX_SYMBOL(__per_cpu_load) = .;                     \
+</span><span style="color:#75715e">                PERCPU_INPUT(cacheline)                                 \
+</span><span style="color:#75715e">        }
+</span></code></pre></div><p>由这个链接脚本知道，<code> .data..percpu</code> <code>Section</code>是处于<code>init</code>数据段的，在系统初始化结束后将被回收。那么，系统如何维持<code>per-CPU</code>数据呢？这个任务在运行时完成。在系统初始化期间，<code>start_kernel()</code>函数中调用<code>setup_per_cpu_areas（）</code>函数，用于为每个<code>cpu</code>的<code>per-cpu</code>变量副本分配空间，该函数会分配 <code>NR_CPU * （ __per_cpu_end - __per_cpu_start）</code>大小的内存，然后将 <code>data..percpu</code>段中的<code>CPU原本</code>拷贝<code>NR_CPU份</code>到这块内存中。从此以后系统通过<code>get_cpu_var</code>访问<code>per-CPU变量</code>的时候就会根据自己的<code>cpu_id</code>找到对应的拷贝。</p>
 <p>可见，静态<code>per-CPU</code>变量的<code>locality</code>非常好，<code>CPU</code>之间在<code>Cache</code>级都不彼此干扰。对于静态生成的<code>per-CPU</code>变量需要使用<code>get_cpu_var</code>来访问。</p>
-
 <p>初始化过程可以用下图说明：</p>
-
-<p><img src="./percpu_var.png" alt="" /></p>
-
+<p><img src="./percpu_var.png" alt="" title=""></p>
 <h4 id="实验示例">实验示例</h4>
-
 <p>我们可以使用 <code>objdump</code> 可以看到编译 <code>kernel</code> 时的 <code>vmlinux</code> 文件的 <code>section</code>, 例如可以通过如下命令查看<code>.data..percpu</code>段的大小：</p>
-
-<pre><code class="language-bash">~  # objdump -h /usr/lib/debug/lib/modules/`uname -r`/vmlinux | grep -A1 percpu
- 18 .data..percpu 00026000  0000000000000000  000000000275b000  01a00000  2**12
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~  <span style="color:#75715e"># objdump -h /usr/lib/debug/lib/modules/`uname -r`/vmlinux | grep -A1 percpu</span>
+ <span style="color:#ae81ff">18</span> .data..percpu <span style="color:#ae81ff">00026000</span>  <span style="color:#ae81ff">0000000000000000</span>  000000000275b000  01a00000  2**12
                   CONTENTS, ALLOC, LOAD, RELOC, DATA
-</code></pre>
-
-<p>这里可以看到<code>.data..percpu</code>段的大小为：<code>00026000</code></p>
-
+</code></pre></div><p>这里可以看到<code>.data..percpu</code>段的大小为：<code>00026000</code></p>
 <p>这里以<code>current_task</code>这个每<code>CPU</code>变量为例，通过<code>crash</code>，我们可以获得其地址信息：</p>
-
 <pre><code>crash&gt; whatis current_task
 struct task_struct *current_task;
 crash&gt; p current_task
@@ -349,35 +318,24 @@ PER-CPU ADDRESSES:
   [2]: ffff912a5bb00000
   [3]: ffff912a5bb80000
 crash&gt; 
-</code></pre>
-
-<p>通过如上信息，我们可以看出，内核为<code>每cpu变量</code>预留的空间大小为<code>80000</code>，远大于<code>00026000</code>。
+</code></pre><p>通过如上信息，我们可以看出，内核为<code>每cpu变量</code>预留的空间大小为<code>80000</code>，远大于<code>00026000</code>。
 其中<code>current_task</code>在该段中的偏移为<code>15c80</code>。</p>
-
 <h4 id="api">API</h4>
-
 <p>编译期间创建一个per-CPU变量，可以使用宏<code>DEFINE_PER_CPU</code></p>
-
 <pre><code>//定义一个变量
 DEFINE_PER_CPU(unsigned int, irq_count) __visible = -1;
 //定义一个结构体
 DEFINE_PER_CPU(struct task_struct *, current_task) = ____cacheline_aligned = &amp;init_task;
 //定义一个数组
 DEFINE_PER_CPU(int[3],my_percpu_array); 
-</code></pre>
-
-<p>如果只是声明，可以使用宏<code>DECLARE_PER_CPU</code></p>
-
+</code></pre><p>如果只是声明，可以使用宏<code>DECLARE_PER_CPU</code></p>
 <pre><code>//声明一个变量
 DECLARE_PER_CPU(unsigned int, irq_count) __visible = -1;
 //声明一个结构体
 DECLARE_PER_CPU(struct task_struct *, current_task) = ____cacheline_aligned = &amp;init_task;
 //声明一个数组
 DECLARE_PER_CPU(int[3],my_percpu_array); 
-</code></pre>
-
-<p>使用静态生成的per-CPU变量：</p>
-
+</code></pre><p>使用静态生成的per-CPU变量：</p>
 <pre><code>ptr = get_cpu_var(irq_count);
 使用ptr
 put_cpu_var(irq_count);
@@ -385,41 +343,24 @@ put_cpu_var(irq_count);
 //当然，也可以使用下列宏来访问特定CPU上的per-CPU变量
 per_cpu(irq_count, cpu_id);/
 
-</code></pre>
-
-<p>per-CPU变量导出，供模块使用：</p>
-
+</code></pre><p>per-CPU变量导出，供模块使用：</p>
 <pre><code>EXPORT_PER_CPU_SYMBOL(irq_count)
 EXPORT_PER_CPU_SYMBOL_GPL(irq_count)
-</code></pre>
-
-<h3 id="动态分配per-cpu变量">动态分配per-CPU变量</h3>
-
+</code></pre><h3 id="动态分配per-cpu变量">动态分配per-CPU变量</h3>
 <p>动态分配per-CPU变量的场景是什么呢？虽然在内核的核心代码中也可以使用动态per-CPU变量，但是主要还是给内核模块使用的。既然是模块，那就有可能在任何时候启动使用，也可能会卸载。动态per-CPU变量就是为了满足这个需要而产生的。</p>
-
 <p>我们不妨思考下，如何能把动态<code>per-CPU</code>的<code>locality</code>设计得跟静态的一样呢？ 由于不知道系统中将会有多少动态结构出现，所以不宜采用预留内存的方式，这为我们的设计带来了很大挑战。实际上，<code>Linux</code>也没有完全解决这个问题，但还是做了最大程度的优化。考虑到<code>per-CPU</code>变量的访问模式，效率应该和静态方式不相上下。下面看看<code>linux</code>的处理方式。</p>
-
 <p>动态<code>per-CPU</code>结构相对于静态结构来说，设计上更直观，但效率上要低一些。每次调用<code>alloc_percpu(type)</code>的时候会生成一个维度为<code>NR_CPUS</code>的指针数组，每个指针指向一个<code>kzalloc/kmalloc_node</code>出来的<code>type</code>型对象。<code>Linux</code>在这里采取了一个优化手段：如果第<code>i</code>个<code>cpu</code>在线（<code>linux</code>支持<code>cpu</code>的<code>hot-plug</code>），那么就采用<code>kmalloc_node</code>来分配空间，这个空间与<code>cpu i</code>的亲和性很高；如果<code>cpu i</code>不在线，则采用通用的<code>kzalloc</code>分配了。</p>
-
 <h4 id="api-1">API</h4>
-
 <p>分配per-CPU变量:<code>alloc_percpu</code></p>
-
 <pre><code>struct mem_cgroup {
 	...
 	struct mem_cgroup_stat_cpu __percpu *stat_cpu;
 	...
 }
 memcg-&gt;stat_cpu = alloc_percpu(struct mem_cgroup_stat_cpu)
-</code></pre>
-
-<p>回收per-CPU变量：<code>free_percpu</code></p>
-
+</code></pre><p>回收per-CPU变量：<code>free_percpu</code></p>
 <pre><code>free_percpu(memcg-&gt;stat_cpu)
-</code></pre>
-
-<h3 id="参考文章">参考文章</h3>
-
+</code></pre><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="https://m.zohead.com/archives/linux-kernel-percpu-variable/?wpmp_switcher=true">https://m.zohead.com/archives/linux-kernel-percpu-variable/?wpmp_switcher=true</a></li>
 <li><a href="https://blog.csdn.net/maray/article/details/5115371">https://blog.csdn.net/maray/article/details/5115371</a></li>
@@ -514,7 +455,7 @@ memcg-&gt;stat_cpu = alloc_percpu(struct mem_cgroup_stat_cpu)
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -25,7 +25,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/" />
@@ -54,11 +54,9 @@
 <meta property="og:description" content="Notes about my work and linux kernel" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/" />
-
 <meta property="og:updated_time" content="2019-02-10T20:20:18+08:00" />
 <meta itemprop="name" content="">
 <meta itemprop="description" content="Notes about my work and linux kernel">
-
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content=""/>
 <meta name="twitter:description" content="Notes about my work and linux kernel"/>
@@ -185,7 +183,6 @@
   <div class="post-content">
     <div class="post-summary">
       <p>用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。</p>
-
 <p>如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现<code>Linux</code>中用户态程序访问所有物理内存。</p>
     </div>
     <div class="read-more">
@@ -205,7 +202,7 @@
             <a href="/categories/linux/"> linux </a>
           
         </div>
-      <span class="more-meta"> 3149 words </span>
+      <span class="more-meta"> 3146 words </span>
       <span class="more-meta"> 7 mins read </span>
     </div>
   </header>
@@ -213,7 +210,6 @@
   <div class="post-content">
     <div class="post-summary">
       <p>在<code>linux</code>内核中，整个内存信息和状态的展示可以通过以下几个文件获得：</p>
-
 <table>
 <thead>
 <tr>
@@ -221,32 +217,26 @@
 <th>描述</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td><code>/proc/buddyinfo</code></td>
 <td>展示系统上各个<code>zone</code>的<code>buddy</code>信息，主要用来分析内存碎片问题</td>
 </tr>
-
 <tr>
 <td><code>/proc/pagetypeinfo</code></td>
 <td>输出系统上各个<code>zone</code>中的不同迁移类型的详细状态信息</td>
 </tr>
-
 <tr>
 <td><code>/proc/vmstat</code></td>
 <td>描述内存统计信息</td>
 </tr>
-
 <tr>
 <td><code>/proc/zoneinfo</code></td>
 <td>输出系统上各个内存<code>zone</code>的详细信息</td>
 </tr>
 </tbody>
 </table>
-
 <p>在详细介绍这些接口之前，我们先要明确一下几点：</p>
-
 <ul>
 <li>现在的内核中，内存管理最大概念为<code>node</code>。</li>
 <li>在node上再分为一个或者几个<code>zone</code></li>
@@ -270,7 +260,7 @@
             <a href="/categories/linux/"> linux </a>
           
         </div>
-      <span class="more-meta"> 1467 words </span>
+      <span class="more-meta"> 1458 words </span>
       <span class="more-meta"> 3 mins read </span>
     </div>
   </header>
@@ -278,7 +268,6 @@
   <div class="post-content">
     <div class="post-summary">
       <p>本文题目为『<strong>获取容器中init进程的pid</strong>』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的<code>pid namespace</code>中，而我们有时需要在顶级的<code>pid namespace</code>中获取其<code>init</code>进程对应的在顶级<code>pid namespace</code>的<code>pid</code>。</p>
-
 <p>本文简要介绍了完成这个任务的一种方法。</p>
     </div>
     <div class="read-more">
@@ -300,7 +289,7 @@
             <a href="/categories/socket/"> socket </a>
           
         </div>
-      <span class="more-meta"> 1106 words </span>
+      <span class="more-meta"> 1099 words </span>
       <span class="more-meta"> 3 mins read </span>
     </div>
   </header>
@@ -355,7 +344,7 @@
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

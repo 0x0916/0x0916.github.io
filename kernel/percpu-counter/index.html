@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/percpu-counter/" />
@@ -54,7 +54,6 @@
 <meta property="og:title" content="内核基础设施——percpu_counter" />
 <meta property="og:description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
 
-
 注意：本文中引用的内核代码版本为v4.4.128。
 " />
 <meta property="og:type" content="article" />
@@ -64,13 +63,10 @@
 <meta itemprop="name" content="内核基础设施——percpu_counter">
 <meta itemprop="description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
 
-
 注意：本文中引用的内核代码版本为v4.4.128。
 ">
-
-
-<meta itemprop="datePublished" content="2018-04-13T20:50:15&#43;08:00" />
-<meta itemprop="dateModified" content="2018-04-13T20:50:15&#43;08:00" />
+<meta itemprop="datePublished" content="2018-04-13T20:50:15+08:00" />
+<meta itemprop="dateModified" content="2018-04-13T20:50:15+08:00" />
 <meta itemprop="wordCount" content="2397">
 
 
@@ -79,7 +75,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核基础设施——percpu_counter"/>
 <meta name="twitter:description" content="内核里很多模块都需要对一些事件进行统计，有一个叫做percpu_counter的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。
-
 
 注意：本文中引用的内核代码版本为v4.4.128。
 "/>
@@ -179,19 +174,17 @@
   
   <div class="post-toc-content always-active">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#对于单核">对于单核</a></li>
-<li><a href="#对于多核">对于多核</a></li>
-<li><a href="#api接口">API接口</a></li>
-<li><a href="#batch大小">batch大小</a></li>
-<li><a href="#hotplug">hotplug</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#对于单核">对于单核</a></li>
+        <li><a href="#对于多核">对于多核</a></li>
+        <li><a href="#api接口">API接口</a></li>
+        <li><a href="#batch大小">batch大小</a></li>
+        <li><a href="#hotplug">hotplug</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -199,42 +192,28 @@
     
     <div class="post-content">
       <p>内核里很多模块都需要对一些事件进行统计，有一个叫做<code>percpu_counter</code>的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。</p>
-
 <blockquote>
 <p>注意：本文中引用的内核代码版本为<code>v4.4.128</code>。</p>
 </blockquote>
-
 <h3 id="对于单核">对于单核</h3>
-
 <p>其数据结构定义<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/percpu_counter.h?h=v4.4.128#n94"> include/linux/percpu_counter.h(line 94) </a>如下：</p>
-
-<pre><code class="language-c">struct percpu_counter {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> percpu_counter {
         s64 count;
 };
-</code></pre>
-
-<p>对于单核来说，比较简单，其操作主要是对计数器<code>count</code>进行操作。</p>
-
+</code></pre></div><p>对于单核来说，比较简单，其操作主要是对计数器<code>count</code>进行操作。</p>
 <h3 id="对于多核">对于多核</h3>
-
 <p>其数据结构定义<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/percpu_counter.h?h=v4.4.128#n19"> include/linux/percpu_counter.h(line 19) </a>如下：</p>
-
-<pre><code class="language-c">struct percpu_counter {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> percpu_counter {
         raw_spinlock_t lock;
         s64 count;
-#ifdef CONFIG_HOTPLUG_CPU
-        struct list_head list;  /* All percpu_counters are on a list */
-#endif
-        s32 __percpu *counters;
+<span style="color:#75715e">#ifdef CONFIG_HOTPLUG_CPU
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> list_head list;  <span style="color:#75715e">/* All percpu_counters are on a list */</span>
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>        s32 __percpu <span style="color:#f92672">*</span>counters;
 };
-</code></pre>
-
-<p>相比较于单核，多核稍微复杂一些，其为了提高效率，引用了<code>__percpu</code>变量<code>counters</code>，另外为了考虑<code>cpu</code>的热插拔，其有引入了字段<code>list</code>，用来将所有的<code>percpu_counter</code>链接到一起。</p>
-
+</code></pre></div><p>相比较于单核，多核稍微复杂一些，其为了提高效率，引用了<code>__percpu</code>变量<code>counters</code>，另外为了考虑<code>cpu</code>的热插拔，其有引入了字段<code>list</code>，用来将所有的<code>percpu_counter</code>链接到一起。</p>
 <h3 id="api接口">API接口</h3>
-
 <p>其接口如下：</p>
-
 <ul>
 <li>percpu_counter_init</li>
 <li>percpu_counter_set</li>
@@ -250,106 +229,97 @@
 <li>percpu_counter_compare</li>
 <li>percpu_counter_initialized</li>
 </ul>
-
 <p>对结构体<code>percpu_counter</code>操作时，如果只访问<code>s32 __percpu *counters;</code>则不需要加锁，如果访问<code>s64 count;</code>则需要加锁，防止竞争。</p>
-
 <p>内核为了尽可能少的加锁，使用了一些编程技巧，对计数器增加或者减少计数时，大多数情况下不用加锁，只修改每<code>cpu</code>变量<code>s32 __percpu *counters;</code>，当计数超过一个范围时<code>[-batch, batch]</code>,则进行加锁，将每cpu变量<code>s32 __percpu *counters;</code>中的计数累计到<code>s64 count;</code>中。</p>
-
 <ul>
-<li><p><code>percpu_counter_init</code>初始化<code>percpu_counter</code>中成员<code>count</code>特定的值，并分配每<code>cpu</code>变量<code>counters</code>;</p></li>
-
-<li><p><code>percpu_counter_set</code> 设置<code>percpu_counter</code>中成员<code>count</code>特定的值，并修改每cpu变量<code>counters</code>的值为<code>0</code>；</p></li>
-
-<li><p><code>percpu_counter_destroy</code> 释放<code>percpu_counter_init</code>中分配的每<code>cpu</code>变量<code>counters</code>;</p></li>
-
-<li><p><code>percpu_counter_inc/percpu_counter_dec/percpu_counter_add/percpu_counter_sub</code>四个方法主要对计数器进行操作，修改其值。修改过程中，就是用上面提到的技巧，尽可能少的加锁。<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n75"> lib/percpu_counter.c(line 75) </a></p>
-
-<pre><code class="language-c">void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch)
+<li>
+<p><code>percpu_counter_init</code>初始化<code>percpu_counter</code>中成员<code>count</code>特定的值，并分配每<code>cpu</code>变量<code>counters</code>;</p>
+</li>
+<li>
+<p><code>percpu_counter_set</code> 设置<code>percpu_counter</code>中成员<code>count</code>特定的值，并修改每cpu变量<code>counters</code>的值为<code>0</code>；</p>
+</li>
+<li>
+<p><code>percpu_counter_destroy</code> 释放<code>percpu_counter_init</code>中分配的每<code>cpu</code>变量<code>counters</code>;</p>
+</li>
+<li>
+<p><code>percpu_counter_inc/percpu_counter_dec/percpu_counter_add/percpu_counter_sub</code>四个方法主要对计数器进行操作，修改其值。修改过程中，就是用上面提到的技巧，尽可能少的加锁。<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n75"> lib/percpu_counter.c(line 75) </a></p>
+</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__percpu_counter_add</span>(<span style="color:#66d9ef">struct</span> percpu_counter <span style="color:#f92672">*</span>fbc, s64 amount, s32 batch)
 {
-    s64 count;
+        s64 count;
 
-    preempt_disable();
-    count = __this_cpu_read(*fbc-&gt;counters) + amount;
-    if (count &gt;= batch || count &lt;= -batch) {
-            unsigned long flags;
-            raw_spin_lock_irqsave(&amp;fbc-&gt;lock, flags);
-            fbc-&gt;count += count;
-            __this_cpu_sub(*fbc-&gt;counters, count - amount); // 清零
-            raw_spin_unlock_irqrestore(&amp;fbc-&gt;lock, flags);
-    } else {
-            this_cpu_add(*fbc-&gt;counters, amount);
-    }
-    preempt_enable();
+        preempt_disable();
+        count <span style="color:#f92672">=</span> __this_cpu_read(<span style="color:#f92672">*</span>fbc<span style="color:#f92672">-&gt;</span>counters) <span style="color:#f92672">+</span> amount;
+        <span style="color:#66d9ef">if</span> (count <span style="color:#f92672">&gt;=</span> batch <span style="color:#f92672">||</span> count <span style="color:#f92672">&lt;=</span> <span style="color:#f92672">-</span>batch) {
+                <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> flags;
+                raw_spin_lock_irqsave(<span style="color:#f92672">&amp;</span>fbc<span style="color:#f92672">-&gt;</span>lock, flags);
+                fbc<span style="color:#f92672">-&gt;</span>count <span style="color:#f92672">+=</span> count;
+                __this_cpu_sub(<span style="color:#f92672">*</span>fbc<span style="color:#f92672">-&gt;</span>counters, count <span style="color:#f92672">-</span> amount); <span style="color:#75715e">// 清零
+</span><span style="color:#75715e"></span>                raw_spin_unlock_irqrestore(<span style="color:#f92672">&amp;</span>fbc<span style="color:#f92672">-&gt;</span>lock, flags);
+        } <span style="color:#66d9ef">else</span> {
+                this_cpu_add(<span style="color:#f92672">*</span>fbc<span style="color:#f92672">-&gt;</span>counters, amount);
+        }
+        preempt_enable();
 }
 EXPORT_SYMBOL(__percpu_counter_add);
-</code></pre></li>
-</ul>
-
-<blockquote>
+</code></pre></div><blockquote>
 <p>技巧：这里特别注意<code>__this_cpu_sub(*fbc-&gt;counters, count - amount)</code>，乍一看，这里就是清零，为什么要写这么复杂呢？因为在计算<code>count</code>值到该行代码之间，该<code>cpu</code>对应的<code>percpu_counter</code>计数可能增加，所以只有这样写才是最正确的。</p>
 </blockquote>
-
 <ul>
-<li><p><code>percpu_counter_sum_positive/percpu_counter_sum</code>计算该计数器的数值（精确值），需要加锁，区别是<code>percpu_counter_sum_positive</code>返回值最小为0；;</p></li>
-
-<li><p><code>percpu_counter_read/percpu_counter_read_positive</code>读出该计数器的粗略的数值，不需要加锁, 区别是<code>percpu_counter_read_positive</code>返回值最小为0；</p></li>
-
-<li><p><code>percpu_counter_compare</code> 用来比较计数器的数值和给定的数值的大小，这里也用到了上面提到的编程技巧，尽可能少的加锁。先通过<code>percpu_counter_read</code>计算计数器的粗略值，此时不需要加锁，如果可以判断结果的话，就直接返回；如果判断不了结果的话，就得通过<code>percpu_counter_sum</code>来进一步加锁计算精确的计数值来进行比较，代码可参考：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n200"> lib/percpu_counter.c(line 200) </a></p>
-
-<pre><code class="language-c">/*                                                                                                                                             
-* Compare counter against given value.
-* Return 1 if greater, 0 if equal and -1 if less
-*/
-int __percpu_counter_compare(struct percpu_counter *fbc, s64 rhs, s32 batch)
+<li>
+<p><code>percpu_counter_sum_positive/percpu_counter_sum</code>计算该计数器的数值（精确值），需要加锁，区别是<code>percpu_counter_sum_positive</code>返回值最小为0；;</p>
+</li>
+<li>
+<p><code>percpu_counter_read/percpu_counter_read_positive</code>读出该计数器的粗略的数值，不需要加锁, 区别是<code>percpu_counter_read_positive</code>返回值最小为0；</p>
+</li>
+<li>
+<p><code>percpu_counter_compare</code> 用来比较计数器的数值和给定的数值的大小，这里也用到了上面提到的编程技巧，尽可能少的加锁。先通过<code>percpu_counter_read</code>计算计数器的粗略值，此时不需要加锁，如果可以判断结果的话，就直接返回；如果判断不了结果的话，就得通过<code>percpu_counter_sum</code>来进一步加锁计算精确的计数值来进行比较，代码可参考：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n200"> lib/percpu_counter.c(line 200) </a></p>
+</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*                                                                                                                                             
+</span><span style="color:#75715e"> * Compare counter against given value.
+</span><span style="color:#75715e"> * Return 1 if greater, 0 if equal and -1 if less
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">__percpu_counter_compare</span>(<span style="color:#66d9ef">struct</span> percpu_counter <span style="color:#f92672">*</span>fbc, s64 rhs, s32 batch)
 {
-    s64     count;
+        s64     count;
 
-    count = percpu_counter_read(fbc);       // 读出大概值
-    /* Check to see if rough count will be sufficient for comparison */
-    if (abs(count - rhs) &gt; (batch * num_online_cpus())) {
-            if (count &gt; rhs)
-                    return 1;
-            else
-                    return -1;
-    }
-    /* Need to use precise count */
-    count = percpu_counter_sum(fbc);
-    if (count &gt; rhs)
-            return 1;
-    else if (count &lt; rhs)
-            return -1;
-    else
-            return 0;
+        count <span style="color:#f92672">=</span> percpu_counter_read(fbc);       <span style="color:#75715e">// 读出大概值
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">/* Check to see if rough count will be sufficient for comparison */</span>
+        <span style="color:#66d9ef">if</span> (abs(count <span style="color:#f92672">-</span> rhs) <span style="color:#f92672">&gt;</span> (batch <span style="color:#f92672">*</span> num_online_cpus())) {
+                <span style="color:#66d9ef">if</span> (count <span style="color:#f92672">&gt;</span> rhs)
+                        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
+                <span style="color:#66d9ef">else</span>
+                        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+        }
+        <span style="color:#75715e">/* Need to use precise count */</span>
+        count <span style="color:#f92672">=</span> percpu_counter_sum(fbc);
+        <span style="color:#66d9ef">if</span> (count <span style="color:#f92672">&gt;</span> rhs)
+                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
+        <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (count <span style="color:#f92672">&lt;</span> rhs)
+                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+        <span style="color:#66d9ef">else</span>
+                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 EXPORT_SYMBOL(__percpu_counter_compare);
-</code></pre></li>
-</ul>
-
-<h3 id="batch大小">batch大小</h3>
-
+</code></pre></div><h3 id="batch大小">batch大小</h3>
 <p>该基础设施全名叫<code>Fast batching percpu counters</code>，其能够减少加锁，提高效率，是由于选定了一个<code>batch</code>值，只有每<code>cpu</code>变量中计数器的值超过该范围后，才会加锁进行处理。</p>
-
 <blockquote>
 <p>注意：只有在多核的系统上，才需要batch这个机制。</p>
 </blockquote>
-
 <p>那么该值如何选定呢？</p>
-
 <p>内核中<code>batch</code>的大小为<code>cpu</code>个数的<strong>两倍</strong>，但最小值为<code>32</code>, 具体逻辑请查阅如下代码<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counter.c?h=v4.4.128#n158"> lib/percpu_counter.c(line 158) </a>:</p>
-
-<pre><code class="language-c">int percpu_counter_batch __read_mostly = 32; // 最小值为32
-EXPORT_SYMBOL(percpu_counter_batch);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> percpu_counter_batch __read_mostly <span style="color:#f92672">=</span> <span style="color:#ae81ff">32</span>; <span style="color:#75715e">// 最小值为32
+</span><span style="color:#75715e"></span>EXPORT_SYMBOL(percpu_counter_batch);
                                                                                                                                                
-static void compute_batch_value(void)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">compute_batch_value</span>(<span style="color:#66d9ef">void</span>)
 {
-        int nr = num_online_cpus();
+        <span style="color:#66d9ef">int</span> nr <span style="color:#f92672">=</span> num_online_cpus();
 
-        percpu_counter_batch = max(32, nr*2);
+        percpu_counter_batch <span style="color:#f92672">=</span> max(<span style="color:#ae81ff">32</span>, nr<span style="color:#f92672">*</span><span style="color:#ae81ff">2</span>);
 }
-</code></pre>
-
-<p><strong>当然用户可以自己指定<code>batch</code>的大小</strong>，比如<code>BDI</code>中</p>
-
+</code></pre></div><p><strong>当然用户可以自己指定<code>batch</code>的大小</strong>，比如<code>BDI</code>中</p>
 <pre><code>// nr_cpu_ids    result
 //  1            8
 //  2            16
@@ -366,23 +336,16 @@ static inline void __add_bdi_stat(struct backing_dev_info *bdi,
 {
         __percpu_counter_add(&amp;bdi-&gt;bdi_stat[item], amount, BDI_STAT_BATCH);
 }
-</code></pre>
-
-<p>那该值为什么选定<code>(8*(1+ilog2(nr_cpu_ids)))</code>?</p>
-
+</code></pre><p>那该值为什么选定<code>(8*(1+ilog2(nr_cpu_ids)))</code>?</p>
 <p>内核中使用到<code>ilog2(nr_cpu_ids)</code>的地方如下：</p>
-
-<pre><code class="language-bash">~/linux (master) # grep -nr --color &quot;ilog2(nr_cpu_ids&quot;  ./
-./fs/btrfs/disk-io.c:2596:                                      (1 + ilog2(nr_cpu_ids));
-./fs/btrfs/disk-io.c:2851:      fs_info-&gt;dirty_metadata_batch = nodesize * (1 + ilog2(nr_cpu_ids));
-./fs/btrfs/disk-io.c:2852:      fs_info-&gt;delalloc_batch = sectorsize * 512 * (1 + ilog2(nr_cpu_ids));
-./include/linux/backing-dev-defs.h:45:#define WB_STAT_BATCH (8*(1+ilog2(nr_cpu_ids)))
-./lib/flex_proportions.c:170:#define PROP_BATCH (8*(1+ilog2(nr_cpu_ids)))
-./net/ipv4/udp.c:2855:  udp_busylocks_log = ilog2(nr_cpu_ids) + 4;
-</code></pre>
-
-<p>对于<code>#define WB_STAT_BATCH (8*(1+ilog2(nr_cpu_ids)))</code> , 我们可以得到<code>CPU</code>个数和结果直接的关系如下：</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~/linux <span style="color:#f92672">(</span>master<span style="color:#f92672">)</span> <span style="color:#75715e"># grep -nr --color &#34;ilog2(nr_cpu_ids&#34;  ./</span>
+./fs/btrfs/disk-io.c:2596:                                      <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> + ilog2<span style="color:#f92672">(</span>nr_cpu_ids<span style="color:#f92672">))</span>;
+./fs/btrfs/disk-io.c:2851:      fs_info-&gt;dirty_metadata_batch <span style="color:#f92672">=</span> nodesize * <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> + ilog2<span style="color:#f92672">(</span>nr_cpu_ids<span style="color:#f92672">))</span>;
+./fs/btrfs/disk-io.c:2852:      fs_info-&gt;delalloc_batch <span style="color:#f92672">=</span> sectorsize * <span style="color:#ae81ff">512</span> * <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> + ilog2<span style="color:#f92672">(</span>nr_cpu_ids<span style="color:#f92672">))</span>;
+./include/linux/backing-dev-defs.h:45:#define WB_STAT_BATCH <span style="color:#f92672">(</span>8*<span style="color:#f92672">(</span>1+ilog2<span style="color:#f92672">(</span>nr_cpu_ids<span style="color:#f92672">)))</span>
+./lib/flex_proportions.c:170:#define PROP_BATCH <span style="color:#f92672">(</span>8*<span style="color:#f92672">(</span>1+ilog2<span style="color:#f92672">(</span>nr_cpu_ids<span style="color:#f92672">)))</span>
+./net/ipv4/udp.c:2855:  udp_busylocks_log <span style="color:#f92672">=</span> ilog2<span style="color:#f92672">(</span>nr_cpu_ids<span style="color:#f92672">)</span> + 4;
+</code></pre></div><p>对于<code>#define WB_STAT_BATCH (8*(1+ilog2(nr_cpu_ids)))</code> , 我们可以得到<code>CPU</code>个数和结果直接的关系如下：</p>
 <pre><code>// nr_cpu_ids    result            比较时的误差范围
 //  1            8			8
 //  2            16			32
@@ -392,36 +355,24 @@ static inline void __add_bdi_stat(struct backing_dev_info *bdi,
 // 32            48                 	1536
 // 40            48 			1920
 // 64            56                    	3584
-</code></pre>
-
-<p>从上面的列表可以看出：</p>
-
+</code></pre><p>从上面的列表可以看出：</p>
 <ul>
 <li><code>cpu</code>个数为<code>1</code>时，结果为<code>8</code></li>
 <li>此后如果<code>cpu</code>个数翻倍的话，结果递增<code>8</code></li>
 </ul>
-
 <h3 id="hotplug">hotplug</h3>
-
 <p>对于支持<code>cpu热插拔</code>的系统，内核定义了静态的变量<code>percpu_counters</code>，将所有的<code>percpu_count</code>在链接到一起。</p>
-
-<pre><code class="language-c">#ifdef CONFIG_HOTPLUG_CPU
-static LIST_HEAD(percpu_counters);	//所有的percpu_count在一个全局链表上
-static DEFINE_SPINLOCK(percpu_counters_lock);
-#endif
-</code></pre>
-
-<p><code>percpu_counters_lock</code>自旋锁用来保护链表<code>percpu_counters</code>。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#ifdef CONFIG_HOTPLUG_CPU
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#a6e22e">LIST_HEAD</span>(percpu_counters);	<span style="color:#75715e">//所有的percpu_count在一个全局链表上
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#a6e22e">DEFINE_SPINLOCK</span>(percpu_counters_lock);
+<span style="color:#75715e">#endif
+</span></code></pre></div><p><code>percpu_counters_lock</code>自旋锁用来保护链表<code>percpu_counters</code>。</p>
 <p>在cpu下线时，需要完成以下动作：</p>
-
 <ul>
 <li>因为<code>batch</code>的大小跟<code>cpu</code>个数有关，所以要重新计算一下<code>batch</code>的大小。</li>
 <li>将要下线<code>cpu</code>对应的计数器添加到总的计数中，并清零该<code>cpu</code>对应的每<code>cpu</code>变量的值。</li>
 </ul>
-
 <p>详细的逻辑，请参考代码<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/lib/percpu_counters.c?h=v4.4.128#n168"> lib/percpu_counters.c(line 168) </a></p>
-
 <p>我的虚拟机器上，一共有<code>379</code>多个<code>percpu_count</code>。</p>
     </div>
 
@@ -512,7 +463,7 @@ static DEFINE_SPINLOCK(percpu_counters_lock);
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

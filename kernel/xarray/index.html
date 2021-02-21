@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/xarray/" />
@@ -54,7 +54,6 @@
 <meta property="og:title" content="内核基础设施——XArray" />
 <meta property="og:description" content="本文详细介绍了Linux的XArray数据结构。
 
-
 注意：本文分析中引用的代码来自于：linux-5.1.21.tar.xz
 " />
 <meta property="og:type" content="article" />
@@ -64,14 +63,11 @@
 <meta itemprop="name" content="内核基础设施——XArray">
 <meta itemprop="description" content="本文详细介绍了Linux的XArray数据结构。
 
-
 注意：本文分析中引用的代码来自于：linux-5.1.21.tar.xz
 ">
-
-
-<meta itemprop="datePublished" content="2020-07-18T13:06:53&#43;08:00" />
-<meta itemprop="dateModified" content="2020-07-18T13:06:53&#43;08:00" />
-<meta itemprop="wordCount" content="2702">
+<meta itemprop="datePublished" content="2020-07-18T13:06:53+08:00" />
+<meta itemprop="dateModified" content="2020-07-18T13:06:53+08:00" />
+<meta itemprop="wordCount" content="2700">
 
 
 
@@ -79,7 +75,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核基础设施——XArray"/>
 <meta name="twitter:description" content="本文详细介绍了Linux的XArray数据结构。
-
 
 注意：本文分析中引用的代码来自于：linux-5.1.21.tar.xz
 "/>
@@ -166,7 +161,7 @@
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 2702 words </span>
+        <span class="more-meta"> 2700 words </span>
         <span class="more-meta"> 6 mins read </span>
         
       </div>
@@ -179,32 +174,18 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#xarray的由来">Xarray的由来</a></li>
-<li><a href="#xarray-基本数据结构">XArray 基本数据结构</a>
-<ul>
-<li><a href="#xarray">xarray</a></li>
-<li><a href="#xa-node">xa_node</a></li>
-<li><a href="#理解一下slots中存放的entry的规则">理解一下slots中存放的Entry的规则</a></li>
-</ul></li>
-<li><a href="#xarray在linux下的图解">Xarray在linux下的图解</a>
-<ul>
-<li><a href="#初始化后的图示">初始化后的图示</a></li>
-<li><a href="#插入0后的图示">插入0后的图示</a></li>
-<li><a href="#插入0-和4的图示">插入0 和4的图示</a></li>
-<li><a href="#插入131的图示">插入131的图示</a></li>
-<li><a href="#插入4100的图示">插入4100的图示</a></li>
-</ul></li>
-<li><a href="#普通-api">普通 API</a></li>
-<li><a href="#高级-api">高级 API</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#xarray的由来">Xarray的由来</a></li>
+        <li><a href="#xarray-基本数据结构">XArray 基本数据结构</a></li>
+        <li><a href="#xarray在linux下的图解">Xarray在linux下的图解</a></li>
+        <li><a href="#普通-api">普通 API</a></li>
+        <li><a href="#高级-api">高级 API</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -212,98 +193,82 @@
     
     <div class="post-content">
       <p>本文详细介绍了Linux的XArray数据结构。</p>
-
 <blockquote>
 <p>注意：本文分析中引用的代码来自于：<a href="https://kernel.org/pub/linux/kernel/v5.x/linux-5.1.21.tar.xz">linux-5.1.21.tar.xz</a></p>
 </blockquote>
-
 <h3 id="xarray的由来">Xarray的由来</h3>
-
 <p>Matthew Wilcox认为内核的基数树的API设计不合理，比如</p>
-
 <ul>
-<li><p>（1）“树”这个术语就很有迷惑性。基数树跟传统的，教科书上那种树，并不是很像。举例来说，树上的增加entry的操作，一直都被称为“插入”。但对基数树而言，“插入”并不是字面上发生的事情，尤其是当key已经存在的时候。基数树也支持“异常entry“，光是这个名字，就让用户听着不敢用了。</p></li>
-
-<li><p>（2）基数树还要求用户自己处理锁。</p></li>
+<li>
+<p>（1）“树”这个术语就很有迷惑性。基数树跟传统的，教科书上那种树，并不是很像。举例来说，树上的增加entry的操作，一直都被称为“插入”。但对基数树而言，“插入”并不是字面上发生的事情，尤其是当key已经存在的时候。基数树也支持“异常entry“，光是这个名字，就让用户听着不敢用了。</p>
+</li>
+<li>
+<p>（2）基数树还要求用户自己处理锁。</p>
+</li>
 </ul>
-
 <p>Wilcox决定改良接口。基数树本身不变，它本身没什么问题。改变的是接口，现在接口暗示用户，把它当做数组来用，而不是当做树来用。因为基数树看起来就像是一个自动增长的数组：一个用unsigned long来索引的指针数组。这种视图，更好地描述了基数树的用途。</p>
-
 <ul>
 <li>（1）XArray默认自己处理了锁，简化了使用</li>
 <li>（2）基数树的“预加载”机制允许用户获取锁之前先预先分配内存，这个机制在XArray中被取消了，它太复杂又没有太多实际价值。</li>
 <li>（3）XArray API被分为两部分，普通API和高级API。后者给用户更多可控性，比如用户可以显式管理锁。API可以用于不同的场景，满足不同的需求。比如Page Cache就可以用XArray。普通API完全在高级API的基础上实现，所以普通API也是高级API的使用范例。</li>
 </ul>
-
 <p>另外：Xarray的全称为：eXtensible Arrays</p>
-
 <h3 id="xarray-基本数据结构">XArray 基本数据结构</h3>
-
 <p>XArray主要包括结构体struct xarray和结构体struct xa_node.</p>
-
 <h4 id="xarray">xarray</h4>
-
-<pre><code class="language-c">/**
- * struct xarray - The anchor of the XArray.
- * @xa_lock: Lock that protects the contents of the XArray.
- *
- * To use the xarray, define it statically or embed it in your data structure.
- * It is a very small data structure, so it does not usually make sense to
- * allocate it separately and keep a pointer to it in your data structure.
- *
- * You may use the xa_lock to protect your own data structures as well.
- */
-/*
- * If all of the entries in the array are NULL, @xa_head is a NULL pointer.
- * If the only non-NULL entry in the array is at index 0, @xa_head is that
- * entry.  If any other entry in the array is non-NULL, @xa_head points
- * to an @xa_node.
- */
-struct xarray {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * struct xarray - The anchor of the XArray.
+</span><span style="color:#75715e"> * @xa_lock: Lock that protects the contents of the XArray.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * To use the xarray, define it statically or embed it in your data structure.
+</span><span style="color:#75715e"> * It is a very small data structure, so it does not usually make sense to
+</span><span style="color:#75715e"> * allocate it separately and keep a pointer to it in your data structure.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * You may use the xa_lock to protect your own data structures as well.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#75715e">/*
+</span><span style="color:#75715e"> * If all of the entries in the array are NULL, @xa_head is a NULL pointer.
+</span><span style="color:#75715e"> * If the only non-NULL entry in the array is at index 0, @xa_head is that
+</span><span style="color:#75715e"> * entry.  If any other entry in the array is non-NULL, @xa_head points
+</span><span style="color:#75715e"> * to an @xa_node.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">struct</span> xarray {
 	spinlock_t	xa_lock;
-/* private: The rest of the data structure is not to be used directly. */
+<span style="color:#75715e">/* private: The rest of the data structure is not to be used directly. */</span>
 	gfp_t		xa_flags;
-	void __rcu *	xa_head;
+	<span style="color:#66d9ef">void</span> __rcu <span style="color:#f92672">*</span>	xa_head;
 };
-</code></pre>
-
-<p>成员说明：</p>
-
+</code></pre></div><p>成员说明：</p>
 <ul>
 <li>xa_lock: 用于包含XArray内容的锁。</li>
 <li>xa_head：用于顶级的xa_node节点。</li>
 </ul>
-
-<h4 id="xa-node">xa_node</h4>
-
-<pre><code class="language-c">/*
- * @count is the count of every non-NULL element in the -&gt;slots array
- * whether that is a value entry, a retry entry, a user pointer,
- * a sibling entry or a pointer to the next level of the tree.
- * @nr_values is the count of every element in -&gt;slots which is
- * either a value entry or a sibling of a value entry.
- */
-struct xa_node {
-	unsigned char	shift;		/* Bits remaining in each slot */
-	unsigned char	offset;		/* Slot offset in parent */
-	unsigned char	count;		/* Total entry count */
-	unsigned char	nr_values;	/* Value entry count */
-	struct xa_node __rcu *parent;	/* NULL at top of tree */
-	struct xarray	*array;		/* The array we belong to */
-	union {
-		struct list_head private_list;	/* For tree user */
-		struct rcu_head	rcu_head;	/* Used when freeing node */
+<h4 id="xa_node">xa_node</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * @count is the count of every non-NULL element in the -&gt;slots array
+</span><span style="color:#75715e"> * whether that is a value entry, a retry entry, a user pointer,
+</span><span style="color:#75715e"> * a sibling entry or a pointer to the next level of the tree.
+</span><span style="color:#75715e"> * @nr_values is the count of every element in -&gt;slots which is
+</span><span style="color:#75715e"> * either a value entry or a sibling of a value entry.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">struct</span> xa_node {
+	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span>	shift;		<span style="color:#75715e">/* Bits remaining in each slot */</span>
+	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span>	offset;		<span style="color:#75715e">/* Slot offset in parent */</span>
+	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span>	count;		<span style="color:#75715e">/* Total entry count */</span>
+	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span>	nr_values;	<span style="color:#75715e">/* Value entry count */</span>
+	<span style="color:#66d9ef">struct</span> xa_node __rcu <span style="color:#f92672">*</span>parent;	<span style="color:#75715e">/* NULL at top of tree */</span>
+	<span style="color:#66d9ef">struct</span> xarray	<span style="color:#f92672">*</span>array;		<span style="color:#75715e">/* The array we belong to */</span>
+	<span style="color:#66d9ef">union</span> {
+		<span style="color:#66d9ef">struct</span> list_head private_list;	<span style="color:#75715e">/* For tree user */</span>
+		<span style="color:#66d9ef">struct</span> rcu_head	rcu_head;	<span style="color:#75715e">/* Used when freeing node */</span>
 	};
-	void __rcu	*slots[XA_CHUNK_SIZE];
-	union {
-		unsigned long	tags[XA_MAX_MARKS][XA_MARK_LONGS];
-		unsigned long	marks[XA_MAX_MARKS][XA_MARK_LONGS];
+	<span style="color:#66d9ef">void</span> __rcu	<span style="color:#f92672">*</span>slots[XA_CHUNK_SIZE];
+	<span style="color:#66d9ef">union</span> {
+		<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>	tags[XA_MAX_MARKS][XA_MARK_LONGS];
+		<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>	marks[XA_MAX_MARKS][XA_MARK_LONGS];
 	};
 };
-</code></pre>
-
-<p>成员说明</p>
-
+</code></pre></div><p>成员说明</p>
 <ul>
 <li>（1）shift成员用于指定当前xa_node的slots数组中成员的单位，当shift为0时，说明当前xa_node的slots数组中成员为叶子节点，当shift为6时，说明当前xa_node的slots数组中成员指向的xa_node可以最多包含2^6(即64）个节点，</li>
 <li>（2）offset成员表示该xa_node在父节点的slots数组中的偏移。（这里要注意，如果xa_node在父节点为NULL，offset是任意的值，因为没有被初始化）</li>
@@ -313,129 +278,74 @@ struct xa_node {
 <li>（6）array成员指向该xa_node所属的xarray</li>
 <li>（7）slots是个指针数组，该数组既可以存储下一级的节点, 也可以用于存储即将插入的对象指针</li>
 </ul>
-
 <h4 id="理解一下slots中存放的entry的规则">理解一下slots中存放的Entry的规则</h4>
-
 <p>slots中存储的entry中的低两位决定了Xarray如何解析其内容。</p>
-
 <ol>
 <li>低2位是00时，它是一个Pointer Entry</li>
-<li>低2位是10时，它是一个Internal Entry，一般指向下一级的xa_node.但是有些Internal Entry有特别的含义，比如：
-
+<li>低2位是10时，它是一个Internal Entry，一般指向下一级的xa_node.但是有些Internal Entry有特别的含义，比如：</li>
+</ol>
 <ul>
 <li>0-62: Sibling entries</li>
 <li>256: Zero entry</li>
 <li>257: Retry entry</li>
-</ul></li>
+</ul>
+<ol start="3">
 <li>低2为是x1时，它是一个Value Entry，或者tagged pointer</li>
 </ol>
-
 <h3 id="xarray在linux下的图解">Xarray在linux下的图解</h3>
-
 <h4 id="初始化后的图示">初始化后的图示</h4>
-
-<p>当一个XArray初始化后，其只有<code>struct xrray</code>结点，如下图：
-<center>
-<img src="./xarray-init.svg" alt="" />
-</center></p>
-
+<p>当一个XArray初始化后，其只有<code>struct xrray</code>结点，如下图：</p>
+<!-- raw HTML omitted -->
 <h4 id="插入0后的图示">插入0后的图示</h4>
-
 <p>当插入0时，仍然只有xarray一个结构，如下图所示：</p>
-
-<p><center>
-<img src="./insert-0.svg" alt="" />
-</center></p>
-
+<!-- raw HTML omitted -->
 <h4 id="插入0-和4的图示">插入0 和4的图示</h4>
-
 <p>当插入0和4时，树的高度增加1，如下图所示：</p>
-
-<p><center>
-<img src="./insert-0-and-4.svg" alt="" />
-</center></p>
-
+<!-- raw HTML omitted -->
 <h4 id="插入131的图示">插入131的图示</h4>
-
 <p>当插入131时，高度需要再增加1，如下图所示：</p>
-
-<p><center>
-<img src="./insert-0-and-4-and-131.svg" alt="" />
-</center></p>
-
+<!-- raw HTML omitted -->
 <h4 id="插入4100的图示">插入4100的图示</h4>
-
 <p>当插入4100时，高度需要再增加1，如下图所示：</p>
-
-<p><center>
-<img src="./insert-0-and-4-and-131-and-4100.svg" alt="" />
-</center></p>
-
+<!-- raw HTML omitted -->
 <h3 id="普通-api">普通 API</h3>
-
 <p>（1）定义一个XArray数组：</p>
-
 <pre><code>DEFINE_XARRAY(array_name);
 /* or */
 struct xarray array;
 xa_init(&amp;array);
-</code></pre>
-
-<p>（2）在XArray里存放一个值：</p>
-
+</code></pre><p>（2）在XArray里存放一个值：</p>
 <pre><code>void *xa_store(struct xarray *xa, unsigned long index, void *entry, gfp_t gfp);
-</code></pre>
-
-<p>这个函数会把参数给出的entry，放到请求的index这个地方。如果要XArray需要分配内存，会使用给定的gfp来分配。如果成功，返回值是之前存放在index的值。删除一个entry可以通过在这里存放NULL来实现，或者调用</p>
-
+</code></pre><p>这个函数会把参数给出的entry，放到请求的index这个地方。如果要XArray需要分配内存，会使用给定的gfp来分配。如果成功，返回值是之前存放在index的值。删除一个entry可以通过在这里存放NULL来实现，或者调用</p>
 <pre><code>void *xa_erase(struct xarray *xa, unsigned long index);
-</code></pre>
-
-<p>（3）xa_store的变体：
-* xa_insert用于存放但不覆盖现有的entry
-* 另一个变体：xa_cmpxchg，只有当存的值和old参数匹配上时，才会将entry存在index处。</p>
-
+</code></pre><p>（3）xa_store的变体：</p>
+<ul>
+<li>xa_insert用于存放但不覆盖现有的entry</li>
+<li>另一个变体：xa_cmpxchg，只有当存的值和old参数匹配上时，才会将entry存在index处。</li>
+</ul>
 <pre><code>static inline int __must_check xa_insert(struct xarray *xa,
 		unsigned long index, void *entry, gfp_t gfp);
 static inline void *xa_cmpxchg(struct xarray *xa, unsigned long index,
 			void *old, void *entry, gfp_t gfp);
-</code></pre>
-
-<p>（4）用xa_load()从XArray里取出一个值：</p>
-
+</code></pre><p>（4）用xa_load()从XArray里取出一个值：</p>
 <pre><code>void *xa_load(struct xarray *xa, unsigned long index);
-</code></pre>
-
-<p>返回值是存放在index处的值。XArray里，空entry和存入NULL的entry是等价的。因此xa_load不会对空entry有特殊的处理。</p>
-
+</code></pre><p>返回值是存放在index处的值。XArray里，空entry和存入NULL的entry是等价的。因此xa_load不会对空entry有特殊的处理。</p>
 <p>（5）非空entry上还可以设置最多3个比特的标签，标签管理函数：</p>
-
 <pre><code>bool xa_get_mark(struct xarray *xa, unsigned long index, xa_mark_t mark);
 void xa_set_mark(struct xarray *xa, unsigned long index, xa_mark_t mark);
 void xa_clear_mark(struct xarray *xa, unsigned long index, xa_mark_t mark);
-</code></pre>
-
-<p>mark的值是XA_MARK_0, XA_MARK_1, XA_MARK_2三者之一。
+</code></pre><p>mark的值是XA_MARK_0, XA_MARK_1, XA_MARK_2三者之一。
 xa_set_mark用于在index处的entry上设置标签 xa_clear_mark用于清除标签 xa_get_mark用于返回index处的entry的标签</p>
-
 <p>（6）XArray是很稀疏的，因此一个普遍的准则是，不要进行低效的遍历查找非空项。要查找多个非空项，应该使用这个宏：</p>
-
 <pre><code>xa_for_each(xa, entry, index, max, filter) {
     /* Process &quot;entry&quot; */
 }
-</code></pre>
-
-<p>在进入循环之前，需要把index设为遍历的起点，max设为遍历的最大index，filter指定需要过滤的mark。
+</code></pre><p>在进入循环之前，需要把index设为遍历的起点，max设为遍历的最大index，filter指定需要过滤的mark。
 循环执行时，index会被设为当前匹配到的entry。可以在循环里修改index，来改变迭代过程。修改XArray自身也是允许的。</p>
-
 <p>（7）删除一个Xarray中所有的Entry</p>
-
 <pre><code>void xa_destroy(struct xarray *xa);
-</code></pre>
-
-<p>还有其他很多操作XArray的普通API。特殊情况下还可以使用高级API。
+</code></pre><p>还有其他很多操作XArray的普通API。特殊情况下还可以使用高级API。
 其它普通API包括：</p>
-
 <pre><code>xa_for_each_marked()
 xa_marked()
 xa_extract()
@@ -455,14 +365,9 @@ xa_alloc_bh()
 xa_alloc_irq()
 xa_alloc_cyclic().
 DEFINE_XARRAY_ALLOC1()
-</code></pre>
-
-<h3 id="高级-api">高级 API</h3>
-
+</code></pre><h3 id="高级-api">高级 API</h3>
 <p>高级API我们留在下节文章分享。</p>
-
 <h3 id="参考文章">参考文章</h3>
-
 <ul>
 <li><a href="https://mp.weixin.qq.com/s/ZpFACWDEMI5d7ADzaa3BJw">https://mp.weixin.qq.com/s/ZpFACWDEMI5d7ADzaa3BJw</a></li>
 <li><a href="http://sourcelink.top/2019/09/26/linux-kernel-radix-tree-analysis/">http://sourcelink.top/2019/09/26/linux-kernel-radix-tree-analysis/</a></li>
@@ -558,7 +463,7 @@ DEFINE_XARRAY_ALLOC1()
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

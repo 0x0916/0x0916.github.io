@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/reuse-linux-kernel-rbtree/" />
@@ -54,7 +54,6 @@
 <meta property="og:title" content="红黑树(三)—— 在应用中复用linux的代码实现" />
 <meta property="og:description" content="红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。
 
-
 注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm
 " />
 <meta property="og:type" content="article" />
@@ -64,13 +63,10 @@
 <meta itemprop="name" content="红黑树(三)—— 在应用中复用linux的代码实现">
 <meta itemprop="description" content="红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。
 
-
 注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm
 ">
-
-
-<meta itemprop="datePublished" content="2018-08-06T16:17:53&#43;08:00" />
-<meta itemprop="dateModified" content="2018-08-06T16:17:53&#43;08:00" />
+<meta itemprop="datePublished" content="2018-08-06T16:17:53+08:00" />
+<meta itemprop="dateModified" content="2018-08-06T16:17:53+08:00" />
 <meta itemprop="wordCount" content="819">
 
 
@@ -79,7 +75,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="红黑树(三)—— 在应用中复用linux的代码实现"/>
 <meta name="twitter:description" content="红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。
-
 
 注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm
 "/>
@@ -181,19 +176,17 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#准备代码">准备代码</a></li>
-<li><a href="#删除export-symbol">删除EXPORT_SYMBOL</a></li>
-<li><a href="#调整头文件">调整头文件</a></li>
-<li><a href="#添加测试用例">添加测试用例</a></li>
-<li><a href="#代码">代码</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#准备代码">准备代码</a></li>
+        <li><a href="#删除export_symbol">删除EXPORT_SYMBOL</a></li>
+        <li><a href="#调整头文件">调整头文件</a></li>
+        <li><a href="#添加测试用例">添加测试用例</a></li>
+        <li><a href="#代码">代码</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -201,193 +194,178 @@
     
     <div class="post-content">
       <p>红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。</p>
-
 <blockquote>
-<p>注意：本文中的代码来自于：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm">http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm</a></p>
+<p>注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm</p>
 </blockquote>
-
 <h3 id="准备代码">准备代码</h3>
-
 <p>拷贝内核中的如下代码到一个单独的目录中：</p>
-
 <pre><code>lib/rbtree.c
 include/linux/rbtree.h
 include/linux/rbtree_augmented.h
-</code></pre>
-
-<h3 id="删除export-symbol">删除EXPORT_SYMBOL</h3>
-
-<pre><code class="language-diff">diff --git a/rbtree_3/rbtree.c b/rbtree_3/rbtree.c
+</code></pre><h3 id="删除export_symbol">删除EXPORT_SYMBOL</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff">diff --git a/rbtree_3/rbtree.c b/rbtree_3/rbtree.c
 index 65f4eff..cb6c066 100644
---- a/rbtree_3/rbtree.c
-+++ b/rbtree_3/rbtree.c
-@@ -22,7 +22,6 @@
- */
+<span style="color:#f92672">--- a/rbtree_3/rbtree.c
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+++ b/rbtree_3/rbtree.c
+</span><span style="color:#a6e22e"></span><span style="color:#75715e">@@ -22,7 +22,6 @@
+</span><span style="color:#75715e"></span> */
  
  #include &lt;linux/rbtree_augmented.h&gt;
--#include &lt;linux/export.h&gt;
- 
+<span style="color:#f92672">-#include &lt;linux/export.h&gt;
+</span><span style="color:#f92672"></span> 
  /*
   * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
-@@ -366,7 +365,6 @@ void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
- {
+<span style="color:#75715e">@@ -366,7 +365,6 @@ void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
+</span><span style="color:#75715e"></span> {
         ____rb_erase_color(parent, root, augment_rotate);
  }
--EXPORT_SYMBOL(__rb_erase_color);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(__rb_erase_color);
+</span><span style="color:#f92672"></span> 
  /*
   * Non-augmented rbtree manipulation functions.
-@@ -387,7 +385,6 @@ void rb_insert_color(struct rb_node *node, struct rb_root *root)
- {
+<span style="color:#75715e">@@ -387,7 +385,6 @@ void rb_insert_color(struct rb_node *node, struct rb_root *root)
+</span><span style="color:#75715e"></span> {
         __rb_insert(node, root, dummy_rotate);
  }
--EXPORT_SYMBOL(rb_insert_color);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_insert_color);
+</span><span style="color:#f92672"></span> 
  void rb_erase(struct rb_node *node, struct rb_root *root)
  {
-@@ -396,7 +393,6 @@ void rb_erase(struct rb_node *node, struct rb_root *root)
-        if (rebalance)
+<span style="color:#75715e">@@ -396,7 +393,6 @@ void rb_erase(struct rb_node *node, struct rb_root *root)
+</span><span style="color:#75715e"></span>        if (rebalance)
                 ____rb_erase_color(rebalance, root, dummy_rotate);
  }
--EXPORT_SYMBOL(rb_erase);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_erase);
+</span><span style="color:#f92672"></span> 
  /*
   * Augmented rbtree manipulation functions.
-@@ -410,7 +406,6 @@ void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
- {
+<span style="color:#75715e">@@ -410,7 +406,6 @@ void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
+</span><span style="color:#75715e"></span> {
         __rb_insert(node, root, augment_rotate);
  }
--EXPORT_SYMBOL(__rb_insert_augmented);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(__rb_insert_augmented);
+</span><span style="color:#f92672"></span> 
  /*
   * This function returns the first node (in sort order) of the tree.
-@@ -426,7 +421,6 @@ struct rb_node *rb_first(const struct rb_root *root)
-                n = n-&gt;rb_left;
+<span style="color:#75715e">@@ -426,7 +421,6 @@ struct rb_node *rb_first(const struct rb_root *root)
+</span><span style="color:#75715e"></span>                n = n-&gt;rb_left;
         return n;
  }
--EXPORT_SYMBOL(rb_first);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_first);
+</span><span style="color:#f92672"></span> 
  struct rb_node *rb_last(const struct rb_root *root)
  {
-@@ -439,7 +433,6 @@ struct rb_node *rb_last(const struct rb_root *root)
-                n = n-&gt;rb_right;
+<span style="color:#75715e">@@ -439,7 +433,6 @@ struct rb_node *rb_last(const struct rb_root *root)
+</span><span style="color:#75715e"></span>                n = n-&gt;rb_right;
         return n;
  }
--EXPORT_SYMBOL(rb_last);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_last);
+</span><span style="color:#f92672"></span> 
  struct rb_node *rb_next(const struct rb_node *node)
  {
-@@ -471,7 +464,6 @@ struct rb_node *rb_next(const struct rb_node *node)
- 
+<span style="color:#75715e">@@ -471,7 +464,6 @@ struct rb_node *rb_next(const struct rb_node *node)
+</span><span style="color:#75715e"></span> 
         return parent;
  }
--EXPORT_SYMBOL(rb_next);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_next);
+</span><span style="color:#f92672"></span> 
  struct rb_node *rb_prev(const struct rb_node *node)
  {
-@@ -500,7 +492,6 @@ struct rb_node *rb_prev(const struct rb_node *node)
- 
+<span style="color:#75715e">@@ -500,7 +492,6 @@ struct rb_node *rb_prev(const struct rb_node *node)
+</span><span style="color:#75715e"></span> 
         return parent;
  }
--EXPORT_SYMBOL(rb_prev);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_prev);
+</span><span style="color:#f92672"></span> 
  void rb_replace_node(struct rb_node *victim, struct rb_node *new,
                      struct rb_root *root)
-@@ -517,7 +508,6 @@ void rb_replace_node(struct rb_node *victim, struct rb_node *new,
-        /* Copy the pointers/colour from the victim to the replacement */
+<span style="color:#75715e">@@ -517,7 +508,6 @@ void rb_replace_node(struct rb_node *victim, struct rb_node *new,
+</span><span style="color:#75715e"></span>        /* Copy the pointers/colour from the victim to the replacement */
         *new = *victim;
  }
--EXPORT_SYMBOL(rb_replace_node);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_replace_node);
+</span><span style="color:#f92672"></span> 
  static struct rb_node *rb_left_deepest_node(const struct rb_node *node)
  {
-@@ -548,7 +538,6 @@ struct rb_node *rb_next_postorder(const struct rb_node *node)
-                 * should be next */
+<span style="color:#75715e">@@ -548,7 +538,6 @@ struct rb_node *rb_next_postorder(const struct rb_node *node)
+</span><span style="color:#75715e"></span>                 * should be next */
                 return (struct rb_node *)parent;
  }
--EXPORT_SYMBOL(rb_next_postorder);
- 
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_next_postorder);
+</span><span style="color:#f92672"></span> 
  struct rb_node *rb_first_postorder(const struct rb_root *root)
  {
-@@ -557,4 +546,3 @@ struct rb_node *rb_first_postorder(const struct rb_root *root)
- 
+<span style="color:#75715e">@@ -557,4 +546,3 @@ struct rb_node *rb_first_postorder(const struct rb_root *root)
+</span><span style="color:#75715e"></span> 
         return rb_left_deepest_node(root-&gt;rb_node);
  }
--EXPORT_SYMBOL(rb_first_postorder);
-</code></pre>
-
-<h3 id="调整头文件">调整头文件</h3>
-
-<pre><code class="language-diff">diff --git a/rbtree_3/rbtree.c b/rbtree_3/rbtree.c
+<span style="color:#f92672">-EXPORT_SYMBOL(rb_first_postorder);
+</span></code></pre></div><h3 id="调整头文件">调整头文件</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff">diff --git a/rbtree_3/rbtree.c b/rbtree_3/rbtree.c
 index cb6c066..ccaf59b 100644
---- a/rbtree_3/rbtree.c
-+++ b/rbtree_3/rbtree.c
-@@ -21,7 +21,7 @@
-   linux/lib/rbtree.c
+<span style="color:#f92672">--- a/rbtree_3/rbtree.c
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+++ b/rbtree_3/rbtree.c
+</span><span style="color:#a6e22e"></span><span style="color:#75715e">@@ -21,7 +21,7 @@
+</span><span style="color:#75715e"></span>   linux/lib/rbtree.c
  */
  
--#include &lt;linux/rbtree_augmented.h&gt;
-+#include &quot;rbtree_augmented.h&quot;
- 
+<span style="color:#f92672">-#include &lt;linux/rbtree_augmented.h&gt;
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+#include &#34;rbtree_augmented.h&#34;
+</span><span style="color:#a6e22e"></span> 
  /*
   * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
 diff --git a/rbtree_3/rbtree.h b/rbtree_3/rbtree.h
 index 57e75ae..a029d55 100644
---- a/rbtree_3/rbtree.h
-+++ b/rbtree_3/rbtree.h
-@@ -29,8 +29,28 @@
- #ifndef        _LINUX_RBTREE_H
+<span style="color:#f92672">--- a/rbtree_3/rbtree.h
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+++ b/rbtree_3/rbtree.h
+</span><span style="color:#a6e22e"></span><span style="color:#75715e">@@ -29,8 +29,28 @@
+</span><span style="color:#75715e"></span> #ifndef        _LINUX_RBTREE_H
  #define        _LINUX_RBTREE_H
  
--#include &lt;linux/kernel.h&gt;
--#include &lt;linux/stddef.h&gt;
-+#include &lt;stdio.h&gt;
-+
-+#define NULL ((void *)0)
-+enum {
-+       false   = 0,
-+       true    = 1
-+};
-+
-+
-+#define offsetof(TYPE, MEMBER)  ((size_t)&amp;((TYPE *)0)-&gt;MEMBER)
-+
-+/**
-+ * container_of - cast a member of a structure out to the containing structure
-+ * @ptr:        the pointer to the member.
-+ * @type:       the type of the container struct this is embedded in.
-+ * @member:     the name of the member within the struct.
-+ *
-+ */
-+#define container_of(ptr, type, member) ({                      \
-+       const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
-+       (type *)( (char *)__mptr - offsetof(type,member) );})
-+
- 
+<span style="color:#f92672">-#include &lt;linux/kernel.h&gt;
+</span><span style="color:#f92672">-#include &lt;linux/stddef.h&gt;
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+#include &lt;stdio.h&gt;
+</span><span style="color:#a6e22e">+
+</span><span style="color:#a6e22e">+#define NULL ((void *)0)
+</span><span style="color:#a6e22e">+enum {
+</span><span style="color:#a6e22e">+       false   = 0,
+</span><span style="color:#a6e22e">+       true    = 1
+</span><span style="color:#a6e22e">+};
+</span><span style="color:#a6e22e">+
+</span><span style="color:#a6e22e">+
+</span><span style="color:#a6e22e">+#define offsetof(TYPE, MEMBER)  ((size_t)&amp;((TYPE *)0)-&gt;MEMBER)
+</span><span style="color:#a6e22e">+
+</span><span style="color:#a6e22e">+/**
+</span><span style="color:#a6e22e">+ * container_of - cast a member of a structure out to the containing structure
+</span><span style="color:#a6e22e">+ * @ptr:        the pointer to the member.
+</span><span style="color:#a6e22e">+ * @type:       the type of the container struct this is embedded in.
+</span><span style="color:#a6e22e">+ * @member:     the name of the member within the struct.
+</span><span style="color:#a6e22e">+ *
+</span><span style="color:#a6e22e">+ */
+</span><span style="color:#a6e22e">+#define container_of(ptr, type, member) ({                      \
+</span><span style="color:#a6e22e">+       const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
+</span><span style="color:#a6e22e">+       (type *)( (char *)__mptr - offsetof(type,member) );})
+</span><span style="color:#a6e22e">+
+</span><span style="color:#a6e22e"></span> 
  struct rb_node {
         unsigned long  __rb_parent_color;
 diff --git a/rbtree_3/rbtree_augmented.h b/rbtree_3/rbtree_augmented.h
 index fea49b5..079eb97 100644
---- a/rbtree_3/rbtree_augmented.h
-+++ b/rbtree_3/rbtree_augmented.h
-@@ -24,8 +24,7 @@
- #ifndef _LINUX_RBTREE_AUGMENTED_H
+<span style="color:#f92672">--- a/rbtree_3/rbtree_augmented.h
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+++ b/rbtree_3/rbtree_augmented.h
+</span><span style="color:#a6e22e"></span><span style="color:#75715e">@@ -24,8 +24,7 @@
+</span><span style="color:#75715e"></span> #ifndef _LINUX_RBTREE_AUGMENTED_H
  #define _LINUX_RBTREE_AUGMENTED_H
  
--#include &lt;linux/compiler.h&gt;
--#include &lt;linux/rbtree.h&gt;
-+#include &quot;rbtree.h&quot;
- 
+<span style="color:#f92672">-#include &lt;linux/compiler.h&gt;
+</span><span style="color:#f92672">-#include &lt;linux/rbtree.h&gt;
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+#include &#34;rbtree.h&#34;
+</span><span style="color:#a6e22e"></span> 
  /*
   * Please note - only struct rb_augment_callbacks and the prototypes for
-</code></pre>
-
-<h3 id="添加测试用例">添加测试用例</h3>
-
+</code></pre></div><h3 id="添加测试用例">添加测试用例</h3>
 <p>添加测试用例文件：main.c</p>
-
 <p>Makefile如下：</p>
-
 <pre><code># cat Makefile 
 all: rbtree 
 
@@ -399,11 +377,8 @@ test: all
 
 clean:
         rm -fr rbtree *.o
-</code></pre>
-
-<h3 id="代码">代码</h3>
-
-<p>调整好的代码地址为：<a href="https://github.com/0x0916/rbtree/tree/master/rbtree_3">https://github.com/0x0916/rbtree/tree/master/rbtree_3</a></p>
+</code></pre><h3 id="代码">代码</h3>
+<p>调整好的代码地址为：https://github.com/0x0916/rbtree/tree/master/rbtree_3</p>
     </div>
 
     
@@ -488,7 +463,7 @@ clean:
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

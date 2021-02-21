@@ -6,11 +6,7 @@
     <description>Recent content on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 03 Aug 2020 18:02:43 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/posts/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Mon, 03 Aug 2020 18:02:43 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>do{}while(0)为什么要这样写呢？</title>
       <link>http://linux.laoqinren.net/posts/do-while-zero/</link>
@@ -28,7 +24,6 @@
       
       <guid>http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/</guid>
       <description>&lt;p&gt;在内核&lt;code&gt;panic&lt;/code&gt;时，会打印出出问题的调用栈信息，同时也可以通过&lt;code&gt;kdump&lt;/code&gt;结合&lt;code&gt;crash&lt;/code&gt;进行更深入的分析定位问题。&lt;/p&gt;
-
 &lt;p&gt;本文分析了&lt;code&gt;x86-64&lt;/code&gt;的栈帧结构，为分析问题提供帮助。&lt;/p&gt;</description>
     </item>
     
@@ -39,9 +34,7 @@
       
       <guid>http://linux.laoqinren.net/posts/hierarchy-without-controller-group/</guid>
       <description>&lt;p&gt;本文将创建并挂载一颗不和任何&lt;code&gt;subsystem&lt;/code&gt;系统绑定的&lt;code&gt;cgroup&lt;/code&gt;树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个&lt;code&gt;cgroup&lt;/code&gt;中默认都有的几个文件的含义。&lt;/p&gt;
-
 &lt;p&gt;最后，介绍了这样使用&lt;code&gt;cgroup&lt;/code&gt;的一个用户。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;本文所有例子在&lt;code&gt;centos 7.5&lt;/code&gt; 下执行通过&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -54,9 +47,8 @@
       
       <guid>http://linux.laoqinren.net/posts/reuse-linux-kernel-rbtree/</guid>
       <description>&lt;p&gt;红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
-&lt;p&gt;注意：本文中的代码来自于：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&#34;&gt;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&lt;/p&gt;
 &lt;/blockquote&gt;</description>
     </item>
     
@@ -85,17 +77,11 @@
       
       <guid>http://linux.laoqinren.net/posts/rbtree/</guid>
       <description>&lt;p&gt;在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。&lt;/p&gt;
-
 &lt;p&gt;本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。&lt;/p&gt;
-
 &lt;h2 id=&#34;红黑树介绍&#34;&gt;红黑树介绍&lt;/h2&gt;
-
 &lt;p&gt;红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：&lt;strong&gt;红黑树&lt;/strong&gt;。&lt;/p&gt;
-
 &lt;p&gt;红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？&lt;/p&gt;
-
 &lt;p&gt;了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。&lt;/p&gt;
-
 &lt;p&gt;自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。&lt;/p&gt;</description>
     </item>
     
@@ -106,7 +92,6 @@
       
       <guid>http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/</guid>
       <description>&lt;p&gt;在&lt;code&gt;centos&lt;/code&gt;上进行内核开发时，由于一些内核特性依赖于高版本的&lt;code&gt;GCC特性&lt;/code&gt;（&lt;code&gt;gcc &amp;gt; 5.0&lt;/code&gt;），而&lt;code&gt;centos&lt;/code&gt;默认的GCC一般为&lt;code&gt;4.8.x&lt;/code&gt;。&lt;/p&gt;
-
 &lt;p&gt;本文记录一种非常简单的在&lt;code&gt;centos&lt;/code&gt;上使用高版本的&lt;code&gt;GCC&lt;/code&gt;的方法。&lt;/p&gt;</description>
     </item>
     
@@ -117,7 +102,6 @@
       
       <guid>http://linux.laoqinren.net/posts/boyer-moore-majority-vote-algorithm/</guid>
       <description>&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm&#34;&gt;Boyer-Moore majority vote algorithm&lt;/a&gt;(摩尔投票算法)是一种在线性时间&lt;code&gt;O(n)&lt;/code&gt;和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以&lt;code&gt;Robert S.Boyer&lt;/code&gt;和&lt;code&gt;J Strother Moore&lt;/code&gt;命名的，1981年发明的，是一种典型的流算法(&lt;code&gt;streaming algorithm&lt;/code&gt;)。&lt;/p&gt;
-
 &lt;p&gt;在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(&lt;code&gt;n/2&lt;/code&gt;)的元素。&lt;/p&gt;</description>
     </item>
     
@@ -128,9 +112,7 @@
       
       <guid>http://linux.laoqinren.net/posts/tmux/</guid>
       <description>&lt;p&gt;&lt;code&gt;tmux&lt;/code&gt; (&lt;code&gt;Terminal Multiplexer&lt;/code&gt;的简称), 是一款优秀的终端复用软件，类似 &lt;code&gt;GNU screen&lt;/code&gt;，但比&lt;code&gt;screen&lt;/code&gt;更出色。&lt;/p&gt;
-
 &lt;p&gt;&lt;code&gt;Tmux&lt;/code&gt; 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 &lt;code&gt;Tmux&lt;/code&gt; 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。&lt;/p&gt;
-
 &lt;p&gt;本文总结了&lt;code&gt;tmux&lt;/code&gt;常用的一些快捷键。&lt;/p&gt;</description>
     </item>
     

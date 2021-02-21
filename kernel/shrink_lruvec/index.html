@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/shrink_lruvec/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2019-01-29T07:28:18+08:00" />
 <meta itemprop="name" content="内存管理：shrink_lruvec分析">
 <meta itemprop="description" content="Linux内存回收操作的核心就是扫描LRU链表，完成该工作的函数名称为shrink_lruvec，本文首先介绍了LRU链表，然后详细分析了shrink_lruvec函数。">
-
-
-<meta itemprop="datePublished" content="2019-01-29T07:28:18&#43;08:00" />
-<meta itemprop="dateModified" content="2019-01-29T07:28:18&#43;08:00" />
+<meta itemprop="datePublished" content="2019-01-29T07:28:18+08:00" />
+<meta itemprop="dateModified" content="2019-01-29T07:28:18+08:00" />
 <meta itemprop="wordCount" content="4356">
 
 
@@ -166,24 +164,18 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#系统环境">系统环境</a></li>
-<li><a href="#lru链表">LRU链表</a></li>
-<li><a href="#shrink-lruvec">shrink_lruvec</a></li>
-<li><a href="#get-scan-count">get_scan_count</a></li>
-<li><a href="#shrink-list">shrink_list</a></li>
-<li><a href="#inactive-list-is-low">inactive_list_is_low</a>
-<ul>
-<li><a href="#文件页面">文件页面</a></li>
-<li><a href="#匿名页面">匿名页面</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#系统环境">系统环境</a></li>
+        <li><a href="#lru链表">LRU链表</a></li>
+        <li><a href="#shrink_lruvec">shrink_lruvec</a></li>
+        <li><a href="#get_scan_count">get_scan_count</a></li>
+        <li><a href="#shrink_list">shrink_list</a></li>
+        <li><a href="#inactive_list_is_low">inactive_list_is_low</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -191,22 +183,16 @@
     
     <div class="post-content">
       <p><code>Linux</code>内存回收操作的核心就是扫描<code>LRU</code>链表，完成该工作的函数名称为<code>shrink_lruvec</code>，本文首先介绍了<code>LRU</code>链表，然后详细分析了<code>shrink_lruvec</code>函数。</p>
-
-<p><img src="./pic.jpg" alt="" /></p>
-
+<p><img src="./pic.jpg" alt="" title=""></p>
 <h3 id="系统环境">系统环境</h3>
-
 <ul>
 <li>发行版：<code>centos7.5</code></li>
 <li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
 <li>处理器：<code>40core（Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz）</code></li>
 <li>内存：<code>128GB</code>，两个<code>NUMA node</code></li>
 </ul>
-
 <h3 id="lru链表">LRU链表</h3>
-
 <p><code>LRU</code>的缩写是<code>Least Recently Used</code>（最近最少使用），<code>LRU</code>基于局部性原理，假设最近不使用的页面再较短时间内也不会被频繁使用。当内存不足时，这些页面将成为被换出的候选者。内核使用双向链表定义<code>LRU</code>链表，并且根据页面类型，分为<code>LRU_FILE</code>和<code>LRU_ANON</code>，每种类型又根据页面是否活跃分为<code>active  LRU</code>和<code>inactive  LRU</code>，所以内核一共有<strong>5个LRU</strong>链表：</p>
-
 <ul>
 <li>不活跃的匿名页面链表：<code>LRU_INACTIVE_ANON</code></li>
 <li>活跃的匿名页面链表：<code>LRU_ACTIVE_ANON</code></li>
@@ -214,112 +200,95 @@
 <li>活跃的文件页面链表：<code>LRU_ACTIVE_FILE</code></li>
 <li>不可回收的页面链表：<code>LRU_UNEVICTABLE</code></li>
 </ul>
-
 <p><code>LRU</code>之所以要分成这样，是因为当系统上内存紧张时，总是优先换出<code>page cache</code>页面，而不是匿名页面。因为大多数情况下<code>page cache</code>页面不需要回写磁盘，除非页面内容被修改了，而匿名页面总是要被写入交换分区才能被换出。</p>
-
 <p>在我所分析的系统内核版本上，<code>LRU</code>链表是按照<code>zone</code>来配置的，也就是说每个<code>zone</code>中都有一整套<code>LRU</code>链表，因此数据结构<code>zone</code>中有一个数据成员<code>lruvec</code>指向这个链表。枚举类型变量<code>lru_list</code>列举了上述各种类型的链表。</p>
-
-<pre><code class="language-c">#define LRU_BASE 0
-#define LRU_ACTIVE 1
-#define LRU_FILE 2
-
-enum lru_list {
-        LRU_INACTIVE_ANON = LRU_BASE,
-        LRU_ACTIVE_ANON = LRU_BASE + LRU_ACTIVE,
-        LRU_INACTIVE_FILE = LRU_BASE + LRU_FILE,
-        LRU_ACTIVE_FILE = LRU_BASE + LRU_FILE + LRU_ACTIVE,
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define LRU_BASE 0
+</span><span style="color:#75715e">#define LRU_ACTIVE 1
+</span><span style="color:#75715e">#define LRU_FILE 2
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">enum</span> lru_list {
+        LRU_INACTIVE_ANON <span style="color:#f92672">=</span> LRU_BASE,
+        LRU_ACTIVE_ANON <span style="color:#f92672">=</span> LRU_BASE <span style="color:#f92672">+</span> LRU_ACTIVE,
+        LRU_INACTIVE_FILE <span style="color:#f92672">=</span> LRU_BASE <span style="color:#f92672">+</span> LRU_FILE,
+        LRU_ACTIVE_FILE <span style="color:#f92672">=</span> LRU_BASE <span style="color:#f92672">+</span> LRU_FILE <span style="color:#f92672">+</span> LRU_ACTIVE,
         LRU_UNEVICTABLE,
         NR_LRU_LISTS
 };
 
-struct lruvec {
-        struct list_head lists[NR_LRU_LISTS];
-        struct zone_reclaim_stat reclaim_stat;
-#ifdef CONFIG_MEMCG
-        struct zone *zone;
-#endif
-};
+<span style="color:#66d9ef">struct</span> lruvec {
+        <span style="color:#66d9ef">struct</span> list_head lists[NR_LRU_LISTS];
+        <span style="color:#66d9ef">struct</span> zone_reclaim_stat reclaim_stat;
+<span style="color:#75715e">#ifdef CONFIG_MEMCG
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone;
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>};
 
-struct zone {
+<span style="color:#66d9ef">struct</span> zone {
 	...
 	spinlock_t              lru_lock;
-	struct lruvec           lruvec;
+	<span style="color:#66d9ef">struct</span> lruvec           lruvec;
 	...
 };
-</code></pre>
-
-<p>在现在的服务器系统上，一般都打开了<code>CONFIG_MEMCG</code>配置选项，有了这个选项后，<code>zone</code>中的<code>lruvec</code>指向的链表一般为空，系统会为每个<code>memory cgroup</code> 分配一个<code>lruvec</code>，也就是说系统上有多少个<code>memory cgroup</code>，就会有多少套<code>LRU</code>链表。<code>LRU</code>的一套链表示意如下：</p>
-
-<p><img src="lruvec.svg" alt="" /></p>
-
+</code></pre></div><p>在现在的服务器系统上，一般都打开了<code>CONFIG_MEMCG</code>配置选项，有了这个选项后，<code>zone</code>中的<code>lruvec</code>指向的链表一般为空，系统会为每个<code>memory cgroup</code> 分配一个<code>lruvec</code>，也就是说系统上有多少个<code>memory cgroup</code>，就会有多少套<code>LRU</code>链表。<code>LRU</code>的一套链表示意如下：</p>
+<p><img src="lruvec.svg" alt="" title=""></p>
 <p>内存回收操作的核心就是扫描<code>LRU</code>链表，换成合适的页面，从而达到释放内存的目的。而操作<code>LRU</code>链表的核心函数为<code>shrink_lruvec</code>，接着我们就分析一下这个函数。</p>
-
-<h3 id="shrink-lruvec">shrink_lruvec</h3>
-
+<h3 id="shrink_lruvec">shrink_lruvec</h3>
 <p>该函数是一个用于释放一个内存区域<code>zone</code>（或者一个<code>memory cgroup</code>）中最近最少使用的<code>page</code>。其原型如下：</p>
-
-<pre><code class="language-c">void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
-</code></pre>
-
-<ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> shrink_lruvec(<span style="color:#66d9ef">struct</span> lruvec <span style="color:#f92672">*</span>lruvec, <span style="color:#66d9ef">struct</span> scan_control <span style="color:#f92672">*</span>sc)
+</code></pre></div><ul>
 <li>第一个参数<code>lruvec</code>就存放了需要扫描的<code>LRU</code>链表</li>
 <li>第二个参数<code>sc</code>是用于控制页面回收的行为</li>
 </ul>
-
 <p><code>lruvec</code>数据结构在上一节已经介绍了，下面先介绍一下<code>scan_control</code>这个数据结构：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> scan_control {
+        <span style="color:#75715e">/* Incremented by the number of inactive pages that were scanned */</span>
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> nr_scanned;
 
-<pre><code class="language-c">struct scan_control {
-        /* Incremented by the number of inactive pages that were scanned */
-        unsigned long nr_scanned;
+        <span style="color:#75715e">/* Number of pages freed so far during a call to shrink_zones() */</span>
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> nr_reclaimed;
 
-        /* Number of pages freed so far during a call to shrink_zones() */
-        unsigned long nr_reclaimed;
+        <span style="color:#75715e">/* How many pages shrink_list() should reclaim */</span>
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> nr_to_reclaim;
 
-        /* How many pages shrink_list() should reclaim */
-        unsigned long nr_to_reclaim;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> hibernation_mode;
 
-        unsigned long hibernation_mode;
-
-        /* This context's GFP mask */
+        <span style="color:#75715e">/* This context&#39;s GFP mask */</span>
         gfp_t gfp_mask;
 
-        int may_writepage;
+        <span style="color:#66d9ef">int</span> may_writepage;
 
-        /* Can mapped pages be reclaimed? */
-        int may_unmap;
+        <span style="color:#75715e">/* Can mapped pages be reclaimed? */</span>
+        <span style="color:#66d9ef">int</span> may_unmap;
 
-        /* Can pages be swapped as part of reclaim? */
-        int may_swap;
+        <span style="color:#75715e">/* Can pages be swapped as part of reclaim? */</span>
+        <span style="color:#66d9ef">int</span> may_swap;
 
-        /* Cgroups are not reclaimed below their configured memory.low,
-         * unless we threaten to OOM. If any cgroups are skipped due to
-         * memory.low and nothing was reclaimed, go back for memory.low
-         */
-        int may_thrash;
-        int memcg_low_reclaim;
-        int memcg_low_skipped;
+        <span style="color:#75715e">/* Cgroups are not reclaimed below their configured memory.low,
+</span><span style="color:#75715e">         * unless we threaten to OOM. If any cgroups are skipped due to
+</span><span style="color:#75715e">         * memory.low and nothing was reclaimed, go back for memory.low
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">int</span> may_thrash;
+        <span style="color:#66d9ef">int</span> memcg_low_reclaim;
+        <span style="color:#66d9ef">int</span> memcg_low_skipped;
 
-        int order;
+        <span style="color:#66d9ef">int</span> order;
 
-        /* Scan (total_size &gt;&gt; priority) pages at once */
-        int priority;
+        <span style="color:#75715e">/* Scan (total_size &gt;&gt; priority) pages at once */</span>
+        <span style="color:#66d9ef">int</span> priority;
 
-        /*
-         * The memory cgroup that hit its limit and as a result is the
-         * primary target of this reclaim invocation.
-         */
-        struct mem_cgroup *target_mem_cgroup;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * The memory cgroup that hit its limit and as a result is the
+</span><span style="color:#75715e">         * primary target of this reclaim invocation.
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">struct</span> mem_cgroup <span style="color:#f92672">*</span>target_mem_cgroup;
 
-        /*
-         * Nodemask of nodes allowed by the caller. If NULL, all nodes
-         * are scanned.
-         */
-        nodemask_t      *nodemask;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * Nodemask of nodes allowed by the caller. If NULL, all nodes
+</span><span style="color:#75715e">         * are scanned.
+</span><span style="color:#75715e">         */</span>
+        nodemask_t      <span style="color:#f92672">*</span>nodemask;
 };
-</code></pre>
-
-<p>关键成员如下：</p>
-
+</code></pre></div><p>关键成员如下：</p>
 <ul>
 <li><code>nr_scanned</code>： 用于返回一次回收操作共扫描的页面数量</li>
 <li><code>nr_reclaimed</code>：用于返回一次回收操作共回收的页面数量</li>
@@ -332,33 +301,21 @@ struct zone {
 <li><code>gfp_mask</code>：分配掩码</li>
 <li><code>target_mem_cgroup</code>： 主要回收的<code>mem cgroup</code></li>
 </ul>
-
 <p><code>shrink_lruvec</code>函数的执行流程如下图：</p>
-
-<p><img src="shrink_lruvec.svg" alt="" /></p>
-
+<p><img src="shrink_lruvec.svg" alt="" title=""></p>
 <p>这里稍微解释一下<code>scan_adjusted</code>变量控制的逻辑。当进行全局直接回收内存时，且优先级为<code>12</code>（<code>DEF_PRIORITY</code>）时，设置<code>scan_adjusted</code>为<code>true</code>。此时，一般说明系统稍微有点内存压力，且<code>kswapd</code>还没有被激活，所以最好一次性回收尽可能多的页面，免得后续再激活<code>kswapd</code>内核线程。因此即使已经回收够了足够的页面，还是要继续扫描页面，直到<code>nr</code>数组降到<code>0</code>为止。</p>
-
 <p>上图中提到的<strong>活跃页面是否过少</strong>，在后续的<code>shrink_list</code>函数分析中会详细分析。</p>
-
-<h3 id="get-scan-count">get_scan_count</h3>
-
+<h3 id="get_scan_count">get_scan_count</h3>
 <p><code>shrink_lruvec</code>会调用<code>get_scan_count</code>函数，它根据<code>swapiness</code>和<code>priority</code>优先级计算<code>4</code>个<code>LRU</code>链表中需要扫描的页面的个数，结果保存到<code>nr</code>数组中。</p>
-
 <p>函数原型如下：</p>
-
-<pre><code class="language-c">static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc, unsigned long *nr);
-</code></pre>
-
-<ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">get_scan_count</span>(<span style="color:#66d9ef">struct</span> lruvec <span style="color:#f92672">*</span>lruvec, <span style="color:#66d9ef">struct</span> scan_control <span style="color:#f92672">*</span>sc, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#f92672">*</span>nr);
+</code></pre></div><ul>
 <li><code>nr[0]</code>: 存放要扫描的不活跃的匿名页面个数</li>
 <li><code>nr[1]</code>:  存放要扫描的活跃的匿名页面个数</li>
 <li><code>nr[2]</code>: 存放要扫描的不活跃的文件页面个数</li>
 <li><code>nr[3]</code>: 存放要扫描的活跃的文件页面个数</li>
 </ul>
-
 <p>该函数的扫描规则总结如下：</p>
-
 <ul>
 <li>如果系统上没有交换分区或者<code>swap</code>空间，则只扫描文件页面。</li>
 <li>如果不是全局回收，且<code>swappiness</code>为0，则只扫描文件页面；</li>
@@ -367,9 +324,7 @@ struct zone {
 <li>如果系统压力巨大（<code>priority</code>为<code>0</code>）时，且<code>swappiness</code>不为<code>0</code>，则<code>anon</code>和<code>file</code>也都会扫描</li>
 <li>其它情况下，<code>anon</code>和<code>file</code>也都要扫描</li>
 </ul>
-
 <p>扫描页面多少的计算公式如下：</p>
-
 <pre><code>//扫描类型为：SCAN_FILE、SCAN_ANON或者SCAN_EQUAL时
 scan = LRU上总页面数 &gt;&gt; sc-&gt;priority;
 //扫描类型为：SCAN_FRACT时
@@ -378,43 +333,33 @@ ap = swappiness* (recent_scanned[0] + 1)/ (recent_rotated[0] + 1)
 fp = (200 - swappiness)* (recent_scanned[1] + 1)/ (recent_rotated[1] + 1)
 scan_anon = scan * ap / (ap + fp + 1)
 scan_file = scan * fp / (ap + fp + 1)
-</code></pre>
-
-<ul>
+</code></pre><ul>
 <li><code>recent_scanned</code>: 指最近扫描的页面数量，在扫描活跃链表和不活跃链表时，会统计到<code>recent_scanned</code> 变量中。</li>
 <li><code>recent_rotated</code>：
-
 <ul>
 <li>扫描不活跃链表时，统计那些被重新移动到活跃链表中的页面数量到<code>recent_rotated</code>变量中</li>
 <li>扫描活跃链表时，访问引用的页面页被统计到<code>recent_rotated</code>变量中</li>
-</ul></li>
 </ul>
-
+</li>
+</ul>
 <p>代码中使用如下结构体描述这两个变量：</p>
-
-<pre><code class="language-c">struct zone_reclaim_stat {
-        /*   
-         * The pageout code in vmscan.c keeps track of how many of the
-         * mem/swap backed and file backed pages are referenced.
-         * The higher the rotated/scanned ratio, the more valuable
-         * that cache is.
-         *
-         * The anon LRU stats live in [0], file LRU stats in [1]
-         */
-        unsigned long           recent_rotated[2];
-        unsigned long           recent_scanned[2];
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> zone_reclaim_stat {
+        <span style="color:#75715e">/*   
+</span><span style="color:#75715e">         * The pageout code in vmscan.c keeps track of how many of the
+</span><span style="color:#75715e">         * mem/swap backed and file backed pages are referenced.
+</span><span style="color:#75715e">         * The higher the rotated/scanned ratio, the more valuable
+</span><span style="color:#75715e">         * that cache is.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * The anon LRU stats live in [0], file LRU stats in [1]
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>           recent_rotated[<span style="color:#ae81ff">2</span>];
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>           recent_scanned[<span style="color:#ae81ff">2</span>];
 };
-</code></pre>
-
-<p>其中匿名页面放到数组中下标为<code>0</code>的位置中，文件页面放到数组中下标为<code>1</code>的位置中，<code>recent_rotated/recent_scanned</code>的比值越大，说明这些被缓存起来的页面价值越大，他们更应该留下来。</p>
-
+</code></pre></div><p>其中匿名页面放到数组中下标为<code>0</code>的位置中，文件页面放到数组中下标为<code>1</code>的位置中，<code>recent_rotated/recent_scanned</code>的比值越大，说明这些被缓存起来的页面价值越大，他们更应该留下来。</p>
 <p>举个例子，如果<code>recent_rotated[1]/recent_scanned[1]</code>越小，说明<code>LRU</code>中的文件页面价值较小，那么更应该多扫描一些文件页面，尽量把没有价值的文件页面释放掉。根据公式，文件页面的<code>recent_rotated</code>越小，<code>fp</code>值越大，那么最后扫描的<code>scan_file</code>需要扫描的文件页面数量也就越大。也可以理解为：在扫描总量一定的情况下，扫描文件页面的比重更大。</p>
-
-<h3 id="shrink-list">shrink_list</h3>
-
+<h3 id="shrink_list">shrink_list</h3>
 <p>下面来看看<code>shrink_list</code>函数，该函数处理各个<code>LRU</code>链表的回收页面工作：</p>
-
-<pre><code class="language-c?linenums">static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
+<pre><code class="language-c?linenums" data-lang="c?linenums">static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
                                  struct lruvec *lruvec, struct scan_control *sc) 
 {
         if (is_active_lru(lru)) { 
@@ -425,48 +370,34 @@ scan_file = scan * fp / (ap + fp + 1)
 
         return shrink_inactive_list(nr_to_scan, lruvec, sc, lru);  
 }
-</code></pre>
-
-<ul>
+</code></pre><ul>
 <li>第<code>4-8</code>行代码处理活跃的<code>LRU</code>链表的，包括匿名页面和文件页面，只有当不活跃的页面比较少时，才需要调用<code>shrink_active_list</code>来看哪些活跃页面可以迁移到不活跃链表中</li>
 <li>第<code>10</code>行代码调用<code>shrink_inactive_list</code>扫描不活跃页面链表，并回收页面，后续会详细介绍该函数。</li>
 </ul>
-
 <p>这里遇到了一个问题，如何判断<strong>不活跃的页面比较少</strong>，前面在分析<code>shrink_lruvec</code>函数时也遇到了该问题，这里就详细分析一下：</p>
-
-<h3 id="inactive-list-is-low">inactive_list_is_low</h3>
-
+<h3 id="inactive_list_is_low">inactive_list_is_low</h3>
 <p><code>inactive_list_is_low</code>的判断逻辑区分<strong>匿名页面</strong>和<strong>文件页面</strong>两种情况，我们分别就这两种情况进行讨论。</p>
-
 <h4 id="文件页面">文件页面</h4>
-
 <p>对于文件页面非常简单，直接判断不活跃的文件页面是否小于活跃的文件页面个数。</p>
-
-<pre><code class="language-c">static int inactive_file_is_low(struct lruvec *lruvec)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">inactive_file_is_low</span>(<span style="color:#66d9ef">struct</span> lruvec <span style="color:#f92672">*</span>lruvec)
 {
-        unsigned long inactive;
-        unsigned long active;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> inactive;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> active;
 
-        inactive = get_lru_size(lruvec, LRU_INACTIVE_FILE);
-        active = get_lru_size(lruvec, LRU_ACTIVE_FILE);
+        inactive <span style="color:#f92672">=</span> get_lru_size(lruvec, LRU_INACTIVE_FILE);
+        active <span style="color:#f92672">=</span> get_lru_size(lruvec, LRU_ACTIVE_FILE);
 
-        return active &gt; inactive;
+        <span style="color:#66d9ef">return</span> active <span style="color:#f92672">&gt;</span> inactive;
 }
-</code></pre>
-
-<h4 id="匿名页面">匿名页面</h4>
-
+</code></pre></div><h4 id="匿名页面">匿名页面</h4>
 <p>对于匿名页面稍微复杂一些，函数<code>inactive_anon_is_low</code>用来完成判断，它的判断区分是否开启了<code>CONFIG_MEMCG</code>:</p>
-
 <ul>
 <li>如果没有开启<code>CONFIG_MEMCG</code>时，调用函数<code>inactive_anon_is_low_global</code>;</li>
 <li>如果开启了<code>CONFIG_MEMCG</code>时，调用函数<code>mem_cgroup_inactive_anon_is_low</code>。</li>
 </ul>
-
 <blockquote>
 <p>注意：在一般的服务器系统上，默认都会开启<code>CONFIG_MEMCG</code>。</p>
 </blockquote>
-
 <pre><code>/**
  * inactive_anon_is_low - check if anonymous pages need to be deactivated
  * @lruvec: LRU vector to check
@@ -488,22 +419,14 @@ static int inactive_anon_is_low(struct lruvec *lruvec)
 
         return inactive_anon_is_low_global(lruvec_zone(lruvec));
 }
-</code></pre>
-
-<p>不管是上面哪种情况，其判断的方法如下:</p>
-
+</code></pre><p>不管是上面哪种情况，其判断的方法如下:</p>
 <pre><code>inactive * inactive_ratio &lt; active
-</code></pre>
-
-<p>对于是否打开<code>CONFIG_MEMCG</code>,<code>inactive_ratio</code>的计算方法不同：</p>
-
+</code></pre><p>对于是否打开<code>CONFIG_MEMCG</code>,<code>inactive_ratio</code>的计算方法不同：</p>
 <ul>
 <li>未打开<code>CONFIG_MEMCG</code>: 此时系统上只有全局全局的<code>LRU</code>链表，使用的<code>zone</code>数据结构中的<code>inactive_ratio</code>变量，该变量的值在<code>zone</code>初始化时就计算好了。</li>
 <li>打开<code>CONFIG_MEMCG</code>: 此时系统使用的是<code>mem cgroup</code>中的<code>LRU</code>链表，<code>inactive_ratio</code> 需要根据<code>mem cgroup</code>中的使用的匿名页面总数进行计算。</li>
 </ul>
-
 <p>具体计算方法如下：</p>
-
 <pre><code>/*
  * total     target    max
  * memory    ratio     inactive anon
@@ -520,46 +443,42 @@ static int inactive_anon_is_low(struct lruvec *lruvec)
  gb = zone的内存大小或者mem cgoup中的使用的匿名页面的总大小（单位为GB）
  gb 大于等于1时： inactive_ratio = int_sqrt(10 * gb)
  gb 小于1时，inactive_ratio = 1
-</code></pre>
-
-<blockquote>
+</code></pre><blockquote>
 <p>说明：对于内存空间小于<code>1GB</code>的情况，<code>inactive_ratio</code>等于<code>1</code>，对于内存空间大小在<code>1GB</code>到<code>10GB</code>的情况，<code>inactive_ratio</code>等于<code>3</code>。<code>inactive_ratio</code>为<code>3</code>，表明<code>LRU</code>中活跃匿名页面和不活跃匿名页面的比值为<code>3：1</code>，也就是说在理想情况下，有<code>25%</code>的匿名页面保存在不活跃链表中。</p>
 </blockquote>
-
 <p><code>mem_cgroup_inactive_anon_is_low</code>和<code>inactive_anon_is_low_global</code>的代码如下：</p>
-
-<pre><code class="language-c">int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">mem_cgroup_inactive_anon_is_low</span>(<span style="color:#66d9ef">struct</span> lruvec <span style="color:#f92672">*</span>lruvec)
 {
-        unsigned long inactive_ratio;
-        unsigned long inactive;
-        unsigned long active;
-        unsigned long gb;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> inactive_ratio;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> inactive;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> active;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> gb;
 
-        inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_ANON);
-        active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_ANON);
+        inactive <span style="color:#f92672">=</span> mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_ANON);
+        active <span style="color:#f92672">=</span> mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_ANON);
 
-        gb = (inactive + active) &gt;&gt; (30 - PAGE_SHIFT);
-        if (gb)
-                inactive_ratio = int_sqrt(10 * gb);
-        else
-                inactive_ratio = 1;
+        gb <span style="color:#f92672">=</span> (inactive <span style="color:#f92672">+</span> active) <span style="color:#f92672">&gt;&gt;</span> (<span style="color:#ae81ff">30</span> <span style="color:#f92672">-</span> PAGE_SHIFT);
+        <span style="color:#66d9ef">if</span> (gb)
+                inactive_ratio <span style="color:#f92672">=</span> int_sqrt(<span style="color:#ae81ff">10</span> <span style="color:#f92672">*</span> gb);
+        <span style="color:#66d9ef">else</span>
+                inactive_ratio <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
 
-        return inactive * inactive_ratio &lt; active;
+        <span style="color:#66d9ef">return</span> inactive <span style="color:#f92672">*</span> inactive_ratio <span style="color:#f92672">&lt;</span> active;
 }
 
-static int inactive_anon_is_low_global(struct zone *zone)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">inactive_anon_is_low_global</span>(<span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone)
 {
-        unsigned long active, inactive;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> active, inactive;
 
-        active = zone_page_state(zone, NR_ACTIVE_ANON);
-        inactive = zone_page_state(zone, NR_INACTIVE_ANON);
+        active <span style="color:#f92672">=</span> zone_page_state(zone, NR_ACTIVE_ANON);
+        inactive <span style="color:#f92672">=</span> zone_page_state(zone, NR_INACTIVE_ANON);
 
-        if (inactive * zone-&gt;inactive_ratio &lt; active)
-                return 1;
+        <span style="color:#66d9ef">if</span> (inactive <span style="color:#f92672">*</span> zone<span style="color:#f92672">-&gt;</span>inactive_ratio <span style="color:#f92672">&lt;</span> active)
+                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
 
-        return 0;
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
-</code></pre>
+</code></pre></div>
     </div>
 
     
@@ -650,7 +569,7 @@ static int inactive_anon_is_low_global(struct zone *zone)
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

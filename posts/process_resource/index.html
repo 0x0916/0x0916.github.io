@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/process_resource/" />
@@ -58,11 +58,9 @@
 <meta property="article:modified_time" content="2018-07-30T19:02:06+08:00" />
 <meta itemprop="name" content="Process Resource">
 <meta itemprop="description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。">
-
-
-<meta itemprop="datePublished" content="2018-07-30T19:02:06&#43;08:00" />
-<meta itemprop="dateModified" content="2018-07-30T19:02:06&#43;08:00" />
-<meta itemprop="wordCount" content="1820">
+<meta itemprop="datePublished" content="2018-07-30T19:02:06+08:00" />
+<meta itemprop="dateModified" content="2018-07-30T19:02:06+08:00" />
+<meta itemprop="wordCount" content="1811">
 
 
 
@@ -153,7 +151,7 @@
               <a href="/categories/linux/"> linux </a>
             
           </div>
-        <span class="more-meta"> 1820 words </span>
+        <span class="more-meta"> 1811 words </span>
         <span class="more-meta"> 4 mins read </span>
         
       </div>
@@ -166,21 +164,20 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#进程资源使用情况">进程资源使用情况</a></li>
-<li><a href="#进程资源限制">进程资源限制</a>
-<ul>
-<li><a href="#注意注意">注意注意</a></li>
-</ul></li>
-<li><a href="#rlimit-nproc-示例">RLIMIT_NPROC 示例</a>
-<ul>
-<li><a href="#注意">注意</a></li>
-</ul></li>
-<li><a href="#docker中对进程资源限制的支持">docker中对进程资源限制的支持</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#进程资源使用情况">进程资源使用情况</a></li>
+    <li><a href="#进程资源限制">进程资源限制</a>
+      <ul>
+        <li><a href="#注意注意">注意注意</a></li>
+      </ul>
+    </li>
+    <li><a href="#rlimit_nproc-示例">RLIMIT_NPROC 示例</a>
+      <ul>
+        <li><a href="#注意">注意</a></li>
+      </ul>
+    </li>
+    <li><a href="#docker中对进程资源限制的支持">docker中对进程资源限制的支持</a></li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -188,242 +185,186 @@
     
     <div class="post-content">
       <p>每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。</p>
-
 <h2 id="进程资源使用情况">进程资源使用情况</h2>
-
 <p>系统调用<code>getrusage()</code>用于获取进程当前消耗各种系统资源的统计信息。</p>
-
-<pre><code class="language-c">
-#include &lt;sys/time.h&gt;
-#include &lt;sys/resource.h&gt;
-
-int getrusage(int who, struct rusage *usage);
-</code></pre>
-
-<p><code>who</code>有三种取值：<code>RUSAGE_SELF</code>、<code>RUSAGE_CHILDREN</code>、<code>RUSAGE_THREAD</code>;</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/time.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/resource.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getrusage</span>(<span style="color:#66d9ef">int</span> who, <span style="color:#66d9ef">struct</span> rusage <span style="color:#f92672">*</span>usage);
+</code></pre></div><p><code>who</code>有三种取值：<code>RUSAGE_SELF</code>、<code>RUSAGE_CHILDREN</code>、<code>RUSAGE_THREAD</code>;</p>
 <ul>
 <li><code>RUSAGE_SELF</code>代表获取当前调用进程的资源信息</li>
 <li><code>RUSAGE_CHILDREN</code>代表获取当前调用进程的所有子进程的资源信息</li>
 <li><code>RUSAGE_THREAD</code>代表获取当前调用线程的资源信息</li>
 </ul>
-
 <p><code>usage</code>的数据结构定义如下，它用来保存返回的资源信息：</p>
-
-<pre><code class="language-c">struct rusage {
-    struct timeval ru_utime; /* user CPU time used */
-    struct timeval ru_stime; /* system CPU time used */
-    long   ru_maxrss;        /* maximum resident set size */
-    long   ru_ixrss;         /* integral shared memory size */
-    long   ru_idrss;         /* integral unshared data size */
-    long   ru_isrss;         /* integral unshared stack size */
-    long   ru_minflt;        /* page reclaims (soft page faults) */
-    long   ru_majflt;        /* page faults (hard page faults) */
-    long   ru_nswap;         /* swaps */
-    long   ru_inblock;       /* block input operations */
-    long   ru_oublock;       /* block output operations */
-    long   ru_msgsnd;        /* IPC messages sent */
-    long   ru_msgrcv;        /* IPC messages received */
-    long   ru_nsignals;      /* signals received */
-    long   ru_nvcsw;         /* voluntary context switches */
-    long   ru_nivcsw;        /* involuntary context switches */
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> rusage {
+    <span style="color:#66d9ef">struct</span> timeval ru_utime; <span style="color:#75715e">/* user CPU time used */</span>
+    <span style="color:#66d9ef">struct</span> timeval ru_stime; <span style="color:#75715e">/* system CPU time used */</span>
+    <span style="color:#66d9ef">long</span>   ru_maxrss;        <span style="color:#75715e">/* maximum resident set size */</span>
+    <span style="color:#66d9ef">long</span>   ru_ixrss;         <span style="color:#75715e">/* integral shared memory size */</span>
+    <span style="color:#66d9ef">long</span>   ru_idrss;         <span style="color:#75715e">/* integral unshared data size */</span>
+    <span style="color:#66d9ef">long</span>   ru_isrss;         <span style="color:#75715e">/* integral unshared stack size */</span>
+    <span style="color:#66d9ef">long</span>   ru_minflt;        <span style="color:#75715e">/* page reclaims (soft page faults) */</span>
+    <span style="color:#66d9ef">long</span>   ru_majflt;        <span style="color:#75715e">/* page faults (hard page faults) */</span>
+    <span style="color:#66d9ef">long</span>   ru_nswap;         <span style="color:#75715e">/* swaps */</span>
+    <span style="color:#66d9ef">long</span>   ru_inblock;       <span style="color:#75715e">/* block input operations */</span>
+    <span style="color:#66d9ef">long</span>   ru_oublock;       <span style="color:#75715e">/* block output operations */</span>
+    <span style="color:#66d9ef">long</span>   ru_msgsnd;        <span style="color:#75715e">/* IPC messages sent */</span>
+    <span style="color:#66d9ef">long</span>   ru_msgrcv;        <span style="color:#75715e">/* IPC messages received */</span>
+    <span style="color:#66d9ef">long</span>   ru_nsignals;      <span style="color:#75715e">/* signals received */</span>
+    <span style="color:#66d9ef">long</span>   ru_nvcsw;         <span style="color:#75715e">/* voluntary context switches */</span>
+    <span style="color:#66d9ef">long</span>   ru_nivcsw;        <span style="color:#75715e">/* involuntary context switches */</span>
 };
-</code></pre>
-
-<p>更多信息请参考：<a href="http://man7.org/linux/man-pages/man2/getrusage.2.html">http://man7.org/linux/man-pages/man2/getrusage.2.html</a></p>
-
+</code></pre></div><p>更多信息请参考：http://man7.org/linux/man-pages/man2/getrusage.2.html</p>
 <h2 id="进程资源限制">进程资源限制</h2>
-
 <p>每一个进程都有一组资源限制，用于限制其所能使用的资源量。例如，我们可以在执行程序之前，通过ulimit这个内建的bash命令设置其资源使用限制。</p>
-
 <blockquote>
 <p>注意：linux系统上，<code>/proc/PID/limits</code>可以查看当前指定进程的资源限制情况。</p>
 </blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/time.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/resource.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getrlimit</span>(<span style="color:#66d9ef">int</span> resource, <span style="color:#66d9ef">struct</span> rlimit <span style="color:#f92672">*</span>rlim);
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">setrlimit</span>(<span style="color:#66d9ef">int</span> resource, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> rlimit <span style="color:#f92672">*</span>rlim);
 
-<pre><code class="language-c">#include &lt;sys/time.h&gt;
-#include &lt;sys/resource.h&gt;
-
-int getrlimit(int resource, struct rlimit *rlim);
-int setrlimit(int resource, const struct rlimit *rlim);
-
-int prlimit(pid_t pid, int resource, const struct rlimit *new_limit,
-                   struct rlimit *old_limit);
-</code></pre>
-
-<p><code>getrlimit</code>用于获取进程当前的资源限制情况，<code>setrlimit</code>用于设置进程的资源限制。<code>prlimit</code>是linux上的系统调用，它结合了<code>getrlimit</code>和<code>setrlimit</code>的功能，并进行了扩展（可以设定指定进程的资源限制）。</p>
-
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">prlimit</span>(pid_t pid, <span style="color:#66d9ef">int</span> resource, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> rlimit <span style="color:#f92672">*</span>new_limit,
+                   <span style="color:#66d9ef">struct</span> rlimit <span style="color:#f92672">*</span>old_limit);
+</code></pre></div><p><code>getrlimit</code>用于获取进程当前的资源限制情况，<code>setrlimit</code>用于设置进程的资源限制。<code>prlimit</code>是linux上的系统调用，它结合了<code>getrlimit</code>和<code>setrlimit</code>的功能，并进行了扩展（可以设定指定进程的资源限制）。</p>
 <p><code>resource</code> 参数的可选值如下：</p>
-
-<p><img src="./process-resource.png" alt="enter description here" title="process_resource" /></p>
-
+<p><img src="./process-resource.png" alt="enter description here" title="process_resource"></p>
 <p><code>struct rlimit</code>的定义如下：</p>
-
-<pre><code class="language-c">struct rlimit {
-        rlim_t rlim_cur;  /* Soft limit */
-        rlim_t rlim_max;  /* Hard limit (ceiling for rlim_cur) */
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> rlimit {
+        rlim_t rlim_cur;  <span style="color:#75715e">/* Soft limit */</span>
+        rlim_t rlim_max;  <span style="color:#75715e">/* Hard limit (ceiling for rlim_cur) */</span>
 };
-</code></pre>
-
-<p><code>软限制</code>：使用资源时，用于进行是否超过限制的判断，其值可以在0和<code>硬限制</code>之间调整。
+</code></pre></div><p><code>软限制</code>：使用资源时，用于进行是否超过限制的判断，其值可以在0和<code>硬限制</code>之间调整。
 <code>硬限制</code>:  用于提供<code>软限制</code>的上限。</p>
-
 <h3 id="注意注意">注意注意</h3>
-
 <p>尽管资源限制是针对进程的，但是有些资源不能以进程的角度衡量，一般是以用户的角度去衡量的。比如：<code>RLIMIT_NPROC</code>,它代表了一个用户所能运行的进程数量。</p>
-
-<p>具体各种资源的详细描述，请参考：<a href="http://man7.org/linux/man-pages/man2/getrlimit.2.html">http://man7.org/linux/man-pages/man2/getrlimit.2.html</a></p>
-
-<h2 id="rlimit-nproc-示例">RLIMIT_NPROC 示例</h2>
-
+<p>具体各种资源的详细描述，请参考：http://man7.org/linux/man-pages/man2/getrlimit.2.html</p>
+<h2 id="rlimit_nproc-示例">RLIMIT_NPROC 示例</h2>
 <p>该示例程序展示了<code>RLIMIT_NPROC</code>对用户进程个数的限制。</p>
-
-<pre><code class="language-bash">$ ./rlimit_nproc 6 10
-Initial maximum process limits:  soft=4096; hard=10450
-New maximum process limits:  soft=6; hard=10
-Child 1 (PID = 23132) started
-Child 2 (PID = 23133) started
-Child 3 (PID = 23134) started
-Child 4 (PID = 23135) started
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./rlimit_nproc <span style="color:#ae81ff">6</span> <span style="color:#ae81ff">10</span>
+Initial maximum process limits:  soft<span style="color:#f92672">=</span>4096; hard<span style="color:#f92672">=</span><span style="color:#ae81ff">10450</span>
+New maximum process limits:  soft<span style="color:#f92672">=</span>6; hard<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>
+Child <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>PID <span style="color:#f92672">=</span> 23132<span style="color:#f92672">)</span> started
+Child <span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>PID <span style="color:#f92672">=</span> 23133<span style="color:#f92672">)</span> started
+Child <span style="color:#ae81ff">3</span> <span style="color:#f92672">(</span>PID <span style="color:#f92672">=</span> 23134<span style="color:#f92672">)</span> started
+Child <span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>PID <span style="color:#f92672">=</span> 23135<span style="color:#f92672">)</span> started
 error fork: Resource temporarily unavailable
-</code></pre>
-
-<p>执行效果如上：我们仅创建了4个进程，因为该用户已经启动了2个进程。</p>
-
+</code></pre></div><p>执行效果如上：我们仅创建了4个进程，因为该用户已经启动了2个进程。</p>
 <p>源代码如下：</p>
-
 <p><code>print_rlimit.h</code> 文件：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">print_rlimit</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>msg, <span style="color:#66d9ef">int</span> resource);
+</code></pre></div><p><code>print_rlimit.c</code> 文件：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/resource.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;print_rlimit.h&#34;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">print_rlimit</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>msg, <span style="color:#66d9ef">int</span> resource) {
+	<span style="color:#66d9ef">struct</span> rlimit rlim;
 
-<pre><code class="language-c">int print_rlimit(const char *msg, int resource);
-</code></pre>
+	<span style="color:#66d9ef">if</span> (getrlimit(resource, <span style="color:#f92672">&amp;</span>rlim) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 
-<p><code>print_rlimit.c</code> 文件：</p>
+	printf(<span style="color:#e6db74">&#34;%s soft=&#34;</span>, msg);
+	<span style="color:#66d9ef">if</span> (rlim.rlim_cur <span style="color:#f92672">==</span> RLIM_INFINITY)
+		printf(<span style="color:#e6db74">&#34;infinite&#34;</span>);
+<span style="color:#75715e">#ifdef RLIM_SAVED_CUR
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (rlim.rlim_cur <span style="color:#f92672">==</span> RLIM_SAVED_CUR)
+		printf(<span style="color:#e6db74">&#34;unrepresentable&#34;</span>);
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">else</span>
+		printf(<span style="color:#e6db74">&#34;%lld&#34;</span>, (<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)rlim.rlim_cur);
 
-<pre><code class="language-c">#include &lt;sys/resource.h&gt;
-#include &lt;stdio.h&gt;
-#include &quot;print_rlimit.h&quot;
+	printf(<span style="color:#e6db74">&#34;; hard=&#34;</span>);
+	<span style="color:#66d9ef">if</span> (rlim.rlim_max <span style="color:#f92672">==</span> RLIM_INFINITY)
+		printf(<span style="color:#e6db74">&#34;infinite&#34;</span>);
+<span style="color:#75715e">#ifdef RLIM_SAVED_MAX
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (rlim.rlim_max <span style="color:#f92672">==</span> RLIM_SAVED_MAX)
+		printf(<span style="color:#e6db74">&#34;unrepresentable&#34;</span>);
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">else</span>
+		printf(<span style="color:#e6db74">&#34;%lld</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, (<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)rlim.rlim_max);
 
-int print_rlimit(const char *msg, int resource) {
-	struct rlimit rlim;
-
-	if (getrlimit(resource, &amp;rlim) == -1)
-		return -1;
-
-	printf(&quot;%s soft=&quot;, msg);
-	if (rlim.rlim_cur == RLIM_INFINITY)
-		printf(&quot;infinite&quot;);
-#ifdef RLIM_SAVED_CUR
-	else if (rlim.rlim_cur == RLIM_SAVED_CUR)
-		printf(&quot;unrepresentable&quot;);
-#endif
-	else
-		printf(&quot;%lld&quot;, (long long)rlim.rlim_cur);
-
-	printf(&quot;; hard=&quot;);
-	if (rlim.rlim_max == RLIM_INFINITY)
-		printf(&quot;infinite&quot;);
-#ifdef RLIM_SAVED_MAX
-	else if (rlim.rlim_max == RLIM_SAVED_MAX)
-		printf(&quot;unrepresentable&quot;);
-#endif
-	else
-		printf(&quot;%lld\n&quot;, (long long)rlim.rlim_max);
-
-	return 0;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
-</code></pre>
-
-<p><code>rlimit_nproc.c</code>文件：</p>
-
-<pre><code class="language-c">#include &lt;sys/resource.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;string.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;errno.h&gt;
-
-#include &quot;print_rlimit.h&quot;
-
-int get_int(const char *arg) {
-	long res;
-	char *endptr;
-	res = strtol(arg, &amp;endptr, 10);
-	return res;
+</code></pre></div><p><code>rlimit_nproc.c</code>文件：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/resource.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;errno.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;print_rlimit.h&#34;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">get_int</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>arg) {
+	<span style="color:#66d9ef">long</span> res;
+	<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>endptr;
+	res <span style="color:#f92672">=</span> strtol(arg, <span style="color:#f92672">&amp;</span>endptr, <span style="color:#ae81ff">10</span>);
+	<span style="color:#66d9ef">return</span> res;
 }
 
-int main(int argc, char **argv) {
-	struct rlimit rl;
-	int j;
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv) {
+	<span style="color:#66d9ef">struct</span> rlimit rl;
+	<span style="color:#66d9ef">int</span> j;
 	pid_t child_pid;
 
-	if (argc &lt; 2 || argc &gt; 3 || strcmp(argv[1], &quot;--help&quot;) == 0) {
-		printf(&quot;%s soft-limit [hard-limit]\n&quot;, argv[0]);
-		return 0;
+	<span style="color:#66d9ef">if</span> (argc <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">||</span> argc <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">||</span> strcmp(argv[<span style="color:#ae81ff">1</span>], <span style="color:#e6db74">&#34;--help&#34;</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+		printf(<span style="color:#e6db74">&#34;%s soft-limit [hard-limit]</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">0</span>]);
+		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 	}
 
-	print_rlimit(&quot;Initial maximum process limits: &quot;, RLIMIT_NPROC);
+	print_rlimit(<span style="color:#e6db74">&#34;Initial maximum process limits: &#34;</span>, RLIMIT_NPROC);
 
-	// set new process limits(hard == soft if not specified)
-	rl.rlim_cur = (argv[1][0] == 'i') ? RLIM_INFINITY : get_int(argv[1]);
-	rl.rlim_max = (argc == 2) ? rl.rlim_cur :
-			(argv[2][0] == 'i') ? RLIM_INFINITY : get_int(argv[2]);
+	<span style="color:#75715e">// set new process limits(hard == soft if not specified)
+</span><span style="color:#75715e"></span>	rl.rlim_cur <span style="color:#f92672">=</span> (argv[<span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;i&#39;</span>) <span style="color:#f92672">?</span> RLIM_INFINITY : get_int(argv[<span style="color:#ae81ff">1</span>]);
+	rl.rlim_max <span style="color:#f92672">=</span> (argc <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">?</span> rl.rlim_cur :
+			(argv[<span style="color:#ae81ff">2</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;i&#39;</span>) <span style="color:#f92672">?</span> RLIM_INFINITY : get_int(argv[<span style="color:#ae81ff">2</span>]);
 
-	if (setrlimit(RLIMIT_NPROC, &amp;rl) == -1) {
-		printf(&quot;setrlimit error\n&quot;);
-		return -1;
+	<span style="color:#66d9ef">if</span> (setrlimit(RLIMIT_NPROC, <span style="color:#f92672">&amp;</span>rl) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+		printf(<span style="color:#e6db74">&#34;setrlimit error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 	}
 
-	print_rlimit(&quot;New maximum process limits: &quot;, RLIMIT_NPROC);
+	print_rlimit(<span style="color:#e6db74">&#34;New maximum process limits: &#34;</span>, RLIMIT_NPROC);
 
-	// create as many children as possible
-	for (j = 1; ; j++) {
-		switch(child_pid = fork()) {
-		case -1:
-			printf(&quot;error fork: %s\n&quot;, strerror(errno));
-			exit(-1);
-		case 0:				// child
-			_exit(EXIT_SUCCESS);
-		default:			// parent
-			printf(&quot;Child %d (PID = %ld) started\n&quot;, j, (long) child_pid);
-			break;
+	<span style="color:#75715e">// create as many children as possible
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> (j <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; ; j<span style="color:#f92672">++</span>) {
+		<span style="color:#66d9ef">switch</span>(child_pid <span style="color:#f92672">=</span> fork()) {
+		<span style="color:#66d9ef">case</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span><span style="color:#f92672">:</span>
+			printf(<span style="color:#e6db74">&#34;error fork: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
+			exit(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+		<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">:</span>				<span style="color:#75715e">// child
+</span><span style="color:#75715e"></span>			_exit(EXIT_SUCCESS);
+		<span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>			<span style="color:#75715e">// parent
+</span><span style="color:#75715e"></span>			printf(<span style="color:#e6db74">&#34;Child %d (PID = %ld) started</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, j, (<span style="color:#66d9ef">long</span>) child_pid);
+			<span style="color:#66d9ef">break</span>;
 		}
 	}
 }
-</code></pre>
-
-<p>编译方法：</p>
-
-<pre><code class="language-bash"># gcc -o rlimit_nproc rlimit_nproc.c print_rlimit.c
-</code></pre>
-
-<h3 id="注意">注意</h3>
-
+</code></pre></div><p>编译方法：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># gcc -o rlimit_nproc rlimit_nproc.c print_rlimit.c</span>
+</code></pre></div><h3 id="注意">注意</h3>
 <p><code>root</code>用户对<code>RLIMIT_NPROC</code>没有效果，即<code>RLIMIT_NPROC</code>不能限制<code>root</code>用户可以运行的进程数。</p>
-
 <p>具体内核代码可以参考：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v4.17/kernel/sys.c#L449#L476"> kernel/sys.c(line 449-476) </a></p>
-
 <h2 id="docker中对进程资源限制的支持">docker中对进程资源限制的支持</h2>
-
 <p>目前，docker中也提供了对进程资源限制的支持，我们可以使用<code>--ulimit</code>参数来进行资源限制的设置。其值的形式为：<code>&lt;type&gt;=&lt;soft limit&gt;[:&lt;hard limit&gt;]</code>，例如：</p>
-
 <pre><code># docker run --ulimit nofile=1024:1024 --rm debian sh -c &quot;ulimit -n&quot;
 1024
-</code></pre>
-
-<blockquote>
+</code></pre><blockquote>
 <p>注意：目前不支持as这个资源。</p>
 </blockquote>
-
 <p>另外注意<code>nproc</code>这个资源限制，它代表了一个用户所能运行的进程总数，比如以daemon用于启动几个容器：</p>
-
 <pre><code>$ docker run -d -u daemon --ulimit nproc=3 busybox top
 $ docker run -d -u daemon --ulimit nproc=3 busybox top
 $ docker run -d -u daemon --ulimit nproc=3 busybox top
 $ docker run -d -u daemon --ulimit nproc=3 busybox top
-</code></pre>
-
-<p>第四个容器会启动失败，因为我们设置了<code>nproc=3</code>。</p>
-
-<p>参考：<a href="https://docs.docker.com/v1.13/engine/reference/commandline/run/#/set-ulimits-in-container-ulimit">https://docs.docker.com/v1.13/engine/reference/commandline/run/#/set-ulimits-in-container-ulimit</a></p>
+</code></pre><p>第四个容器会启动失败，因为我们设置了<code>nproc=3</code>。</p>
+<p>参考：https://docs.docker.com/v1.13/engine/reference/commandline/run/#/set-ulimits-in-container-ulimit</p>
     </div>
 
     
@@ -516,7 +457,7 @@ $ docker run -d -u daemon --ulimit nproc=3 busybox top
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

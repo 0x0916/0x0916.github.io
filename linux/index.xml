@@ -6,11 +6,7 @@
     <description>Recent content on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 10 Feb 2019 20:20:18 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/linux/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sun, 10 Feb 2019 20:20:18 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/linux/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>制作自动化安装的CENTOS7 ISO</title>
       <link>http://linux.laoqinren.net/linux/build-auto-install-centos7-iso/</link>
@@ -27,7 +23,6 @@
       
       <guid>http://linux.laoqinren.net/linux/access-physical-address/</guid>
       <description>&lt;p&gt;用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。&lt;/p&gt;
-
 &lt;p&gt;如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现&lt;code&gt;Linux&lt;/code&gt;中用户态程序访问所有物理内存。&lt;/p&gt;</description>
     </item>
     
@@ -38,7 +33,6 @@
       
       <guid>http://linux.laoqinren.net/linux/proc-memory/</guid>
       <description>&lt;p&gt;在&lt;code&gt;linux&lt;/code&gt;内核中，整个内存信息和状态的展示可以通过以下几个文件获得：&lt;/p&gt;
-
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -46,32 +40,26 @@
 &lt;th&gt;描述&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
-
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;/proc/buddyinfo&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;展示系统上各个&lt;code&gt;zone&lt;/code&gt;的&lt;code&gt;buddy&lt;/code&gt;信息，主要用来分析内存碎片问题&lt;/td&gt;
 &lt;/tr&gt;
-
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;/proc/pagetypeinfo&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;输出系统上各个&lt;code&gt;zone&lt;/code&gt;中的不同迁移类型的详细状态信息&lt;/td&gt;
 &lt;/tr&gt;
-
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;/proc/vmstat&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;描述内存统计信息&lt;/td&gt;
 &lt;/tr&gt;
-
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;/proc/zoneinfo&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;输出系统上各个内存&lt;code&gt;zone&lt;/code&gt;的详细信息&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-
 &lt;p&gt;在详细介绍这些接口之前，我们先要明确一下几点：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;现在的内核中，内存管理最大概念为&lt;code&gt;node&lt;/code&gt;。&lt;/li&gt;
 &lt;li&gt;在node上再分为一个或者几个&lt;code&gt;zone&lt;/code&gt;&lt;/li&gt;
@@ -86,7 +74,6 @@
       
       <guid>http://linux.laoqinren.net/linux/get-init-pid-for-any-task/</guid>
       <description>&lt;p&gt;本文题目为『&lt;strong&gt;获取容器中init进程的pid&lt;/strong&gt;』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的&lt;code&gt;pid namespace&lt;/code&gt;中，而我们有时需要在顶级的&lt;code&gt;pid namespace&lt;/code&gt;中获取其&lt;code&gt;init&lt;/code&gt;进程对应的在顶级&lt;code&gt;pid namespace&lt;/code&gt;的&lt;code&gt;pid&lt;/code&gt;。&lt;/p&gt;
-
 &lt;p&gt;本文简要介绍了完成这个任务的一种方法。&lt;/p&gt;</description>
     </item>
     
@@ -115,7 +102,6 @@
       
       <guid>http://linux.laoqinren.net/linux/cgroup-cpuset/</guid>
       <description>&lt;p&gt;最近分析了内核&lt;code&gt;cpuset&lt;/code&gt;的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的&lt;code&gt;docker&lt;/code&gt;也只是使用了其最简单的功能。本文对&lt;code&gt;cpuset&lt;/code&gt;进行了简要总结，并总结了&lt;code&gt;docker&lt;/code&gt;如何使用它。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -127,8 +113,7 @@
       <pubDate>Fri, 04 May 2018 21:07:38 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/linux-swap/</guid>
-      <description>&lt;p&gt;本文转载于：&lt;a href=&#34;https://segmentfault.com/a/1190000008125116&#34;&gt;https://segmentfault.com/a/1190000008125116&lt;/a&gt;&lt;/p&gt;
-
+      <description>&lt;p&gt;本文转载于：https://segmentfault.com/a/1190000008125116&lt;/p&gt;
 &lt;p&gt;每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。&lt;/p&gt;</description>
     </item>
     
@@ -148,12 +133,10 @@
       
       <guid>http://linux.laoqinren.net/linux/syscall-eventfd/</guid>
       <description>&lt;p&gt;&lt;code&gt;eventfd&lt;/code&gt; 是&lt;code&gt;linux&lt;/code&gt;特有的&lt;code&gt;API&lt;/code&gt;，用于通知/等待机制的实现,该函数一般有两个使用场景：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;（1）用来实现用户态进程(线程)间的&lt;strong&gt;等待/通知(&lt;code&gt;wait/notify&lt;/code&gt;)&lt;/strong&gt; 机制&lt;/li&gt;
 &lt;li&gt;（2）内核用来通知用户态应用程序某个事件的发生。&lt;/li&gt;
 &lt;/ul&gt;
-
 &lt;p&gt;第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。&lt;/p&gt;</description>
     </item>
     

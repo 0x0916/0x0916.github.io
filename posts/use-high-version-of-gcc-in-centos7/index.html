@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/" />
@@ -53,7 +53,6 @@
 
 <meta property="og:title" content="在centos7中使用高版本的GCC" />
 <meta property="og:description" content="在centos上进行内核开发时，由于一些内核特性依赖于高版本的GCC特性（gcc &gt; 5.0），而centos默认的GCC一般为4.8.x。
-
 本文记录一种非常简单的在centos上使用高版本的GCC的方法。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/posts/use-high-version-of-gcc-in-centos7/" />
@@ -61,12 +60,9 @@
 <meta property="article:modified_time" content="2018-06-27T21:18:15+08:00" />
 <meta itemprop="name" content="在centos7中使用高版本的GCC">
 <meta itemprop="description" content="在centos上进行内核开发时，由于一些内核特性依赖于高版本的GCC特性（gcc &gt; 5.0），而centos默认的GCC一般为4.8.x。
-
 本文记录一种非常简单的在centos上使用高版本的GCC的方法。">
-
-
-<meta itemprop="datePublished" content="2018-06-27T21:18:15&#43;08:00" />
-<meta itemprop="dateModified" content="2018-06-27T21:18:15&#43;08:00" />
+<meta itemprop="datePublished" content="2018-06-27T21:18:15+08:00" />
+<meta itemprop="dateModified" content="2018-06-27T21:18:15+08:00" />
 <meta itemprop="wordCount" content="506">
 
 
@@ -75,7 +71,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="在centos7中使用高版本的GCC"/>
 <meta name="twitter:description" content="在centos上进行内核开发时，由于一些内核特性依赖于高版本的GCC特性（gcc &gt; 5.0），而centos默认的GCC一般为4.8.x。
-
 本文记录一种非常简单的在centos上使用高版本的GCC的方法。"/>
 
 <!--[if lte IE 9]>
@@ -173,17 +168,15 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#方法来源">方法来源</a></li>
-<li><a href="#具体步骤">具体步骤</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#方法来源">方法来源</a></li>
+        <li><a href="#具体步骤">具体步骤</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -191,13 +184,9 @@
     
     <div class="post-content">
       <p>在<code>centos</code>上进行内核开发时，由于一些内核特性依赖于高版本的<code>GCC特性</code>（<code>gcc &gt; 5.0</code>），而<code>centos</code>默认的GCC一般为<code>4.8.x</code>。</p>
-
 <p>本文记录一种非常简单的在<code>centos</code>上使用高版本的<code>GCC</code>的方法。</p>
-
 <h3 id="方法来源">方法来源</h3>
-
 <p>非常感谢项目：<a href="https://www.softwarecollections.org/en/">https://www.softwarecollections.org/en/</a>，其提供了RHEL系列发行版上默认的软件版本外的其他选择，其项目介绍就不翻译了，直接<a href="https://www.softwarecollections.org/en/about/">copy过来</a>：</p>
-
 <pre><code>SoftwareCollections.org is the home for projects creating Software Collections (SCLs)
 for Red Hat Enterprise Linux, Fedora, CentOS, and Scientific Linux. This is where you
 create and host Software Collections, as well as connect with other developers working
@@ -205,44 +194,37 @@ on SCLs.
 
 SoftwareCollections.org is also the central repository for users to find
 third-party SCLs for their systems.
-</code></pre>
-
-<h3 id="具体步骤">具体步骤</h3>
-
-<p>详细步骤来源于：<a href="https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/">https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/</a></p>
-
-<pre><code class="language-bash"># 1. Install a package with repository for your system:
-# On CentOS, install package centos-release-scl available in CentOS repository:
+</code></pre><h3 id="具体步骤">具体步骤</h3>
+<p>详细步骤来源于：https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 1. Install a package with repository for your system:</span>
+<span style="color:#75715e"># On CentOS, install package centos-release-scl available in CentOS repository:</span>
 $ sudo yum install centos-release-scl
 
-# On RHEL, enable RHSCL repository for you system:
+<span style="color:#75715e"># On RHEL, enable RHSCL repository for you system:</span>
 $ sudo yum-config-manager --enable rhel-server-rhscl-7-rpms
 
-# 2. Install the collection:
+<span style="color:#75715e"># 2. Install the collection:</span>
 $ sudo yum install devtoolset-7
 
-# 3. Start using software collections:
+<span style="color:#75715e"># 3. Start using software collections:</span>
 $ scl enable devtoolset-7 bash
 
-$ # 默认情况下，gcc的版本未 4.8.x
+$ <span style="color:#75715e"># 默认情况下，gcc的版本未 4.8.x</span>
 $ gcc --version
-gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-28)
-Copyright (C) 2015 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+gcc <span style="color:#f92672">(</span>GCC<span style="color:#f92672">)</span> 4.8.5 <span style="color:#ae81ff">20150623</span> <span style="color:#f92672">(</span>Red Hat 4.8.5-28<span style="color:#f92672">)</span>
+Copyright <span style="color:#f92672">(</span>C<span style="color:#f92672">)</span> <span style="color:#ae81ff">2015</span> Free Software Foundation, Inc.
+This is free software; see the source <span style="color:#66d9ef">for</span> copying conditions.  There is NO
+warranty; not even <span style="color:#66d9ef">for</span> MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-$ # 切换为scl后
+$ <span style="color:#75715e"># 切换为scl后</span>
 $ scl enable devtoolset-7 bash
 $ gcc --version
-gcc (GCC) 7.3.1 20180303 (Red Hat 7.3.1-5)
-Copyright (C) 2017 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+gcc <span style="color:#f92672">(</span>GCC<span style="color:#f92672">)</span> 7.3.1 <span style="color:#ae81ff">20180303</span> <span style="color:#f92672">(</span>Red Hat 7.3.1-5<span style="color:#f92672">)</span>
+Copyright <span style="color:#f92672">(</span>C<span style="color:#f92672">)</span> <span style="color:#ae81ff">2017</span> Free Software Foundation, Inc.
+This is free software; see the source <span style="color:#66d9ef">for</span> copying conditions.  There is NO
+warranty; not even <span style="color:#66d9ef">for</span> MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-</code></pre>
-
-<h3 id="参考文章">参考文章</h3>
-
+</code></pre></div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="https://www.softwarecollections.org/en/">https://www.softwarecollections.org/en/</a></li>
 <li><a href="https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/">https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/</a></li>
@@ -335,7 +317,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_init/" />
@@ -54,7 +54,6 @@
 <meta property="og:title" content="cgroup源码分析2——cgroup的初始化" />
 <meta property="og:description" content="本文详细分析了cgroup初始化的过程。
 
-
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 " />
 <meta property="og:type" content="article" />
@@ -64,14 +63,11 @@
 <meta itemprop="name" content="cgroup源码分析2——cgroup的初始化">
 <meta itemprop="description" content="本文详细分析了cgroup初始化的过程。
 
-
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 ">
-
-
-<meta itemprop="datePublished" content="2018-08-23T22:50:33&#43;08:00" />
-<meta itemprop="dateModified" content="2018-08-23T22:50:33&#43;08:00" />
-<meta itemprop="wordCount" content="6223">
+<meta itemprop="datePublished" content="2018-08-23T22:50:33+08:00" />
+<meta itemprop="dateModified" content="2018-08-23T22:50:33+08:00" />
+<meta itemprop="wordCount" content="6218">
 
 
 
@@ -79,7 +75,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="cgroup源码分析2——cgroup的初始化"/>
 <meta name="twitter:description" content="本文详细分析了cgroup初始化的过程。
-
 
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 "/>
@@ -168,7 +163,7 @@
               <a href="/categories/cgroup/"> cgroup </a>
             
           </div>
-        <span class="more-meta"> 6223 words </span>
+        <span class="more-meta"> 6218 words </span>
         <span class="more-meta"> 13 mins read </span>
         
       </div>
@@ -181,27 +176,19 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#cgroupfs-root-结构">cgroupfs_root 结构</a></li>
-<li><a href="#cgroup-subsys-结构">cgroup_subsys 结构</a></li>
-<li><a href="#几个全局变量">几个全局变量</a></li>
-<li><a href="#cgroups的初始化">cgroups的初始化</a>
-<ul>
-<li><a href="#cgroup-init-early">cgroup_init_early</a></li>
-<li><a href="#cgroup-init">cgroup_init</a></li>
-<li><a href="#cgroup-init-subsys">cgroup_init_subsys</a></li>
-<li><a href="#初始化后mount前这些数据结构的关系图">初始化后mount前这些数据结构的关系图</a></li>
-</ul></li>
-<li><a href="#proc-cgroups-实现分析">/proc/cgroups 实现分析</a></li>
-<li><a href="#crash-查看cgroup的一些数据结构的关系">crash 查看cgroup的一些数据结构的关系</a></li>
-<li><a href="#cgroup-subsys中的use-id">cgroup subsys中的use_id</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#cgroupfs_root-结构">cgroupfs_root 结构</a></li>
+        <li><a href="#cgroup_subsys-结构">cgroup_subsys 结构</a></li>
+        <li><a href="#几个全局变量">几个全局变量</a></li>
+        <li><a href="#cgroups的初始化">cgroups的初始化</a></li>
+        <li><a href="#proccgroups-实现分析">/proc/cgroups 实现分析</a></li>
+        <li><a href="#crash-查看cgroup的一些数据结构的关系">crash 查看cgroup的一些数据结构的关系</a></li>
+        <li><a href="#cgroup-subsys中的use_id">cgroup subsys中的use_id</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -209,67 +196,60 @@
     
     <div class="post-content">
       <p>本文详细分析了<code>cgroup</code>初始化的过程。</p>
-
 <blockquote>
 <p>本文基于<code>3.10.0-862.el7.x86_64</code>版本kernel进行分析。</p>
 </blockquote>
-
 <p>在分析初始化之前，我们需要看一下层级和子系统对应的结构体以及几个重要的全局变量。</p>
-
 <p>层级对应的结构体为：<code>cgroupfs_root</code>，子系统对应的结构体为<code>cgroup_subsys</code>.</p>
+<h3 id="cgroupfs_root-结构">cgroupfs_root 结构</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * A cgroupfs_root represents the root of a cgroup hierarchy, and may be
+</span><span style="color:#75715e"> * associated with a superblock to form an active hierarchy.  This is
+</span><span style="color:#75715e"> * internal to cgroup core.  Don&#39;t access directly from controllers.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">struct</span> cgroupfs_root {
+        <span style="color:#66d9ef">struct</span> super_block <span style="color:#f92672">*</span>sb;
 
-<h3 id="cgroupfs-root-结构">cgroupfs_root 结构</h3>
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * The bitmask of subsystems intended to be attached to this
+</span><span style="color:#75715e">         * hierarchy
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> subsys_mask;
 
-<pre><code class="language-C">/*
- * A cgroupfs_root represents the root of a cgroup hierarchy, and may be
- * associated with a superblock to form an active hierarchy.  This is
- * internal to cgroup core.  Don't access directly from controllers.
- */
-struct cgroupfs_root {
-        struct super_block *sb;
+        <span style="color:#75715e">/* Unique id for this hierarchy. */</span>
+        <span style="color:#66d9ef">int</span> hierarchy_id;
 
-        /*
-         * The bitmask of subsystems intended to be attached to this
-         * hierarchy
-         */
-        unsigned long subsys_mask;
+        <span style="color:#75715e">/* The bitmask of subsystems currently attached to this hierarchy */</span>
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> actual_subsys_mask;
 
-        /* Unique id for this hierarchy. */
-        int hierarchy_id;
+        <span style="color:#75715e">/* A list running through the attached subsystems */</span>
+        <span style="color:#66d9ef">struct</span> list_head subsys_list;
 
-        /* The bitmask of subsystems currently attached to this hierarchy */
-        unsigned long actual_subsys_mask;
+        <span style="color:#75715e">/* The root cgroup for this hierarchy */</span>
+        <span style="color:#66d9ef">struct</span> cgroup top_cgroup;
 
-        /* A list running through the attached subsystems */
-        struct list_head subsys_list;
+        <span style="color:#75715e">/* Tracks how many cgroups are currently defined in hierarchy.*/</span>
+        <span style="color:#66d9ef">int</span> number_of_cgroups;
 
-        /* The root cgroup for this hierarchy */
-        struct cgroup top_cgroup;
+        <span style="color:#75715e">/* A list running through the active hierarchies */</span>
+        <span style="color:#66d9ef">struct</span> list_head root_list;
 
-        /* Tracks how many cgroups are currently defined in hierarchy.*/
-        int number_of_cgroups;
+        <span style="color:#75715e">/* All cgroups on this root, cgroup_mutex protected */</span>
+        <span style="color:#66d9ef">struct</span> list_head allcg_list;
 
-        /* A list running through the active hierarchies */
-        struct list_head root_list;
+        <span style="color:#75715e">/* Hierarchy-specific flags */</span>
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> flags;
 
-        /* All cgroups on this root, cgroup_mutex protected */
-        struct list_head allcg_list;
+        <span style="color:#75715e">/* IDs for cgroups in this hierarchy */</span>
+        <span style="color:#66d9ef">struct</span> ida cgroup_ida;
 
-        /* Hierarchy-specific flags */
-        unsigned long flags;
+        <span style="color:#75715e">/* The path to use for release notifications. */</span>
+        <span style="color:#66d9ef">char</span> release_agent_path[PATH_MAX];
 
-        /* IDs for cgroups in this hierarchy */
-        struct ida cgroup_ida;
-
-        /* The path to use for release notifications. */
-        char release_agent_path[PATH_MAX];
-
-        /* The name for this hierarchy - may be empty */
-        char name[MAX_CGROUP_ROOT_NAMELEN];
+        <span style="color:#75715e">/* The name for this hierarchy - may be empty */</span>
+        <span style="color:#66d9ef">char</span> name[MAX_CGROUP_ROOT_NAMELEN];
 };
-</code></pre>
-
-<ul>
+</code></pre></div><ul>
 <li><code>sb</code>指向该层级关联的文件系统超级块</li>
 <li><code>subsys_mask</code>和<code>actual_subsys_mask</code>分别指向将要附加到层级的子系统和现在实际附加到层级的子系统，在子系统附加到层级时使用。</li>
 <li><code>hierarchy_id</code>是该层级唯一的id</li>
@@ -278,89 +258,81 @@ struct cgroupfs_root {
 <li><code>root_list</code>是一个嵌入的list_head，用于将系统所有的层级连成链表</li>
 <li><code>subsys_list</code>是一个链表，该链表将附着于该挂载点上的子系统链接到一起</li>
 </ul>
-
-<h3 id="cgroup-subsys-结构">cgroup_subsys 结构</h3>
-
+<h3 id="cgroup_subsys-结构">cgroup_subsys 结构</h3>
 <p>子系统对应的数据结构为：<code>cgroup_subsys</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * Control Group subsystem type.
+</span><span style="color:#75715e"> * See Documentation/cgroups/cgroups.txt for details
+</span><span style="color:#75715e"> */</span>
 
-<pre><code class="language-C">/*
- * Control Group subsystem type.
- * See Documentation/cgroups/cgroups.txt for details
- */
+<span style="color:#66d9ef">struct</span> cgroup_subsys {
+        <span style="color:#66d9ef">struct</span> cgroup_subsys_state <span style="color:#f92672">*</span>(<span style="color:#f92672">*</span>css_alloc)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp);
+        <span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>css_online)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp);
+        <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>css_offline)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp);
+        <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>css_free)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp);
 
-struct cgroup_subsys {
-        struct cgroup_subsys_state *(*css_alloc)(struct cgroup *cgrp);
-        int (*css_online)(struct cgroup *cgrp);
-        void (*css_offline)(struct cgroup *cgrp);
-        void (*css_free)(struct cgroup *cgrp);
+        <span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>can_attach)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, <span style="color:#66d9ef">struct</span> cgroup_taskset <span style="color:#f92672">*</span>tset);
+        <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>cancel_attach)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, <span style="color:#66d9ef">struct</span> cgroup_taskset <span style="color:#f92672">*</span>tset);
+        <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>attach)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, <span style="color:#66d9ef">struct</span> cgroup_taskset <span style="color:#f92672">*</span>tset);
+        RH_KABI_REPLACE(<span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>fork)(<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>task),
+                        <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>fork)(<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>task, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>priv))
+        <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>exit)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>old_cgrp,
+                     <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>task);
+        <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>bind)(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>root);
 
-        int (*can_attach)(struct cgroup *cgrp, struct cgroup_taskset *tset);
-        void (*cancel_attach)(struct cgroup *cgrp, struct cgroup_taskset *tset);
-        void (*attach)(struct cgroup *cgrp, struct cgroup_taskset *tset);
-        RH_KABI_REPLACE(void (*fork)(struct task_struct *task),
-                        void (*fork)(struct task_struct *task, void *priv))
-        void (*exit)(struct cgroup *cgrp, struct cgroup *old_cgrp,
-                     struct task_struct *task);
-        void (*bind)(struct cgroup *root);
+        <span style="color:#66d9ef">int</span> subsys_id;
+        <span style="color:#66d9ef">int</span> disabled;
+        <span style="color:#66d9ef">int</span> early_init;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * True if this subsys uses ID. ID is not available before cgroup_init()
+</span><span style="color:#75715e">         * (not available in early_init time.)
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">bool</span> use_id;
 
-        int subsys_id;
-        int disabled;
-        int early_init;
-        /*
-         * True if this subsys uses ID. ID is not available before cgroup_init()
-         * (not available in early_init time.)
-         */
-        bool use_id;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * If %false, this subsystem is properly hierarchical -
+</span><span style="color:#75715e">         * configuration, resource accounting and restriction on a parent
+</span><span style="color:#75715e">         * cgroup cover those of its children.  If %true, hierarchy support
+</span><span style="color:#75715e">         * is broken in some ways - some subsystems ignore hierarchy
+</span><span style="color:#75715e">         * completely while others are only implemented half-way.
+</span><span style="color:#75715e">         *
+</span><span style="color:#75715e">         * It&#39;s now disallowed to create nested cgroups if the subsystem is
+</span><span style="color:#75715e">         * broken and cgroup core will emit a warning message on such
+</span><span style="color:#75715e">         * cases.  Eventually, all subsystems will be made properly
+</span><span style="color:#75715e">         * hierarchical and this will go away.
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">bool</span> broken_hierarchy;
+        <span style="color:#66d9ef">bool</span> warned_broken_hierarchy;
 
-        /*
-         * If %false, this subsystem is properly hierarchical -
-         * configuration, resource accounting and restriction on a parent
-         * cgroup cover those of its children.  If %true, hierarchy support
-         * is broken in some ways - some subsystems ignore hierarchy
-         * completely while others are only implemented half-way.
-         *
-         * It's now disallowed to create nested cgroups if the subsystem is
-         * broken and cgroup core will emit a warning message on such
-         * cases.  Eventually, all subsystems will be made properly
-         * hierarchical and this will go away.
-         */
-        bool broken_hierarchy;
-        bool warned_broken_hierarchy;
+<span style="color:#75715e">#define MAX_CGROUP_TYPE_NAMELEN 32
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>name;
 
-#define MAX_CGROUP_TYPE_NAMELEN 32
-        const char *name;
-
-        /*
-         * Link to parent, and list entry in parent's children.
-         * Protected by cgroup_lock()
-         */
-        struct cgroupfs_root *root;
-        struct list_head sibling;
-        /* used when use_id == true */
-        struct idr idr;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * Link to parent, and list entry in parent&#39;s children.
+</span><span style="color:#75715e">         * Protected by cgroup_lock()
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root;
+        <span style="color:#66d9ef">struct</span> list_head sibling;
+        <span style="color:#75715e">/* used when use_id == true */</span>
+        <span style="color:#66d9ef">struct</span> idr idr;
         spinlock_t id_lock;
 
-        /* list of cftype_sets */
-        struct list_head cftsets;
+        <span style="color:#75715e">/* list of cftype_sets */</span>
+        <span style="color:#66d9ef">struct</span> list_head cftsets;
 
-        /* base cftypes, automatically [de]registered with subsys itself */
-        struct cftype *base_cftypes;
-        struct cftype_set base_cftset;
+        <span style="color:#75715e">/* base cftypes, automatically [de]registered with subsys itself */</span>
+        <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>base_cftypes;
+        <span style="color:#66d9ef">struct</span> cftype_set base_cftset;
 
-        /* should be defined only by modular subsystems */
-        struct module *module;
+        <span style="color:#75715e">/* should be defined only by modular subsystems */</span>
+        <span style="color:#66d9ef">struct</span> module <span style="color:#f92672">*</span>module;
 
-        RH_KABI_EXTEND(int (*can_fork)(struct task_struct *task, void **priv_p))
-        RH_KABI_EXTEND(void (*cancel_fork)(struct task_struct *task, void *priv))
+        RH_KABI_EXTEND(<span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>can_fork)(<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>task, <span style="color:#66d9ef">void</span> <span style="color:#f92672">**</span>priv_p))
+        RH_KABI_EXTEND(<span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>cancel_fork)(<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>task, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>priv))
 };	
-</code></pre>
-
-<p><code>cgroup_subsys</code>定义了一组操作，让各个子系统根据各自的需要去实现。这个相当于<code>C++</code>中抽象基类，然后各个特定的子系统对应<code>cgroup_subsys</code>则是实现了相应操作的子类。</p>
-
+</code></pre></div><p><code>cgroup_subsys</code>定义了一组操作，让各个子系统根据各自的需要去实现。这个相当于<code>C++</code>中抽象基类，然后各个特定的子系统对应<code>cgroup_subsys</code>则是实现了相应操作的子类。</p>
 <p>类似的思想还被用在了<code>cgroup_subsys_state</code>中，<code>cgroup_subsys_state</code>并未定义控制信息，而只是定义了各个子系统都需要的共同信息，比如该<code>cgroup_subsys_state</code>从属的<code>cgroup</code>。然后各个子系统再根据各自的需要去定义自己的进程控制信息结构体，最后在各自的结构体中将<code>cgroup_subsys_state</code>包含进去，这样通过<code>Linux</code>内核的<code>container_of</code>等宏就可以通过<code>cgroup_subsys_state</code>来获取相应的结构体。</p>
-
 <h3 id="几个全局变量">几个全局变量</h3>
-
 <ul>
 <li><code>init_css_set</code>是默认的<code>css_set</code>。在还没有其他<code>cgroup子系统</code>被<code>mount</code>时，它被<code>init</code>和<code>其子进程</code>来使用。</li>
 <li><code>css_set_count</code>用来描述当前系统上有多少个<code>css_set</code>。</li>
@@ -371,135 +343,120 @@ struct cgroup_subsys {
 <li><code>init_css_set_link</code>: 用于链接<code>init_css_set</code>和<code>dummytop</code>的<code>cg_cgroup_link</code>。</li>
 <li><code>struct cgroup_subsys *subsys[CGROUP_SUBSYS_COUNT]</code>数组，该数组保存了所有子系统（<code>cgroup_subsys</code>）的信息</li>
 </ul>
-
 <h3 id="cgroups的初始化">cgroups的初始化</h3>
-
 <p>在内核过程中，由于各个<code>cgroup</code>子系统的特点，<code>cgroup</code>的初始分为两部分：</p>
-
 <ul>
 <li><code>cgroup_init_early</code></li>
 <li><code>cgroup_init</code></li>
 </ul>
-
-<h4 id="cgroup-init-early">cgroup_init_early</h4>
-
+<h4 id="cgroup_init_early">cgroup_init_early</h4>
 <p><code>cgroup_init_early</code>用来初始化需要尽早初始化的子系统。一般这些需要尽早初始化的子系统都包括：<code>cpuset</code>，<code>cpu</code>，<code>cpuacct</code>。</p>
-
-<pre><code class="language-c">/**
- * cgroup_init_early - cgroup initialization at system boot
- *
- * Initialize cgroups at system boot, and initialize any
- * subsystems that request early init.
- */
-int __init cgroup_init_early(void)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * cgroup_init_early - cgroup initialization at system boot
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * Initialize cgroups at system boot, and initialize any
+</span><span style="color:#75715e"> * subsystems that request early init.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">cgroup_init_early</span>(<span style="color:#66d9ef">void</span>)
 {
-        int i;
-        atomic_set(&amp;init_css_set.refcount, 1);
-        INIT_LIST_HEAD(&amp;init_css_set.cg_links);
-        INIT_LIST_HEAD(&amp;init_css_set.tasks);
-        INIT_HLIST_NODE(&amp;init_css_set.hlist);
-        css_set_count = 1;
-        init_cgroup_root(&amp;rootnode);
-        root_count = 1;
-        init_task.cgroups = &amp;init_css_set;
+        <span style="color:#66d9ef">int</span> i;
+        atomic_set(<span style="color:#f92672">&amp;</span>init_css_set.refcount, <span style="color:#ae81ff">1</span>);
+        INIT_LIST_HEAD(<span style="color:#f92672">&amp;</span>init_css_set.cg_links);
+        INIT_LIST_HEAD(<span style="color:#f92672">&amp;</span>init_css_set.tasks);
+        INIT_HLIST_NODE(<span style="color:#f92672">&amp;</span>init_css_set.hlist);
+        css_set_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+        init_cgroup_root(<span style="color:#f92672">&amp;</span>rootnode);
+        root_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+        init_task.cgroups <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>init_css_set;
 
-        init_css_set_link.cg = &amp;init_css_set;
-        init_css_set_link.cgrp = dummytop;
-        list_add(&amp;init_css_set_link.cgrp_link_list,
-                 &amp;rootnode.top_cgroup.css_sets);
-        list_add(&amp;init_css_set_link.cg_link_list,
-                 &amp;init_css_set.cg_links);
+        init_css_set_link.cg <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>init_css_set;
+        init_css_set_link.cgrp <span style="color:#f92672">=</span> dummytop;
+        list_add(<span style="color:#f92672">&amp;</span>init_css_set_link.cgrp_link_list,
+                 <span style="color:#f92672">&amp;</span>rootnode.top_cgroup.css_sets);
+        list_add(<span style="color:#f92672">&amp;</span>init_css_set_link.cg_link_list,
+                 <span style="color:#f92672">&amp;</span>init_css_set.cg_links);
 
-        for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
-                struct cgroup_subsys *ss = subsys[i];
+        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> CGROUP_SUBSYS_COUNT; i<span style="color:#f92672">++</span>) {
+                <span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss <span style="color:#f92672">=</span> subsys[i];
 
-                /* at bootup time, we don't worry about modular subsystems */
-                if (!ss || ss-&gt;module)
-                        continue;
-				// 这里做了一些基本的检查
-                BUG_ON(!ss-&gt;name);
-                BUG_ON(strlen(ss-&gt;name) &gt; MAX_CGROUP_TYPE_NAMELEN);
-                BUG_ON(!ss-&gt;css_alloc);
-                BUG_ON(!ss-&gt;css_free);
-                if (ss-&gt;subsys_id != i) {
-                        printk(KERN_ERR &quot;cgroup: Subsys %s id == %d\n&quot;,
-                               ss-&gt;name, ss-&gt;subsys_id);
+                <span style="color:#75715e">/* at bootup time, we don&#39;t worry about modular subsystems */</span>
+                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>ss <span style="color:#f92672">||</span> ss<span style="color:#f92672">-&gt;</span>module)
+                        <span style="color:#66d9ef">continue</span>;
+				<span style="color:#75715e">// 这里做了一些基本的检查
+</span><span style="color:#75715e"></span>                BUG_ON(<span style="color:#f92672">!</span>ss<span style="color:#f92672">-&gt;</span>name);
+                BUG_ON(strlen(ss<span style="color:#f92672">-&gt;</span>name) <span style="color:#f92672">&gt;</span> MAX_CGROUP_TYPE_NAMELEN);
+                BUG_ON(<span style="color:#f92672">!</span>ss<span style="color:#f92672">-&gt;</span>css_alloc);
+                BUG_ON(<span style="color:#f92672">!</span>ss<span style="color:#f92672">-&gt;</span>css_free);
+                <span style="color:#66d9ef">if</span> (ss<span style="color:#f92672">-&gt;</span>subsys_id <span style="color:#f92672">!=</span> i) {
+                        printk(KERN_ERR <span style="color:#e6db74">&#34;cgroup: Subsys %s id == %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
+                               ss<span style="color:#f92672">-&gt;</span>name, ss<span style="color:#f92672">-&gt;</span>subsys_id);
                         BUG();
                 }
 
-                if (ss-&gt;early_init)//只有当early_init为1时，才会进行初始化
-                        cgroup_init_subsys(ss);
+                <span style="color:#66d9ef">if</span> (ss<span style="color:#f92672">-&gt;</span>early_init)<span style="color:#75715e">//只有当early_init为1时，才会进行初始化
+</span><span style="color:#75715e"></span>                        cgroup_init_subsys(ss);
         }
-        return 0;
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
-</code></pre>
-
-<p>该函数的主要功能如下：</p>
-
+</code></pre></div><p>该函数的主要功能如下：</p>
 <ul>
 <li>初始化<code>init_css_set</code>中的成员变量和几个全局变量<code>css_set_count</code>、<code>root_count</code>、<code>rootnode</code>和<code>init_css_set_link</code>。</li>
 <li>初始化<code>cgroup</code>子系统<code>cpuset</code>，<code>cpu</code>，<code>cpuacct</code>。</li>
 </ul>
-
-<h4 id="cgroup-init">cgroup_init</h4>
-
+<h4 id="cgroup_init">cgroup_init</h4>
 <p><code>cgroup_init</code>用来完成<code>cgroup</code>的初始化，其代码如下：</p>
-
-<pre><code class="language-c">/**
- * cgroup_init - cgroup initialization
- *
- * Register cgroup filesystem and /proc file, and initialize
- * any subsystems that didn't request early init.
- */
-int __init cgroup_init(void)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * cgroup_init - cgroup initialization
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * Register cgroup filesystem and /proc file, and initialize
+</span><span style="color:#75715e"> * any subsystems that didn&#39;t request early init.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">cgroup_init</span>(<span style="color:#66d9ef">void</span>)
 {       
-        int err;
-        int i;
-        unsigned long key;
+        <span style="color:#66d9ef">int</span> err;
+        <span style="color:#66d9ef">int</span> i;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> key;
         
-        err = bdi_init(&amp;cgroup_backing_dev_info);
-        if (err)
-                return err;
+        err <span style="color:#f92672">=</span> bdi_init(<span style="color:#f92672">&amp;</span>cgroup_backing_dev_info);
+        <span style="color:#66d9ef">if</span> (err)
+                <span style="color:#66d9ef">return</span> err;
         
-        for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
-                struct cgroup_subsys *ss = subsys[i];
+        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> CGROUP_SUBSYS_COUNT; i<span style="color:#f92672">++</span>) {
+                <span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss <span style="color:#f92672">=</span> subsys[i];
                 
-                /* at bootup time, we don't worry about modular subsystems */
-                if (!ss || ss-&gt;module)
-                        continue;
-                if (!ss-&gt;early_init)
+                <span style="color:#75715e">/* at bootup time, we don&#39;t worry about modular subsystems */</span>
+                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>ss <span style="color:#f92672">||</span> ss<span style="color:#f92672">-&gt;</span>module)
+                        <span style="color:#66d9ef">continue</span>;
+                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>ss<span style="color:#f92672">-&gt;</span>early_init)
                         cgroup_init_subsys(ss);
-                if (ss-&gt;use_id)
-                        cgroup_init_idr(ss, init_css_set.subsys[ss-&gt;subsys_id]);
+                <span style="color:#66d9ef">if</span> (ss<span style="color:#f92672">-&gt;</span>use_id)
+                        cgroup_init_idr(ss, init_css_set.subsys[ss<span style="color:#f92672">-&gt;</span>subsys_id]);
         }
         
-        /* Add init_css_set to the hash table */
-        key = css_set_hash(init_css_set.subsys);
-        hash_add(css_set_table, &amp;init_css_set.hlist, key);
-        BUG_ON(!init_root_id(&amp;rootnode));
+        <span style="color:#75715e">/* Add init_css_set to the hash table */</span>
+        key <span style="color:#f92672">=</span> css_set_hash(init_css_set.subsys);
+        hash_add(css_set_table, <span style="color:#f92672">&amp;</span>init_css_set.hlist, key);
+        BUG_ON(<span style="color:#f92672">!</span>init_root_id(<span style="color:#f92672">&amp;</span>rootnode));
         
-        err = sysfs_create_mount_point(fs_kobj, &quot;cgroup&quot;);
-        if (err)
-                goto out;
+        err <span style="color:#f92672">=</span> sysfs_create_mount_point(fs_kobj, <span style="color:#e6db74">&#34;cgroup&#34;</span>);
+        <span style="color:#66d9ef">if</span> (err)
+                <span style="color:#66d9ef">goto</span> out;
         
-        err = register_filesystem(&amp;cgroup_fs_type);
-        if (err &lt; 0) {
-                sysfs_remove_mount_point(fs_kobj, &quot;cgroup&quot;);
-                goto out;
+        err <span style="color:#f92672">=</span> register_filesystem(<span style="color:#f92672">&amp;</span>cgroup_fs_type);
+        <span style="color:#66d9ef">if</span> (err <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
+                sysfs_remove_mount_point(fs_kobj, <span style="color:#e6db74">&#34;cgroup&#34;</span>);
+                <span style="color:#66d9ef">goto</span> out;
         }
         
-        proc_create(&quot;cgroups&quot;, 0, NULL, &amp;proc_cgroupstats_operations);
+        proc_create(<span style="color:#e6db74">&#34;cgroups&#34;</span>, <span style="color:#ae81ff">0</span>, NULL, <span style="color:#f92672">&amp;</span>proc_cgroupstats_operations);
 
 out:    
-        if (err)
-                bdi_destroy(&amp;cgroup_backing_dev_info);
+        <span style="color:#66d9ef">if</span> (err)
+                bdi_destroy(<span style="color:#f92672">&amp;</span>cgroup_backing_dev_info);
         
-        return err;
+        <span style="color:#66d9ef">return</span> err;
 }
-</code></pre>
-
-<p>主要完成了如下工作：</p>
-
+</code></pre></div><p>主要完成了如下工作：</p>
 <ul>
 <li>初始化了其他几个子系统</li>
 <li>初始化<code>cgroup_backing_dev_info</code></li>
@@ -509,149 +466,138 @@ out:
 <li>注册<code>cgroup</code>文件系统类型</li>
 <li>创建<code>/proc/cgroups</code></li>
 </ul>
-
-<h4 id="cgroup-init-subsys">cgroup_init_subsys</h4>
-
+<h4 id="cgroup_init_subsys">cgroup_init_subsys</h4>
 <p>以上两个方法中都调用了<code>cgroup_init_subsys</code>，其代码如下：</p>
-
-<pre><code class="language-c">static void __init cgroup_init_subsys(struct cgroup_subsys *ss)                                                                          
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __init <span style="color:#a6e22e">cgroup_init_subsys</span>(<span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss)                                                                          
 {                                                                                                                                        
-        struct cgroup_subsys_state *css;                                                                                                 
+        <span style="color:#66d9ef">struct</span> cgroup_subsys_state <span style="color:#f92672">*</span>css;                                                                                                 
                                                                                                                                          
-        printk(KERN_INFO &quot;Initializing cgroup subsys %s\n&quot;, ss-&gt;name);                                                                   
+        printk(KERN_INFO <span style="color:#e6db74">&#34;Initializing cgroup subsys %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, ss<span style="color:#f92672">-&gt;</span>name);                                                                   
                                                                                                                                          
-        mutex_lock(&amp;cgroup_mutex);                                                                                                       
+        mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);                                                                                                       
                                                                                                                                          
-        /* init base cftset */                                                                                                           
+        <span style="color:#75715e">/* init base cftset */</span>                                                                                                           
         cgroup_init_cftsets(ss);                                                                                                         
                                                                                                                                          
-        /* Create the top cgroup state for this subsystem */                                                                             
-        list_add(&amp;ss-&gt;sibling, &amp;rootnode.subsys_list);                 //只是临时添加到   rootnode.subsys_list 链表中，后面会移走的。                                                               
-        ss-&gt;root = &amp;rootnode;                                                                                                            
-        css = ss-&gt;css_alloc(dummytop);                                                                                                   
-        /* We don't handle early failures gracefully */                                                                                  
+        <span style="color:#75715e">/* Create the top cgroup state for this subsystem */</span>                                                                             
+        list_add(<span style="color:#f92672">&amp;</span>ss<span style="color:#f92672">-&gt;</span>sibling, <span style="color:#f92672">&amp;</span>rootnode.subsys_list);                 <span style="color:#75715e">//只是临时添加到   rootnode.subsys_list 链表中，后面会移走的。                                                               
+</span><span style="color:#75715e"></span>        ss<span style="color:#f92672">-&gt;</span>root <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>rootnode;                                                                                                            
+        css <span style="color:#f92672">=</span> ss<span style="color:#f92672">-&gt;</span>css_alloc(dummytop);                                                                                                   
+        <span style="color:#75715e">/* We don&#39;t handle early failures gracefully */</span>                                                                                  
         BUG_ON(IS_ERR(css));                                                                                                             
         init_cgroup_css(css, ss, dummytop);                                                                                              
                                                                                                                                          
-        /* Update the init_css_set to contain a subsys                                                                                   
-         * pointer to this state - since the subsystem is                                                                                
-         * newly registered, all tasks and hence the                                                                                     
-         * init_css_set is in the subsystem's top cgroup. */                                                                             
-        init_css_set.subsys[ss-&gt;subsys_id] = css;                                                                                        
+        <span style="color:#75715e">/* Update the init_css_set to contain a subsys                                                                                   
+</span><span style="color:#75715e">         * pointer to this state - since the subsystem is                                                                                
+</span><span style="color:#75715e">         * newly registered, all tasks and hence the                                                                                     
+</span><span style="color:#75715e">         * init_css_set is in the subsystem&#39;s top cgroup. */</span>                                                                             
+        init_css_set.subsys[ss<span style="color:#f92672">-&gt;</span>subsys_id] <span style="color:#f92672">=</span> css;                                                                                        
                                                                                                                                          
-        need_forkexit_callback |= ss-&gt;fork || ss-&gt;exit;                                                                                  
+        need_forkexit_callback <span style="color:#f92672">|=</span> ss<span style="color:#f92672">-&gt;</span>fork <span style="color:#f92672">||</span> ss<span style="color:#f92672">-&gt;</span>exit;                                                                                  
                                                                                                                                          
-        /* At system boot, before all subsystems have been                                                                               
-         * registered, no tasks have been forked, so we don't                                                                            
-         * need to invoke fork callbacks here. */                                                                                        
-        BUG_ON(!list_empty(&amp;init_task.tasks));                                                                                           
+        <span style="color:#75715e">/* At system boot, before all subsystems have been                                                                               
+</span><span style="color:#75715e">         * registered, no tasks have been forked, so we don&#39;t                                                                            
+</span><span style="color:#75715e">         * need to invoke fork callbacks here. */</span>                                                                                        
+        BUG_ON(<span style="color:#f92672">!</span>list_empty(<span style="color:#f92672">&amp;</span>init_task.tasks));                                                                                           
                                                                                                                                          
         BUG_ON(online_css(ss, dummytop));                                                                                                
                                                                                                                                          
-        mutex_unlock(&amp;cgroup_mutex);                                                                                                     
+        mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);                                                                                                     
                                                                                                                                          
-        /* this function shouldn't be used with modular subsystems, since they                                                           
-         * need to register a subsys_id, among other things */                                                                           
-        BUG_ON(ss-&gt;module);                                                                                                              
+        <span style="color:#75715e">/* this function shouldn&#39;t be used with modular subsystems, since they                                                           
+</span><span style="color:#75715e">         * need to register a subsys_id, among other things */</span>                                                                           
+        BUG_ON(ss<span style="color:#f92672">-&gt;</span>module);                                                                                                              
 }                                                                                                                                        
     
-</code></pre>
-
-<ul>
+</code></pre></div><ul>
 <li>初始化<code>cgroup_subsys</code>的<code>cftsets</code></li>
 <li>分配<code>css</code></li>
 <li>初始化<code>dummytop</code>和<code>init_css_set</code>中对应的<code>subsys</code>数组</li>
 <li>调用<code>online_css</code></li>
 </ul>
-
 <h4 id="初始化后mount前这些数据结构的关系图">初始化后mount前这些数据结构的关系图</h4>
-
 <p>我所使用的系统为centos7，默认cgroup各个子系统的挂载是systemd完成的，由于没有办法让systemd不进行挂载，所以在系统启动之后，我们手动umount掉这些cgroup子系统的挂载，用来分析内核里的数据结构。操作方法如下：</p>
-
-<pre><code class="language-bash"># #查看有哪些cgroup
-# mount | grep cgroup
-tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,mode=755)
-cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xattr,release_agent=/usr/lib/systemd/systemd-cgroups-agent,name=systemd)
-cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,net_prio,net_cls)
-cgroup on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,pids)
-cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,cpuacct,cpu)
-cgroup on /sys/fs/cgroup/freezer type cgroup (rw,nosuid,nodev,noexec,relatime,freezer)
-cgroup on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,memory)
-cgroup on /sys/fs/cgroup/perf_event type cgroup (rw,nosuid,nodev,noexec,relatime,perf_event)
-cgroup on /sys/fs/cgroup/hugetlb type cgroup (rw,nosuid,nodev,noexec,relatime,hugetlb)
-cgroup on /sys/fs/cgroup/debug type cgroup (rw,nosuid,nodev,noexec,relatime,debug)
-cgroup on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,blkio)
-cgroup on /sys/fs/cgroup/cpuset type cgroup (rw,nosuid,nodev,noexec,relatime,cpuset)
-cgroup on /sys/fs/cgroup/devices type cgroup (rw,nosuid,nodev,noexec,relatime,devices)
-# # 将所有的进程都添加到各个子系统的root cgroup中
-# echo $$ &gt;  /sys/fs/cgroup/systemd/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/debug/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/blkio/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/cpu,cpuacct/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/cpuset/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/net_cls,net_prio/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/devices/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/hugetlb/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/pids/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/memory/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/freezer/cgroup.procs 
-# echo $$ &gt;  /sys/fs/cgroup/perf_event/cgroup.procs 
-# # 查看有哪些cgroup子系统除了root cgroup外有子cgroup
-# cat /proc/cgroups 
-#subsys_name	hierarchy	num_cgroups	enabled
-cpuset		6	1	1
-debug		2	1	1
-cpu		4	1	1
-cpuacct		4	1	1
-memory		10	1	1
-devices		7	101	1
-freezer		11	1	1
-net_cls		5	1	1
-blkio		3	1	1
-perf_event	12	1	1
-hugetlb		8	1	1
-pids		9	106	1
-net_prio	5	1	1 
-# # 从上面可以看出，pids和devices子系统已经创建了子cgroup，我们需要将其子cgroup中的进程都添加到root cgroup中
-# # 并删除除root cgroup外的所有的子cgroup，效果如下，显示每个子系统上的cgroup个数为1，即剩下的root cgroup了。
-# cat /proc/cgroups 
-#subsys_name	hierarchy	num_cgroups	enabled
-cpuset		6	1	1
-debug		2	1	1
-cpu		4	1	1
-cpuacct		4	1	1
-memory		10	1	1
-devices		7	1	1
-freezer		11	1	1
-net_cls		5	1	1
-blkio		3	1	1
-perf_event	12	1	1
-hugetlb		8	1	1
-pids		9	1	1
-net_prio	5	1	1
-# # 完成后，卸载到这些cgroup子系统
-# umount /sys/fs/cgroup/net_cls,net_prio
-# umount /sys/fs/cgroup/pids
-# umount /sys/fs/cgroup/cpu,cpuacct
-# umount /sys/fs/cgroup/freezer
-# umount /sys/fs/cgroup/memory
-# umount /sys/fs/cgroup/perf_event
-# umount /sys/fs/cgroup/hugetlb
-# umount /sys/fs/cgroup/debug
-# umount /sys/fs/cgroup/blkio
-# umount /sys/fs/cgroup/cpuset
-# umount /sys/fs/cgroup/devices
-# umount /sys/fs/cgroup/systemd
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># #查看有哪些cgroup</span>
+<span style="color:#75715e"># mount | grep cgroup</span>
+tmpfs on /sys/fs/cgroup type tmpfs <span style="color:#f92672">(</span>ro,nosuid,nodev,noexec,mode<span style="color:#f92672">=</span>755<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span style="color:#f92672">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span style="color:#f92672">=</span>systemd<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,net_prio,net_cls<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/pids type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,pids<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,cpuacct,cpu<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/freezer type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,freezer<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/memory type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,memory<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/perf_event type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,perf_event<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/hugetlb type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,hugetlb<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/debug type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,debug<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/blkio type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,blkio<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/cpuset type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,cpuset<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/devices type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,devices<span style="color:#f92672">)</span>
+<span style="color:#75715e"># # 将所有的进程都添加到各个子系统的root cgroup中</span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/systemd/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/debug/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/blkio/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/cpu,cpuacct/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/cpuset/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/net_cls,net_prio/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/devices/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/hugetlb/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/pids/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/memory/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/freezer/cgroup.procs </span>
+<span style="color:#75715e"># echo $$ &gt;  /sys/fs/cgroup/perf_event/cgroup.procs </span>
+<span style="color:#75715e"># # 查看有哪些cgroup子系统除了root cgroup外有子cgroup</span>
+<span style="color:#75715e"># cat /proc/cgroups </span>
+<span style="color:#75715e">#subsys_name	hierarchy	num_cgroups	enabled</span>
+cpuset		6	1	<span style="color:#ae81ff">1</span>
+debug		2	1	<span style="color:#ae81ff">1</span>
+cpu		4	1	<span style="color:#ae81ff">1</span>
+cpuacct		4	1	<span style="color:#ae81ff">1</span>
+memory		10	1	<span style="color:#ae81ff">1</span>
+devices		7	101	<span style="color:#ae81ff">1</span>
+freezer		11	1	<span style="color:#ae81ff">1</span>
+net_cls		5	1	<span style="color:#ae81ff">1</span>
+blkio		3	1	<span style="color:#ae81ff">1</span>
+perf_event	12	1	<span style="color:#ae81ff">1</span>
+hugetlb		8	1	<span style="color:#ae81ff">1</span>
+pids		9	106	<span style="color:#ae81ff">1</span>
+net_prio	5	1	<span style="color:#ae81ff">1</span> 
+<span style="color:#75715e"># # 从上面可以看出，pids和devices子系统已经创建了子cgroup，我们需要将其子cgroup中的进程都添加到root cgroup中</span>
+<span style="color:#75715e"># # 并删除除root cgroup外的所有的子cgroup，效果如下，显示每个子系统上的cgroup个数为1，即剩下的root cgroup了。</span>
+<span style="color:#75715e"># cat /proc/cgroups </span>
+<span style="color:#75715e">#subsys_name	hierarchy	num_cgroups	enabled</span>
+cpuset		6	1	<span style="color:#ae81ff">1</span>
+debug		2	1	<span style="color:#ae81ff">1</span>
+cpu		4	1	<span style="color:#ae81ff">1</span>
+cpuacct		4	1	<span style="color:#ae81ff">1</span>
+memory		10	1	<span style="color:#ae81ff">1</span>
+devices		7	1	<span style="color:#ae81ff">1</span>
+freezer		11	1	<span style="color:#ae81ff">1</span>
+net_cls		5	1	<span style="color:#ae81ff">1</span>
+blkio		3	1	<span style="color:#ae81ff">1</span>
+perf_event	12	1	<span style="color:#ae81ff">1</span>
+hugetlb		8	1	<span style="color:#ae81ff">1</span>
+pids		9	1	<span style="color:#ae81ff">1</span>
+net_prio	5	1	<span style="color:#ae81ff">1</span>
+<span style="color:#75715e"># # 完成后，卸载到这些cgroup子系统</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/net_cls,net_prio</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/pids</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/cpu,cpuacct</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/freezer</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/memory</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/perf_event</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/hugetlb</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/debug</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/blkio</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/cpuset</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/devices</span>
+<span style="color:#75715e"># umount /sys/fs/cgroup/systemd</span>
 umount: /sys/fs/cgroup/systemd: target is busy.
-        (In some cases useful info about processes that use
-         the device is found by lsof(8) or fuser(1))
-# mount | grep cgroup
-tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,mode=755)
-cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xattr,release_agent=/usr/lib/systemd/systemd-cgroups-agent,name=systemd)
-</code></pre>
-
-<p>可以看出，除了/sys/fs/cgroup/systemd不能umount外，其他子系统都umount成功了。此时<code>/proc/cgroups</code>的输出如下：</p>
-
+        <span style="color:#f92672">(</span>In some cases useful info about processes that use
+         the device is found by lsof<span style="color:#f92672">(</span>8<span style="color:#f92672">)</span> or fuser<span style="color:#f92672">(</span>1<span style="color:#f92672">))</span>
+<span style="color:#75715e"># mount | grep cgroup</span>
+tmpfs on /sys/fs/cgroup type tmpfs <span style="color:#f92672">(</span>ro,nosuid,nodev,noexec,mode<span style="color:#f92672">=</span>755<span style="color:#f92672">)</span>
+cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span style="color:#f92672">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span style="color:#f92672">=</span>systemd<span style="color:#f92672">)</span>
+</code></pre></div><p>可以看出，除了/sys/fs/cgroup/systemd不能umount外，其他子系统都umount成功了。此时<code>/proc/cgroups</code>的输出如下：</p>
 <pre><code># cat /proc/cgroups 
 #subsys_name	hierarchy	num_cgroups	enabled
 cpuset		0	1	1
@@ -667,227 +613,199 @@ perf_event	0	1	1
 hugetlb		0	1	1
 pids		0	1	1
 net_prio	0	1	1
-</code></pre>
-
-<p>可以看出，每个子系统的hierarchy id为0，且只有一个cgroup，即dummytop这个cgroup。</p>
-
+</code></pre><p>可以看出，每个子系统的hierarchy id为0，且只有一个cgroup，即dummytop这个cgroup。</p>
 <p>此时，我们就可以通过crash来分析这些数据结构的关系：</p>
-
 <ul>
-<li><p>由于系统上挂载了systemd这个cgroup，再加上rootnode这个dummy cgrouproot_fs，总共有两个cgrouproot_fs，所以root_count=2，而只有systemd对应的cgroupfs_root被链接到了roots这个链表上。</p>
-
+<li>由于系统上挂载了systemd这个cgroup，再加上rootnode这个dummy cgrouproot_fs，总共有两个cgrouproot_fs，所以root_count=2，而只有systemd对应的cgroupfs_root被链接到了roots这个链表上。</li>
+</ul>
 <pre><code>crash&gt; p root_count
 root_count = $1 = 2
 crash&gt; list -l cgroupfs_root.root_list -s cgroupfs_root.name -H roots
 ffff9d7d56f94308
-name = &quot;systemd\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000&quot;
-</code></pre></li>
-
-<li><p>rootnode的subsys_list应该包含了那13个未挂载的cgroup_subsys</p>
-
+  name = &quot;systemd\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000&quot;
+</code></pre><ul>
+<li>rootnode的subsys_list应该包含了那13个未挂载的cgroup_subsys</li>
+</ul>
 <pre><code>crash&gt; struct -o cgroupfs_root.subsys_list rootnode
 struct cgroupfs_root {
-[ffffffffa03ff020] struct list_head subsys_list;
+  [ffffffffa03ff020] struct list_head subsys_list;
 }
 crash&gt; list  -l cgroup_subsys.sibling -s cgroup_subsys.name,subsys_id -H ffffffffa03ff020
 ffffffff9ebf9f70
-name = 0xffffffff9ea9a8cc &quot;pids&quot;
-subsys_id = 11
+  name = 0xffffffff9ea9a8cc &quot;pids&quot;
+  subsys_id = 11
 ffffffff9ec83270
-name = 0xffffffff9eacb432 &quot;devices&quot;
-subsys_id = 5
+  name = 0xffffffff9eacb432 &quot;devices&quot;
+  subsys_id = 5
 ffffffff9ebfb590
-name = 0xffffffff9eaa6abb &quot;cpuset&quot;
-subsys_id = 0
+  name = 0xffffffff9eaa6abb &quot;cpuset&quot;
+  subsys_id = 0
 ffffffff9ec98e10
-name = 0xffffffff9eac4e39 &quot;blkio&quot;
-subsys_id = 8
+  name = 0xffffffff9eac4e39 &quot;blkio&quot;
+  subsys_id = 8
 ffffffff9ebf7ff0
-name = 0xffffffff9ea99ec6 &quot;debug&quot;
-subsys_id = 1
+  name = 0xffffffff9ea99ec6 &quot;debug&quot;
+  subsys_id = 1
 ffffffff9ed2f730
-name = 0xffffffff9eaa7164 &quot;hugetlb&quot;
-subsys_id = 10
+  name = 0xffffffff9eaa7164 &quot;hugetlb&quot;
+  subsys_id = 10
 ffffffff9ec54230
-name = 0xffffffff9ea9e4ec &quot;perf_event&quot;
-subsys_id = 9
+  name = 0xffffffff9ea9e4ec &quot;perf_event&quot;
+  subsys_id = 9
 ffffffff9ed2f590
-name = 0xffffffff9eaaf4d8 &quot;memory&quot;
-subsys_id = 4
+  name = 0xffffffff9eaaf4d8 &quot;memory&quot;
+  subsys_id = 4
 ffffffff9ebf9df0
-name = 0xffffffff9ea97da3 &quot;freezer&quot;
-subsys_id = 6
+  name = 0xffffffff9ea97da3 &quot;freezer&quot;
+  subsys_id = 6
 ffffffff9ebf1050
-name = 0xffffffff9ea97b50 &quot;cpuacct&quot;
-subsys_id = 3
+  name = 0xffffffff9ea97b50 &quot;cpuacct&quot;
+  subsys_id = 3
 ffffffff9ebeda90
-name = 0xffffffff9ea9baca &quot;cpu&quot;
-subsys_id = 2
+  name = 0xffffffff9ea9baca &quot;cpu&quot;
+  subsys_id = 2
 ffffffff9ece34b0
-name = 0xffffffff9eb2289a &quot;net_prio&quot;
-subsys_id = 12
+  name = 0xffffffff9eb2289a &quot;net_prio&quot;
+  subsys_id = 12
 ffffffff9ece3dd0
-name = 0xffffffff9eb22a9e &quot;net_cls&quot;
-subsys_id = 7
-</code></pre></li>
-
-<li><p>系统上这些cgroup对应的cgroup_subsys的成员root都执行了rootnode：</p>
-
+  name = 0xffffffff9eb22a9e &quot;net_cls&quot;
+  subsys_id = 7
+</code></pre><ul>
+<li>系统上这些cgroup对应的cgroup_subsys的成员root都执行了rootnode：</li>
+</ul>
 <pre><code>crash&gt; struct -o cgroupfs_root.subsys_list rootnode
 struct cgroupfs_root {
-[ffffffffa03ff020] struct list_head subsys_list;
+  [ffffffffa03ff020] struct list_head subsys_list;
 }
 crash&gt; p &amp;rootnode
 $13 = (struct cgroupfs_root *) 0xffffffffa03ff000
 crash&gt;  list  -l cgroup_subsys.sibling -s cgroup_subsys.root  -H ffffffffa03ff020
 ffffffff9ebf9f70
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ec83270
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ebfb590
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ec98e10
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ebf7ff0
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ed2f730
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ec54230
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ed2f590
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ebf9df0
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ebf1050
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ebeda90
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ece34b0
-root = 0xffffffffa03ff000
+  root = 0xffffffffa03ff000
 ffffffff9ece3dd0
-root = 0xffffffffa03ff000
-</code></pre></li>
-
-<li><p>这个时刻，系统上只有一个css_set，即<code>init_css_set</code>, 所有的进程的css_set都执向它：</p>
-
+  root = 0xffffffffa03ff000
+</code></pre><ul>
+<li>这个时刻，系统上只有一个css_set，即<code>init_css_set</code>, 所有的进程的css_set都执向它：</li>
+</ul>
 <pre><code>crash&gt; p css_set_count
 css_set_count = $1 = 1
-</code></pre></li>
-
-<li><p>dummytop和init_css_set的成员subsys执行的css都相同：</p>
-
+</code></pre><ul>
+<li>dummytop和init_css_set的成员subsys执行的css都相同：</li>
+</ul>
 <pre><code>crash&gt; p &amp;rootnode.top_cgroup
 $18 = (struct cgroup *) 0xffffffffa03ff030
 crash&gt; cgroup.subsys 0xffffffffa03ff030
-subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
+  subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
 crash&gt; css_set.subsys init_css_set
-subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
-</code></pre></li>
-</ul>
-
-<p>所以，<code>cgroup_init_early</code> 和<code>cgroup_init</code> 执行完后，这些数据结构之间的关系如下图所示：</p>
-
-<p><img src="./cgroup_init.svg" alt="enter description here" title="cgroup_init" /></p>
-
-<h3 id="proc-cgroups-实现分析">/proc/cgroups 实现分析</h3>
-
+  subsys = {0xffffffff9ebfb2a0, 0xffff9d7d5a913a00, 0xffffffff9f5ac1c0, 0xffffffff9ebf1560, 0xffff9d7d5a96d000, 0xffff9d7d5a919480, 0xffff9d7d5a919540, 0xffff9d7d5a913a80, 0xffffffff9ec990c0, 0xffff9d7d5a913b00, 0xffff9d7d5a919600, 0xffff9d7d5a9196c0, 0xffff9d7d5a913b80}
+</code></pre><p>所以，<code>cgroup_init_early</code> 和<code>cgroup_init</code> 执行完后，这些数据结构之间的关系如下图所示：</p>
+<p><img src="./cgroup_init.svg" alt="enter description here" title="cgroup_init"></p>
+<h3 id="proccgroups-实现分析">/proc/cgroups 实现分析</h3>
 <p>在<code>cgroup</code>初始化函数<code>cgroup_init</code>中会调用如下函数进行注册<code>/proc/cgroups</code>接口：</p>
-
-<pre><code class="language-c">int __init cgroup_init(void) 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">cgroup_init</span>(<span style="color:#66d9ef">void</span>) 
 {
 ...
 ...
-		proc_create(&quot;cgroups&quot;, 0, NULL, &amp;proc_cgroupstats_operations);
+		proc_create(<span style="color:#e6db74">&#34;cgroups&#34;</span>, <span style="color:#ae81ff">0</span>, NULL, <span style="color:#f92672">&amp;</span>proc_cgroupstats_operations);
 ...
 ...
 }
-</code></pre>
-
-<p><code>proc_cgroupstats_operations</code>的实现如下：</p>
-
-<pre><code class="language-c">/* Display information about each subsystem and each hierarchy */
-static int proc_cgroupstats_show(struct seq_file *m, void *v)
+</code></pre></div><p><code>proc_cgroupstats_operations</code>的实现如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* Display information about each subsystem and each hierarchy */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">proc_cgroupstats_show</span>(<span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>m, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>v)
 {
-        int i;
+        <span style="color:#66d9ef">int</span> i;
 
-        seq_puts(m, &quot;#subsys_name\thierarchy\tnum_cgroups\tenabled\n&quot;);
-        /*   
-         * ideally we don't want subsystems moving around while we do this.
-         * cgroup_mutex is also necessary to guarantee an atomic snapshot of
-         * subsys/hierarchy state.
-         */
-        mutex_lock(&amp;cgroup_mutex);
-        for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
-                struct cgroup_subsys *ss = subsys[i];
-                if (ss == NULL) // ss 可能为空
-                        continue;
-                seq_printf(m, &quot;%s\t%d\t%d\t%d\n&quot;,
-                           ss-&gt;name, ss-&gt;root-&gt;hierarchy_id,
-                           ss-&gt;root-&gt;number_of_cgroups, !ss-&gt;disabled);
+        seq_puts(m, <span style="color:#e6db74">&#34;#subsys_name</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">hierarchy</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">num_cgroups</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">enabled</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+        <span style="color:#75715e">/*   
+</span><span style="color:#75715e">         * ideally we don&#39;t want subsystems moving around while we do this.
+</span><span style="color:#75715e">         * cgroup_mutex is also necessary to guarantee an atomic snapshot of
+</span><span style="color:#75715e">         * subsys/hierarchy state.
+</span><span style="color:#75715e">         */</span>
+        mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
+        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> CGROUP_SUBSYS_COUNT; i<span style="color:#f92672">++</span>) {
+                <span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss <span style="color:#f92672">=</span> subsys[i];
+                <span style="color:#66d9ef">if</span> (ss <span style="color:#f92672">==</span> NULL) <span style="color:#75715e">// ss 可能为空
+</span><span style="color:#75715e"></span>                        <span style="color:#66d9ef">continue</span>;
+                seq_printf(m, <span style="color:#e6db74">&#34;%s</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">%d</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">%d</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
+                           ss<span style="color:#f92672">-&gt;</span>name, ss<span style="color:#f92672">-&gt;</span>root<span style="color:#f92672">-&gt;</span>hierarchy_id,
+                           ss<span style="color:#f92672">-&gt;</span>root<span style="color:#f92672">-&gt;</span>number_of_cgroups, <span style="color:#f92672">!</span>ss<span style="color:#f92672">-&gt;</span>disabled);
         }    
-        mutex_unlock(&amp;cgroup_mutex);
-        return 0;
+        mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
-static int cgroupstats_open(struct inode *inode, struct file *file)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroupstats_open</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>inode, <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file)
 {
-        return single_open(file, proc_cgroupstats_show, NULL);
+        <span style="color:#66d9ef">return</span> single_open(file, proc_cgroupstats_show, NULL);
 }
 
-static const struct file_operations proc_cgroupstats_operations = {
-        .open = cgroupstats_open,
-        .read = seq_read,
-        .llseek = seq_lseek,
-        .release = single_release,
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> file_operations proc_cgroupstats_operations <span style="color:#f92672">=</span> {
+        .open <span style="color:#f92672">=</span> cgroupstats_open,
+        .read <span style="color:#f92672">=</span> seq_read,
+        .llseek <span style="color:#f92672">=</span> seq_lseek,
+        .release <span style="color:#f92672">=</span> single_release,
 };
-</code></pre>
-
-<p>从上可以看出，这些信息都来自于数组<code>subsys</code>和其成员<code>subsys-&gt;root</code>（类型为<code>cgroupfs_root</code>）。<code>/proc/cgroups</code>示例如下：</p>
-
-<pre><code class="language-bash">~  # cat /proc/cgroups
-#subsys_name    hierarchy       num_cgroups     enabled
-cpuset  	3       2       1
-debug   	4       3       1
-cpu     	5       40      1
-cpuacct 	5       40      1
-memory  	2       44      1
-devices 	11      42      1
-freezer 	10      2       1
-net_cls 	12      2       1
-blkio   	8       42      1
-perf_event      6       2       1
-hugetlb 	7       2       1
-pids    	9       109     1
-net_prio        12      2       1
-</code></pre>
-
-<p>从上可以看出，
-* 第一列是<code>cgroup</code>子系统的名称
-* 第二列的<code>hierarchy</code>从<code>2</code>开始，那么编号为<code>1</code>的<code>hierarchy</code>是什么呢？<code>hierarchy_id</code>是动态分配，<code>linux</code>系统启动时，先挂载了一个未附加任何子系统的层级<code>systemd</code>,所以<code>systemd</code>的<code>hierarchy_id</code>为1
-* 第三列说明该子系统中<code>cgroups</code>的个数
-* 第四列说明该子系统是否使能。</p>
-
+</code></pre></div><p>从上可以看出，这些信息都来自于数组<code>subsys</code>和其成员<code>subsys-&gt;root</code>（类型为<code>cgroupfs_root</code>）。<code>/proc/cgroups</code>示例如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~  <span style="color:#75715e"># cat /proc/cgroups</span>
+<span style="color:#75715e">#subsys_name    hierarchy       num_cgroups     enabled</span>
+cpuset  	<span style="color:#ae81ff">3</span>       <span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">1</span>
+debug   	<span style="color:#ae81ff">4</span>       <span style="color:#ae81ff">3</span>       <span style="color:#ae81ff">1</span>
+cpu     	<span style="color:#ae81ff">5</span>       <span style="color:#ae81ff">40</span>      <span style="color:#ae81ff">1</span>
+cpuacct 	<span style="color:#ae81ff">5</span>       <span style="color:#ae81ff">40</span>      <span style="color:#ae81ff">1</span>
+memory  	<span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">44</span>      <span style="color:#ae81ff">1</span>
+devices 	<span style="color:#ae81ff">11</span>      <span style="color:#ae81ff">42</span>      <span style="color:#ae81ff">1</span>
+freezer 	<span style="color:#ae81ff">10</span>      <span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">1</span>
+net_cls 	<span style="color:#ae81ff">12</span>      <span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">1</span>
+blkio   	<span style="color:#ae81ff">8</span>       <span style="color:#ae81ff">42</span>      <span style="color:#ae81ff">1</span>
+perf_event      <span style="color:#ae81ff">6</span>       <span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">1</span>
+hugetlb 	<span style="color:#ae81ff">7</span>       <span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">1</span>
+pids    	<span style="color:#ae81ff">9</span>       <span style="color:#ae81ff">109</span>     <span style="color:#ae81ff">1</span>
+net_prio        <span style="color:#ae81ff">12</span>      <span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">1</span>
+</code></pre></div><p>从上可以看出，</p>
+<ul>
+<li>第一列是<code>cgroup</code>子系统的名称</li>
+<li>第二列的<code>hierarchy</code>从<code>2</code>开始，那么编号为<code>1</code>的<code>hierarchy</code>是什么呢？<code>hierarchy_id</code>是动态分配，<code>linux</code>系统启动时，先挂载了一个未附加任何子系统的层级<code>systemd</code>,所以<code>systemd</code>的<code>hierarchy_id</code>为1</li>
+<li>第三列说明该子系统中<code>cgroups</code>的个数</li>
+<li>第四列说明该子系统是否使能。</li>
+</ul>
 <p>内核中数组<code>subsys</code>保存了系统上的不同的<code>cgroup</code>子系统信息。</p>
-
-<pre><code class="language-c">#define SUBSYS(_x) [_x ## _subsys_id] = &amp;_x ## _subsys,
-#define IS_SUBSYS_ENABLED(option) IS_BUILTIN(option)
-#define ENABLE_NETPRIO_NOW
-static struct cgroup_subsys *subsys[CGROUP_SUBSYS_COUNT] = {
-#include &lt;linux/cgroup_subsys.h&gt;
-};
-#undef ENABLE_NETPRIO_NOW
-};
-</code></pre>
-
-<p>其中<code>CGROUP_SUBSYS_COUNT</code>的值为系统上支持的<code>cgroup</code>的个数，包括编译进内核的和编译成模块的。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define SUBSYS(_x) [_x ## _subsys_id] = &amp;_x ## _subsys,
+</span><span style="color:#75715e">#define IS_SUBSYS_ENABLED(option) IS_BUILTIN(option)
+</span><span style="color:#75715e">#define ENABLE_NETPRIO_NOW
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>subsys[CGROUP_SUBSYS_COUNT] <span style="color:#f92672">=</span> {
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/cgroup_subsys.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>};
+<span style="color:#75715e">#undef ENABLE_NETPRIO_NOW
+</span><span style="color:#75715e"></span>};
+</code></pre></div><p>其中<code>CGROUP_SUBSYS_COUNT</code>的值为系统上支持的<code>cgroup</code>的个数，包括编译进内核的和编译成模块的。</p>
 <blockquote>
 <p>注意，由于<code>IS_SUBSYS_ENABLED</code>的定义，这里只会初始化编译进内核模块的子cgroup。</p>
 </blockquote>
-
 <p>使用<code>crash</code>工具，可以查看内核中<code>cgroup</code>子系统的情况：</p>
-
-<pre><code class="language-crash">crash&gt; p subsys[0].name
+<pre><code class="language-crash" data-lang="crash">crash&gt; p subsys[0].name
 $5 = 0xffffffffa3ea6abb &quot;cpuset&quot;
 crash&gt; p subsys[1].name
 $6 = 0xffffffffa3e99ec6 &quot;debug&quot;
@@ -913,31 +831,24 @@ crash&gt; p subsys[11].name
 $16 = 0xffffffffa3e9a8cc &quot;pids&quot;
 crash&gt; p subsys[12].name
 $17 = 0xffffffffa3f2289a &quot;net_prio&quot;
-</code></pre>
-
-<p>在内核中，每个<code>cgroup</code>子系统，都会有一个<code>subsys</code>的定义的结构体。对于<code>pids</code>子系统，其对应的<code>subsys</code>定义为：</p>
-
-<pre><code class="language-c">struct cgroup_subsys pids_subsys = { 
-        .name           = &quot;pids&quot;,
-        .subsys_id      = pids_subsys_id,
-        .css_alloc      = pids_css_alloc,
-        .css_free       = pids_css_free,
-        .can_attach     = pids_can_attach,
-        .cancel_attach  = pids_cancel_attach,
-        .can_fork       = pids_can_fork,
-        .cancel_fork    = pids_cancel_fork,
-        .fork           = pids_fork,                                                                                                           
-        .exit           = pids_exit,
-        .base_cftypes   = pids_files,
+</code></pre><p>在内核中，每个<code>cgroup</code>子系统，都会有一个<code>subsys</code>的定义的结构体。对于<code>pids</code>子系统，其对应的<code>subsys</code>定义为：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> cgroup_subsys pids_subsys <span style="color:#f92672">=</span> { 
+        .name           <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;pids&#34;</span>,
+        .subsys_id      <span style="color:#f92672">=</span> pids_subsys_id,
+        .css_alloc      <span style="color:#f92672">=</span> pids_css_alloc,
+        .css_free       <span style="color:#f92672">=</span> pids_css_free,
+        .can_attach     <span style="color:#f92672">=</span> pids_can_attach,
+        .cancel_attach  <span style="color:#f92672">=</span> pids_cancel_attach,
+        .can_fork       <span style="color:#f92672">=</span> pids_can_fork,
+        .cancel_fork    <span style="color:#f92672">=</span> pids_cancel_fork,
+        .fork           <span style="color:#f92672">=</span> pids_fork,                                                                                                           
+        .exit           <span style="color:#f92672">=</span> pids_exit,
+        .base_cftypes   <span style="color:#f92672">=</span> pids_files,
 };
-</code></pre>
-
-<h3 id="crash-查看cgroup的一些数据结构的关系">crash 查看cgroup的一些数据结构的关系</h3>
-
+</code></pre></div><h3 id="crash-查看cgroup的一些数据结构的关系">crash 查看cgroup的一些数据结构的关系</h3>
 <blockquote>
 <p>NOTE:  这里是centos 7启动后，默认情况下，各个cgroup子系统都已经被systemd挂载的情况。</p>
 </blockquote>
-
 <pre><code>crash&gt; struct -o cgroupfs_root rootnode
 struct cgroupfs_root {
   [ffffffffa57ff000] struct super_block *sb;
@@ -967,12 +878,8 @@ crash&gt; cgroup_name.name 0xffffffffa3ff9740
   name = 0xffffffffa3ff9750 &quot;/&quot;
 crash&gt; p rootnode.number_of_cgroups
 $1 = 1
-</code></pre>
-
-<p>从上可以看出，<code>rootnode</code>的成员<code>allcg_list</code>将属于该<code>cgroupfs_root</code>的所有的<code>cgroup</code>的链接到了一起，一般情况下，系统上属于<code>rootnode</code>的<code>cgroup</code>只有一个，即<code>dummy_top</code>，其名称为<code>/</code>。</p>
-
+</code></pre><p>从上可以看出，<code>rootnode</code>的成员<code>allcg_list</code>将属于该<code>cgroupfs_root</code>的所有的<code>cgroup</code>的链接到了一起，一般情况下，系统上属于<code>rootnode</code>的<code>cgroup</code>只有一个，即<code>dummy_top</code>，其名称为<code>/</code>。</p>
 <p>当系统<code>mount</code>很多<code>cgroup</code> 层级后，全局变量<code>roots</code>作为链表头，将系统上所有的层级都链接到了一起。</p>
-
 <pre><code>crash&gt; list -l cgroupfs_root.root_list  -s cgroupfs_root.hierarchy_id,name,actual_subsys_mask -H roots
 ffff9047143be308
   hierarchy_id = 12
@@ -1022,16 +929,10 @@ ffff90471418a308
   hierarchy_id = 1
   name = &quot;systemd\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000&quot;
   actual_subsys_mask = 0
-</code></pre>
-
-<p>可以看出，<code>roots</code>这个链表将系统上所有的<code>cgroupfs_root</code>链接到了一起，注意，这个链表中不包括<code>rootnode</code>这个<code>cgroupfs_root</code>,因为这个<code>rootnode</code>的<code>hierarchy_id</code>为<code>0</code>，这个链表中没有<code>hierarchy_id</code>为<code>0</code>的结点。</p>
-
+</code></pre><p>可以看出，<code>roots</code>这个链表将系统上所有的<code>cgroupfs_root</code>链接到了一起，注意，这个链表中不包括<code>rootnode</code>这个<code>cgroupfs_root</code>,因为这个<code>rootnode</code>的<code>hierarchy_id</code>为<code>0</code>，这个链表中没有<code>hierarchy_id</code>为<code>0</code>的结点。</p>
 <pre><code>crash&gt; p rootnode.hierarchy_id
 $1 = 0
-</code></pre>
-
-<p>关于<code>dummytop</code>:</p>
-
+</code></pre><p>关于<code>dummytop</code>:</p>
 <pre><code>crash&gt; struct -o cgroupfs_root.top_cgroup  rootnode
 struct cgroupfs_root {
   [ffffffffa57ff030] struct cgroup top_cgroup;
@@ -1074,12 +975,8 @@ crash&gt; p rootnode.top_cgroup.name
 $3 = (struct cgroup_name *) 0xffffffffa3ff9740
 crash&gt; cgroup_name.name 0xffffffffa3ff9740
   name = 0xffffffffa3ff9750 &quot;/&quot;
-</code></pre>
-
-<p><code>dummytop</code> 是一个特殊的<code>cgroup</code>，其没有兄弟和孩子<code>cgroup</code>，其<code>subsys</code>包含了所有的控制子系统，即<code>rootnode.top_cgroup.subsys</code>数组中每个成员都不为<code>null</code>。这些<code>css</code>是在<code>cgroup_init_subsys</code>函数中创建的。初始化时这些<code>css</code>的<code>cgroup</code>成员都指向了<code>dummytop</code>，在后续<code>mount</code>各个<code>cgroup</code>子系统时会进行调整。即<code>mount</code>时会创建新的<code>cgroupfs_root</code>, 并将对应的<code>subsys</code>跟新创建的<code>cgroupfs_root</code>建立对应的关系，当<code>umount</code>或者<code>remount</code>时，需要删除的子系统，将会移动到<code>rootnode</code>这个<code>cgroupfs_root</code>中。</p>
-
-<h3 id="cgroup-subsys中的use-id">cgroup subsys中的use_id</h3>
-
+</code></pre><p><code>dummytop</code> 是一个特殊的<code>cgroup</code>，其没有兄弟和孩子<code>cgroup</code>，其<code>subsys</code>包含了所有的控制子系统，即<code>rootnode.top_cgroup.subsys</code>数组中每个成员都不为<code>null</code>。这些<code>css</code>是在<code>cgroup_init_subsys</code>函数中创建的。初始化时这些<code>css</code>的<code>cgroup</code>成员都指向了<code>dummytop</code>，在后续<code>mount</code>各个<code>cgroup</code>子系统时会进行调整。即<code>mount</code>时会创建新的<code>cgroupfs_root</code>, 并将对应的<code>subsys</code>跟新创建的<code>cgroupfs_root</code>建立对应的关系，当<code>umount</code>或者<code>remount</code>时，需要删除的子系统，将会移动到<code>rootnode</code>这个<code>cgroupfs_root</code>中。</p>
+<h3 id="cgroup-subsys中的use_id">cgroup subsys中的use_id</h3>
 <p>只有<code>memory cgroup</code>中的<code>use_id</code>为<code>true</code>。</p>
     </div>
 
@@ -1173,7 +1070,7 @@ crash&gt; cgroup_name.name 0xffffffffa3ff9740
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

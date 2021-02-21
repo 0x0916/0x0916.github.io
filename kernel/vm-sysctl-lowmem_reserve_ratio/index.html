@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/vm-sysctl-lowmem_reserve_ratio/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2019-01-06T09:53:01+08:00" />
 <meta itemprop="name" content="内存管理参数lowmem_reserve_ratio分析">
 <meta itemprop="description" content="在Linux系统中，有很多内存管理的配置参数，本文就详细分析lowmem_reserve_ratio参数。">
-
-
-<meta itemprop="datePublished" content="2019-01-06T09:53:01&#43;08:00" />
-<meta itemprop="dateModified" content="2019-01-06T09:53:01&#43;08:00" />
+<meta itemprop="datePublished" content="2019-01-06T09:53:01+08:00" />
+<meta itemprop="dateModified" content="2019-01-06T09:53:01+08:00" />
 <meta itemprop="wordCount" content="1556">
 
 
@@ -166,22 +164,17 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#系统环境介绍">系统环境介绍</a></li>
-<li><a href="#官方解释">官方解释</a></li>
-<li><a href="#zone-的-protection-计算方法"><code>zone</code>的<code>protection</code>计算方法</a></li>
-<li><a href="#计算示例">计算示例</a></li>
-<li><a href="#lowmem-reserve-ratio-影响"><code>lowmem_reserve_ratio</code>影响</a>
-<ul>
-<li><a href="#参考文档">参考文档</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#系统环境介绍">系统环境介绍</a></li>
+        <li><a href="#官方解释">官方解释</a></li>
+        <li><a href="#zone的protection计算方法"><code>zone</code>的<code>protection</code>计算方法</a></li>
+        <li><a href="#计算示例">计算示例</a></li>
+        <li><a href="#lowmem_reserve_ratio影响"><code>lowmem_reserve_ratio</code>影响</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -189,22 +182,16 @@
     
     <div class="post-content">
       <p>在<code>Linux</code>系统中，有很多内存管理的配置参数，本文就详细分析<code>lowmem_reserve_ratio</code>参数。</p>
-
-<p><img src="./pic.jpg" alt="" /></p>
-
+<p><img src="./pic.jpg" alt="" title=""></p>
 <h3 id="系统环境介绍">系统环境介绍</h3>
-
 <ul>
 <li>发行版：<code>centos7.5</code></li>
 <li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
 <li>处理器：<code>40core（Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz）</code></li>
 <li>内存：<code>128GB</code>，两个<code>NUMA node</code></li>
 </ul>
-
 <h3 id="官方解释">官方解释</h3>
-
 <p><code>lowmem_reserve_ratio</code>的官方解释如下：</p>
-
 <pre><code>For some specialised workloads on highmem machines it is dangerous for
 the kernel to allow process memory to be allocated from the &quot;lowmem&quot;
 zone.  This is because that memory could then be pinned via the mlock()
@@ -229,34 +216,22 @@ If you have a machine which uses highmem or ISA DMA and your
 applications are using mlock(), or if you are running with no swap then
 you probably should change the lowmem_reserve_ratio setting.
 
-</code></pre>
-
-<p>总的来说，就是防止进程过多的使用<code>lower zones</code>中的内存。 具体实现如下：</p>
-
+</code></pre><p>总的来说，就是防止进程过多的使用<code>lower zones</code>中的内存。 具体实现如下：</p>
 <ul>
 <li>系统上每个<code>zone</code>都会有一个<code>protection</code> 数组，在内存分配时，用它和对用的zone的<code>watermark[high]</code>来判断是否能够分配内存</li>
 <li>而每个<code>zone</code>的<code>protection</code> 的计算方法跟<code>lowmem_reserve_ratio</code>有关。</li>
 </ul>
-
 <p>接下来我们看一下每个<code>zone</code>的<code>protection</code>数组的计算方法。</p>
-
-<h3 id="zone-的-protection-计算方法"><code>zone</code>的<code>protection</code>计算方法</h3>
-
+<h3 id="zone的protection计算方法"><code>zone</code>的<code>protection</code>计算方法</h3>
 <p><code>lowmem_reserve_ratio</code>是一个数组，可以通过文件<code>/proc/sys/vm/lowmem_reserve_ratio</code>查看其值：</p>
-
 <pre><code>$ cat /proc/sys/vm/lowmem_reserve_ratio 
 256     256     32
-</code></pre>
-
-<p>目前该值为：</p>
-
+</code></pre><p>目前该值为：</p>
 <ul>
 <li><code>256</code>： 如果<code>zone</code>为<code>DMA</code>或者<code>DMA32</code></li>
 <li><code>32</code>： 其它<code>zone</code></li>
 </ul>
-
 <p>内核利用上述的<code>lowmem_reserve_ratio</code>数组计算每个<code>zone</code>的预留<code>page</code>量，计算出来也是数组形式，从<code>/proc/zoneinfo</code>里可以查看：</p>
-
 <pre><code>Node 0, zone      DMA
   pages free     1355
         min      3
@@ -270,14 +245,9 @@ you probably should change the lowmem_reserve_ratio setting.
   pagesets
     cpu: 0 pcp: 0
         :
-</code></pre>
-
-<p>在进行内存分配时，这些预留页数值和<code>watermark</code>相加来一起决定现在是满足分配请求，还是认为空闲内存量过低需要启动回收。</p>
-
+</code></pre><p>在进行内存分配时，这些预留页数值和<code>watermark</code>相加来一起决定现在是满足分配请求，还是认为空闲内存量过低需要启动回收。</p>
 <p>例如，如果一个<code>normal</code>区(<code>index = 2</code>)的页申请来试图分配<code>DMA</code>区的内存，且现在使用的判断标准是<code>watermark[high]</code>时，内核计算出 <code>page_free = 1355</code>，而<code>watermark + protection[2] = 4 + 2004 = 2008 &gt; page_free</code>，则认为空闲内存太少而不予以分配。如果分配请求本就来自<code>DMA zone</code>，则 <code>protection[0] = 0</code>会被使用，而满足分配申请。</p>
-
 <p><code>zone[i]</code> 的 <code>protection[j]</code> 计算规则如下：</p>
-
 <pre><code>(i &lt; j):
   zone[i]-&gt;protection[j]
   = (total sums of managed_pages from zone[i+1] to zone[j] on the node)
@@ -286,15 +256,10 @@ you probably should change the lowmem_reserve_ratio setting.
    (should not be protected. = 0;
 (i &gt; j):
    (not necessary, but looks 0)
-</code></pre>
-
-<p>从上面的计算规则可以看出，预留内存值是<code>ratio</code>的倒数关系，如果是<code>256</code>则代表 <code>1/256</code>，即为 <code>0.39%</code> 的高端<code>zone</code>内存大小。
+</code></pre><p>从上面的计算规则可以看出，预留内存值是<code>ratio</code>的倒数关系，如果是<code>256</code>则代表 <code>1/256</code>，即为 <code>0.39%</code> 的高端<code>zone</code>内存大小。
 如果想要预留更多页，应该设更小一点的值，最小值是<code>1</code>（<code>1/1 -&gt; 100%</code>）。</p>
-
 <h3 id="计算示例">计算示例</h3>
-
 <p>根据上述计算方法，结合我的系统环境，计算出的每个<code>zone</code>的<code>protection</code>数组如下：</p>
-
 <table>
 <thead>
 <tr>
@@ -307,7 +272,6 @@ you probably should change the lowmem_reserve_ratio setting.
 <th>protection[3]</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>0</td>
@@ -318,7 +282,6 @@ you probably should change the lowmem_reserve_ratio setting.
 <td>63848</td>
 <td>83848</td>
 </tr>
-
 <tr>
 <td>0</td>
 <td>DMM32</td>
@@ -328,7 +291,6 @@ you probably should change the lowmem_reserve_ratio setting.
 <td>62464</td>
 <td>62464</td>
 </tr>
-
 <tr>
 <td>0</td>
 <td>NORAML</td>
@@ -338,7 +300,6 @@ you probably should change the lowmem_reserve_ratio setting.
 <td>0</td>
 <td>0</td>
 </tr>
-
 <tr>
 <td>0</td>
 <td>MOVABLE</td>
@@ -348,7 +309,6 @@ you probably should change the lowmem_reserve_ratio setting.
 <td></td>
 <td>0</td>
 </tr>
-
 <tr>
 <td>1</td>
 <td>DMA</td>
@@ -358,7 +318,6 @@ you probably should change the lowmem_reserve_ratio setting.
 <td>64508</td>
 <td>64508</td>
 </tr>
-
 <tr>
 <td>1</td>
 <td>DMA32</td>
@@ -368,7 +327,6 @@ you probably should change the lowmem_reserve_ratio setting.
 <td>64508</td>
 <td>64508</td>
 </tr>
-
 <tr>
 <td>1</td>
 <td>NORMAL</td>
@@ -378,7 +336,6 @@ you probably should change the lowmem_reserve_ratio setting.
 <td>0</td>
 <td>0</td>
 </tr>
-
 <tr>
 <td>1</td>
 <td>MOVABLE</td>
@@ -390,9 +347,7 @@ you probably should change the lowmem_reserve_ratio setting.
 </tr>
 </tbody>
 </table>
-
 <p>通过<code>/proc/zoneinfo</code>和<code>crash</code>命令，我们可以验证一下计算结果是否正确：</p>
-
 <pre><code>$ cat /proc/zoneinfo | grep protection
         protection: (0, 1383, 63848, 63848)
         protection: (0, 0, 62464, 62464)
@@ -416,18 +371,12 @@ crash&gt; struct zone.lowmem_reserve  ffff88207ffd7000
   lowmem_reserve = {0, 0, 0, 0}
 crash&gt; struct zone.lowmem_reserve  ffff88207ffd7800
   lowmem_reserve = {0, 0, 0, 0}
-</code></pre>
-
-<h3 id="lowmem-reserve-ratio-影响"><code>lowmem_reserve_ratio</code>影响</h3>
-
+</code></pre><h3 id="lowmem_reserve_ratio影响"><code>lowmem_reserve_ratio</code>影响</h3>
 <p>通过分析，我们知道<code>lowmem_reserve_ratio</code>会影响系统预留内存的大小，且预留的数量是<code>ratio</code>的倒数，所以，如果系统预留稍微多一点的内存，应该将<code>lowmem_reserve_ratio</code>适当调小。</p>
-
 <blockquote>
 <p>一般情况下，很少回调整<code>lowmem_reserve_ratio</code>的值。</p>
 </blockquote>
-
 <h4 id="参考文档">参考文档</h4>
-
 <ul>
 <li><a href="https://www.kernel.org/doc/Documentation/sysctl/vm.txt">https://www.kernel.org/doc/Documentation/sysctl/vm.txt</a></li>
 <li><a href="https://blog.csdn.net/joyeu/article/details/20063429">https://blog.csdn.net/joyeu/article/details/20063429</a></li>
@@ -522,7 +471,7 @@ crash&gt; struct zone.lowmem_reserve  ffff88207ffd7800
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

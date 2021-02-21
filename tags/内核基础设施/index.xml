@@ -6,11 +6,7 @@
     <description>Recent content in 内核基础设施 on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 02 Mar 2019 14:10:37 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sat, 02 Mar 2019 14:10:37 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>内核基础设施——读写信号量</title>
       <link>http://linux.laoqinren.net/kernel/rw-semaphore/</link>
@@ -27,7 +23,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/list/</guid>
       <description>&lt;p&gt;&lt;code&gt;list_head&lt;/code&gt;用法经常在&lt;code&gt;Linux kernel&lt;/code&gt;里面经常看见，该文对内核中的&lt;code&gt;list_head&lt;/code&gt;进行了总结分析。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文的中的代码来自于内核版本&lt;code&gt;v4.16&lt;/code&gt;。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -42,25 +37,18 @@
       <description>&lt;blockquote&gt;
 &lt;p&gt;注意：本文中的代码参考于linux v4.16。&lt;/p&gt;
 &lt;/blockquote&gt;
-
 &lt;h2 id=&#34;数据结构&#34;&gt;数据结构&lt;/h2&gt;
-
 &lt;p&gt;&lt;code&gt;hlist_head&lt;/code&gt;和&lt;code&gt;hlist_node&lt;/code&gt;用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:&lt;/p&gt;
-
 &lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190&#34;&gt; include/linux/types.h(line 190) &lt;/a&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct hlist_head {
-	struct hlist_node *first;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_head {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;first;
 };
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct hlist_node {
-	struct hlist_node *next, **pprev;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;next, &lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;pprev;
 };
 
-&lt;/code&gt;&lt;/pre&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
     </item>
     
     <item>
@@ -70,11 +58,8 @@
       
       <guid>http://linux.laoqinren.net/kernel/wait-queue/</guid>
       <description>&lt;h2 id=&#34;什么是等待队列&#34;&gt;什么是等待队列？&lt;/h2&gt;
-
 &lt;p&gt;在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。&lt;code&gt;Linux&lt;/code&gt;中提供了等待队列的机制，该机制在内核中应用很广泛。&lt;/p&gt;
-
 &lt;p&gt;等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。&lt;/p&gt;
-
 &lt;p&gt;在&lt;code&gt;Linux&lt;/code&gt;内核中使用等待队列的过程很简单，首先定义一个&lt;code&gt;wait_queue_head&lt;/code&gt;，然后如果一个&lt;code&gt;task&lt;/code&gt;想等待某种事件，那么调用&lt;code&gt;wait_event（等待队列，事件）&lt;/code&gt;就可以了。&lt;/p&gt;</description>
     </item>
     
@@ -85,7 +70,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/percpu-counter/</guid>
       <description>&lt;p&gt;内核里很多模块都需要对一些事件进行统计，有一个叫做&lt;code&gt;percpu_counter&lt;/code&gt;的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
 &lt;/blockquote&gt;</description>

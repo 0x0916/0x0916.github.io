@@ -6,11 +6,7 @@
     <description>Recent content in algorithm on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 06 Aug 2018 16:17:53 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/categories/algorithm/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Mon, 06 Aug 2018 16:17:53 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/categories/algorithm/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>红黑树(三)—— 在应用中复用linux的代码实现</title>
       <link>http://linux.laoqinren.net/posts/reuse-linux-kernel-rbtree/</link>
@@ -18,9 +14,8 @@
       
       <guid>http://linux.laoqinren.net/posts/reuse-linux-kernel-rbtree/</guid>
       <description>&lt;p&gt;红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
-&lt;p&gt;注意：本文中的代码来自于：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&#34;&gt;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm&lt;/p&gt;
 &lt;/blockquote&gt;</description>
     </item>
     
@@ -40,17 +35,11 @@
       
       <guid>http://linux.laoqinren.net/posts/rbtree/</guid>
       <description>&lt;p&gt;在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。&lt;/p&gt;
-
 &lt;p&gt;本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。&lt;/p&gt;
-
 &lt;h2 id=&#34;红黑树介绍&#34;&gt;红黑树介绍&lt;/h2&gt;
-
 &lt;p&gt;红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：&lt;strong&gt;红黑树&lt;/strong&gt;。&lt;/p&gt;
-
 &lt;p&gt;红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？&lt;/p&gt;
-
 &lt;p&gt;了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。&lt;/p&gt;
-
 &lt;p&gt;自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。&lt;/p&gt;</description>
     </item>
     

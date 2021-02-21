@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/sched/current/" />
@@ -57,10 +57,8 @@
 <meta property="article:modified_time" content="2019-11-16T10:26:50+08:00" />
 <meta itemprop="name" content="Linux调度——神奇的current">
 <meta itemprop="description" content="本文介绍了linux内核中经常出现的current宏，并分析其通用的实现方法，以及其在x86-64下的实现方法。 current的作用 在内核中">
-
-
-<meta itemprop="datePublished" content="2019-11-16T10:26:50&#43;08:00" />
-<meta itemprop="dateModified" content="2019-11-16T10:26:50&#43;08:00" />
+<meta itemprop="datePublished" content="2019-11-16T10:26:50+08:00" />
+<meta itemprop="dateModified" content="2019-11-16T10:26:50+08:00" />
 <meta itemprop="wordCount" content="1547">
 
 
@@ -165,118 +163,89 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#current的作用">current的作用</a></li>
-<li><a href="#current的通用实现方法">current的通用实现方法</a></li>
-<li><a href="#current在x86架构上的实现">current在x86架构上的实现</a></li>
-<li><a href="#实验示例">实验示例</a>
-<ul>
-<li><a href="#x86支持-current-thread-info-task-方式">x86支持<code>current_thread_info()-&gt;task</code>方式</a></li>
-<li><a href="#验证一下-task-current-和-thread-info-的关系">验证一下<code>task_current</code>和<code>thread_info</code>的关系</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#current的作用">current的作用</a></li>
+        <li><a href="#current的通用实现方法">current的通用实现方法</a></li>
+        <li><a href="#current在x86架构上的实现">current在x86架构上的实现</a></li>
+        <li><a href="#实验示例">实验示例</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>本文介绍了<code>linux</code>内核中经常出现的<code>current</code>宏，并分析其通用的实现方法，以及其在<code>x86-64</code>下的实现方法。</p>
-
+      <p>本文介绍了<code>linux</code>内核中经常出现的<code>current</code>宏，并分析其通用的实现方法，以及其在<code>x86-64</code>下的实现方法。</p>
 <h3 id="current的作用">current的作用</h3>
-
 <p>在内核中，访问任务通常需要获得指向其的<code>struct task_struct</code>指针。实际上，内核中大部分处理进程的代码都是通过<code>struct task_struct</code>进行的。因此，通过<code>current</code>宏查找当前正在运行进程的进程描述符就显得尤为重要。硬件体系不同，该宏的实现方式也就不同。有的硬件体系结构可以专门拿出一个寄存器存放指向当前进程的<code>struct task_struct</code>指针，用于加快访问速度。而有些像<code>x86</code>这样的体系结构（其寄存器并不富余），就只能在内核栈的底端创建<code>struct thread_info</code>结构，通过计算偏移间接地查找<code>struct task_struct</code>结构。</p>
-
 <h3 id="current的通用实现方法">current的通用实现方法</h3>
-
 <p>所以通过<code>esp</code>寄存器的值和内核栈大小，就可以方便的计算出内核栈的栈底地址，该地址其实就是进程对应的<code>struct thread_info</code>结构的地址。相关代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#ifndef __ASM_GENERIC_CURRENT_H
+</span><span style="color:#75715e">#define __ASM_GENERIC_CURRENT_H
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/thread_info.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#define get_current() (current_thread_info()-&gt;task)
+</span><span style="color:#75715e">#define current get_current()
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#endif </span><span style="color:#75715e">/* __ASM_GENERIC_CURRENT_H */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
 
-<pre><code class="language-c">#ifndef __ASM_GENERIC_CURRENT_H
-#define __ASM_GENERIC_CURRENT_H
+<span style="color:#75715e">/* how to get the current stack pointer from C */</span> 
+<span style="color:#66d9ef">register</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> current_stack_pointer <span style="color:#a6e22e">asm</span>(<span style="color:#e6db74">&#34;esp&#34;</span>) __used; 
 
-#include &lt;linux/thread_info.h&gt;
-
-#define get_current() (current_thread_info()-&gt;task)
-#define current get_current()
-
-#endif /* __ASM_GENERIC_CURRENT_H */
-
-
-/* how to get the current stack pointer from C */ 
-register unsigned long current_stack_pointer asm(&quot;esp&quot;) __used; 
-
-/* how to get the thread information struct from C */ 
-static inline struct thread_info *current_thread_info(void)                 
+<span style="color:#75715e">/* how to get the thread information struct from C */</span> 
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">struct</span> thread_info <span style="color:#f92672">*</span><span style="color:#a6e22e">current_thread_info</span>(<span style="color:#66d9ef">void</span>)                 
 {
-        return (struct thread_info *)
-                (current_stack_pointer &amp; ~(THREAD_SIZE - 1));
+        <span style="color:#66d9ef">return</span> (<span style="color:#66d9ef">struct</span> thread_info <span style="color:#f92672">*</span>)
+                (current_stack_pointer <span style="color:#f92672">&amp;</span> <span style="color:#f92672">~</span>(THREAD_SIZE <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>));
 }
-</code></pre>
-
-<h3 id="current在x86架构上的实现">current在x86架构上的实现</h3>
-
+</code></pre></div><h3 id="current在x86架构上的实现">current在x86架构上的实现</h3>
 <p>理解了如上信息后，x86架构进一步对<code>current</code>宏进行了优化实现：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#ifndef _ASM_X86_CURRENT_H
+</span><span style="color:#75715e">#define _ASM_X86_CURRENT_H
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/compiler.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;asm/percpu.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#ifndef __ASSEMBLY__
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> task_struct;
 
-<pre><code class="language-c">#ifndef _ASM_X86_CURRENT_H
-#define _ASM_X86_CURRENT_H
+DECLARE_PER_CPU(<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>, current_task);
 
-#include &lt;linux/compiler.h&gt;
-#include &lt;asm/percpu.h&gt;
-
-#ifndef __ASSEMBLY__
-struct task_struct;
-
-DECLARE_PER_CPU(struct task_struct *, current_task);
-
-static __always_inline struct task_struct *get_current(void)
+<span style="color:#66d9ef">static</span> __always_inline <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span><span style="color:#a6e22e">get_current</span>(<span style="color:#66d9ef">void</span>)
 {
-        return this_cpu_read_stable(current_task);
+        <span style="color:#66d9ef">return</span> this_cpu_read_stable(current_task);
 }
 
-#define current get_current()
-
-#endif /* __ASSEMBLY__ */
-
-#endif /* _ASM_X86_CURRENT_H */
-</code></pre>
-
-<p>在<code>x86</code>体系结构中，使用了<code>current_task</code>这个每CPU变量，来存储当前正在使用<code>cpu</code>的进程的<code>struct task_struct</code>。
+<span style="color:#75715e">#define current get_current()
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#endif </span><span style="color:#75715e">/* __ASSEMBLY__ */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#endif </span><span style="color:#75715e">/* _ASM_X86_CURRENT_H */</span><span style="color:#75715e">
+</span></code></pre></div><p>在<code>x86</code>体系结构中，使用了<code>current_task</code>这个每CPU变量，来存储当前正在使用<code>cpu</code>的进程的<code>struct task_struct</code>。
 由于采用了每<code>cpu</code>变量<code>current_task</code>来保存当前运行进程的<code>task_struct</code>，所以在进程切换时，就需要更新该变量。</p>
-
 <p>在<code>arch/x86/kernel/process_64.c</code>文件中的<code>__switch_to</code>函数中有如下代码：</p>
-
-<pre><code class="language-c">this_cpu_write(current_task, next_p);  
-</code></pre>
-
-<blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">this_cpu_write(current_task, next_p);  
+</code></pre></div><blockquote>
 <p>注意：在早期的内核中，通过<code>current_thread_info()-&gt;task</code>得到<code>struct task_struct</code>在x86上也是支持的。不过在最新的内核中，该方法已经不支持了。
-    因为新版本的内核中<code>thread_info</code>中已经不存在<code>task</code>这个成员了。</p>
-
-<pre><code class="language-c">struct thread_info {
-	unsigned long flags;
+因为新版本的内核中<code>thread_info</code>中已经不存在<code>task</code>这个成员了。</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> thread_info {
+	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> flags;
 	u32 status;
 }
-SIZE: 16
-</code></pre>
-</blockquote>
-
-<h3 id="实验示例">实验示例</h3>
-
+SIZE: <span style="color:#ae81ff">16</span>
+</code></pre></div><h3 id="实验示例">实验示例</h3>
 <blockquote>
 <p>注意：本示例是在x86支持<code>current_thread_info()-&gt;task</code>的内核上进行的</p>
 </blockquote>
-
-<h4 id="x86支持-current-thread-info-task-方式">x86支持<code>current_thread_info()-&gt;task</code>方式</h4>
-
-<pre><code class="language-c?linenums">#include &lt;linux/module.h&gt;
+<h4 id="x86支持current_thread_info-task方式">x86支持<code>current_thread_info()-&gt;task</code>方式</h4>
+<pre><code class="language-c?linenums" data-lang="c?linenums">#include &lt;linux/module.h&gt;
 #include &lt;linux/kernel.h&gt;
 #include &lt;linux/init.h&gt;
 #include &lt;linux/sched.h&gt;
@@ -304,34 +273,23 @@ static void __exit test_thread_info_exit(void)
 module_init(test_thread_info_init);
 module_exit(test_thread_info_exit);
 MODULE_LICENSE(&quot;GPL&quot;);
-</code></pre>
-
-<ul>
+</code></pre><ul>
 <li>上述模块初始化代码中，<code>ti</code>作为局部变量，存储在内核栈中，所以<code>12</code>行代码可以获取<code>struct thread_info</code>结构体的地址。</li>
 <li>插入模块，打印出进程的名称<code>insmod</code>，说明结果符合预期。</li>
 </ul>
-
-<h4 id="验证一下-task-current-和-thread-info-的关系">验证一下<code>task_current</code>和<code>thread_info</code>的关系</h4>
-
+<h4 id="验证一下task_current和thread_info的关系">验证一下<code>task_current</code>和<code>thread_info</code>的关系</h4>
 <p>实验方法：
 （1）启动一个stress进程，持续占用CPU。</p>
-
-<pre><code class="language-bash"># stress -c 1
-</code></pre>
-
-<p>（2）获得stress进程的进程号，使用taskset将其绑定到cpu1上。</p>
-
-<pre><code class="language-bash"># ps aux | grep stress
-root      3427  0.0  0.0   7308   424 pts/2    S+   15:25   0:00 stress -c 1
-root      3428 99.9  0.0   7308   100 pts/2    R+   15:25   6:21 stress -c 1
-root      3918  0.0  0.0 112708   968 pts/3    S+   15:31   0:00 grep --color=auto stress
- # taskset -p 02 3428
-pid 3428's current affinity mask: f
-pid 3428's new affinity mask: 2
-</code></pre>
-
-<p>此时，我们可以通过<code>crash</code>查看这些数据的关系：</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># stress -c 1</span>
+</code></pre></div><p>（2）获得stress进程的进程号，使用taskset将其绑定到cpu1上。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># ps aux | grep stress</span>
+root      <span style="color:#ae81ff">3427</span>  0.0  0.0   <span style="color:#ae81ff">7308</span>   <span style="color:#ae81ff">424</span> pts/2    S+   15:25   0:00 stress -c <span style="color:#ae81ff">1</span>
+root      <span style="color:#ae81ff">3428</span> 99.9  0.0   <span style="color:#ae81ff">7308</span>   <span style="color:#ae81ff">100</span> pts/2    R+   15:25   6:21 stress -c <span style="color:#ae81ff">1</span>
+root      <span style="color:#ae81ff">3918</span>  0.0  0.0 <span style="color:#ae81ff">112708</span>   <span style="color:#ae81ff">968</span> pts/3    S+   15:31   0:00 grep --color<span style="color:#f92672">=</span>auto stress
+ <span style="color:#75715e"># taskset -p 02 3428</span>
+pid 3428<span style="color:#e6db74">&#39;s current affinity mask: f
+</span><span style="color:#e6db74">pid 3428&#39;</span>s new affinity mask: <span style="color:#ae81ff">2</span>
+</code></pre></div><p>此时，我们可以通过<code>crash</code>查看这些数据的关系：</p>
 <pre><code>crash&gt; p current_task:1
 per_cpu(current_task, 1) = $1 = (struct task_struct *) 0xffff95c498211fc0
 crash&gt; task_struct.comm 0xffff95c498211fc0
@@ -340,9 +298,7 @@ crash&gt; task_struct.stack 0xffff95c498211fc0
   stack = 0xffff95c407c28000
 crash&gt; thread_info.task 0xffff95c407c28000
   task = 0xffff95c498211fc0 
-</code></pre>
-
-<ul>
+</code></pre><ul>
 <li><code>cpu1</code>上正在执行的进程的描述符地址为：<code>0xffff95c498211fc0</code>。</li>
 <li>其进程名称为我们期望的<code>stress</code>。</li>
 <li>通过描述符的<code>stack</code>域，可以得到进程的栈底地址为：<code>0xffff95c407c28000</code>，其实也就是<code>thread_info</code>的地址。</li>
@@ -439,7 +395,7 @@ crash&gt; thread_info.task 0xffff95c407c28000
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

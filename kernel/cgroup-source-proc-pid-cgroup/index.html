@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/" />
@@ -54,7 +54,6 @@
 <meta property="og:title" content="cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析" />
 <meta property="og:description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
 
-
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 " />
 <meta property="og:type" content="article" />
@@ -64,13 +63,10 @@
 <meta itemprop="name" content="cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析">
 <meta itemprop="description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
 
-
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 ">
-
-
-<meta itemprop="datePublished" content="2018-08-25T16:32:32&#43;08:00" />
-<meta itemprop="dateModified" content="2018-08-25T16:32:32&#43;08:00" />
+<meta itemprop="datePublished" content="2018-08-25T16:32:32+08:00" />
+<meta itemprop="dateModified" content="2018-08-25T16:32:32+08:00" />
 <meta itemprop="wordCount" content="587">
 
 
@@ -79,7 +75,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析"/>
 <meta name="twitter:description" content="本文详细分析了/proc/pid/cgroup文件的内核实现。
-
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 "/>
@@ -181,16 +176,14 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#proc-pid-cgroup-实现">/proc/pid/cgroup 实现</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#procpidcgroup-实现">/proc/pid/cgroup 实现</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -198,21 +191,14 @@
     
     <div class="post-content">
       <p>本文详细分析了<code>/proc/pid/cgroup</code>文件的内核实现。</p>
-
 <blockquote>
 <p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
 </blockquote>
-
-<h3 id="proc-pid-cgroup-实现">/proc/pid/cgroup 实现</h3>
-
+<h3 id="procpidcgroup-实现">/proc/pid/cgroup 实现</h3>
 <p>该文件描述了指定进程的cgroup信息，其信息包行多行，每一行描述了一个cgroup控制器的信息，每一行的格式如下：</p>
-
 <pre><code>           hierarchy-ID:controller-list:cgroup-path
-</code></pre>
-
-<p>例如：</p>
-
-<pre><code class="language-bash"># cat /proc/1/cgroup 
+</code></pre><p>例如：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cat /proc/1/cgroup </span>
 12:blkio:/
 11:memory:/
 10:hugetlb:/
@@ -224,93 +210,83 @@
 4:pids:/
 3:freezer:/
 2:debug:/
-1:name=systemd:/
-</code></pre>
-
-<p>更详细的信息，请参考man手册：<a href="http://man7.org/linux/man-pages/man7/cgroups.7.html。">http://man7.org/linux/man-pages/man7/cgroups.7.html。</a></p>
-
+1:name<span style="color:#f92672">=</span>systemd:/
+</code></pre></div><p>更详细的信息，请参考man手册：http://man7.org/linux/man-pages/man7/cgroups.7.html。</p>
 <p>了解了如上信息，该接口的内核实现就比较简单了：</p>
-
 <ul>
 <li>使用<code>for_each_active_root</code>遍历所有的层级(hierarchy)</li>
-<li>对于每个层级：
-
+<li>对于每个层级：</li>
+</ul>
 <ul>
 <li>获取<code>hierarchy-ID</code>和对应的<code>controller-list</code>。</li>
 <li>通过<code>task_cgroup_from_root</code>和<code>cgroup_path</code>获取<code>cgroup-path</code></li>
-</ul></li>
 </ul>
-
 <p>代码实现如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * proc_cgroup_show()
+</span><span style="color:#75715e"> *  - Print task&#39;s cgroup paths into seq_file, one line for each hierarchy
+</span><span style="color:#75715e"> *  - Used for /proc/&lt;pid&gt;/cgroup.
+</span><span style="color:#75715e"> *  - No need to task_lock(tsk) on this tsk-&gt;cgroup reference, as it
+</span><span style="color:#75715e"> *    doesn&#39;t really matter if tsk-&gt;cgroup changes after we read it,
+</span><span style="color:#75715e"> *    and we take cgroup_mutex, keeping cgroup_attach_task() from changing it
+</span><span style="color:#75715e"> *    anyway.  No need to check that tsk-&gt;cgroup != NULL, thanks to
+</span><span style="color:#75715e"> *    the_top_cgroup_hack in cgroup_exit(), which sets an exiting tasks
+</span><span style="color:#75715e"> *    cgroup to top_cgroup.
+</span><span style="color:#75715e"> */</span>
 
-<pre><code class="language-c">/*
- * proc_cgroup_show()
- *  - Print task's cgroup paths into seq_file, one line for each hierarchy
- *  - Used for /proc/&lt;pid&gt;/cgroup.
- *  - No need to task_lock(tsk) on this tsk-&gt;cgroup reference, as it
- *    doesn't really matter if tsk-&gt;cgroup changes after we read it,
- *    and we take cgroup_mutex, keeping cgroup_attach_task() from changing it
- *    anyway.  No need to check that tsk-&gt;cgroup != NULL, thanks to
- *    the_top_cgroup_hack in cgroup_exit(), which sets an exiting tasks
- *    cgroup to top_cgroup.
- */
-
-/* TODO: Use a proper seq_file iterator */
-int proc_cgroup_show(struct seq_file *m, void *v)
+<span style="color:#75715e">/* TODO: Use a proper seq_file iterator */</span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">proc_cgroup_show</span>(<span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>m, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>v)
 {
-        struct pid *pid;
-        struct task_struct *tsk;
-        char *buf;
-        int retval;
-        struct cgroupfs_root *root;
+        <span style="color:#66d9ef">struct</span> pid <span style="color:#f92672">*</span>pid;
+        <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>tsk;
+        <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>buf;
+        <span style="color:#66d9ef">int</span> retval;
+        <span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root;
 
-        retval = -ENOMEM;
-        buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-        if (!buf)
-                goto out;
+        retval <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>ENOMEM;
+        buf <span style="color:#f92672">=</span> kmalloc(PAGE_SIZE, GFP_KERNEL);
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>buf)
+                <span style="color:#66d9ef">goto</span> out;
 
-        retval = -ESRCH;
-        pid = m-&gt;private;
-        tsk = get_pid_task(pid, PIDTYPE_PID);
-        if (!tsk)
-                goto out_free;
+        retval <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>ESRCH;
+        pid <span style="color:#f92672">=</span> m<span style="color:#f92672">-&gt;</span>private;
+        tsk <span style="color:#f92672">=</span> get_pid_task(pid, PIDTYPE_PID);
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>tsk)
+                <span style="color:#66d9ef">goto</span> out_free;
 
-        retval = 0;
+        retval <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 
-        mutex_lock(&amp;cgroup_mutex);
+        mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
 
         for_each_active_root(root) {
-                struct cgroup_subsys *ss;
-                struct cgroup *cgrp;
-                int count = 0;
+                <span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss;
+                <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp;
+                <span style="color:#66d9ef">int</span> count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 
-                seq_printf(m, &quot;%d:&quot;, root-&gt;hierarchy_id);
+                seq_printf(m, <span style="color:#e6db74">&#34;%d:&#34;</span>, root<span style="color:#f92672">-&gt;</span>hierarchy_id);
                 for_each_subsys(root, ss)
-                        seq_printf(m, &quot;%s%s&quot;, count++ ? &quot;,&quot; : &quot;&quot;, ss-&gt;name);
-                if (strlen(root-&gt;name))
-                        seq_printf(m, &quot;%sname=%s&quot;, count ? &quot;,&quot; : &quot;&quot;,
-                                   root-&gt;name);
-                seq_putc(m, ':');
-                cgrp = task_cgroup_from_root(tsk, root);
-                retval = cgroup_path(cgrp, buf, PAGE_SIZE);
-                if (retval &lt; 0)
-                        goto out_unlock;
+                        seq_printf(m, <span style="color:#e6db74">&#34;%s%s&#34;</span>, count<span style="color:#f92672">++</span> <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;,&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;&#34;</span>, ss<span style="color:#f92672">-&gt;</span>name);
+                <span style="color:#66d9ef">if</span> (strlen(root<span style="color:#f92672">-&gt;</span>name))
+                        seq_printf(m, <span style="color:#e6db74">&#34;%sname=%s&#34;</span>, count <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;,&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;&#34;</span>,
+                                   root<span style="color:#f92672">-&gt;</span>name);
+                seq_putc(m, <span style="color:#e6db74">&#39;:&#39;</span>);
+                cgrp <span style="color:#f92672">=</span> task_cgroup_from_root(tsk, root);
+                retval <span style="color:#f92672">=</span> cgroup_path(cgrp, buf, PAGE_SIZE);
+                <span style="color:#66d9ef">if</span> (retval <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+                        <span style="color:#66d9ef">goto</span> out_unlock;
                 seq_puts(m, buf);
-                seq_putc(m, '\n');
+                seq_putc(m, <span style="color:#e6db74">&#39;\n&#39;</span>);
         }
 
 out_unlock:
-        mutex_unlock(&amp;cgroup_mutex);
+        mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
         put_task_struct(tsk);
 out_free:
         kfree(buf);
 out:
-        return retval;
+        <span style="color:#66d9ef">return</span> retval;
 }
-</code></pre>
-
-<h3 id="参考文章">参考文章</h3>
-
+</code></pre></div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="http://man7.org/linux/man-pages/man7/cgroups.7.html">http://man7.org/linux/man-pages/man7/cgroups.7.html</a></li>
 </ul>
@@ -406,7 +382,7 @@ out:
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

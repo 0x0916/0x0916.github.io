@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Linux内核跟踪技术之——kprobe技术 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
+本文将介绍kprobe的用法和解析其工作原理。
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.80.0" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/linux-kprobe/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="Linux内核跟踪技术之——kprobe技术" />
+<meta property="og:description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
+本文将介绍kprobe的用法和解析其工作原理。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/linux-kprobe/" />
+<meta property="article:published_time" content="2020-08-30T10:08:20+08:00" />
+<meta property="article:modified_time" content="2020-08-30T10:08:20+08:00" />
+<meta itemprop="name" content="Linux内核跟踪技术之——kprobe技术">
+<meta itemprop="description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
+本文将介绍kprobe的用法和解析其工作原理。">
+<meta itemprop="datePublished" content="2020-08-30T10:08:20+08:00" />
+<meta itemprop="dateModified" content="2020-08-30T10:08:20+08:00" />
+<meta itemprop="wordCount" content="3603">
+
+
+
+<meta itemprop="keywords" content="kernel,linux," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Linux内核跟踪技术之——kprobe技术"/>
+<meta name="twitter:description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
+本文将介绍kprobe的用法和解析其工作原理。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Linux内核跟踪技术之——kprobe技术</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2020-08-30 </span>
+        <div class="post-category">
+            
+              <a href="/categories/kernel/"> kernel </a>
+            
+          </div>
+        <span class="more-meta"> 3603 words </span>
+        <span class="more-meta"> 8 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#kprobe是什么">kprobe是什么？</a></li>
+        <li><a href="#kprobe的使用方法">kprobe的使用方法</a></li>
+        <li><a href="#kprobe的工作原理">kprobe的工作原理</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。</p>
+<p>本文将介绍kprobe的用法和解析其工作原理。</p>
+<h3 id="kprobe是什么">kprobe是什么？</h3>
+<p>如何高效地调试内核？printk是一种方法，但是printk终归是毫无选择地全量输出，某些场景下不实用，于是你可以试一下tracepoint，我使能tracepoint机制的时候才输出。对于傻傻地放置printk来输出信息的方式，tracepoint是个进步，但是tracepoint只是内核在某些特定行为（比如进程切换）上部署的一些静态锚点，这些锚点并不一定是你需要的，所以你仍然需要自己部署tracepoint，重新编译内核。那么kprobe的出现就很有必要了，它可以在运行的内核中动态插入探测点，执行你预定义的操作。</p>
+<h3 id="kprobe的使用方法">kprobe的使用方法</h3>
+<p>最早的时候，使用kprobe一般都是编写内核模块，在模块中定义pre-handler和post-handler函数，然后使用kprobe的API（register_kprobe）来进行注册kprobe。加载模块后，pre-handler和post-handler函数中国年的printk()就会打印定制的信息到系统日志中，当然卸载内核模块时，需要调用API（unregister_kprobe）来进行注销操作。</p>
+<p>总结一下，目前有三种使用kprobe的接口：</p>
+<ul>
+<li>kprobe API：register_kprobe()等等</li>
+<li>基于Ftrace的/sys/kernel/debug/tracing/kprobe_events接口，通过写特定的配置文件</li>
+<li>perf_event_open()，通过perf工具，在最新的内核上，BPF tracing也是通过这种方式</li>
+</ul>
+<p>kprobes的最大使用者都是一些tracer的前端工具，比如perf、systemtap、BPF 跟踪(BCC和bpftrace)</p>
+<blockquote>
+<p>注意：最开始的kprobe实现中还有一个变种叫做jprobe，用于在函数入口添加探测点。但是后来发现，其功能完全可以通过kprobe来实现，所以2018年，jprobe就被社区的维护者给删除了。</p>
+</blockquote>
+<h3 id="kprobe的工作原理">kprobe的工作原理</h3>
+<p>上一节和大家简要说明了下kprobe到底应该怎样用，那么现在我们就揭开kprobe神秘的面纱，刨根问底，一睹kprobe的庐山真面目。</p>
+<p>从网上找了一个流程图，可以参考一下：</p>
+<p><img src="./kprobe-flows.jpeg" alt=""></p>
+<p>kprobe的工作原理如下：</p>
+<ol>
+<li>
+<p>注册kprobe后，注册的每一个kprobe对应一个kprobe结构体，该结构中记录着探测点的位置，已经该探测点本来对应的指令。</p>
+</li>
+<li>
+<p>探测点的位置被替换成了一条异常的指令，这样当CPU执行到探测点位置时会陷入到异常态，在x86_64上指令是int3（如果kprobe经过优化后，指令是jmp）</p>
+</li>
+<li>
+<p>当执行到异常指令时，系统换检查是否是kprobe 安装的异常，如果是，就执行kprobe的pre_handler,然后利用CPU提供的单步调试（single-step）功能，设置好相应的寄存器，将下一条指令设置为插入点处本来的指令，从异常态返回；</p>
+</li>
+<li>
+<p>再次陷入异常态。上一步骤中设置了single-step相关的寄存器，所以originnal_opcode刚一执行，便会二进宫：再次陷入异常态，此时将single-step清除，并且执行post_handler，然后从异常态安全返回.</p>
+</li>
+<li>
+<p>当卸载kprobe时，探测点原来的指令会被恢复回去。</p>
+</li>
+</ol>
+<p>步骤2），3），4）便是一次kprobe工作的过程，它的一个基本思路就是将本来执行一条指令扩展成执行kprobe-&gt;pre_handler &mdash;&gt; 指令 &mdash;&gt; kprobe&ndash;&gt;post_hander这样三个过程。</p>
+<p>下面详细解释每个过程：</p>
+<h4 id="指令替换过程">指令替换过程</h4>
+<p><img src="step1.png" alt=""></p>
+<p>上图中蓝色区域表示内存，红色标明了地址，绿色部分代表一条指令，上图的意思是，内存<code>0xfffffc000162914</code>处存放一条指令是<code>0xa9bd7bfd</code>。那么，现在我注册了一个kprobe，探测点是<code>sys_write</code>函数，该函数的起始位置就是<code>0xffffffc000162914</code>，现在我要使能kprobe了，那么我要做的就是把<code>0xffffffc000162914</code>处原来的指令<code>0xa9bd7bfd</code>替换成一条<code>BRK</code>指令，即上图所表示的一个移花接木过程。你可能会好奇原来的指令<code>0xa9bd7bfd</code>存在哪里？存在kprobe结构体的<code>opcode域</code>！这样当不再使能kprobe的时候，我再恢复回去。</p>
+<h4 id="触发异常指令">触发异常指令</h4>
+<p>上面把人家指令给改了，那么CPU执行到BRK必然会引发内核陷入BRK异常状态：</p>
+<p><img src="step2.png" alt=""></p>
+<p>蓝色部分依旧表示内存，绿色部分表示指令，红色表示CPU，上图表示CPU执行到0xffffffc000162914（sys_write）处，该处指令为BRK，于是内核陷入异常态。在异常态中，内核通过BRK指令的错误码判断这是一个kprobe异常，于是进入了kprobe处理函数。kprobe异常处理函数会根据发生异常的地址来找到对应的kprobe（kprobe的addr域记录着地址），执行kprobe的pre_handler函数，然后设置single-step相关的寄存器，为下一步执行原指令时发生single-step异常作准备。那么紧接着就是设置原指令的地址了，我们知道0xffffffc000162914处已经被替换成了BRK指令，原指令保存在kprobe结构体中，怎么保证下一步执行到原指令呢？最简单的做法是申请一块内存，然后将原指令复制到这块内存开始处，设置PC寄存器为该内存的首地址，这样当代码从异常态返回时，执行的第一条指令便是原指令了！</p>
+<h4 id="原指令得到执行二进宫">原指令得到执行，二进宫</h4>
+<p>经过上面一个步骤，pre_handler得到了执行，从异常态返回之后，原指令也得到了执行，但是由于设置了single-step模式，所以执行完原指令，马上又陷入了异常态，二进宫：</p>
+<p><img src="step3.png" alt=""></p>
+<p>这次进入异常态后，先清一下single-step相关的寄存器，确保下次从异常返回时的指令不会由于single-step发生三进宫，然后执行post_handler，最后将地址0xfffffc000162918写入到PC寄存器，为什么是这个数值呢？它正是紧接着0xffffffc000162914的下一条指令的地址，有没有发现，至此我们已经完成了pre_handler-&gt;原指令-&gt;post_handler这样三个阶段，也就是说kprobe要做的事情都做完了，此时的工作就是收拾下残局，返回到正常的指令流程，我们的探测点在0xffffffc000162914处，下一条指令应该就是0xffffffc000162918了，所以把此值写入PC寄存器，让一切恢复正轨！</p>
+<h4 id="kprobe工作结束">kprobe工作结束</h4>
+<p><img src="step4.png" alt=""></p>
+<p>上面把PC设置成了0xffffffc000162918，所以从异常态返回时，CPU就走上了正轨接着朝下面执行了，一个BRK指令引发的反应在此就告一段落了，但是每次当CPU执行到0xffffffc000162914处，都会触发上面的一连串操作，kprobe的机制也就是从一个BRK指令开始了。</p>
+<blockquote>
+<p>由于kprobe涉及到程序指令的修改，这部分和体系结构相关，我选择的体系结构ARM64，如本文的BRK指令等均是ARM64中的概念， x86中INT3与之对应。</p>
+</blockquote>
+<h4 id="卸载kprobe">卸载kprobe</h4>
+<p><img src="step4.png" alt=""></p>
+<p>卸载kprobe后，原理0xffffffc000162914出的指令就会恢复成0xa9bd7bfd。</p>
+<h4 id="x86_64下kprobe的分析">x86_64下kprobe的分析</h4>
+<p>我们以内核代码中的<a href="https://github.com/torvalds/linux/blob/master/samples/kprobes/kprobe_example.c">samples/kprobes/kprobe_example.c</a>为例</p>
+<p>该模块默认的探测点是：<code>_do_fork</code>这个内核函数，再插入模块前，<code>_do_fork</code>处的代码指令为：</p>
+<pre><code>crash&gt; dis _do_fork
+0xffffffffa30af440 &lt;_do_fork&gt;:  nopl   0x0(%rax,%rax,1) [FTRACE NOP]
+0xffffffffa30af445 &lt;_do_fork+5&gt;:        push   %r15
+0xffffffffa30af447 &lt;_do_fork+7&gt;:        mov    %rdi,%r15
+0xffffffffa30af44a &lt;_do_fork+10&gt;:       push   %r14
+0xffffffffa30af44c &lt;_do_fork+12&gt;:       push   %r13
+0xffffffffa30af44e &lt;_do_fork+14&gt;:       push   %r12
+0xffffffffa30af450 &lt;_do_fork+16&gt;:       push   %rbp
+0xffffffffa30af451 &lt;_do_fork+17&gt;:       xor    %ebp,%ebp
+0xffffffffa30af453 &lt;_do_fork+19&gt;:       push   %rbx
+0xffffffffa30af454 &lt;_do_fork+20&gt;:       sub    $0x30,%rsp
+0xffffffffa30af458 &lt;_do_fork+24&gt;:       mov    %rcx,(%rsp)
+0xffffffffa30af45c &lt;_do_fork+28&gt;:       mov    %r8,%rcx
+0xffffffffa30af45f &lt;_do_fork+31&gt;:       mov    %gs:0x28,%rax
+0xffffffffa30af468 &lt;_do_fork+40&gt;:       mov    %rax,0x28(%rsp)
+0xffffffffa30af46d &lt;_do_fork+45&gt;:       xor    %eax,%eax
+0xffffffffa30af46f &lt;_do_fork+47&gt;:       test   $0x800000,%edi
+0xffffffffa30af475 &lt;_do_fork+53&gt;:       jne    0xffffffffa30af4ba &lt;_do_fork+122&gt;
+0xffffffffa30af477 &lt;_do_fork+55&gt;:       test   $0x4000,%edi
+0xffffffffa30af47d &lt;_do_fork+61&gt;:       jne    0xffffffffa30af5bc &lt;_do_fork+380&gt;
+</code></pre><p>我们可以看到，默认情况下：<code>_do_fork</code>的位置是<code>nopl   0x0(%rax,%rax,1)</code>指令，这个跟FTRACE有关系。</p>
+<p>注册kprobe后，指令为<code>callq  0xffffffffc02ea000</code></p>
+<pre><code>crash&gt; dis _do_fork
+0xffffffffa30af440 &lt;_do_fork&gt;:  callq  0xffffffffc02ea000
+0xffffffffa30af445 &lt;_do_fork+5&gt;:        push   %r15
+0xffffffffa30af447 &lt;_do_fork+7&gt;:        mov    %rdi,%r15
+0xffffffffa30af44a &lt;_do_fork+10&gt;:       push   %r14
+0xffffffffa30af44c &lt;_do_fork+12&gt;:       push   %r13
+0xffffffffa30af44e &lt;_do_fork+14&gt;:       push   %r12
+0xffffffffa30af450 &lt;_do_fork+16&gt;:       push   %rbp
+0xffffffffa30af451 &lt;_do_fork+17&gt;:       xor    %ebp,%ebp
+0xffffffffa30af453 &lt;_do_fork+19&gt;:       push   %rbx
+0xffffffffa30af454 &lt;_do_fork+20&gt;:       sub    $0x30,%rsp
+0xffffffffa30af458 &lt;_do_fork+24&gt;:       mov    %rcx,(%rsp)
+0xffffffffa30af45c &lt;_do_fork+28&gt;:       mov    %r8,%rcx
+0xffffffffa30af45f &lt;_do_fork+31&gt;:       mov    %gs:0x28,%rax
+0xffffffffa30af468 &lt;_do_fork+40&gt;:       mov    %rax,0x28(%rsp)
+0xffffffffa30af46d &lt;_do_fork+45&gt;:       xor    %eax,%eax
+0xffffffffa30af46f &lt;_do_fork+47&gt;:       test   $0x800000,%edi
+</code></pre><p>这里不是上面提到的int3指令，是因为和ftrace有关系，有机会再深入分析。不过我们可以看到，探测点的位置被保存到了kprobe结构体中：</p>
+<pre><code>crash&gt; kprobe.addr 0xffffffffc0998000
+  addr = 0xffffffffa30af440 &quot;軫#\035AWI\211\377AVAUATU1\355SH\203\354\060H\211\f$L\211\301eH\213\004%(&quot;
+crash&gt;  sym 0xffffffffa30af440
+ffffffffa30af440 (T) _do_fork /usr/src/debug/kernel-4.18.0-147.0.3.el8_1/linux-4.18.0-147.mt20200626.413.el8_1.x86_64/kernel/fork.c: 2219
+</code></pre><h3 id="参考文章">参考文章</h3>
+<ul>
+<li><a href="https://www.cnblogs.com/honpey/p/4575928.html">https://www.cnblogs.com/honpey/p/4575928.html</a></li>
+<li><a href="https://www.cnblogs.com/honpey/p/4575902.html">https://www.cnblogs.com/honpey/p/4575902.html</a></li>
+<li><a href="http://www.brendangregg.com/bpf-performance-tools-book.html">http://www.brendangregg.com/bpf-performance-tools-book.html</a></li>
+<li><a href="https://www.kernel.org/doc/Documentation/kprobes.txt">https://www.kernel.org/doc/Documentation/kprobes.txt</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2020-08-30</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/linux-kprobe/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/kernel/">kernel</a>
+          
+          <a href="/tags/linux/">linux</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/kernel/how-to-user-__kernel__/">
+            <span class="next-text nav-default">__KERNEL__宏的作用是什么呢？该如何使用呢？</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2021
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

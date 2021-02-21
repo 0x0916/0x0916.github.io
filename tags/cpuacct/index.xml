@@ -6,11 +6,7 @@
     <description>Recent content in cpuacct on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 20 May 2018 20:57:16 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/cpuacct/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sun, 20 May 2018 20:57:16 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/cpuacct/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Cgroup之cpuacct子系统</title>
       <link>http://linux.laoqinren.net/kernel/cgroup-cpuacct/</link>
@@ -18,12 +14,10 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-cpuacct/</guid>
       <description>&lt;p&gt;&lt;code&gt;cpuacct子系统&lt;/code&gt;（CPU accounting）会自动生成报告来显示&lt;code&gt;cgroup中&lt;/code&gt;任务所使用的&lt;code&gt;CPU&lt;/code&gt;资源，其中包括子群组任务。报告有两大类：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;usage&lt;/code&gt;: 统计&lt;code&gt;cgroup&lt;/code&gt;中进程使用CPU的时间，单位为纳秒。&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;stat&lt;/code&gt;: 统计&lt;code&gt;cgroup&lt;/code&gt;中进程使用CPU的时间，单位为&lt;code&gt;USER_HZ&lt;/code&gt;。&lt;/li&gt;
 &lt;/ul&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>

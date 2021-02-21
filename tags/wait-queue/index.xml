@@ -6,11 +6,7 @@
     <description>Recent content in wait queue on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 07 May 2018 18:27:48 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/wait-queue/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Mon, 07 May 2018 18:27:48 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/wait-queue/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>内核基础设施——wait queue</title>
       <link>http://linux.laoqinren.net/kernel/wait-queue/</link>
@@ -18,11 +14,8 @@
       
       <guid>http://linux.laoqinren.net/kernel/wait-queue/</guid>
       <description>&lt;h2 id=&#34;什么是等待队列&#34;&gt;什么是等待队列？&lt;/h2&gt;
-
 &lt;p&gt;在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。&lt;code&gt;Linux&lt;/code&gt;中提供了等待队列的机制，该机制在内核中应用很广泛。&lt;/p&gt;
-
 &lt;p&gt;等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。&lt;/p&gt;
-
 &lt;p&gt;在&lt;code&gt;Linux&lt;/code&gt;内核中使用等待队列的过程很简单，首先定义一个&lt;code&gt;wait_queue_head&lt;/code&gt;，然后如果一个&lt;code&gt;task&lt;/code&gt;想等待某种事件，那么调用&lt;code&gt;wait_event（等待队列，事件）&lt;/code&gt;就可以了。&lt;/p&gt;</description>
     </item>
     

@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/memory-model/" />
@@ -53,9 +53,7 @@
 
 <meta property="og:title" content="Linux内存模型分析" />
 <meta property="og:description" content="本文转载于：http://www.wowotech.net/memory_management/memory_model.html
-
 在原文的基础上，做了如下的改动：
-
 
 文中出现的内核代码修改成基于4.4.128
 对于体系结构相关的代码,使用x86架构中的代码
@@ -68,19 +66,15 @@
 <meta property="article:modified_time" content="2018-04-25T22:03:05+08:00" />
 <meta itemprop="name" content="Linux内存模型分析">
 <meta itemprop="description" content="本文转载于：http://www.wowotech.net/memory_management/memory_model.html
-
 在原文的基础上，做了如下的改动：
-
 
 文中出现的内核代码修改成基于4.4.128
 对于体系结构相关的代码,使用x86架构中的代码
 对代码格式进行调整
 会添加一些内容，便于更进一步的理解
 ">
-
-
-<meta itemprop="datePublished" content="2018-04-25T22:03:05&#43;08:00" />
-<meta itemprop="dateModified" content="2018-04-25T22:03:05&#43;08:00" />
+<meta itemprop="datePublished" content="2018-04-25T22:03:05+08:00" />
+<meta itemprop="dateModified" content="2018-04-25T22:03:05+08:00" />
 <meta itemprop="wordCount" content="6318">
 
 
@@ -89,9 +83,7 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux内存模型分析"/>
 <meta name="twitter:description" content="本文转载于：http://www.wowotech.net/memory_management/memory_model.html
-
 在原文的基础上，做了如下的改动：
-
 
 文中出现的内核代码修改成基于4.4.128
 对于体系结构相关的代码,使用x86架构中的代码
@@ -194,173 +186,113 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#一-前言">一、前言</a></li>
-<li><a href="#二-和内存模型相关的术语">二、和内存模型相关的术语</a>
-<ul>
-<li><a href="#1-什么是page-frame">1、什么是page frame？</a></li>
-<li><a href="#2-什么是pfn">2、什么是PFN？</a></li>
-<li><a href="#3-什么是numa">3、什么是NUMA？</a></li>
-</ul></li>
-<li><a href="#三-linux-内核中的三种memory-model">三、Linux 内核中的三种memory model</a>
-<ul>
-<li><a href="#1-什么是flat-memory-model">1、什么是FLAT memory model？</a></li>
-<li><a href="#2-什么是discontiguous-memory-model">2、什么是Discontiguous Memory Model？</a></li>
-<li><a href="#3-什么是sparse-memory-model">3、什么是Sparse Memory Model？</a></li>
-</ul></li>
-<li><a href="#四-代码分析">四、代码分析</a>
-<ul>
-<li><a href="#1-flat-memory">1、flat memory。</a></li>
-<li><a href="#2-discontiguous-memory-model">2、Discontiguous Memory Model</a></li>
-<li><a href="#3-sparse-memory-model">3、Sparse Memory Model</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#一前言">一、前言</a></li>
+    <li><a href="#二和内存模型相关的术语">二、和内存模型相关的术语</a>
+      <ul>
+        <li><a href="#1什么是page-frame">1、什么是page frame？</a></li>
+        <li><a href="#2什么是pfn">2、什么是PFN？</a></li>
+        <li><a href="#3什么是numa">3、什么是NUMA？</a></li>
+      </ul>
+    </li>
+    <li><a href="#三linux-内核中的三种memory-model">三、Linux 内核中的三种memory model</a>
+      <ul>
+        <li><a href="#1什么是flat-memory-model">1、什么是FLAT memory model？</a></li>
+        <li><a href="#2什么是discontiguous-memory-model">2、什么是Discontiguous Memory Model？</a></li>
+        <li><a href="#3什么是sparse-memory-model">3、什么是Sparse Memory Model？</a></li>
+      </ul>
+    </li>
+    <li><a href="#四代码分析">四、代码分析</a>
+      <ul>
+        <li><a href="#1flat-memory">1、flat memory。</a></li>
+        <li><a href="#2discontiguous-memory-model">2、Discontiguous Memory Model</a></li>
+        <li><a href="#3sparse-memory-model">3、Sparse Memory Model</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>本文转载于：<a href="http://www.wowotech.net/memory_management/memory_model.html">http://www.wowotech.net/memory_management/memory_model.html</a></p>
-
+      <p>本文转载于：http://www.wowotech.net/memory_management/memory_model.html</p>
 <p>在原文的基础上，做了如下的改动：</p>
-
 <ol>
 <li>文中出现的内核代码修改成基于<code>4.4.128</code></li>
 <li>对于体系结构相关的代码,使用<code>x86</code>架构中的代码</li>
 <li>对代码格式进行调整</li>
 <li>会添加一些内容，便于更进一步的理解</li>
 </ol>
-
-<h2 id="一-前言">一、前言</h2>
-
+<h2 id="一前言">一、前言</h2>
 <p>在<code>linux</code>内核中支持<code>3</code>种内存模型，分别是<code>flat memory model</code>，<code>Discontiguous memory model</code>和<code>sparse memory model</code>。所谓<code>memory model</code>，其实就是从<code>cpu</code>的角度看，其物理内存的分布情况，在linux kernel中，使用什么的方式来管理这些物理内存。另外，需要说明的是：本文主要focus在<code>share memory</code>的系统，也就是说所有的<code>CPUs</code>共享一片物理地址空间的。</p>
-
 <p>本文的内容安排如下：为了能够清楚的解析内存模型，我们对一些基本的术语进行了描述，这在第二章。第三章则对三种内存模型的工作原理进行阐述，最后一章是代码解析，代码来自<code>4.4.128</code>内核，对于体系结构相关的代码，我们采用<code>x86</code>进行分析。</p>
-
-<h2 id="二-和内存模型相关的术语">二、和内存模型相关的术语</h2>
-
-<h3 id="1-什么是page-frame">1、什么是page frame？</h3>
-
+<h2 id="二和内存模型相关的术语">二、和内存模型相关的术语</h2>
+<h3 id="1什么是page-frame">1、什么是page frame？</h3>
 <p>操作系统最重要的作用之一就是管理计算机系统中的各种资源，做为最重要的资源：<strong>内存</strong>，我们必须管理起来。在linux操作系统中，物理内存是按照<code>page size</code>来管理的，具体<code>page size</code>是多少是和硬件以及<code>linux</code>系统配置相关的，<strong>4k是最经典的设定</strong>。因此，对于物理内存，我们将其分成一个个按<code>page size</code>排列的<code>page</code>，每一个物理内存中的<code>page size</code>的内存区域我们称之<code>page frame</code>。我们针对每一个物理的<code>page frame</code>建立一个<code>struct page</code>的数据结构来跟踪每一个物理页面的使用情况：是用于内核的正文段？还是用于进程的页表？是用于各种file cache还是处于free状态……</p>
-
 <p>每一个<code>page frame</code>有一个一一对应的<code>page</code>数据结构，系统中定义了<code>page_to_pfn</code>和<code>pfn_to_page</code>的宏用来在<code>page frame number</code>和<code>page</code>数据结构之间进行转换，具体如何转换是和<code>memory modle</code>相关，我们会在第三章详细描述<code>linux kernel</code>中的<code>3</code>种内存模型。</p>
-
-<h3 id="2-什么是pfn">2、什么是PFN？</h3>
-
+<h3 id="2什么是pfn">2、什么是PFN？</h3>
 <p>对于一个计算机系统，其整个物理地址空间应该是从<code>0</code>开始，到实际系统能支持的最大物理空间为止的一段地址空间。在<code>ARM</code>系统中，假设物理地址是<code>32</code>个bit，那么其物理地址空间就是<code>4G</code>，在<code>ARM64</code>系统中，如果支持的物理地址bit数目是<code>48</code>个，那么其物理地址空间就是<code>256T</code>。当然，实际上这么大的物理地址空间并不是都用于内存，有些也属于<code>I/O</code>空间（当然，有些<code>cpu arch</code>有自己独立的<code>io address space</code>）。因此，<strong>内存所占据的物理地址空间应该是一个有限的区间，不可能覆盖整个物理地址空间</strong>。不过，现在由于内存越来越大，对于<code>32</code>位系统，<code>4G</code>的物理地址空间已经无法满足内存的需求，因此会有<code>high memory</code>这个概念，后续会详细描述。</p>
-
 <p><code>PFN</code>是<code>page frame number</code>的缩写，所谓<code>page frame</code>，就是针对物理内存而言的，把物理内存分成一个个的<code>page size</code>的区域，并且给每一个<code>page</code> 编号，这个号码就是<code>PFN</code>。假设物理内存从<code>0</code>地址开始，那么<code>PFN</code>等于<code>0</code>的那个页帧就是<code>0</code>地址（物理地址）开始的那个<code>page</code>。假设物理内存从<code>x</code>地址开始，那么第一个页帧号码就是（<code>x&gt;&gt;PAGE_SHIFT</code>）。</p>
-
-<h3 id="3-什么是numa">3、什么是NUMA？</h3>
-
+<h3 id="3什么是numa">3、什么是NUMA？</h3>
 <p>在为<code>multiprocessors</code>系统设计内存架构的时候有两种选择：一种就是<code>UMA（Uniform memory access）</code>，系统中的所有的<code>processor</code>共享一个统一的，一致的物理内存空间，无论从哪一个<code>processor</code>发起访问，对内存地址的访问时间都是一样的。<code>NUMA（Non-uniform memory access）</code>和<code>UMA</code>不同，对某个内存地址的访问是和该<code>memory</code>与<code>processor</code>之间的相对位置有关的。例如，对于某个节点（node）上的<code>processor</code>而言，访问<code>local memory</code>要比访问那些<code>remote memory</code>的速度要快。</p>
-
-<h2 id="三-linux-内核中的三种memory-model">三、Linux 内核中的三种memory model</h2>
-
-<h3 id="1-什么是flat-memory-model">1、什么是FLAT memory model？</h3>
-
+<h2 id="三linux-内核中的三种memory-model">三、Linux 内核中的三种memory model</h2>
+<h3 id="1什么是flat-memory-model">1、什么是FLAT memory model？</h3>
 <p>如果从系统中任意一个<code>processor</code>的角度来看，当它访问物理内存的时候，物理地址空间是一个连续的，没有空洞的地址空间，那么这种计算机系统的内存模型就是<code>Flat memory</code>。这种内存模型下，物理内存的管理比较简单，每一个物理页帧都会有一个<code>page</code>数据结构来抽象，因此系统中存在一个<code>struct page</code>的数组（<code>mem_map</code>），每一个数组条目指向一个实际的物理页帧（<code>page frame</code>）。在<code>flat memory</code>的情况下，<code>PFN（page frame number）</code>和<code>mem_map</code>数组<code>index</code>的关系是线性的（有一个固定偏移，如果内存对应的物理地址等于<code>0</code>，那么<code>PFN</code>就是数组<code>index</code>）。因此从<code>PFN</code>到对应的<code>page</code>数据结构是非常容易的，反之亦然，具体可以参考<code>page_to_pfn</code>和<code>pfn_to_page</code>的定义。此外，对于<code>flat memory model</code>，节点（<code>struct pglist_data</code>）只有一个（为了和<code>Discontiguous Memory Model</code>采用同样的机制）。下面的图片描述了<code>flat memory</code>的情况：</p>
-
-<p><img src="./flat_memory.png" alt="enter description here" title="flat_memory" /></p>
-
+<p><img src="./flat_memory.png" alt="enter description here" title="flat_memory"></p>
 <p>需要强调的是<code>struct page</code>所占用的内存位于直接映射（<code>directly mapped</code>）区间，因此操作系统不需要再为其建立<code>page table</code>。</p>
-
-<h3 id="2-什么是discontiguous-memory-model">2、什么是Discontiguous Memory Model？</h3>
-
+<h3 id="2什么是discontiguous-memory-model">2、什么是Discontiguous Memory Model？</h3>
 <p>如果<code>cpu</code>在访问物理内存的时候，其地址空间有一些空洞，是不连续的，那么这种计算机系统的内存模型就是<code>Discontiguous memory</code>。一般而言，<code>NUMA</code>架构的计算机系统的<code>memory model</code>都是选择<code>Discontiguous Memory</code>，不过，这两个概念其实是不同的。<code>NUMA</code>强调的是<code>memory</code>和<code>processor</code>的位置关系，和内存模型其实是没有关系的，只不过，由于同一<code>node</code>上的<code>memory</code>和<code>processor</code>有更紧密的耦合关系（访问更快），因此需要多个<code>node</code>来管理。<code>Discontiguous memory</code>本质上是<code>flat memory</code>内存模型的扩展，整个物理内存的<code>address space</code>大部分是成片的大块内存，中间会有一些空洞，每一个成片的<code>memory address space</code>属于一个<code>node</code>（如果局限在一个<code>node</code>内部，其内存模型是<code>flat memory</code>）。下面的图片描述了<code>Discontiguous memory</code>的情况：</p>
-
-<p><img src="./discontiguous_memory.png" alt="enter description here" title="discontiguous_memory" /></p>
-
+<p><img src="./discontiguous_memory.png" alt="enter description here" title="discontiguous_memory"></p>
 <p>因此，这种内存模型下，节点数据（<code>struct pglist_data</code>）有多个，宏定义<code>NODE_DATA</code>可以得到指定节点的<code>struct pglist_data</code>。而，每个节点管理的物理内存保存在<code>struct pglist_data</code> 数据结构的<code>node_mem_map</code>成员中（概念类似<code>flat memory</code>中的<code>mem_map</code>）。这时候，从<code>PFN</code>转换到具体的<code>struct page</code>会稍微复杂一点，我们首先要从<code>PFN</code>得到<code>node ID</code>，然后根据这个<code>ID</code>找到对于的<code>pglist_data</code> 数据结构，也就找到了对应的<code>page</code>数组，之后的方法就类似<code>flat memory</code>了。</p>
-
-<h3 id="3-什么是sparse-memory-model">3、什么是Sparse Memory Model？</h3>
-
+<h3 id="3什么是sparse-memory-model">3、什么是Sparse Memory Model？</h3>
 <p><code>Memory model</code>也是一个演进过程，刚开始的时候，使用<code>flat memory</code>去抽象一个连续的内存地址空间（<code>mem_maps[]</code>），出现<code>NUMA</code>之后，整个不连续的内存空间被分成若干个<code>node</code>，每个<code>node</code>上是连续的内存地址空间，也就是说，原来的单一的一个<code>mem_maps[]</code>变成了<code>若干个mem_maps[]</code>了。一切看起来已经完美了，但是<code>memory hotplug</code>的出现让原来完美的设计变得不完美了，因为即便是一个<code>node</code>中的<code>mem_maps[]</code>也有可能是不连续了。其实，在出现了<code>sparse memory</code>之后，<code>Discontiguous memory</code>内存模型已经不是那么重要了，按理说<code>sparse memory</code>最终可以替代<code>Discontiguous memory</code>的，这个替代过程正在进行中，<code>4.4</code>的内核仍然是有<code>3</code>种内存模型可以选择。</p>
-
 <p>为什么说<code>sparse memory</code>最终可以替代<code>Discontiguous memory</code>呢？实际上在<code>sparse memory</code>内存模型下，连续的地址空间按照<code>SECTION</code>（例如1G）被分成了一段一段的，其中每一<code>section</code>都是<code>hotplug</code>的，因此<code>sparse memory</code>下，内存地址空间可以被切分的更细，支持更离散的<code>Discontiguous memory</code>。此外，在<code>sparse memory</code>没有出现之前，<code>NUMA</code>和<code>Discontiguous memory</code>总是剪不断，理还乱的关系：<code>NUMA</code>并没有规定其内存的连续性，而<code>Discontiguous memory</code>系统也并非一定是<code>NUMA</code>系统，但是这两种配置都是<code>multi node</code>的。有了<code>sparse memory</code>之后，我们终于可以把内存的连续性和<code>NUMA</code>的概念剥离开来：<strong>一个<code>NUMA</code>系统可以是<code>flat memory</code>，也可以是<code>sparse memory</code>，而一个<code>sparse memory</code>系统可以是<code>NUMA</code>，也可以是<code>UMA</code>的</strong>。</p>
-
 <p>下面的图片说明了<code>sparse memory</code>是如何管理<code>page frame</code>的（配置了<code>SPARSEMEM_EXTREME</code>）：</p>
-
-<p><img src="./sparse_memory.png" alt="enter description here" title="sparse_memory" /></p>
-
+<p><img src="./sparse_memory.png" alt="enter description here" title="sparse_memory"></p>
 <p>（注意：上图中的一个<code>mem_section</code>指针应该指向一个<code>page</code>，而一个<code>page</code>中有若干个<code>struct mem_section</code>数据单元）</p>
-
 <p>整个连续的物理地址空间是按照一个<code>section</code>一个<code>section</code>来切断的，每一个<code>section</code>内部，其<code>memory</code>是连续的（即符合<code>flat memory</code>的特点），因此，<code>mem_map</code>的<code>page</code>数组依附于<code>section</code>结构（<code>struct mem_section</code>）而不是<code>node</code>结构了（<code>struct pglist_data</code>）。当然，无论哪一种<code>memory model</code>，都需要处理<code>PFN</code>和<code>page</code>之间的对应关系，只不过<code>sparse memory</code>多了一个<code>section</code>的概念，让转换变成了<code>PFN&lt;---&gt;Section&lt;---&gt;page</code>。</p>
-
 <p>我们首先看看如何从<code>PFN</code>到<code>page</code>结构的转换：<code>kernel</code>中静态定义了一个<code>mem_section</code>的<strong>指针数组</strong>，一个<code>section</code>中往往包括多个<code>page</code>，因此需要通过右移将<code>PFN</code>转换成<code>section number</code>，用<code>section number</code>做为<code>index</code>在<code>mem_section</code>指针数组可以找到该<code>PFN</code>对应的<code>section</code>数据结构。找到<code>section</code>之后，沿着其<code>section_mem_map</code>就可以找到对应的<code>page</code>数据结构。顺便一提的是，在开始的时候，<code>sparse memory</code>使用了一维的<code>memory_section</code>数组（不是指针数组），这样的实现对于特别稀疏（<code>CONFIG_SPARSEMEM_EXTREME</code>）的系统非常浪费内存。此外，保存指针对<code>hotplug</code>的支持是比较方便的，指针等于<code>NULL</code>就意味着该<code>section</code>不存在。上面的图片描述的是<code>一维mem_section指针数组</code>的情况（配置了<code>SPARSEMEM_EXTREME</code>），对于非<code>SPARSEMEM_EXTREME</code>配置，概念是类似的，具体操作大家可以自行阅读代码。</p>
-
 <p>从<code>page</code>到<code>PFN</code>稍微有一点麻烦实际上<code>PFN</code>分成两个部分：一部分是<code>section index</code>，另外一个部分是<code>page</code>在该<code>section</code>的偏移。我们需要首先从<code>page</code>得到<code>section index</code>，也就得到对应的<code>memory_section</code>，知道了<code>memory_section</code>也就知道该<code>page</code>在<code>section_mem_map</code>，也就知道了<code>page</code>在该<code>section</code>的偏移，最后可以合成<code>PFN</code>。</p>
-
 <p>对于<code>page</code>到<code>section index</code>的转换，<code>sparse memory</code>有<code>2</code>种方案，我们先看看经典的方案，也就是保存在<code>page-&gt;flags</code>中（配置了<code>SECTION_IN_PAGE_FLAGS</code>）。这种方法的最大的问题是<code>page-&gt;flags</code>中的<code>bit</code>数目不一定够用，因为这个<code>flag</code>中承载了太多的信息，各种<code>page flag</code>，<code>node id</code>，<code>zone id</code>现在又增加一个<code>section id</code>，在不同的<code>architecture</code>中无法实现一致性的算法，有没有一种通用的算法呢？这就是<code>CONFIG_SPARSEMEM_VMEMMAP</code>。具体的算法可以参考下图：</p>
-
-<p><img src="./sparse_memory2.png" alt="enter description here" title="sparse_memory2" />
+<p><img src="./sparse_memory2.png" alt="enter description here" title="sparse_memory2">
 （上面的图片有一点问题，<code>vmemmap</code>只有在<code>PHYS_OFFSET</code>等于<code>0</code>的情况下才指向第一个<code>struct page</code>数组，一般而言，应该有一个<code>offset</code>的，不过，懒得改了，哈哈）</p>
-
 <p>对于经典的<code>sparse memory</code>模型，一个<code>section</code>的<code>struct page</code>数组所占用的内存来自<code>directly mapped</code>区域，页表在初始化的时候就建立好了，分配了<code>page frame</code>也就是分配了虚拟地址。但是，对于<code>SPARSEMEM_VMEMMAP</code>而言，虚拟地址一开始就分配好了，是<code>vmemmap</code>开始的一段连续的虚拟地址空间，每一个<code>page</code>都有一个对应的<code>struct page</code>，当然，只有虚拟地址，没有物理地址。因此，当一个<code>section</code>被发现后，可以立刻找到对应的<code>struct page</code>的虚拟地址，当然，还需要分配一个物理的<code>page frame</code>，然后建立页表什么的，因此，对于这种<code>sparse memory</code>，开销会稍微大一些（多了个建立映射的过程）。</p>
-
-<h2 id="四-代码分析">四、代码分析</h2>
-
+<h2 id="四代码分析">四、代码分析</h2>
 <p>我们的代码分析主要是通过<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/asm-generic/memory_model.h?h=v4.4.128#n32"> include/asm-generic/memory_model.h(line 32)</a>展开的。</p>
-
-<h3 id="1-flat-memory">1、flat memory。</h3>
-
+<h3 id="1flat-memory">1、flat memory。</h3>
 <p>代码如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/asm-generic/memory_model.h?h=v4.4.128#n32"> include/asm-generic/memory_model.h(line 32)</a></p>
-
-<pre><code class="language-c">#define __pfn_to_page(pfn)      (mem_map + ((pfn) - ARCH_PFN_OFFSET))
-#define __page_to_pfn(page)     ((unsigned long)((page) - mem_map) + \
-                                 ARCH_PFN_OFFSET)
-</code></pre>
-
-<p>由代码可知，<code>PFN</code>和<code>struct page</code>数组（<code>mem_map</code>）<code>index</code>是<strong>线性关系</strong>，<strong>有一个固定的偏移就是ARCH_PFN_OFFSET</strong>，这个偏移是和估计的<code>architecture</code>有关。</p>
-
-<h3 id="2-discontiguous-memory-model">2、Discontiguous Memory Model</h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define __pfn_to_page(pfn)      (mem_map + ((pfn) - ARCH_PFN_OFFSET))
+</span><span style="color:#75715e">#define __page_to_pfn(page)     ((unsigned long)((page) - mem_map) + \
+</span><span style="color:#75715e">                                 ARCH_PFN_OFFSET)
+</span></code></pre></div><p>由代码可知，<code>PFN</code>和<code>struct page</code>数组（<code>mem_map</code>）<code>index</code>是<strong>线性关系</strong>，<strong>有一个固定的偏移就是ARCH_PFN_OFFSET</strong>，这个偏移是和估计的<code>architecture</code>有关。</p>
+<h3 id="2discontiguous-memory-model">2、Discontiguous Memory Model</h3>
 <p>代码如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/asm-generic/memory_model.h?h=v4.4.128#n37"> include/asm-generic/memory_model.h(line 37)</a></p>
-
-<pre><code class="language-c">#define __pfn_to_page(pfn)                      \
-({      unsigned long __pfn = (pfn);            \
-        unsigned long __nid = arch_pfn_to_nid(__pfn);  \
-        NODE_DATA(__nid)-&gt;node_mem_map + arch_local_page_offset(__pfn, __nid);\
-})
-
-#define __page_to_pfn(pg)                                               \
-({      const struct page *__pg = (pg);                                 \
-        struct pglist_data *__pgdat = NODE_DATA(page_to_nid(__pg));     \
-        (unsigned long)(__pg - __pgdat-&gt;node_mem_map) +                 \
-         __pgdat-&gt;node_start_pfn;                                       \
-})
-</code></pre>
-
-<p><code>Discontiguous Memory Model</code>需要获取<code>node id</code>，只要找到<code>node id</code>，一切都好办了，比对<code>flat memory model</code>进行就<code>OK</code>了。因此对于<code>__pfn_to_page</code>的定义，可以首先通过<code>arch_pfn_to_nid</code>将<code>PFN</code>转换成<code>node id</code>，通过<code>NODE_DATA</code>宏定义可以找到该<code>node</code>对应的<code>pglist_data</code>数据结构，该数据结构的<code>node_start_pfn</code>记录了该<code>node</code>的第一个<code>page frame number</code>，因此，也就可以得到其对应<code>struct page</code>在<code>node_mem_map</code>的偏移。<code>__page_to_pfn</code>类似，大家可以自己分析。</p>
-
-<h3 id="3-sparse-memory-model">3、Sparse Memory Model</h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define __pfn_to_page(pfn)                      \
+</span><span style="color:#75715e">({      unsigned long __pfn = (pfn);            \
+</span><span style="color:#75715e">        unsigned long __nid = arch_pfn_to_nid(__pfn);  \
+</span><span style="color:#75715e">        NODE_DATA(__nid)-&gt;node_mem_map + arch_local_page_offset(__pfn, __nid);\
+</span><span style="color:#75715e">})
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#define __page_to_pfn(pg)                                               \
+</span><span style="color:#75715e">({      const struct page *__pg = (pg);                                 \
+</span><span style="color:#75715e">        struct pglist_data *__pgdat = NODE_DATA(page_to_nid(__pg));     \
+</span><span style="color:#75715e">        (unsigned long)(__pg - __pgdat-&gt;node_mem_map) +                 \
+</span><span style="color:#75715e">         __pgdat-&gt;node_start_pfn;                                       \
+</span><span style="color:#75715e">})
+</span></code></pre></div><p><code>Discontiguous Memory Model</code>需要获取<code>node id</code>，只要找到<code>node id</code>，一切都好办了，比对<code>flat memory model</code>进行就<code>OK</code>了。因此对于<code>__pfn_to_page</code>的定义，可以首先通过<code>arch_pfn_to_nid</code>将<code>PFN</code>转换成<code>node id</code>，通过<code>NODE_DATA</code>宏定义可以找到该<code>node</code>对应的<code>pglist_data</code>数据结构，该数据结构的<code>node_start_pfn</code>记录了该<code>node</code>的第一个<code>page frame number</code>，因此，也就可以得到其对应<code>struct page</code>在<code>node_mem_map</code>的偏移。<code>__page_to_pfn</code>类似，大家可以自己分析。</p>
+<h3 id="3sparse-memory-model">3、Sparse Memory Model</h3>
 <p>经典算法的代码我们就不看了，一起看看配置了<code>SPARSEMEM_VMEMMAP</code>的代码，如下：</p>
-
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/asm-generic/memory_model.h?h=v4.4.128#n52"> include/asm-generic/memory_model.h(line 52)</a>
-
-<pre><code class="language-c">/* memmap is virtually contiguous.  */
-#define __pfn_to_page(pfn)      (vmemmap + (pfn))
-#define __page_to_pfn(page)     (unsigned long)((page) - vmemmap)
-</code></pre>
-
-<p>简单而清晰，<code>PFN</code>就是<code>vmemmap</code>这个<code>struct page</code>数组的<code>index</code>啊。对于<code>x86</code>而言，<code>vmemmap</code>定义如下：</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* memmap is virtually contiguous.  */</span>
+<span style="color:#75715e">#define __pfn_to_page(pfn)      (vmemmap + (pfn))
+</span><span style="color:#75715e">#define __page_to_pfn(page)     (unsigned long)((page) - vmemmap)
+</span></code></pre></div><p>简单而清晰，<code>PFN</code>就是<code>vmemmap</code>这个<code>struct page</code>数组的<code>index</code>啊。对于<code>x86</code>而言，<code>vmemmap</code>定义如下：</p>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/arch/x86/include/asm/pgtable_64.h?h=v4.4.128#n199"> arch/x86/include/asm/pgtable_64.h(line 199)</a>
-
-<pre><code class="language-c">#define vmemmap ((struct page *)VMEMMAP_START)
-</code></pre>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/arch/x86/include/asm/pgtable_64_types.h?h=v4.4.128#n59"> arch/x86/include/asm/pgtable_64_types.h(line 59)</a>
-
-<pre><code class="language-c">#define VMEMMAP_START    _AC(0xffffea0000000000, UL)
-</code></pre>
-
-<p>毫无疑问，我们需要在虚拟地址空间中分配一段地址来安放<code>struct page</code>数组（该数组包含了所有物理内存跨度空间<code>page</code>），也就是<code>VMEMMAP_START</code>的定义。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define vmemmap ((struct page *)VMEMMAP_START)
+</span></code></pre></div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/arch/x86/include/asm/pgtable_64_types.h?h=v4.4.128#n59"> arch/x86/include/asm/pgtable_64_types.h(line 59)</a>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define VMEMMAP_START    _AC(0xffffea0000000000, UL)
+</span></code></pre></div><p>毫无疑问，我们需要在虚拟地址空间中分配一段地址来安放<code>struct page</code>数组（该数组包含了所有物理内存跨度空间<code>page</code>），也就是<code>VMEMMAP_START</code>的定义。</p>
     </div>
 
     
@@ -453,7 +385,7 @@
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

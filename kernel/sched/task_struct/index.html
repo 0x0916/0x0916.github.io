@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/sched/task_struct/" />
@@ -60,10 +60,8 @@
 <meta itemprop="name" content="Linux调度——进程描述符">
 <meta itemprop="description" content="在linux系统中，每个进程都会有自己的进程描述符，它用结构体struct task_struct来表示，其描述了一个具体进程的所有信息。
 本文对进程描述符进行了详细的介绍。">
-
-
-<meta itemprop="datePublished" content="2019-11-16T10:15:48&#43;08:00" />
-<meta itemprop="dateModified" content="2019-11-16T10:15:48&#43;08:00" />
+<meta itemprop="datePublished" content="2019-11-16T10:15:48+08:00" />
+<meta itemprop="dateModified" content="2019-11-16T10:15:48+08:00" />
 <meta itemprop="wordCount" content="647">
 
 
@@ -169,15 +167,13 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#进程描述符-task-struct">进程描述符:task_struct</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#进程描述符task_struct">进程描述符:task_struct</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -186,13 +182,9 @@
     <div class="post-content">
       <p>在<code>linux</code>系统中，每个进程都会有自己的进程描述符，它用结构体<code>struct task_struct</code>来表示，其描述了一个具体进程的所有信息。
 本文对<strong>进程描述符</strong>进行了详细的介绍。</p>
-
-<h3 id="进程描述符-task-struct">进程描述符:task_struct</h3>
-
+<h3 id="进程描述符task_struct">进程描述符:task_struct</h3>
 <p><code>struct task_struct</code>相对较大，在<code>64</code>位系统上，它大约有<code>4.1KB</code>。但考虑到该结构体内包含了内核管理一个进程所需的所有信息，那么它的大小也算相当小了。</p>
-
 <p>在内核中，我们需要非常高效的获取进程的<code>struct task_struct</code>结构体，在现在的内核版本中，会在内核栈底（对于向下增长的栈来说）创建一个新的结构<code>struct thread_info</code>:</p>
-
 <pre><code>struct thread_info {
         struct task_struct      *task;          /* main task structure */
         struct exec_domain      *exec_domain;   /* execution domain */
@@ -213,35 +205,27 @@
         unsigned int            sig_on_uaccess_error:1;
         unsigned int            uaccess_err:1;  /* uaccess failed */
 };
-</code></pre>
-
-<p>该结构体中的<code>task</code>域中存放着指向该任务实际<code>task_struct</code>的指针。而<code>struct task_struct</code>中的<code>stack</code>域指向了该进程的内核栈的栈底（对于向下增长的栈来说）。</p>
-
+</code></pre><p>该结构体中的<code>task</code>域中存放着指向该任务实际<code>task_struct</code>的指针。而<code>struct task_struct</code>中的<code>stack</code>域指向了该进程的内核栈的栈底（对于向下增长的栈来说）。</p>
 <p><code>task_struct</code>和内核栈的关系如下图所示：
-<img src="./task_struct-thread_info-stack.png" alt="" /></p>
-
+<img src="./task_struct-thread_info-stack.png" alt="" title=""></p>
 <p>在<code>x86-64</code>位系统上，进程内核栈的大小为<code>16KB</code>，用如下数据结构表示：</p>
-
-<pre><code class="language-c">union thread_union { 
-        struct thread_info thread_info;
-        unsigned long stack[THREAD_SIZE/sizeof(long)];  
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">union</span> thread_union { 
+        <span style="color:#66d9ef">struct</span> thread_info thread_info;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> stack[THREAD_SIZE<span style="color:#f92672">/</span><span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">long</span>)];  
 }; 
-</code></pre>
-
-<p>我们可以使用<code>crash</code>工具查看<code>struct task_struct</code>的<code>stack</code>域和进程<code>thread_info</code>的关系，这里我查看了系统上<code>init</code>进程（进程号为<code>1</code>）的信息：</p>
-
-<pre><code class="language-c">crash&gt; union thread_union
-union thread_union {
-    struct thread_info thread_info;
-    unsigned long stack[2048];
+</code></pre></div><p>我们可以使用<code>crash</code>工具查看<code>struct task_struct</code>的<code>stack</code>域和进程<code>thread_info</code>的关系，这里我查看了系统上<code>init</code>进程（进程号为<code>1</code>）的信息：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">crash<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">union</span> thread_union
+<span style="color:#66d9ef">union</span> thread_union {
+    <span style="color:#66d9ef">struct</span> thread_info thread_info;
+    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> stack[<span style="color:#ae81ff">2048</span>];
 }
-SIZE: 16384  //这里可以看出内核栈大小为16KB。
-crash&gt; task -R stack 1
-PID: 1      TASK: ffff95c499450000  CPU: 1   COMMAND: &quot;systemd&quot;
-  stack = 0xffff95c49944c000, 
-crash&gt; thread_info.task 0xffff95c49944c000
-  task = 0xffff95c499450000
-</code></pre>
+SIZE: <span style="color:#ae81ff">16384</span>  <span style="color:#75715e">//这里可以看出内核栈大小为16KB。
+</span><span style="color:#75715e"></span>crash<span style="color:#f92672">&gt;</span> task <span style="color:#f92672">-</span>R stack <span style="color:#ae81ff">1</span>
+PID: <span style="color:#ae81ff">1</span>      TASK: ffff95c499450000  CPU: <span style="color:#ae81ff">1</span>   COMMAND: <span style="color:#e6db74">&#34;systemd&#34;</span>
+  stack <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xffff95c49944c000</span>, 
+crash<span style="color:#f92672">&gt;</span> thread_info.task <span style="color:#ae81ff">0xffff95c49944c000</span>
+  task <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xffff95c499450000</span>
+</code></pre></div>
     </div>
 
     
@@ -332,7 +316,7 @@ crash&gt; thread_info.task 0xffff95c49944c000
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

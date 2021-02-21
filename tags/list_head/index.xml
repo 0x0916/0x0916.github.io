@@ -6,11 +6,7 @@
     <description>Recent content in list_head on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 23 Jun 2018 17:38:10 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/list_head/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sat, 23 Jun 2018 17:38:10 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/list_head/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>内核基础设施——list_head结构解析</title>
       <link>http://linux.laoqinren.net/kernel/list/</link>
@@ -18,7 +14,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/list/</guid>
       <description>&lt;p&gt;&lt;code&gt;list_head&lt;/code&gt;用法经常在&lt;code&gt;Linux kernel&lt;/code&gt;里面经常看见，该文对内核中的&lt;code&gt;list_head&lt;/code&gt;进行了总结分析。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文的中的代码来自于内核版本&lt;code&gt;v4.16&lt;/code&gt;。&lt;/p&gt;
 &lt;/blockquote&gt;</description>

@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/vm-sysctl-min_free_kbytes/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2019-01-05T21:08:28+08:00" />
 <meta itemprop="name" content="内存管理参数min_free_kbytes 分析">
 <meta itemprop="description" content="在Linux系统中，有很多内存管理的配置参数，本文就详细分析min_free_kbytes参数。">
-
-
-<meta itemprop="datePublished" content="2019-01-05T21:08:28&#43;08:00" />
-<meta itemprop="dateModified" content="2019-01-05T21:08:28&#43;08:00" />
+<meta itemprop="datePublished" content="2019-01-05T21:08:28+08:00" />
+<meta itemprop="dateModified" content="2019-01-05T21:08:28+08:00" />
 <meta itemprop="wordCount" content="2247">
 
 
@@ -166,20 +164,18 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#系统环境介绍">系统环境介绍</a></li>
-<li><a href="#min-free-kbytes-解释"><code>min_free_kbytes</code> 解释</a></li>
-<li><a href="#系统所保留空闲内存的最低限">系统所保留空闲内存的最低限</a></li>
-<li><a href="#用于计算影响内存回收的三个参数-watermark-min-low-high">用于计算影响内存回收的三个参数 <code>watermark[min/low/high]</code></a></li>
-<li><a href="#min-free-kbytes-大小的影响"><code>min_free_kbytes</code>大小的影响</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#系统环境介绍">系统环境介绍</a></li>
+        <li><a href="#min_free_kbytes-解释"><code>min_free_kbytes</code> 解释</a></li>
+        <li><a href="#系统所保留空闲内存的最低限">系统所保留空闲内存的最低限</a></li>
+        <li><a href="#用于计算影响内存回收的三个参数-watermarkminlowhigh">用于计算影响内存回收的三个参数 <code>watermark[min/low/high]</code></a></li>
+        <li><a href="#min_free_kbytes大小的影响"><code>min_free_kbytes</code>大小的影响</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -187,28 +183,19 @@
     
     <div class="post-content">
       <p>在<code>Linux</code>系统中，有很多内存管理的配置参数，本文就详细分析<code>min_free_kbytes</code>参数。</p>
-
-<p><img src="./pic.jpg" alt="" /></p>
-
+<p><img src="./pic.jpg" alt=""></p>
 <h3 id="系统环境介绍">系统环境介绍</h3>
-
 <ul>
 <li>发行版：<code>centos7.5</code></li>
 <li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
 <li>处理器：<code>40core（Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz）</code></li>
 <li>内存：<code>128GB</code>，两个<code>NUMA node</code></li>
 </ul>
-
-<h3 id="min-free-kbytes-解释"><code>min_free_kbytes</code> 解释</h3>
-
+<h3 id="min_free_kbytes-解释"><code>min_free_kbytes</code> 解释</h3>
 <p>在我的系统上，其值如下：</p>
-
 <pre><code>cat /proc/sys/vm/min_free_kbytes 
 90112
-</code></pre>
-
-<p>我们先看其官方解释：</p>
-
+</code></pre><p>我们先看其官方解释：</p>
 <pre><code>min_free_kbytes:
 
 This is used to force the Linux VM to keep a minimum number
@@ -222,19 +209,13 @@ allocations; if you set this to lower than 1024KB, your system will
 become subtly broken, and prone to deadlock under high loads.
 
 Setting this too high will OOM your machine instantly.
-</code></pre>
-
-<p>从上面的解释中主要有如下两个点：</p>
-
+</code></pre><p>从上面的解释中主要有如下两个点：</p>
 <ul>
 <li>代表系统所保留空闲内存的最低限</li>
 <li>用于计算影响内存回收的三个参数 <code>watermark[min/low/high]</code></li>
 </ul>
-
 <h3 id="系统所保留空闲内存的最低限">系统所保留空闲内存的最低限</h3>
-
 <p>在系统初始化时会根据内存大小计算一个默认值，计算规则是：</p>
-
 <pre><code>/*
  * Initialise min_free_kbytes.
  *
@@ -259,12 +240,8 @@ Setting this too high will OOM your machine instantly.
  * 8192MB:      11584k
  * 16384MB:     16384k
  */
-</code></pre>
-
-<p><code>lowmem_kbytes</code>可以认为是系统的内存大小。精确的算法是：<code>lowmem_kbytes</code>等于所有<code>zone</code>中<code>managed-high</code>之和。</p>
-
+</code></pre><p><code>lowmem_kbytes</code>可以认为是系统的内存大小。精确的算法是：<code>lowmem_kbytes</code>等于所有<code>zone</code>中<code>managed-high</code>之和。</p>
 <p>在我的系统上各个<code>zone</code>的<code>page</code>个数如下：</p>
-
 <table>
 <thead>
 <tr>
@@ -276,7 +253,6 @@ Setting this too high will OOM your machine instantly.
 <th>managed - high</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>dma</td>
@@ -286,7 +262,6 @@ Setting this too high will OOM your machine instantly.
 <td>3</td>
 <td>3973</td>
 </tr>
-
 <tr>
 <td>dma32</td>
 <td>354201</td>
@@ -295,7 +270,6 @@ Setting this too high will OOM your machine instantly.
 <td>363</td>
 <td>353838</td>
 </tr>
-
 <tr>
 <td>normal</td>
 <td>15991024</td>
@@ -304,7 +278,6 @@ Setting this too high will OOM your machine instantly.
 <td>16443</td>
 <td>15974581</td>
 </tr>
-
 <tr>
 <td>normal</td>
 <td>16514229</td>
@@ -313,7 +286,6 @@ Setting this too high will OOM your machine instantly.
 <td>16980</td>
 <td>16497249</td>
 </tr>
-
 <tr>
 <td>total</td>
 <td>32863430</td>
@@ -324,122 +296,93 @@ Setting this too high will OOM your machine instantly.
 </tr>
 </tbody>
 </table>
-
 <p>结合上面的算法:</p>
-
 <pre><code>lowmem_kbytes = 32829641 * (PAGE_SIZE &gt;&gt; 10) = 32829641 * 4
 min_free_kbytes = sqrt(lowmem_kbytes * 16)
 				= sqrt(32829641 * 4 * 16)
 				= sqrt(2101097024)
 				= 45837
-</code></pre>
-
-<p>另外，计算出来的值有最小最大限制，最小为<code>128K</code>，最大为<code>64M</code>。
+</code></pre><p>另外，计算出来的值有最小最大限制，最小为<code>128K</code>，最大为<code>64M</code>。
 可以看出，<code>min_free_kbytes</code>随着内存的增大不是线性增长，注释里也提到了原因：<strong>because network bandwidth does not increase linearly with machine size</strong>。随着内存的增大，没有必要也线性的预留出过多的内存，能保证紧急时刻的使用量便足矣。</p>
-
 <p>这里计算出的<code>45837</code>是在内存大小为<code>128G</code>的服务器上的<code>min_free_kbytes</code>的初始值。但实际上该服务上<code>min_free_kbytes</code>的值为<code>90112</code>，显然超过了最大的<code>64M</code>。</p>
-
 <pre><code>cat /proc/sys/vm/min_free_kbytes 
 90112
-</code></pre>
-
-<p>这是为什么呢？经过查看内核源代码，发现<code>min_free_kbytes</code>根据如上算法初始化后，如果系统支持大页，会在<code>set_recommended_min_free_kbytes</code>函数中根据情况调整该值：</p>
-
+</code></pre><p>这是为什么呢？经过查看内核源代码，发现<code>min_free_kbytes</code>根据如上算法初始化后，如果系统支持大页，会在<code>set_recommended_min_free_kbytes</code>函数中根据情况调整该值：</p>
 <pre><code>        if (recommended_min &gt; min_free_kbytes) 
                 min_free_kbytes = recommended_min;
-</code></pre>
-
-<h3 id="用于计算影响内存回收的三个参数-watermark-min-low-high">用于计算影响内存回收的三个参数 <code>watermark[min/low/high]</code></h3>
-
+</code></pre><h3 id="用于计算影响内存回收的三个参数-watermarkminlowhigh">用于计算影响内存回收的三个参数 <code>watermark[min/low/high]</code></h3>
 <p><code>watermark[high] &gt; watermark [low] &gt; watermark[min]</code>，各个<code>zone</code>各一套。</p>
-
 <p>在系统空闲内存低于 <code>watermark[low]</code>时，开始启动内核线程<code>kswapd</code>进行内存回收，直到该<code>zone</code>的空闲内存数量达到<code>watermark[high]</code>后停止回收。如果上层申请内存的速度太快，导致空闲内存降至<code>watermark[min]</code>后，内核就会进行<code>direct reclaim</code>（直接回收），即直接在应用程序的进程上下文中进行回收，再用回收上来的空闲页满足内存申请，因此实际会阻塞应用程序，带来一定的响应延迟，而且可能会触发系统<code>OOM</code>。这是因为<code>watermark[min]</code>以下的内存属于系统的自留内存，用以满足特殊使用，所以不会给用户态的普通申请来用。</p>
-
 <p>三个watermark的计算方法：</p>
-
 <p><code>watermark[min] = min_free_kbytes</code>换算为<code>page</code>单位即可，假设为<code>min_free_pages</code>。（因为是每个<code>zone</code>各有一套<code>watermark</code>参数，实际计算效果是根据各个<code>zone</code>大小所占内存总大小的比例，而算出来的<code>per zone min_free_pages</code>）
- <code>watermark[low] = watermark[min] * 5 / 4</code>
- <code>watermark[high] = watermark[min] * 3 / 2</code></p>
-
+<code>watermark[low] = watermark[min] * 5 / 4</code>
+<code>watermark[high] = watermark[min] * 3 / 2</code></p>
 <p>所以中间的<code>buffer</code>量为 :</p>
-
 <pre><code>watermark[high] - watermark[low] 
 		= watermark[min] * 3 / 2 - watermark[min] * 5 / 4 
 		= watermark[min] * 1 / 4 
 		= per_zone_min_free_pages * 1/4
-</code></pre>
-
-<p>因为<code>min_free_kbytes = 4* sqrt(lowmem_kbytes）</code>，也可以看出中间的<code>buffer</code>量也是跟内存的增长速度成开方关系。</p>
-
+</code></pre><p>因为<code>min_free_kbytes = 4* sqrt(lowmem_kbytes）</code>，也可以看出中间的<code>buffer</code>量也是跟内存的增长速度成开方关系。</p>
 <p>我们计算一下当前系统上的各个<code>zone</code>的值水位值：</p>
-
 <ol>
 <li><code>min_free_kbytes</code>的值为<code>90112</code>，换算成<code>page</code>数为：<code>22528</code>，即系统上所有<code>zone</code>的<code>watermark[min]</code>总共为<code>22528</code>。</li>
 <li>系统上所有<code>zone</code>的总的<code>managed</code>为：<code>32863430</code>,计算出下表：</li>
 </ol>
-
 <table>
 <thead>
 <tr>
-<th align="center">zone</th>
-<th align="right">managed</th>
-<th align="right">比例</th>
-<th align="right">min</th>
-<th align="right"><code>low = 1.25*min</code></th>
-<th align="right"><code>high=1.5*min</code></th>
+<th style="text-align:center">zone</th>
+<th style="text-align:right">managed</th>
+<th style="text-align:right">比例</th>
+<th style="text-align:right">min</th>
+<th style="text-align:right"><code>low = 1.25*min</code></th>
+<th style="text-align:right"><code>high=1.5*min</code></th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
-<td align="center">DMA</td>
-<td align="right">3976</td>
-<td align="right"><sup>3976</sup>&frasl;<sub>32863430</sub></td>
-<td align="right">2</td>
-<td align="right">2.5</td>
-<td align="right">3</td>
+<td style="text-align:center">DMA</td>
+<td style="text-align:right">3976</td>
+<td style="text-align:right">3976/32863430</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">2.5</td>
+<td style="text-align:right">3</td>
 </tr>
-
 <tr>
-<td align="center">DMA32</td>
-<td align="right">354201</td>
-<td align="right"><sup>354201</sup>&frasl;<sub>32863430</sub></td>
-<td align="right">242</td>
-<td align="right">302.50</td>
-<td align="right">363</td>
+<td style="text-align:center">DMA32</td>
+<td style="text-align:right">354201</td>
+<td style="text-align:right">354201/32863430</td>
+<td style="text-align:right">242</td>
+<td style="text-align:right">302.50</td>
+<td style="text-align:right">363</td>
 </tr>
-
 <tr>
-<td align="center">NORMAL</td>
-<td align="right">15991024</td>
-<td align="right"><sup>15991024</sup>&frasl;<sub>32863430</sub></td>
-<td align="right">10961</td>
-<td align="right">13701.25</td>
-<td align="right">16441.5</td>
+<td style="text-align:center">NORMAL</td>
+<td style="text-align:right">15991024</td>
+<td style="text-align:right">15991024/32863430</td>
+<td style="text-align:right">10961</td>
+<td style="text-align:right">13701.25</td>
+<td style="text-align:right">16441.5</td>
 </tr>
-
 <tr>
-<td align="center">NORMAL</td>
-<td align="right">16514229</td>
-<td align="right"><sup>16514229</sup>&frasl;<sub>32863430</sub></td>
-<td align="right">11320</td>
-<td align="right">14150.00</td>
-<td align="right">16980.0</td>
+<td style="text-align:center">NORMAL</td>
+<td style="text-align:right">16514229</td>
+<td style="text-align:right">16514229/32863430</td>
+<td style="text-align:right">11320</td>
+<td style="text-align:right">14150.00</td>
+<td style="text-align:right">16980.0</td>
 </tr>
-
 <tr>
-<td align="center">Total</td>
-<td align="right">32863430</td>
-<td align="right"></td>
-<td align="right"></td>
-<td align="right"></td>
-<td align="right"></td>
+<td style="text-align:center">Total</td>
+<td style="text-align:right">32863430</td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
+<td style="text-align:right"></td>
 </tr>
 </tbody>
 </table>
-
 <p>可以通过<code>/proc/zoneinfo</code>查看每个<code>zone</code>的<code>watermark</code></p>
-
 <pre><code>$ cat /proc/zoneinfo | grep Node -A8
 Node 0, zone      DMA
   pages free     3039
@@ -480,16 +423,10 @@ Node 1, zone   Normal
         spanned  16777216
         present  16777216
         managed  16514229
-</code></pre>
-
-<h3 id="min-free-kbytes-大小的影响"><code>min_free_kbytes</code>大小的影响</h3>
-
+</code></pre><h3 id="min_free_kbytes大小的影响"><code>min_free_kbytes</code>大小的影响</h3>
 <p><code>min_free_kbytes</code>设的越大，<code>watermark</code>的线越高，同时三个线之间的<code>buffer</code>量也相应会增加。这意味着会较早的启动<code>kswapd</code>进行回收，且会回收上来较多的内存（直至<code>watermark[high]</code>才会停止），这会使得系统预留过多的空闲内存，从而在一定程度上降低了应用程序可使用的内存量。极端情况下设置<code>min_free_kbytes</code>接近内存大小时，留给应用程序的内存就会太少而可能会频繁地导致<code>OOM</code>的发生。</p>
-
 <p><code>min_free_kbytes</code>设的过小，则会导致系统预留内存过小。<code>kswapd</code>回收的过程中也会有少量的内存分配行为（会设上<code>PF_MEMALLOC</code>）标志，这个标志会允许<code>kswapd</code>使用预留内存；另外一种情况是被<code>OOM</code>选中杀死的进程在退出过程中，如果需要申请内存也可以使用预留部分。这两种情况下让他们使用预留内存可以避免系统进入<code>deadlock</code>状态。</p>
-
 <h3 id="参考文章">参考文章</h3>
-
 <ul>
 <li><a href="https://www.kernel.org/doc/Documentation/sysctl/vm.txt">https://www.kernel.org/doc/Documentation/sysctl/vm.txt</a></li>
 <li><a href="https://blog.csdn.net/joyeu/article/details/20063429">https://blog.csdn.net/joyeu/article/details/20063429</a></li>
@@ -584,7 +521,7 @@ Node 1, zone   Normal
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

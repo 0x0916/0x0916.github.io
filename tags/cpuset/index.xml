@@ -6,11 +6,7 @@
     <description>Recent content in cpuset on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 10 May 2018 18:26:35 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/cpuset/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Thu, 10 May 2018 18:26:35 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/cpuset/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Cgroup之cpuset子系统</title>
       <link>http://linux.laoqinren.net/linux/cgroup-cpuset/</link>
@@ -18,7 +14,6 @@
       
       <guid>http://linux.laoqinren.net/linux/cgroup-cpuset/</guid>
       <description>&lt;p&gt;最近分析了内核&lt;code&gt;cpuset&lt;/code&gt;的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的&lt;code&gt;docker&lt;/code&gt;也只是使用了其最简单的功能。本文对&lt;code&gt;cpuset&lt;/code&gt;进行了简要总结，并总结了&lt;code&gt;docker&lt;/code&gt;如何使用它。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>

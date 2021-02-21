@@ -6,11 +6,7 @@
     <description>Recent content in socket on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 16 Sep 2018 18:06:34 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/categories/socket/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sun, 16 Sep 2018 18:06:34 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/categories/socket/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>传递文件描述符</title>
       <link>http://linux.laoqinren.net/linux/passing-file-descriptors/</link>

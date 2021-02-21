@@ -25,7 +25,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/" />
@@ -54,11 +54,9 @@
 <meta property="og:description" content="Notes about my work and linux kernel" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/" />
-
-<meta property="og:updated_time" content="2020-08-03T17:47:08+08:00" />
+<meta property="og:updated_time" content="2020-08-30T10:08:20+08:00" />
 <meta itemprop="name" content="">
 <meta itemprop="description" content="Notes about my work and linux kernel">
-
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content=""/>
 <meta name="twitter:description" content="Notes about my work and linux kernel"/>
@@ -143,6 +141,32 @@
     
       <article class="post">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/kernel/rw-semaphore/">内核基础设施——读写信号量</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2019-03-02 </span>
+      <div class="post-category">
+          
+            <a href="/categories/kernel/"> kernel </a>
+          
+        </div>
+      <span class="more-meta"> 4815 words </span>
+      <span class="more-meta"> 10 mins read </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>本文首先介绍了读写信号量，然后介绍了其<code>API</code>，接着以一个实验的形式，给大家展示了读写信号量内部的<code>count</code>值的含义。只有明白了<code>count</code>的含义，我们在分析问题时才能得心应手。</p>
+    </div>
+    <div class="read-more">
+      <a href="/kernel/rw-semaphore/" class="read-more-link">Read more..</a>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="post">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/kernel/shrink_lruvec/">内存管理：shrink_lruvec分析</a></h1>
     <div class="post-meta">
       <span class="post-time"> 2019-01-29 </span>
@@ -211,7 +235,6 @@
   <div class="post-content">
     <div class="post-summary">
       <p>在内存管理和调度负载均衡中，有许多代码逻辑要遍历<code>node</code>上的<strong>内存</strong>和<strong>cpu</strong>信息，加上现在的内核都支持内存和<code>cpu</code>的热插拔，所以系统上<code>node</code>的状态在内核上要有专门的数据结构进行描述。</p>
-
 <p>本文就研究一下用于描述<code>node</code>信息的数据结构。</p>
     </div>
     <div class="read-more">
@@ -242,40 +265,6 @@
     </div>
     <div class="read-more">
       <a href="/kernel/vm-sysctl-zone_reclaim_mode/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/kernel/memory-compaction/">内存规整（memory compaction）</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2019-01-12 </span>
-      <div class="post-category">
-          
-            <a href="/categories/kernel/"> kernel </a>
-          
-        </div>
-      <span class="more-meta"> 2866 words </span>
-      <span class="more-meta"> 6 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p>伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：<strong>内存规整</strong>。</p>
-
-<p>包括如下内容：</p>
-
-<ul>
-<li>内存规整相关的内存管理参数</li>
-<li>描述内存碎片化程度的指数：<code>extfrag_index</code>和<code>unusable_index</code></li>
-<li><code>extfrag_threshold</code>内存管理参数</li>
-</ul>
-    </div>
-    <div class="read-more">
-      <a href="/kernel/memory-compaction/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -324,7 +313,7 @@
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

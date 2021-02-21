@@ -6,11 +6,7 @@
     <description>Recent content in cgroup on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 26 Aug 2018 10:09:56 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/categories/cgroup/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sun, 26 Aug 2018 10:09:56 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/categories/cgroup/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>cgroup源码分析6——cgroup 中默认控制文件的内核实现分析</title>
       <link>http://linux.laoqinren.net/kernel/cgroup-source-default-file/</link>
@@ -18,9 +14,7 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-default-file/</guid>
       <description>&lt;p&gt;cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。&lt;/p&gt;
-
 &lt;p&gt;这些文件包括：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;notify_on_release&lt;/li&gt;
 &lt;li&gt;release_agent&lt;/li&gt;
@@ -30,7 +24,6 @@
 &lt;li&gt;cgroup.event_control&lt;/li&gt;
 &lt;li&gt;cgroup.sane_behavior&lt;/li&gt;
 &lt;/ul&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -43,7 +36,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/</guid>
       <description>&lt;p&gt;本文详细分析了&lt;code&gt;/proc/pid/cgroup&lt;/code&gt;文件的内核实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -56,11 +48,8 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/</guid>
       <description>&lt;p&gt;在描述进程的结构体&lt;code&gt;task_struct&lt;/code&gt;中有一个类型为&lt;code&gt;css_set&lt;/code&gt;的成员&lt;code&gt;cgroups&lt;/code&gt;，它描述了进程的所有&lt;code&gt;cgroup&lt;/code&gt;信息，从前面的分析文章中我们已经知道通过&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;可以找到进程的所有不同&lt;code&gt;cgroup&lt;/code&gt;控制器的信息。&lt;/p&gt;
-
 &lt;p&gt;当我们新创建一个进程时，新进程的&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;的值继承自其&lt;code&gt;父进程&lt;/code&gt;。此后，如果我们将新创建的进程添加到一个新的&lt;code&gt;cgroup&lt;/code&gt;中时，就需要重新给&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;赋值，这个值要么是一个已经存在的&lt;code&gt;css_set&lt;/code&gt;结构的指针，要么是新创建的&lt;code&gt;css_set&lt;/code&gt;的结构的指针。&lt;/p&gt;
-
 &lt;p&gt;所以，我们就需要通过&lt;code&gt;进程的cgroup信息&lt;/code&gt;，快速查找其对应的&lt;code&gt;css_set结构&lt;/code&gt;是否存在，如果不存在的话就去创建它。&lt;code&gt;linux kernel&lt;/code&gt; 使用一个&lt;code&gt;hash&lt;/code&gt;表来完成这个工作。本文主要分析该&lt;code&gt;hash&lt;/code&gt;表的实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -73,7 +62,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/</guid>
       <description>&lt;p&gt;本文继续该系列文章，分析了&lt;code&gt;cgroup&lt;/code&gt;各个子系统的&lt;code&gt;mount&lt;/code&gt;流程，当然也包括&lt;code&gt;umount/remount&lt;/code&gt;流程。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -86,7 +74,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-cgroup_init/</guid>
       <description>&lt;p&gt;本文详细分析了&lt;code&gt;cgroup&lt;/code&gt;初始化的过程。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -99,7 +86,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/</guid>
       <description>&lt;p&gt;本系列文章主要从源码入手，分析&lt;code&gt;linux kernel&lt;/code&gt;中&lt;code&gt;cgroup&lt;/code&gt;的实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -112,9 +98,7 @@
       
       <guid>http://linux.laoqinren.net/posts/hierarchy-without-controller-group/</guid>
       <description>&lt;p&gt;本文将创建并挂载一颗不和任何&lt;code&gt;subsystem&lt;/code&gt;系统绑定的&lt;code&gt;cgroup&lt;/code&gt;树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个&lt;code&gt;cgroup&lt;/code&gt;中默认都有的几个文件的含义。&lt;/p&gt;
-
 &lt;p&gt;最后，介绍了这样使用&lt;code&gt;cgroup&lt;/code&gt;的一个用户。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;本文所有例子在&lt;code&gt;centos 7.5&lt;/code&gt; 下执行通过&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -127,9 +111,7 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-debug/</guid>
       <description>&lt;p&gt;&lt;code&gt;cgroup&lt;/code&gt;的&lt;code&gt;debug子系统&lt;/code&gt;其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核&lt;code&gt;cgroup&lt;/code&gt;框架的使用方法，同时也展示了&lt;code&gt;cgroup&lt;/code&gt;框架中各个数据结构之间的关系。&lt;/p&gt;
-
 &lt;p&gt;本文就通过研究&lt;code&gt;debug&lt;/code&gt;子系统，来展示&lt;code&gt;cgroup&lt;/code&gt;框架中各个数据结构的关系。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意: 内核代码采用&lt;code&gt;linux-3.10.0-862.9.1.el7&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -142,12 +124,10 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-cpuacct/</guid>
       <description>&lt;p&gt;&lt;code&gt;cpuacct子系统&lt;/code&gt;（CPU accounting）会自动生成报告来显示&lt;code&gt;cgroup中&lt;/code&gt;任务所使用的&lt;code&gt;CPU&lt;/code&gt;资源，其中包括子群组任务。报告有两大类：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;usage&lt;/code&gt;: 统计&lt;code&gt;cgroup&lt;/code&gt;中进程使用CPU的时间，单位为纳秒。&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;stat&lt;/code&gt;: 统计&lt;code&gt;cgroup&lt;/code&gt;中进程使用CPU的时间，单位为&lt;code&gt;USER_HZ&lt;/code&gt;。&lt;/li&gt;
 &lt;/ul&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -160,7 +140,6 @@
       
       <guid>http://linux.laoqinren.net/linux/cgroup-cpuset/</guid>
       <description>&lt;p&gt;最近分析了内核&lt;code&gt;cpuset&lt;/code&gt;的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的&lt;code&gt;docker&lt;/code&gt;也只是使用了其最简单的功能。本文对&lt;code&gt;cpuset&lt;/code&gt;进行了简要总结，并总结了&lt;code&gt;docker&lt;/code&gt;如何使用它。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>

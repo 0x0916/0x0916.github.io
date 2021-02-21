@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="laoqinren" />
-  <meta name="description" content="本文介绍了如何使用内核的dynamic debug (dyndbg)特性。
+  <meta name="description" content="本文介绍了如何使用内核的dynamic debug (dyndbg) 特性。
 " />
 
   <meta name="keywords" content="Linux, kernel" />
@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/kernel-dynamic-debug/" />
@@ -51,25 +51,23 @@
 
 
 <meta property="og:title" content="内核调试——dyndbg特性" />
-<meta property="og:description" content="本文介绍了如何使用内核的dynamic debug (dyndbg)特性。" />
+<meta property="og:description" content="本文介绍了如何使用内核的dynamic debug (dyndbg) 特性。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/kernel-dynamic-debug/" />
 <meta property="article:published_time" content="2019-03-13T22:30:09+08:00" />
 <meta property="article:modified_time" content="2019-03-13T22:30:09+08:00" />
 <meta itemprop="name" content="内核调试——dyndbg特性">
-<meta itemprop="description" content="本文介绍了如何使用内核的dynamic debug (dyndbg)特性。">
-
-
-<meta itemprop="datePublished" content="2019-03-13T22:30:09&#43;08:00" />
-<meta itemprop="dateModified" content="2019-03-13T22:30:09&#43;08:00" />
-<meta itemprop="wordCount" content="1426">
+<meta itemprop="description" content="本文介绍了如何使用内核的dynamic debug (dyndbg) 特性。">
+<meta itemprop="datePublished" content="2019-03-13T22:30:09+08:00" />
+<meta itemprop="dateModified" content="2019-03-13T22:30:09+08:00" />
+<meta itemprop="wordCount" content="1415">
 
 
 
 <meta itemprop="keywords" content="kernel,linux,dyndbg,debug," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核调试——dyndbg特性"/>
-<meta name="twitter:description" content="本文介绍了如何使用内核的dynamic debug (dyndbg)特性。"/>
+<meta name="twitter:description" content="本文介绍了如何使用内核的dynamic debug (dyndbg) 特性。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -153,7 +151,7 @@
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 1426 words </span>
+        <span class="more-meta"> 1415 words </span>
         <span class="more-meta"> 3 mins read </span>
         
       </div>
@@ -166,56 +164,39 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#介绍">介绍</a></li>
-<li><a href="#查看dynamic-debug的行为">查看dynamic debug的行为</a></li>
-<li><a href="#控制dynamic-debug的行为">控制dynamic debug的行为</a></li>
-<li><a href="#examples">Examples</a></li>
-<li><a href="#实验">实验</a>
-<ul>
-<li><a href="#编写内核模块">编写内核模块</a></li>
-<li><a href="#编译模块-并加载到内核中">编译模块，并加载到内核中</a></li>
-<li><a href="#实验开始">实验开始</a></li>
-</ul></li>
-<li><a href="#参考文档">参考文档</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#介绍">介绍</a></li>
+        <li><a href="#查看dynamic-debug的行为">查看dynamic debug的行为</a></li>
+        <li><a href="#控制dynamic-debug的行为">控制dynamic debug的行为</a></li>
+        <li><a href="#examples">Examples</a></li>
+        <li><a href="#实验">实验</a></li>
+        <li><a href="#参考文档">参考文档</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>本文介绍了如何使用内核的<code>dynamic debug (dyndbg)</code>特性。</p>
-
-<p><img src="pic.jpg" alt="" /></p>
-
+      <p>本文介绍了如何使用内核的<code>dynamic debug (dyndbg) </code>特性。</p>
+<p><img src="pic.jpg" alt="" title=""></p>
 <h3 id="介绍">介绍</h3>
-
 <p><code>Dynamic debug</code> 允许内核开发者动态地使能或者关闭内核输出。</p>
-
 <p>当打开了内核配置选项<code>CONFIG_DYNAMIC_DEBUG</code>， 内核中的<code>pr_debug()/dev_dbg()</code>和<code>print_hex_dump_debug()/print_hex_dump_bytes()</code>就使用了<code>Dynamic debug</code>特性。</p>
-
 <p>当未打开了内核配置选项<code>CONFIG_DYNAMIC_DEBUG</code>:</p>
-
 <ul>
 <li><code>printk</code>就退化成<code>printk(KERN_DEBUG)</code></li>
 <li><code>print_hex_dump_debug()</code> 就退化成<code>print_hex_dump(KERN_DEBUG)</code></li>
 <li><code>dev_dbg</code>就退化为空。</li>
 </ul>
-
 <p><code>Dynamic debug</code>在<code>debugfs</code>中有个控制文件节点：<code>/sys/kernel/debug/dynamic_debug/control</code>。它记录了所有使用<code>Dynamic debug</code>技术的文件路径、行号、模块名称、函数名称和要打印的语句。</p>
-
 <h3 id="查看dynamic-debug的行为">查看dynamic debug的行为</h3>
-
 <p>我们可以通过向读文件<code>/sys/kernel/debug/dynamic_debug/control</code>来查看目前系统上<code>Dynamic debug</code>的配置。
 如下所示：</p>
-
 <pre><code># cat /sys/kernel/debug/dynamic_debug/control | head
 # filename:lineno [module]function flags format
 init/main.c:765 [main]do_one_initcall_debug =p &quot;initcall %pF returned %d after %lld usecs\012&quot;
@@ -227,28 +208,18 @@ arch/x86/events/intel/pt.c:726 [pt]pt_topa_dump =_ &quot;# entry @%p (%lx sz %u 
 arch/x86/events/intel/pt.c:717 [pt]pt_topa_dump =_ &quot;# table @%p (%016Lx), off %llx size %zx\012&quot;
 arch/x86/kernel/tboot.c:103 [tboot]tboot_probe =_ &quot;tboot_size: 0x%x\012&quot;
 arch/x86/kernel/tboot.c:102 [tboot]tboot_probe =_ &quot;tboot_base: 0x%08x\012&quot;
-</code></pre>
-
-<h3 id="控制dynamic-debug的行为">控制dynamic debug的行为</h3>
-
+</code></pre><h3 id="控制dynamic-debug的行为">控制dynamic debug的行为</h3>
 <p>我们可以通过向文件<code>/sys/kernel/debug/dynamic_debug/control</code>中写入一定的指令，来使能或者关闭输出。 例如：使能文件<code>svcsock.c</code>中<code>1603</code>行的输出。</p>
-
 <pre><code># echo 'file svcsock.c line 1603 +p' &gt;
                               /sys/kernel/debug/dynamic_debug/control
-</code></pre>
-
-<p>控制打印时，还可以使用flags更来定义更详细的输出信息，目前支持的flags如下：</p>
-
+</code></pre><p>控制打印时，还可以使用flags更来定义更详细的输出信息，目前支持的flags如下：</p>
 <pre><code>p    enables the pr_debug() callsite.
 f    Include the function name in the printed message
 l    Include line number in the printed message
 m    Include module name in the printed message
 t    Include thread ID in messages not generated from interrupt context
 _    No flags are set. (Or'd with others on input)
-</code></pre>
-
-<h3 id="examples">Examples</h3>
-
+</code></pre><h3 id="examples">Examples</h3>
 <pre><code>// 打开svcsock.c中第1603行的动态输出
 # echo -n 'file svcsock.c line 1603 +p' &gt; /sys/kernel/debug/dynamic_debug/control
 
@@ -272,61 +243,53 @@ _    No flags are set. (Or'd with others on input)
 
 // 为所有使能的动态输出信息中添加模块和函数名信息
 # echo -n '+mf' &gt; /sys/kernel/debug/dynamic_debug/control
-</code></pre>
-
-<h3 id="实验">实验</h3>
-
+</code></pre><h3 id="实验">实验</h3>
 <h4 id="编写内核模块">编写内核模块</h4>
-
 <p><code>dynamic_printk.c</code>文件内容：</p>
-
-<pre><code class="language-c">#include &lt;linux/module.h&gt;
-#include &lt;linux/kernel.h&gt;
-#include &lt;linux/init.h&gt;
-#include &lt;linux/kthread.h&gt;
-#include &lt;linux/delay.h&gt;
-
-static struct task_struct *mythread;
-static int exit = 0;
-static int my_function(void *unused)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/init.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kthread.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/delay.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>mythread;
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> exit <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">my_function</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>unused)
 {
-	while(!exit) {
-		pr_debug(&quot;just print this message\n&quot;);
-		msleep(2000);
+	<span style="color:#66d9ef">while</span>(<span style="color:#f92672">!</span>exit) {
+		pr_debug(<span style="color:#e6db74">&#34;just print this message</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		msleep(<span style="color:#ae81ff">2000</span>);
 	}
 
-	return 0;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
-static int __init dynamic_printk_init(void)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">dynamic_printk_init</span>(<span style="color:#66d9ef">void</span>)
 {
-	printk(KERN_ALERT &quot;[Hello] dynamic_printk \n&quot;);
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;[Hello] dynamic_printk </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 
-	// Create the kernel thread with name &quot;MyThread&quot;
-	mythread = kthread_create(my_function, NULL, &quot;MyThread&quot;);
-	if (mythread) {
-		printk(KERN_ALERT &quot;Thread created successfully\n&quot;);
+	<span style="color:#75715e">// Create the kernel thread with name &#34;MyThread&#34;
+</span><span style="color:#75715e"></span>	mythread <span style="color:#f92672">=</span> kthread_create(my_function, NULL, <span style="color:#e6db74">&#34;MyThread&#34;</span>);
+	<span style="color:#66d9ef">if</span> (mythread) {
+		printk(KERN_ALERT <span style="color:#e6db74">&#34;Thread created successfully</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 		wake_up_process(mythread);
-	} else {
-		printk(KERN_ALERT &quot;Thread creation failed\n&quot;);
+	} <span style="color:#66d9ef">else</span> {
+		printk(KERN_ALERT <span style="color:#e6db74">&#34;Thread creation failed</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 	}
 
-	return 0;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
-static void __exit dynamic_printk_exit(void)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">dynamic_printk_exit</span>(<span style="color:#66d9ef">void</span>)
 {
-	exit = 1;
-	msleep(3000);
-	printk(KERN_ALERT &quot;[Goodbye] dynamic_printk\n&quot;);
+	exit <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+	msleep(<span style="color:#ae81ff">3000</span>);
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;[Goodbye] dynamic_printk</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 }
 
 module_init(dynamic_printk_init);
 module_exit(dynamic_printk_exit);
-MODULE_LICENSE(&quot;GPL&quot;);
-</code></pre>
-
-<p><code>Makefile</code>内容：</p>
-
+MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
+</code></pre></div><p><code>Makefile</code>内容：</p>
 <pre><code>ifneq ($(KERNELRELEASE), )
 obj-m := dynamic_printk.o
 else
@@ -336,56 +299,31 @@ all:
         $(MAKE) -C $(KERNELDIR) M=$(PWD) modules
 clean:
         $(MAKE) -C $(KERNELDIR) M=$(PWD) clean 
-</code></pre>
-
-<h4 id="编译模块-并加载到内核中">编译模块，并加载到内核中</h4>
-
+</code></pre><h4 id="编译模块并加载到内核中">编译模块，并加载到内核中</h4>
 <pre><code>root@localhost # make
 root@localhost # insmod dynamic_printk.ko
-</code></pre>
-
-<h4 id="实验开始">实验开始</h4>
-
-<p>默认情况下，模块中的<code>pr_debug</code>并不会输出任何内容，我们可以在<code>/sys/kernel/debug/dynamic_debug/control</code>文件中看到其信息：</p>
-
-<pre><code class="language-bash">/root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c:17 [dynamic_printk]my_function =_ &quot;just print this message\012&quot;
-</code></pre>
-
-<p>打开该动态输出</p>
-
-<pre><code class="language-bash">root@localhost # echo -n &quot;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c +pflm&quot; &gt; /sys/kernel/debug/dynamic_debug/control
-</code></pre>
-
-<p><code>dmesg</code>中输出如下信息：</p>
-
+</code></pre><h4 id="实验开始">实验开始</h4>
+<p>默认情况下，模块中的<code>pr_debug</code>并不会输出任何内容，我们可以在<code>/sys/kernel/debug/dynamic_debug/control </code>文件中看到其信息：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c:17 <span style="color:#f92672">[</span>dynamic_printk<span style="color:#f92672">]</span>my_function <span style="color:#f92672">=</span>_ <span style="color:#e6db74">&#34;just print this message\012&#34;</span>
+</code></pre></div><p>打开该动态输出</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">root@localhost <span style="color:#75715e"># echo -n &#34;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c +pflm&#34; &gt; /sys/kernel/debug/dynamic_debug/control</span>
+</code></pre></div><p><code>dmesg</code>中输出如下信息：</p>
 <pre><code>[268243.607925] dynamic_printk:my_function:17: just print this message
 [268245.617781] dynamic_printk:my_function:17: just print this message
 [268247.622379] dynamic_printk:my_function:17: just print this message
 [268249.628472] dynamic_printk:my_function:17: just print this message
 [268251.645144] dynamic_printk:my_function:17: just print this message
-</code></pre>
-
-<p>关闭输出模块信息：</p>
-
-<pre><code class="language-bash">root@localhost # echo -n &quot;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c -m&quot; &gt; /sys/kernel/debug/dynamic_debug/control
-</code></pre>
-
-<p><code>dmesg</code>中输出如下信息：</p>
-
+</code></pre><p>关闭输出模块信息：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">root@localhost <span style="color:#75715e"># echo -n &#34;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c -m&#34; &gt; /sys/kernel/debug/dynamic_debug/control</span>
+</code></pre></div><p><code>dmesg</code>中输出如下信息：</p>
 <pre><code>[268302.145178] my_function:17: just print this message
 [268304.177223] my_function:17: just print this message
 [268306.177942] my_function:17: just print this message
 [268308.198624] my_function:17: just print this message
 [268310.201056] my_function:17: just print this message
-</code></pre>
-
-<p>关闭输出信息：</p>
-
-<pre><code class="language-bash">root@localhost #  echo -n &quot;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c -p&quot; &gt; /sys/kernel/debug/dynamic_debug/control  
-</code></pre>
-
-<h3 id="参考文档">参考文档</h3>
-
+</code></pre><p>关闭输出信息：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">root@localhost <span style="color:#75715e">#  echo -n &#34;file /root/dive-in-kernel/h035_dynamic_printk/dynamic_printk.c -p&#34; &gt; /sys/kernel/debug/dynamic_debug/control  </span>
+</code></pre></div><h3 id="参考文档">参考文档</h3>
 <ul>
 <li><a href="https://www.kernel.org/doc/html/latest/admin-guide/dynamic-debug-howto.html">https://www.kernel.org/doc/html/latest/admin-guide/dynamic-debug-howto.html</a></li>
 </ul>
@@ -483,7 +421,7 @@ root@localhost # insmod dynamic_printk.ko
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

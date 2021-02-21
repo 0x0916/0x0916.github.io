@@ -25,7 +25,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/" />
@@ -54,11 +54,9 @@
 <meta property="og:description" content="Notes about my work and linux kernel" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://linux.laoqinren.net/posts/" />
-
 <meta property="og:updated_time" content="2020-08-03T18:02:43+08:00" />
 <meta itemprop="name" content="">
 <meta itemprop="description" content="Notes about my work and linux kernel">
-
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content=""/>
 <meta name="twitter:description" content="Notes about my work and linux kernel"/>
@@ -151,7 +149,7 @@
             <a href="/categories/linux/"> linux </a>
           
         </div>
-      <span class="more-meta"> 1820 words </span>
+      <span class="more-meta"> 1811 words </span>
       <span class="more-meta"> 4 mins read </span>
     </div>
   </header>
@@ -187,17 +185,11 @@
   <div class="post-content">
     <div class="post-summary">
       <p>在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。</p>
-
 <p>本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。</p>
-
 <h2 id="红黑树介绍">红黑树介绍</h2>
-
 <p>红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：<strong>红黑树</strong>。</p>
-
 <p>红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？</p>
-
 <p>了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。</p>
-
 <p>自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。</p>
     </div>
     <div class="read-more">
@@ -225,7 +217,6 @@
   <div class="post-content">
     <div class="post-summary">
       <p>在<code>centos</code>上进行内核开发时，由于一些内核特性依赖于高版本的<code>GCC特性</code>（<code>gcc &gt; 5.0</code>），而<code>centos</code>默认的GCC一般为<code>4.8.x</code>。</p>
-
 <p>本文记录一种非常简单的在<code>centos</code>上使用高版本的<code>GCC</code>的方法。</p>
     </div>
     <div class="read-more">
@@ -253,7 +244,6 @@
   <div class="post-content">
     <div class="post-summary">
       <p><a href="https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm">Boyer-Moore majority vote algorithm</a>(摩尔投票算法)是一种在线性时间<code>O(n)</code>和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以<code>Robert S.Boyer</code>和<code>J Strother Moore</code>命名的，1981年发明的，是一种典型的流算法(<code>streaming algorithm</code>)。</p>
-
 <p>在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(<code>n/2</code>)的元素。</p>
     </div>
     <div class="read-more">
@@ -281,9 +271,7 @@
   <div class="post-content">
     <div class="post-summary">
       <p><code>tmux</code> (<code>Terminal Multiplexer</code>的简称), 是一款优秀的终端复用软件，类似 <code>GNU screen</code>，但比<code>screen</code>更出色。</p>
-
 <p><code>Tmux</code> 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 <code>Tmux</code> 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。</p>
-
 <p>本文总结了<code>tmux</code>常用的一些快捷键。</p>
     </div>
     <div class="read-more">
@@ -332,7 +320,7 @@
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

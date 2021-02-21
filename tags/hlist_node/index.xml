@@ -6,11 +6,7 @@
     <description>Recent content in hlist_node on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 20 Jun 2018 23:08:40 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/hlist_node/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Wed, 20 Jun 2018 23:08:40 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/hlist_node/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>内核基础设施——hlist_head/hlist_node结构解析</title>
       <link>http://linux.laoqinren.net/kernel/hlist/</link>
@@ -20,25 +16,18 @@
       <description>&lt;blockquote&gt;
 &lt;p&gt;注意：本文中的代码参考于linux v4.16。&lt;/p&gt;
 &lt;/blockquote&gt;
-
 &lt;h2 id=&#34;数据结构&#34;&gt;数据结构&lt;/h2&gt;
-
 &lt;p&gt;&lt;code&gt;hlist_head&lt;/code&gt;和&lt;code&gt;hlist_node&lt;/code&gt;用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:&lt;/p&gt;
-
 &lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190&#34;&gt; include/linux/types.h(line 190) &lt;/a&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct hlist_head {
-	struct hlist_node *first;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_head {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;first;
 };
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct hlist_node {
-	struct hlist_node *next, **pprev;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;next, &lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;pprev;
 };
 
-&lt;/code&gt;&lt;/pre&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
     </item>
     
   </channel>

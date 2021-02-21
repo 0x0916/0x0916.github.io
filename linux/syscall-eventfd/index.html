@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/syscall-eventfd/" />
@@ -54,10 +54,8 @@
 <meta property="og:title" content="Linux 系统调用 eventfd" />
 <meta property="og:description" content="eventfd 是linux特有的API，用于通知/等待机制的实现,该函数一般有两个使用场景：
 
-
 （1）用来实现用户态进程(线程)间的等待/通知(wait/notify) 机制
 （2）内核用来通知用户态应用程序某个事件的发生。
-
 
 第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。" />
 <meta property="og:type" content="article" />
@@ -67,17 +65,13 @@
 <meta itemprop="name" content="Linux 系统调用 eventfd">
 <meta itemprop="description" content="eventfd 是linux特有的API，用于通知/等待机制的实现,该函数一般有两个使用场景：
 
-
 （1）用来实现用户态进程(线程)间的等待/通知(wait/notify) 机制
 （2）内核用来通知用户态应用程序某个事件的发生。
 
-
 第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。">
-
-
-<meta itemprop="datePublished" content="2018-04-12T22:45:09&#43;08:00" />
-<meta itemprop="dateModified" content="2018-04-12T22:45:09&#43;08:00" />
-<meta itemprop="wordCount" content="1518">
+<meta itemprop="datePublished" content="2018-04-12T22:45:09+08:00" />
+<meta itemprop="dateModified" content="2018-04-12T22:45:09+08:00" />
+<meta itemprop="wordCount" content="1514">
 
 
 
@@ -86,10 +80,8 @@
 <meta name="twitter:title" content="Linux 系统调用 eventfd"/>
 <meta name="twitter:description" content="eventfd 是linux特有的API，用于通知/等待机制的实现,该函数一般有两个使用场景：
 
-
 （1）用来实现用户态进程(线程)间的等待/通知(wait/notify) 机制
 （2）内核用来通知用户态应用程序某个事件的发生。
-
 
 第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。"/>
 
@@ -179,7 +171,7 @@
               <a href="/categories/eventfd/"> eventfd </a>
             
           </div>
-        <span class="more-meta"> 1518 words </span>
+        <span class="more-meta"> 1514 words </span>
         <span class="more-meta"> 4 mins read </span>
         
       </div>
@@ -192,19 +184,17 @@
   
   <div class="post-toc-content always-active">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#eventfd-函数">eventfd 函数</a></li>
-<li><a href="#read操作">read操作</a></li>
-<li><a href="#write操作">write操作</a></li>
-<li><a href="#示例程序">示例程序</a></li>
-<li><a href="#参考文档">参考文档</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#eventfd-函数">eventfd 函数</a></li>
+        <li><a href="#read操作">read操作</a></li>
+        <li><a href="#write操作">write操作</a></li>
+        <li><a href="#示例程序">示例程序</a></li>
+        <li><a href="#参考文档">参考文档</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -212,29 +202,19 @@
     
     <div class="post-content">
       <p><code>eventfd</code> 是<code>linux</code>特有的<code>API</code>，用于通知/等待机制的实现,该函数一般有两个使用场景：</p>
-
 <ul>
 <li>（1）用来实现用户态进程(线程)间的<strong>等待/通知(<code>wait/notify</code>)</strong> 机制</li>
 <li>（2）内核用来通知用户态应用程序某个事件的发生。</li>
 </ul>
-
 <p>第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。</p>
-
 <h3 id="eventfd-函数">eventfd 函数</h3>
-
 <p>该函数的原型为：</p>
-
-<pre><code class="language-c">#include &lt;sys/eventfd.h&gt;
-
-int eventfd(unsigned int initval, int flags);
-</code></pre>
-
-<p>这个函数会创建一个事件对象 (<code>eventfd object</code>), 用来实现进程(线程)间的等待/通知(<code>wait/notify</code>) 机制。 内核会为这个对象维护一个<code>64位</code>的计数器(<code>uint64_t</code>)。并且使用第一个参数(<code>initval</code>)初始化这个计数器<code>counter</code>，一般初始化设置为0。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/eventfd.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">eventfd</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> initval, <span style="color:#66d9ef">int</span> flags);
+</code></pre></div><p>这个函数会创建一个事件对象 (<code>eventfd object</code>), 用来实现进程(线程)间的等待/通知(<code>wait/notify</code>) 机制。 内核会为这个对象维护一个<code>64位</code>的计数器(<code>uint64_t</code>)。并且使用第一个参数(<code>initval</code>)初始化这个计数器<code>counter</code>，一般初始化设置为0。</p>
 <p>调用这个函数就会返回一个新的文件描述符(<code>event object</code>)。2.6.27版本开始可以按位设置第二个参数(<code>flags</code>)。</p>
-
 <p>第二个参数<code>flags</code>可以设置如下参数<code>EFD_CLOECEX</code>、<code>EFD_NONBLOCK</code>、<code>EFD_SEMAPHORE</code>。</p>
-
 <table>
 <thead>
 <tr>
@@ -242,166 +222,139 @@ int eventfd(unsigned int initval, int flags);
 <th>含义</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>EFD_CLOEXEC</td>
 <td>为新创建的描述符设置FD_CLOEXEC flag</td>
 </tr>
-
 <tr>
 <td>EFD_NONBLOCK</td>
 <td>为新创建的描述符设置O_NONBLOCK flag</td>
 </tr>
-
 <tr>
 <td>EFD_SEMAPHORE</td>
 <td>semaphore-like semantics for reads</td>
 </tr>
 </tbody>
 </table>
-
 <p>后面会重点介绍一下<code>EFD_SEMAPHORE</code>,它决定创建的事件对象 (<code>eventfd object</code>)的读的行为，</p>
-
 <h3 id="read操作">read操作</h3>
-
 <p>如果计数值<code>counter</code>的值不为0，读取成功，获得到该值。如果<code>counter</code>的值为0，非阻塞模式，会直接返回失败，并把<code>errno</code>的值指纹<code>EINVAL</code>。如果为阻塞模式，一直会阻塞到<code>counter</code>为非0位置。</p>
-
 <ul>
 <li>如果没有设置 <code>EFD_SEMAPHORE</code>标记，当<code>counter</code>不为<code>0</code>时，<code>read</code>操作会返回<code>counter</code>的值，并将<code>counter</code>的值重置为<code>0</code>.</li>
-<li>如果设置了<code>EFD_SEMAPHORE</code>标记，当<code>counter</code>不为<code>0</code>时，<code>read</code>操作会返回<code>1</code>，并将<code>counter</code>的值减少<code>1</code>.
-<br />
-<br /></li>
+<li>如果设置了<code>EFD_SEMAPHORE</code>标记，当<code>counter</code>不为<code>0</code>时，<code>read</code>操作会返回<code>1</code>，并将<code>counter</code>的值减少<code>1</code>.</li>
 </ul>
-
 <h3 id="write操作">write操作</h3>
-
 <p><code>write</code>操作会增加<code>8字节</code>的整数在计数器<code>counter</code>上，如果<code>counter</code>的值达到<code>0xfffffffffffffffe</code>时，就会阻塞。直到<code>counter</code>的值被<code>read</code>。阻塞和非阻塞情况同上面<code>read</code>一样。</p>
-
-<p>更详细的介绍，请参考：<a href="http://man7.org/linux/man-pages/man2/eventfd.2.html">http://man7.org/linux/man-pages/man2/eventfd.2.html</a></p>
-
+<p>更详细的介绍，请参考：http://man7.org/linux/man-pages/man2/eventfd.2.html</p>
 <h3 id="示例程序">示例程序</h3>
-
 <p>以下示例程序通过父进程<code>read</code>操作，子进程<code>write</code>操作来演示<code>eventfd</code>的行为，同时我们可以使用选项<code>-s</code>来控制是否设置标记<code>EFD_SEMAPHORE</code>。</p>
-
 <blockquote>
 <p>该示例程序是根据<code>man</code>手册上的程序修改而来的。</p>
 </blockquote>
-
-<pre><code class="language-c">#define _GNU_SOURCE
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;sys/eventfd.h&gt;
-#include &lt;stdint.h&gt;		/* Definitioin of uint64_t */
-
-#define  handle_err(msg)  \
-	do { perror(msg); exit(EXIT_FAILURE); } while (0)
-
-static void usage(char *pname) {
-	fprintf(stderr, &quot;Usage: %s [options] &lt;num&gt;...\n&quot;, pname);
-	fprintf(stderr, &quot;Options can be:\n&quot;);
-	fprintf(stderr, &quot;    -s   semaphore-like semantics\n&quot;);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define _GNU_SOURCE
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/eventfd.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdint.h&gt;		/* Definitioin of uint64_t */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#define  handle_err(msg)  \
+</span><span style="color:#75715e">	do { perror(msg); exit(EXIT_FAILURE); } while (0)
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">usage</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pname) {
+	fprintf(stderr, <span style="color:#e6db74">&#34;Usage: %s [options] &lt;num&gt;...</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pname);
+	fprintf(stderr, <span style="color:#e6db74">&#34;Options can be:</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	fprintf(stderr, <span style="color:#e6db74">&#34;    -s   semaphore-like semantics</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 	exit(EXIT_FAILURE);
 }
 
-int main(int argc, char **argv) {
-	int		efd, j;
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv) {
+	<span style="color:#66d9ef">int</span>		efd, j;
 	uint64_t	u;
 	ssize_t		s;
 
-	int flags = 0;
-	int opt;
+	<span style="color:#66d9ef">int</span> flags <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+	<span style="color:#66d9ef">int</span> opt;
 
-	while ((opt = getopt(argc, argv, &quot;s&quot;)) != -1) {
-		switch (opt) {
-		case 's': flags |= EFD_SEMAPHORE;	break;
-		default:  usage(argv[0]);
+	<span style="color:#66d9ef">while</span> ((opt <span style="color:#f92672">=</span> getopt(argc, argv, <span style="color:#e6db74">&#34;s&#34;</span>)) <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+		<span style="color:#66d9ef">switch</span> (opt) {
+		<span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#39;s&#39;</span><span style="color:#f92672">:</span> flags <span style="color:#f92672">|=</span> EFD_SEMAPHORE;	<span style="color:#66d9ef">break</span>;
+		<span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>  usage(argv[<span style="color:#ae81ff">0</span>]);
 		}
 	}
-	if (optind &gt;= argc)
-		usage(argv[0]);
+	<span style="color:#66d9ef">if</span> (optind <span style="color:#f92672">&gt;=</span> argc)
+		usage(argv[<span style="color:#ae81ff">0</span>]);
 
-	efd = eventfd(0, flags);
-	if (efd == -1)
-		handle_err(&quot;eventfd&quot;);
+	efd <span style="color:#f92672">=</span> eventfd(<span style="color:#ae81ff">0</span>, flags);
+	<span style="color:#66d9ef">if</span> (efd <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+		handle_err(<span style="color:#e6db74">&#34;eventfd&#34;</span>);
 
-	switch (fork()) {
-	case -1:
-		handle_err(&quot;fork&quot;);
-	case 0: /*child */
-		for (j = optind; j &lt; argc; j++) {
-			printf(&quot;Child writing %s to efd\n&quot;, argv[j]);
-			u = strtoull(argv[j], NULL, 0);
-			s = write(efd, &amp;u, sizeof(uint64_t));
-			if (s != sizeof(uint64_t))
-				handle_err(&quot;write&quot;);
-			sleep(1);
+	<span style="color:#66d9ef">switch</span> (fork()) {
+	<span style="color:#66d9ef">case</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span><span style="color:#f92672">:</span>
+		handle_err(<span style="color:#e6db74">&#34;fork&#34;</span>);
+	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">:</span> <span style="color:#75715e">/*child */</span>
+		<span style="color:#66d9ef">for</span> (j <span style="color:#f92672">=</span> optind; j <span style="color:#f92672">&lt;</span> argc; j<span style="color:#f92672">++</span>) {
+			printf(<span style="color:#e6db74">&#34;Child writing %s to efd</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[j]);
+			u <span style="color:#f92672">=</span> strtoull(argv[j], NULL, <span style="color:#ae81ff">0</span>);
+			s <span style="color:#f92672">=</span> write(efd, <span style="color:#f92672">&amp;</span>u, <span style="color:#66d9ef">sizeof</span>(uint64_t));
+			<span style="color:#66d9ef">if</span> (s <span style="color:#f92672">!=</span> <span style="color:#66d9ef">sizeof</span>(uint64_t))
+				handle_err(<span style="color:#e6db74">&#34;write&#34;</span>);
+			sleep(<span style="color:#ae81ff">1</span>);
 		}
 
-		printf(&quot;Child completed write loop\n&quot;);
+		printf(<span style="color:#e6db74">&#34;Child completed write loop</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 		exit(EXIT_SUCCESS);
-	default: /* parent */
-		while (1) {
-			s = read(efd, &amp;u, sizeof(uint64_t));
-			if (s != sizeof(uint64_t))
-				handle_err(&quot;read&quot;);
-			printf(&quot;Parent read %llu (0x%llx) from efd\n&quot;,
-				(unsigned long long)u, (unsigned long long)u);
-			sleep(2);
+	<span style="color:#66d9ef">default</span><span style="color:#f92672">:</span> <span style="color:#75715e">/* parent */</span>
+		<span style="color:#66d9ef">while</span> (<span style="color:#ae81ff">1</span>) {
+			s <span style="color:#f92672">=</span> read(efd, <span style="color:#f92672">&amp;</span>u, <span style="color:#66d9ef">sizeof</span>(uint64_t));
+			<span style="color:#66d9ef">if</span> (s <span style="color:#f92672">!=</span> <span style="color:#66d9ef">sizeof</span>(uint64_t))
+				handle_err(<span style="color:#e6db74">&#34;read&#34;</span>);
+			printf(<span style="color:#e6db74">&#34;Parent read %llu (0x%llx) from efd</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
+				(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)u, (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)u);
+			sleep(<span style="color:#ae81ff">2</span>);
 		}
 	}
 }
 
-</code></pre>
-
-<p>未指定<code>EFD_SEMAPHORE</code>标记时：</p>
-
-<pre><code class="language-bash"># ./test_eventfd 1 2 3 4 5
-Child writing 1 to efd
-Parent read 1 (0x1) from efd
-Child writing 2 to efd
-Child writing 3 to efd
-Parent read 2 (0x2) from efd
-Child writing 4 to efd
-Parent read 7 (0x7) from efd
-Child writing 5 to efd
+</code></pre></div><p>未指定<code>EFD_SEMAPHORE</code>标记时：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># ./test_eventfd 1 2 3 4 5</span>
+Child writing <span style="color:#ae81ff">1</span> to efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Child writing <span style="color:#ae81ff">2</span> to efd
+Child writing <span style="color:#ae81ff">3</span> to efd
+Parent read <span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>0x2<span style="color:#f92672">)</span> from efd
+Child writing <span style="color:#ae81ff">4</span> to efd
+Parent read <span style="color:#ae81ff">7</span> <span style="color:#f92672">(</span>0x7<span style="color:#f92672">)</span> from efd
+Child writing <span style="color:#ae81ff">5</span> to efd
 Child completed write loop
-Parent read 5 (0x5) from efd
-</code></pre>
-
-<p>可以看出，每次<code>read</code>时都读取了<code>counter</code>的当前值，并将<code>counter</code>清<code>0</code>.</p>
-
+Parent read <span style="color:#ae81ff">5</span> <span style="color:#f92672">(</span>0x5<span style="color:#f92672">)</span> from efd
+</code></pre></div><p>可以看出，每次<code>read</code>时都读取了<code>counter</code>的当前值，并将<code>counter</code>清<code>0</code>.</p>
 <p>指定<code>EFD_SEMAPHORE</code>标记时：</p>
-
-<pre><code class="language-bash"># ./test_eventfd -s 1 2 3 4 5
-Child writing 1 to efd
-Parent read 1 (0x1) from efd
-Child writing 2 to efd
-Child writing 3 to efd
-Parent read 1 (0x1) from efd
-Child writing 4 to efd
-Parent read 1 (0x1) from efd
-Child writing 5 to efd
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># ./test_eventfd -s 1 2 3 4 5</span>
+Child writing <span style="color:#ae81ff">1</span> to efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Child writing <span style="color:#ae81ff">2</span> to efd
+Child writing <span style="color:#ae81ff">3</span> to efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Child writing <span style="color:#ae81ff">4</span> to efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Child writing <span style="color:#ae81ff">5</span> to efd
 Child completed write loop
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-Parent read 1 (0x1) from efd
-</code></pre>
-
-<p>可以看出，每次读取到的值为<code>1</code>，只要<code>counter</code>不为<code>0</code>，就可以一直读取。</p>
-
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+Parent read <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>0x1<span style="color:#f92672">)</span> from efd
+</code></pre></div><p>可以看出，每次读取到的值为<code>1</code>，只要<code>counter</code>不为<code>0</code>，就可以一直读取。</p>
 <h3 id="参考文档">参考文档</h3>
-
 <p><a href="http://man7.org/linux/man-pages/man2/eventfd.2.html">http://man7.org/linux/man-pages/man2/eventfd.2.html</a></p>
     </div>
 
@@ -493,7 +446,7 @@ Parent read 1 (0x1) from efd
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

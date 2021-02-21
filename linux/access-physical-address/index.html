@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/access-physical-address/" />
@@ -53,7 +53,6 @@
 
 <meta property="og:title" content="Linux用户程序如何访问物理内存" />
 <meta property="og:description" content="用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
-
 如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现Linux中用户态程序访问所有物理内存。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/access-physical-address/" />
@@ -61,12 +60,9 @@
 <meta property="article:modified_time" content="2019-02-09T10:45:06+08:00" />
 <meta itemprop="name" content="Linux用户程序如何访问物理内存">
 <meta itemprop="description" content="用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
-
 如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现Linux中用户态程序访问所有物理内存。">
-
-
-<meta itemprop="datePublished" content="2019-02-09T10:45:06&#43;08:00" />
-<meta itemprop="dateModified" content="2019-02-09T10:45:06&#43;08:00" />
+<meta itemprop="datePublished" content="2019-02-09T10:45:06+08:00" />
+<meta itemprop="dateModified" content="2019-02-09T10:45:06+08:00" />
 <meta itemprop="wordCount" content="1130">
 
 
@@ -75,7 +71,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux用户程序如何访问物理内存"/>
 <meta name="twitter:description" content="用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
-
 如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现Linux中用户态程序访问所有物理内存。"/>
 
 <!--[if lte IE 9]>
@@ -173,23 +168,17 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#系统环境">系统环境</a></li>
-<li><a href="#内核模块的编写">内核模块的编写</a></li>
-<li><a href="#物理内存数据查看">物理内存数据查看</a>
-<ul>
-<li><a href="#fileview工具简要用法">fileview工具简要用法</a></li>
-<li><a href="#查看物理内存示例">查看物理内存示例</a></li>
-</ul></li>
-<li><a href="#代码">代码</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#系统环境">系统环境</a></li>
+        <li><a href="#内核模块的编写">内核模块的编写</a></li>
+        <li><a href="#物理内存数据查看">物理内存数据查看</a></li>
+        <li><a href="#代码">代码</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -197,72 +186,42 @@
     
     <div class="post-content">
       <p>用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。</p>
-
 <p>如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现<code>Linux</code>中用户态程序访问所有物理内存。</p>
-
-<p><img src="./pic.jpg" alt="" /></p>
-
+<p><img src="./pic.jpg" alt="" title=""></p>
 <h3 id="系统环境">系统环境</h3>
-
 <ul>
-<li>发行版：<code>centos7.5</code>（Virtual Box虚拟机）</li>
+<li>发行版：<code>centos7.5 </code>（Virtual Box虚拟机）</li>
 <li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
 <li>处理器：<code>Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz</code></li>
 <li>内存：<code>4GB</code></li>
 </ul>
-
 <h3 id="内核模块的编写">内核模块的编写</h3>
-
 <p>在<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a>版本的内核上，其实已经有相关模块（内核代码）实现了用户程序访问物理内存的功能，其提供的接口包括如下几个：</p>
-
 <ul>
 <li>/dev/mem</li>
 <li>/dev/crash</li>
 </ul>
-
 <p>这些模块的实现原理都类似：通过文件读写的方法，实现物理内存地址的访问。将物理地址，作为参数<code>poff</code>传递。</p>
-
-<pre><code class="language-c">static ssize_t  crash_read(struct file *file, char *buf, size_t count, loff_t *poff) ;
-</code></pre>
-
-<p>在内核代码中，是无法直接访问物理地址的，代码能访问的都是逻辑地址。此时我们需要先将物理地址转换成逻辑地址，才能在代码中对地址读写。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> ssize_t  <span style="color:#a6e22e">crash_read</span>(<span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>buf, size_t count, loff_t <span style="color:#f92672">*</span>poff) ;
+</code></pre></div><p>在内核代码中，是无法直接访问物理地址的，代码能访问的都是逻辑地址。此时我们需要先将物理地址转换成逻辑地址，才能在代码中对地址读写。</p>
 <p>物理地址转换成逻辑地址方法<code>map_virtual</code>的原理：</p>
-
 <p>（1）根据物理地址，计算出对应的页面号</p>
-
-<pre><code class="language-c">pfn = (unsigned long)(poff &gt;&gt; PAGE_SHIFT); 
-</code></pre>
-
-<p>（2）将页面号找到对应的页面指针</p>
-
-<pre><code class="language-c">page = pfn_to_page(pfn); 
-</code></pre>
-
-<p>（3）通过<code>kmap</code>映射成逻辑地址</p>
-
-<pre><code class="language-c">vaddr = kmap(page); 
-</code></pre>
-
-<p>基于以上原理，本文实现了一个内核模块<code>my_crash.ko</code>，插入模块后，系统上会创建一个设备文件<code>/dev/mycrash</code></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">pfn <span style="color:#f92672">=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)(poff <span style="color:#f92672">&gt;&gt;</span> PAGE_SHIFT); 
+</code></pre></div><p>（2）将页面号找到对应的页面指针</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">page <span style="color:#f92672">=</span> pfn_to_page(pfn); 
+</code></pre></div><p>（3）通过<code>kmap</code>映射成逻辑地址</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">vaddr <span style="color:#f92672">=</span> kmap(page); 
+</code></pre></div><p>基于以上原理，本文实现了一个内核模块<code>my_crash.ko</code>，插入模块后，系统上会创建一个设备文件<code>/dev/mycrash</code></p>
 <pre><code># insmod my_crash.ko 
 # ls -l /dev/mycrash 
 crw------- 1 root root 10, 58 Feb 10 09:52 /dev/mycrash
-</code></pre>
-
-<blockquote>
+</code></pre><blockquote>
 <p>注意：<code>/dev/mycrash</code>是在<code>/dev/crash</code>的基础上修改而来的，因为<code>/dev/crash</code>中没有考虑整个系统的物理地址大小，其<code>crash_llseek</code>实现也不满足需求。</p>
 </blockquote>
-
 <h3 id="物理内存数据查看">物理内存数据查看</h3>
-
 <p>这里我们就是用了<a href="http://ilinuxkernel.com/?p=1248">http://ilinuxkernel.com/?p=1248</a>中提到的<code>fileview</code>工具来查看物理内存中的实际数据，物理地址可以手工输入。</p>
-
-<p><img src="fileview.png" alt="" /></p>
-
+<p><img src="fileview.png" alt="" title=""></p>
 <h4 id="fileview工具简要用法">fileview工具简要用法</h4>
-
 <ul>
 <li>输入回车键，接着出现<code>Address</code>提示，可以输入要查看的物理地址，然后回车键确认，即可查看物理内存的信息。</li>
 <li><code>Q</code>和<code>q</code>： 以8字节显示结果</li>
@@ -271,11 +230,8 @@ crw------- 1 root root 10, 58 Feb 10 09:52 /dev/mycrash
 <li><code>B</code>和<code>b</code>： 以1字节显示结果</li>
 <li><code>ESC</code>: 退出程序</li>
 </ul>
-
 <h4 id="查看物理内存示例">查看物理内存示例</h4>
-
 <p>我们通过<code>crash</code>寻找一个内核变量的物理地址：</p>
-
 <pre><code>crash&gt; p saved_command_line
 saved_command_line = $3 = 0xffff989d5ff39f00 &quot;BOOT_IMAGE=/vmlinuz-3.10.0-862.mt20190131.118.el7.x86_64 root=/dev/mapper/cl-root ro crashkernel=auto rd.lvm.lv=cl/root rd.lvm.lv=cl/swap rhgb quiet cgroup_no_v1= cgroup_debug processor.max_cstate=8 intel_idle.max_cstate=9 idle=xx LANG=en_US.UTF-8&quot;
 crash&gt; vtop 0xffff989d5ff39f00
@@ -293,18 +249,11 @@ PAGE DIRECTORY: bae3a067
 
       PAGE       PHYSICAL      MAPPING       INDEX CNT FLAGS
 fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
-</code></pre>
-
-<p><code>saved_command_line</code>变量的物理地址是<code>11ff39f00</code>，我们通过`fileview查看一下，看物理内存上的信息是否正确：</p>
-
-<p><img src="fileview2.png" alt="" /></p>
-
+</code></pre><p><code>saved_command_line</code>变量的物理地址是<code>11ff39f00</code>，我们通过`fileview查看一下，看物理内存上的信息是否正确：</p>
+<p><img src="fileview2.png" alt="" title=""></p>
 <h3 id="代码">代码</h3>
-
 <p>本文中的模块和<code>fileview</code>代码：<a href="./access_physical_memory.tar.gz">access_physical_memory.tar.gz</a></p>
-
 <h3 id="参考文章">参考文章</h3>
-
 <ul>
 <li><a href="http://ilinuxkernel.com/?p=1248">http://ilinuxkernel.com/?p=1248</a></li>
 </ul>
@@ -398,7 +347,7 @@ fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -6,18 +6,14 @@
     <description>Recent content in debug on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 13 Mar 2019 22:30:09 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/debug/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Wed, 13 Mar 2019 22:30:09 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/debug/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>内核调试——dyndbg特性</title>
       <link>http://linux.laoqinren.net/kernel/kernel-dynamic-debug/</link>
       <pubDate>Wed, 13 Mar 2019 22:30:09 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/kernel/kernel-dynamic-debug/</guid>
-      <description>&lt;p&gt;本文介绍了如何使用内核的&lt;code&gt;dynamic debug (dyndbg)&lt;/code&gt;特性。&lt;/p&gt;</description>
+      <description>&lt;p&gt;本文介绍了如何使用内核的&lt;code&gt;dynamic debug (dyndbg) &lt;/code&gt;特性。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -27,9 +23,7 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-debug/</guid>
       <description>&lt;p&gt;&lt;code&gt;cgroup&lt;/code&gt;的&lt;code&gt;debug子系统&lt;/code&gt;其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核&lt;code&gt;cgroup&lt;/code&gt;框架的使用方法，同时也展示了&lt;code&gt;cgroup&lt;/code&gt;框架中各个数据结构之间的关系。&lt;/p&gt;
-
 &lt;p&gt;本文就通过研究&lt;code&gt;debug&lt;/code&gt;子系统，来展示&lt;code&gt;cgroup&lt;/code&gt;框架中各个数据结构的关系。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意: 内核代码采用&lt;code&gt;linux-3.10.0-862.9.1.el7&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>

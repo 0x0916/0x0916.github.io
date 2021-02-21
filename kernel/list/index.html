@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/list/" />
@@ -54,7 +54,6 @@
 <meta property="og:title" content="内核基础设施——list_head结构解析" />
 <meta property="og:description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
 
-
 注意：本文的中的代码来自于内核版本v4.16。
 " />
 <meta property="og:type" content="article" />
@@ -64,14 +63,11 @@
 <meta itemprop="name" content="内核基础设施——list_head结构解析">
 <meta itemprop="description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
 
-
 注意：本文的中的代码来自于内核版本v4.16。
 ">
-
-
-<meta itemprop="datePublished" content="2018-06-23T17:38:10&#43;08:00" />
-<meta itemprop="dateModified" content="2018-06-23T17:38:10&#43;08:00" />
-<meta itemprop="wordCount" content="2535">
+<meta itemprop="datePublished" content="2018-06-23T17:38:10+08:00" />
+<meta itemprop="dateModified" content="2018-06-23T17:38:10+08:00" />
+<meta itemprop="wordCount" content="2530">
 
 
 
@@ -79,7 +75,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核基础设施——list_head结构解析"/>
 <meta name="twitter:description" content="list_head用法经常在Linux kernel里面经常看见，该文对内核中的list_head进行了总结分析。
-
 
 注意：本文的中的代码来自于内核版本v4.16。
 "/>
@@ -166,7 +161,7 @@
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 2535 words </span>
+        <span class="more-meta"> 2530 words </span>
         <span class="more-meta"> 6 mins read </span>
         
       </div>
@@ -179,23 +174,21 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#数据结构">数据结构</a></li>
-<li><a href="#list-head详细分析">list_head详细分析</a></li>
-<li><a href="#相关api">相关API</a>
-<ul>
-<li><a href="#list-head-init-list-head">LIST_HEAD/INIT_LIST_HEAD</a></li>
-<li><a href="#list-add">__list_add</a></li>
-<li><a href="#list-del">__list_del</a></li>
-<li><a href="#list-replace">list_replace</a></li>
-<li><a href="#list-cut-position">__list_cut_position</a></li>
-<li><a href="#list-splice">__list_splice</a></li>
-</ul></li>
-<li><a href="#参考文档">参考文档</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#数据结构">数据结构</a></li>
+    <li><a href="#list_head详细分析">list_head详细分析</a></li>
+    <li><a href="#相关api">相关API</a>
+      <ul>
+        <li><a href="#list_headinit_list_head">LIST_HEAD/INIT_LIST_HEAD</a></li>
+        <li><a href="#__list_add">__list_add</a></li>
+        <li><a href="#__list_del">__list_del</a></li>
+        <li><a href="#list_replace">list_replace</a></li>
+        <li><a href="#__list_cut_position">__list_cut_position</a></li>
+        <li><a href="#__list_splice">__list_splice</a></li>
+      </ul>
+    </li>
+    <li><a href="#参考文档">参考文档</a></li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -203,120 +196,77 @@
     
     <div class="post-content">
       <p><code>list_head</code>用法经常在<code>Linux kernel</code>里面经常看见，该文对内核中的<code>list_head</code>进行了总结分析。</p>
-
 <blockquote>
 <p>注意：本文的中的代码来自于内核版本<code>v4.16</code>。</p>
 </blockquote>
-
 <h2 id="数据结构">数据结构</h2>
-
 <p>在Linux内核中，<code>list_head</code>用来创建双向循环链表，kernel中对list_head的定义如下：</p>
-
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/inclcude/linux/types.h?h=v4.16#n186"> inclcude/linux/types.h(line 186) </a>
-
-<pre><code class="language-c">struct list_head {
-	struct list_head *next, *prev;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> list_head {
+	<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>next, <span style="color:#f92672">*</span>prev;
 };
-</code></pre>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n186"> include/linux/list.h(line 186) </a>
-
-<pre><code class="language-c">#define LIST_HEAD_INIT(name) { &amp;(name), &amp;(name) }
-
-#define LIST_HEAD(name) \
-	struct list_head name = LIST_HEAD_INIT(name)
-</code></pre>
-
-<p>需要注意的一点是，头结点<code>head</code>是不使用的，这点需要注意。</p>
-
+</code></pre></div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n186"> include/linux/list.h(line 186) </a>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define LIST_HEAD_INIT(name) { &amp;(name), &amp;(name) }
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#define LIST_HEAD(name) \
+</span><span style="color:#75715e">	struct list_head name = LIST_HEAD_INIT(name)
+</span></code></pre></div><p>需要注意的一点是，头结点<code>head</code>是不使用的，这点需要注意。</p>
 <p>使用<code>list_head</code>组织的链表的结构如下图所示：</p>
-
-<p><img src="./list_head.jpg" alt="list_head" title="list_head" /></p>
-
-<h2 id="list-head详细分析">list_head详细分析</h2>
-
+<p><img src="./list_head.jpg" alt="list_head" title="list_head"></p>
+<h2 id="list_head详细分析">list_head详细分析</h2>
 <p><code>list_head</code>这个结构看起来怪怪的，它竟没有数据域！所以看到这个结构的人第一反应就是我们怎么访问数据？</p>
-
 <p>其实<code>list_head</code>不是拿来单独用的，它一般被嵌到其它结构中，如：</p>
-
-<pre><code class="language-c">struct file_node{
-　　char c;
-　　struct list_head node;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> file_node{
+　　<span style="color:#66d9ef">char</span> c;
+　　<span style="color:#66d9ef">struct</span> list_head node;
 };
-</code></pre>
-
-<p>此时<code>list_head</code>就作为它的父结构中的一个成员了，当我们知道list_head的地址（指针）时，我们可以通过<code>include/linux/list.h</code>提供的宏 <code>list_entry</code> 来获得它的父结构的地址。</p>
-
+</code></pre></div><p>此时<code>list_head</code>就作为它的父结构中的一个成员了，当我们知道list_head的地址（指针）时，我们可以通过<code>include/linux/list.h</code>提供的宏 <code>list_entry</code> 来获得它的父结构的地址。</p>
 <p>下面我们来看看<code>list_entry</code>的实现:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * list_entry - get the struct for this entry
+</span><span style="color:#75715e"> * @ptr:	the &amp;struct list_head pointer.
+</span><span style="color:#75715e"> * @type:	the type of the struct this is embedded in.
+</span><span style="color:#75715e"> * @member:	the name of the list_head within the struct.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#75715e">#define list_entry(ptr, type, member) \
+</span><span style="color:#75715e">	container_of(ptr, type, member)
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#define offsetof(TYPE, MEMBER)  ((size_t)&amp;((TYPE *)0)-&gt;MEMBER)
+</span><span style="color:#75715e"></span>
 
-<pre><code class="language-c">/**
- * list_entry - get the struct for this entry
- * @ptr:	the &amp;struct list_head pointer.
- * @type:	the type of the struct this is embedded in.
- * @member:	the name of the list_head within the struct.
- */
-#define list_entry(ptr, type, member) \
-	container_of(ptr, type, member)
-
-#define offsetof(TYPE, MEMBER)  ((size_t)&amp;((TYPE *)0)-&gt;MEMBER)
-
-
-/**
- * container_of - cast a member of a structure out to the containing structure
- * @ptr:        the pointer to the member.
- * @type:       the type of the container struct this is embedded in.
- * @member:     the name of the member within the struct.
- *
- */
-#define container_of(ptr, type, member) ({                      \
-        const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
-        (type *)( (char *)__mptr - offsetof(type,member) );})
-</code></pre>
-
-<p>这里涉及到三个宏，还是有点复杂的，我们一个一个来看：</p>
-
-<p><code>#define offsetof(TYPE,MEMBER) ( (size_t)&amp; ((TYPE *)0）-&gt; MEMBER )</code>，我们知道 <code>0 地址</code>内容是不能访问的，但 <code>0地址</code>的地址我们还是可以访问的， 这里用到一个取址运算符,<code>(TYPE *)0</code>它表示将 <code>0地址</code>强制转换为<code>TYPE</code>类型，<code>((TYPE *)0）-&gt; MEMBER</code> 也就是从<code>0址址</code>找到<code>TYPE</code> 的成员<code>MEMBER</code> 。</p>
-
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * container_of - cast a member of a structure out to the containing structure
+</span><span style="color:#75715e"> * @ptr:        the pointer to the member.
+</span><span style="color:#75715e"> * @type:       the type of the container struct this is embedded in.
+</span><span style="color:#75715e"> * @member:     the name of the member within the struct.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> */</span>
+<span style="color:#75715e">#define container_of(ptr, type, member) ({                      \
+</span><span style="color:#75715e">        const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
+</span><span style="color:#75715e">        (type *)( (char *)__mptr - offsetof(type,member) );})
+</span></code></pre></div><p>这里涉及到三个宏，还是有点复杂的，我们一个一个来看：</p>
+<p><code>#define offsetof(TYPE,MEMBER) ( (size_t)&amp; ((TYPE *)0）-&gt; MEMBER )</code>，我们知道 <code>0 地址</code>内容是不能访问的，但 <code>0地址</code>的地址我们还是可以访问的， 这里用到一个取址运算符,<code>(TYPE *)0 </code>它表示将 <code>0地址</code>强制转换为<code>TYPE</code>类型，<code>((TYPE *)0）-&gt; MEMBER</code> 也就是从<code>0址址</code>找到<code>TYPE</code> 的成员<code>MEMBER</code> 。</p>
 <p>我们结合上面的结构来看,</p>
-
-<pre><code class="language-c">struct file_node{
-　　char c;
-　　struct list_head node;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> file_node{
+　　<span style="color:#66d9ef">char</span> c;
+　　<span style="color:#66d9ef">struct</span> list_head node;
 };
-</code></pre>
-
-<p>将实参代入 <code>offset( struct file_node, node )</code>；最终将变成这样：</p>
-
-<pre><code class="language-c">( (size_t) &amp; ((struct file_node*)0）-&gt; node )
-</code></pre>
-
-<p>这样看的还是不很清楚，我们再变变：</p>
-
-<pre><code class="language-c">struct file_node *p = NULL;
-&amp;p-&gt;node;
-</code></pre>
-
-<p>这样应该比较清楚了，即求<code>p</code>的成员 <code>node</code>的地址，只不过<code>p</code> 为<code>0</code>地址，从<code>0</code>地址开始算成员<code>node</code>的地址，也就是 成员<code>node</code> 在结构体 <code>struct file_node</code>中的偏移量。<strong><code>offset</code>宏就是算<code>MEMBER</code>在<code>TYPE</code>中的偏移量的</strong>。</p>
-
+</code></pre></div><p>将实参代入 <code>offset( struct file_node, node )</code>；最终将变成这样：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">( (size_t) <span style="color:#f92672">&amp;</span> ((<span style="color:#66d9ef">struct</span> file_node<span style="color:#f92672">*</span>)<span style="color:#ae81ff">0</span><span style="color:#960050;background-color:#1e0010">）</span><span style="color:#f92672">-&gt;</span> node )
+</code></pre></div><p>这样看的还是不很清楚，我们再变变：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> file_node <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> NULL;
+<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>node;
+</code></pre></div><p>这样应该比较清楚了，即求<code>p</code>的成员 <code>node</code>的地址，只不过<code>p</code> 为<code>0</code>地址，从<code>0</code>地址开始算成员<code>node</code>的地址，也就是 成员<code> node</code> 在结构体 <code>struct file_node</code>中的偏移量。<strong><code>offset</code>宏就是算<code>MEMBER</code>在<code>TYPE</code>中的偏移量的</strong>。</p>
 <p>我们再看第二个宏</p>
-
-<pre><code class="language-c">#define container_of(ptr, type, member) ({                      \
-        const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
-        (type *)( (char *)__mptr - offsetof(type,member) );})
-</code></pre>
-
-<p>这个宏是由两个语句组成，最后<code>container_of</code>返回的结果就是第二个表达式的值。这里<code>__mptr</code>为中间变量，这就是<code>list_head</code>指针类型，它被初始化为<code>ptr</code>的值，而<code>ptr</code>就是当前所求的结构体中<code>list_head</code>节点的地址。为什么要用中间变量，这是考虑到安全性因素，如果传进来一个<code>ptr++</code>，所有<code>ptr++</code>放在一个表达式中会有副作用，像 <code>(p++)+(p++)</code>之类。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define container_of(ptr, type, member) ({                      \
+</span><span style="color:#75715e">        const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \
+</span><span style="color:#75715e">        (type *)( (char *)__mptr - offsetof(type,member) );})
+</span></code></pre></div><p>这个宏是由两个语句组成，最后<code>container_of</code>返回的结果就是第二个表达式的值。这里<code>__mptr</code>为中间变量，这就是<code>list_head</code>指针类型，它被初始化为<code>ptr</code>的值，而<code>ptr</code>就是当前所求的结构体中<code>list_head</code>节点的地址。为什么要用中间变量，这是考虑到安全性因素，如果传进来一个<code>ptr++</code>，所有<code>ptr++</code>放在一个表达式中会有副作用，像 <code>(p++)+(p++)</code>之类。</p>
 <p><code>(char*)__mptr</code> 之所以要强制类型转化为<code>char</code>是因为地址是以字节为单位的，而<code>char</code>的长度就是一个字节。</p>
-
 <p><code>container_of</code>的值是两个地址相减，刚说了<code>__mptr</code>是结构体中<code>list_head</code>节点的地址，<code>offset</code>宏求的是<code>list_head</code>节点<code>MEMBER</code>在结构体<code>TYPE</code>中的偏移量，那么<code>__mptr</code>减去它所在结构体中的偏移量，就是<code>结构体的地址</code>。</p>
-
 <p>所以<code>list_entry(ptr,type,member)</code>宏的功能就是，<strong>由结构体成员地址求结构体地址</strong>。其中<code>ptr</code> 是所求结构体中<code>list_head</code>成员指针，<code>type</code>是所求结构体类型，<code>member</code>是结构体<code>list_head</code>成员名。通过下图来总结一下：</p>
-
-<p><img src="./list_entry.jpg" alt="list_entry" title="list_entry" /></p>
-
+<p><img src="./list_entry.jpg" alt="list_entry" title="list_entry"></p>
 <h2 id="相关api">相关API</h2>
-
 <table>
 <thead>
 <tr>
@@ -324,370 +274,292 @@
 <th>说明</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>LIST_HEAD</td>
 <td>静态初始化list_head</td>
 </tr>
-
 <tr>
 <td>INIT_LIST_HEAD</td>
 <td>动态初始化list_head</td>
 </tr>
-
 <tr>
 <td>list_add</td>
 <td>在链表头部添加一个新节点</td>
 </tr>
-
 <tr>
 <td>list_add_tail</td>
 <td>在链表尾部添加一个新节点</td>
 </tr>
-
 <tr>
 <td>list_del</td>
 <td>删除一个节点</td>
 </tr>
-
 <tr>
 <td>list_del_init</td>
 <td>删除一个节点</td>
 </tr>
-
 <tr>
 <td>list_replace</td>
 <td>替换一个节点</td>
 </tr>
-
 <tr>
 <td>list_replace_init</td>
 <td>替换一个节点</td>
 </tr>
-
 <tr>
 <td>list_move</td>
 <td>将一个节点从一个链表中删除，并添加到另一个链表的头部</td>
 </tr>
-
 <tr>
 <td>list_move_tail</td>
 <td>将一个节点从一个链表中删除，并添加到另一个链表的尾部</td>
 </tr>
-
 <tr>
 <td>list_is_last</td>
 <td>判断节点是否为链表的最后一个节点</td>
 </tr>
-
 <tr>
 <td>list_empty</td>
 <td>判断链表是否为空</td>
 </tr>
-
 <tr>
 <td>list_empty_careful</td>
 <td>判断链表是否为空</td>
 </tr>
-
 <tr>
 <td>list_rotate_left</td>
 <td>将链表的第一个节点移动到末尾</td>
 </tr>
-
 <tr>
 <td>list_is_singular</td>
 <td>判断链表是否只有个节点</td>
 </tr>
-
 <tr>
 <td>list_cut_position</td>
 <td>将链表前面知道entry的部分删除，并添加到新的链表list中</td>
 </tr>
-
 <tr>
 <td>list_splice</td>
 <td>将两个链表链接在一起</td>
 </tr>
-
 <tr>
 <td>list_splice_tail</td>
 <td>将两个链表链接在一起</td>
 </tr>
-
 <tr>
 <td>list_splice_init</td>
 <td>将两个链表链接在一起</td>
 </tr>
-
 <tr>
 <td>list_splice_tail_init</td>
 <td>将两个链表链接在一起</td>
 </tr>
-
 <tr>
 <td>list_entry</td>
 <td>根据list_head找到其被嵌入的结构体</td>
 </tr>
-
 <tr>
 <td>list_first_entry</td>
 <td>获取链表的第一个entry</td>
 </tr>
-
 <tr>
 <td>list_last_entry</td>
 <td>获取链表的最后一个entry</td>
 </tr>
-
 <tr>
 <td>list_first_entry_or_null</td>
 <td>获取链表的第一个entry</td>
 </tr>
-
 <tr>
 <td>list_next_entry</td>
 <td>获取链表指定entry的下一个entry</td>
 </tr>
-
 <tr>
 <td>list_prev_entry</td>
 <td>获取链表指定entry的前一个entry</td>
 </tr>
-
 <tr>
 <td>list_for_each</td>
 <td>遍历链表，遍历元素为list_head</td>
 </tr>
-
 <tr>
 <td>list_for_each_safe</td>
 <td>遍历链表，遍历元素为list_head</td>
 </tr>
-
 <tr>
 <td>list_for_each_prev</td>
 <td>反向遍历链表，遍历元素为list_head</td>
 </tr>
-
 <tr>
 <td>list_for_each_prev_safe</td>
 <td>反向遍历链表，遍历元素为list_head</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry</td>
 <td>遍历链表，遍历元素为外层结构体</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_reverse</td>
 <td>反向遍历链表，遍历元素为外层结构体</td>
 </tr>
-
 <tr>
 <td>list_prepare_entry</td>
 <td>为list_for_each_entry_continue准备一个entry</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_continue</td>
 <td>从当前节点的下一个节点进行遍历</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_continue_reverse</td>
 <td>从当前节点的下一个节点进行反向遍历</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_from</td>
 <td>从当前节点进行遍历</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_from_reverse</td>
 <td>从当前节点进行反向遍历</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_safe</td>
 <td>遍历链表，遍历元素为外层结构体</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_safe_reverse</td>
 <td>反向遍历链表，遍历元素为外层结构体</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_safe_continue</td>
 <td>从当前节点的下一个节点进行遍历</td>
 </tr>
-
 <tr>
 <td>list_for_each_entry_safe_from</td>
 <td>从当前节点进行遍历</td>
 </tr>
-
 <tr>
 <td>list_safe_reset_next</td>
 <td>用于在list_for_each_entry_safe中，跳过某个entry</td>
 </tr>
 </tbody>
 </table>
-
 <p>对上述API中的部分，我们进行了图示：</p>
-
-<h3 id="list-head-init-list-head">LIST_HEAD/INIT_LIST_HEAD</h3>
-
+<h3 id="list_headinit_list_head">LIST_HEAD/INIT_LIST_HEAD</h3>
 <p><code>LIST_HEAD/INIT_LIST_HEAD</code>两个宏用于初始化<code>list_head</code>节点。</p>
-
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n21"> include/linux/list.h(line 21) </a>
-
-<pre><code class="language-c">#define LIST_HEAD_INIT(name) { &amp;(name), &amp;(name) }
-
-#define LIST_HEAD(name) \
-	struct list_head name = LIST_HEAD_INIT(name)
-
-static inline void INIT_LIST_HEAD(struct list_head *list)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define LIST_HEAD_INIT(name) { &amp;(name), &amp;(name) }
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#define LIST_HEAD(name) \
+</span><span style="color:#75715e">	struct list_head name = LIST_HEAD_INIT(name)
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">INIT_LIST_HEAD</span>(<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>list)
 {
-	WRITE_ONCE(list-&gt;next, list);
-	list-&gt;prev = list;
+	WRITE_ONCE(list<span style="color:#f92672">-&gt;</span>next, list);
+	list<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> list;
 }
-</code></pre>
-
-<p>图示如下：</p>
-
-<p><img src="./LIST_HEAD.png" alt="enter description here" title="LIST_HEAD" /></p>
-
-<h3 id="list-add">__list_add</h3>
-
+</code></pre></div><p>图示如下：</p>
+<p><img src="./LIST_HEAD.png" alt="enter description here" title="LIST_HEAD"></p>
+<h3 id="__list_add">__list_add</h3>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n50"> include/linux/list.h(line 50) </a>
-
-<pre><code class="language-c">/*
- * Insert a new entry between two known consecutive entries.
- *
- * This is only for internal list manipulation where we know
- * the prev/next entries already!
- */
-static inline void __list_add(struct list_head *new,
-			      struct list_head *prev,
-			      struct list_head *next)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * Insert a new entry between two known consecutive entries.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * This is only for internal list manipulation where we know
+</span><span style="color:#75715e"> * the prev/next entries already!
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__list_add</span>(<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>new,
+			      <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>prev,
+			      <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>next)
 {
-	if (!__list_add_valid(new, prev, next))
-		return;
+	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>__list_add_valid(new, prev, next))
+		<span style="color:#66d9ef">return</span>;
 
-	next-&gt;prev = new; //1
-	new-&gt;next = next; //2 
-	new-&gt;prev = prev; // 3
-	WRITE_ONCE(prev-&gt;next, new); //4
-}
-</code></pre>
-
-<p>图示如下：</p>
-
-<p><img src="./list_add.png" alt="enter description here" title="list_add" /></p>
-
-<h3 id="list-del">__list_del</h3>
-
+	next<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> new; <span style="color:#75715e">//1
+</span><span style="color:#75715e"></span>	new<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> next; <span style="color:#75715e">//2 
+</span><span style="color:#75715e"></span>	new<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> prev; <span style="color:#75715e">// 3
+</span><span style="color:#75715e"></span>	WRITE_ONCE(prev<span style="color:#f92672">-&gt;</span>next, new); <span style="color:#75715e">//4
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>图示如下：</p>
+<p><img src="./list_add.png" alt="enter description here" title="list_add"></p>
+<h3 id="__list_del">__list_del</h3>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n96"> include/linux/list.h(line 96) </a>
-
-<pre><code class="language-c">/*
- * Delete a list entry by making the prev/next entries
- * point to each other.
- *
- * This is only for internal list manipulation where we know
- * the prev/next entries already!
- */
-static inline void __list_del(struct list_head * prev, struct list_head * next)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * Delete a list entry by making the prev/next entries
+</span><span style="color:#75715e"> * point to each other.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * This is only for internal list manipulation where we know
+</span><span style="color:#75715e"> * the prev/next entries already!
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__list_del</span>(<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span> prev, <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span> next)
 {
-	next-&gt;prev = prev; // 1
-	WRITE_ONCE(prev-&gt;next, next); //2
-}
-</code></pre>
-
-<p>图示如下：</p>
-
-<p><img src="./list_del.png" alt="enter description here" title="list_del" /></p>
-
-<h3 id="list-replace">list_replace</h3>
-
+	next<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> prev; <span style="color:#75715e">// 1
+</span><span style="color:#75715e"></span>	WRITE_ONCE(prev<span style="color:#f92672">-&gt;</span>next, next); <span style="color:#75715e">//2
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>图示如下：</p>
+<p><img src="./list_del.png" alt="enter description here" title="list_del"></p>
+<h3 id="list_replace">list_replace</h3>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n130"> include/linux/list.h(line 130) </a>
-
-<pre><code class="language-c">/**
- * list_replace - replace old entry by new one
- * @old : the element to be replaced
- * @new : the new element to insert
- *
- * If @old was empty, it will be overwritten.
- */
-static inline void list_replace(struct list_head *old,
-				struct list_head *new)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * list_replace - replace old entry by new one
+</span><span style="color:#75715e"> * @old : the element to be replaced
+</span><span style="color:#75715e"> * @new : the new element to insert
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * If @old was empty, it will be overwritten.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">list_replace</span>(<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>old,
+				<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>new)
 {
-	new-&gt;next = old-&gt;next; // 1
-	new-&gt;next-&gt;prev = new; // 2
-	new-&gt;prev = old-&gt;prev; // 3
-	new-&gt;prev-&gt;next = new; // 4
-}
+	new<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> old<span style="color:#f92672">-&gt;</span>next; <span style="color:#75715e">// 1
+</span><span style="color:#75715e"></span>	new<span style="color:#f92672">-&gt;</span>next<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> new; <span style="color:#75715e">// 2
+</span><span style="color:#75715e"></span>	new<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> old<span style="color:#f92672">-&gt;</span>prev; <span style="color:#75715e">// 3
+</span><span style="color:#75715e"></span>	new<span style="color:#f92672">-&gt;</span>prev<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> new; <span style="color:#75715e">// 4
+</span><span style="color:#75715e"></span>}
 
-</code></pre>
-
-<p>图示如下：</p>
-
-<p><img src="./list_replace.png" alt="enter description here" title="list_replace" /></p>
-
-<h3 id="list-cut-position">__list_cut_position</h3>
-
+</code></pre></div><p>图示如下：</p>
+<p><img src="./list_replace.png" alt="enter description here" title="list_replace"></p>
+<h3 id="__list_cut_position">__list_cut_position</h3>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n248"> include/linux/list.h(line 248) </a>
-
-<pre><code class="language-c">static inline void __list_cut_position(struct list_head *list,
-		struct list_head *head, struct list_head *entry)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__list_cut_position</span>(<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>list,
+		<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>head, <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>entry)
 {
-	struct list_head *new_first = entry-&gt;next;
-	list-&gt;next = head-&gt;next; //1
-	list-&gt;next-&gt;prev = list; //2 
-	list-&gt;prev = entry; // 3
-	entry-&gt;next = list; // 4
-	head-&gt;next = new_first; //5
-	new_first-&gt;prev = head; // 6
-}
-</code></pre>
-
-<p>图示如下：</p>
-
-<p><img src="./list_cut_position.png" alt="enter description here" title="list_cut_position" /></p>
-
-<h3 id="list-splice">__list_splice</h3>
-
+	<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>new_first <span style="color:#f92672">=</span> entry<span style="color:#f92672">-&gt;</span>next;
+	list<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> head<span style="color:#f92672">-&gt;</span>next; <span style="color:#75715e">//1
+</span><span style="color:#75715e"></span>	list<span style="color:#f92672">-&gt;</span>next<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> list; <span style="color:#75715e">//2 
+</span><span style="color:#75715e"></span>	list<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> entry; <span style="color:#75715e">// 3
+</span><span style="color:#75715e"></span>	entry<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> list; <span style="color:#75715e">// 4
+</span><span style="color:#75715e"></span>	head<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> new_first; <span style="color:#75715e">//5
+</span><span style="color:#75715e"></span>	new_first<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> head; <span style="color:#75715e">// 6
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>图示如下：</p>
+<p><img src="./list_cut_position.png" alt="enter description here" title="list_cut_position"></p>
+<h3 id="__list_splice">__list_splice</h3>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n288"> include/linux/list.h(line 288) </a>
-
-<pre><code class="language-c">static inline void __list_splice(const struct list_head *list,
-				 struct list_head *prev,
-				 struct list_head *next)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__list_splice</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>list,
+				 <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>prev,
+				 <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>next)
 {
-	struct list_head *first = list-&gt;next;
-	struct list_head *last = list-&gt;prev;
+	<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>first <span style="color:#f92672">=</span> list<span style="color:#f92672">-&gt;</span>next;
+	<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>last <span style="color:#f92672">=</span> list<span style="color:#f92672">-&gt;</span>prev;
 
-	first-&gt;prev = prev; // 1
-	prev-&gt;next = first; // 2
+	first<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> prev; <span style="color:#75715e">// 1
+</span><span style="color:#75715e"></span>	prev<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> first; <span style="color:#75715e">// 2
+</span><span style="color:#75715e"></span>
+	last<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> next; <span style="color:#75715e">// 3
+</span><span style="color:#75715e"></span>	next<span style="color:#f92672">-&gt;</span>prev <span style="color:#f92672">=</span> last; <span style="color:#75715e">// 4
+</span><span style="color:#75715e"></span>}
 
-	last-&gt;next = next; // 3
-	next-&gt;prev = last; // 4
-}
-
-</code></pre>
-
-<p>图示如下：</p>
-
-<p><img src="./list_splice.png" alt="enter description here" title="list_splice" /></p>
-
+</code></pre></div><p>图示如下：</p>
+<p><img src="./list_splice.png" alt="enter description here" title="list_splice"></p>
 <h2 id="参考文档">参考文档</h2>
-
 <ul>
-<li><a href="http://www.cnblogs.com/zhuyp1015/archive/2012/06/02/2532240.html">http://www.cnblogs.com/zhuyp1015/archive/2012/06/02/2532240.html</a></li>
-<li><a href="http://blog.chinaunix.net/uid-26952464-id-3416870.html">http://blog.chinaunix.net/uid-26952464-id-3416870.html</a></li>
+<li>
+<p><a href="http://www.cnblogs.com/zhuyp1015/archive/2012/06/02/2532240.html">http://www.cnblogs.com/zhuyp1015/archive/2012/06/02/2532240.html</a></p>
+</li>
+<li>
+<p><a href="http://blog.chinaunix.net/uid-26952464-id-3416870.html">http://blog.chinaunix.net/uid-26952464-id-3416870.html</a></p>
+</li>
 </ul>
     </div>
 
@@ -783,7 +655,7 @@ static inline void list_replace(struct list_head *old,
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

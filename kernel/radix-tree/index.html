@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/radix-tree/" />
@@ -54,7 +54,6 @@
 <meta property="og:title" content="Radix Tree " />
 <meta property="og:description" content="本文详细介绍了Linux的Radix树。
 
-
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
 " />
 <meta property="og:type" content="article" />
@@ -64,13 +63,10 @@
 <meta itemprop="name" content="Radix Tree ">
 <meta itemprop="description" content="本文详细介绍了Linux的Radix树。
 
-
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
 ">
-
-
-<meta itemprop="datePublished" content="2018-09-09T13:36:38&#43;08:00" />
-<meta itemprop="dateModified" content="2018-09-09T13:36:38&#43;08:00" />
+<meta itemprop="datePublished" content="2018-09-09T13:36:38+08:00" />
+<meta itemprop="dateModified" content="2018-09-09T13:36:38+08:00" />
 <meta itemprop="wordCount" content="2049">
 
 
@@ -79,7 +75,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Radix Tree "/>
 <meta name="twitter:description" content="本文详细介绍了Linux的Radix树。
-
 
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
 "/>
@@ -181,36 +176,17 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#radix-tree介绍">Radix Tree介绍</a></li>
-<li><a href="#基本数据结构">基本数据结构</a>
-<ul>
-<li><a href="#radix-tree-root">radix_tree_root</a></li>
-<li><a href="#radix-tree-node">radix_tree_node</a></li>
-</ul></li>
-<li><a href="#radix-tree在linux下的图解">Radix Tree在linux下的图解</a>
-<ul>
-<li><a href="#初始化后的图示">初始化后的图示</a></li>
-<li><a href="#插入0-和4的图示">插入0 和4的图示</a></li>
-<li><a href="#插入131的图示">插入131的图示</a></li>
-<li><a href="#插入4100的图示">插入4100的图示</a></li>
-</ul></li>
-<li><a href="#linux-api-介绍">Linux API 介绍</a>
-<ul>
-<li><a href="#初始化">初始化</a></li>
-<li><a href="#插入条目">插入条目</a></li>
-<li><a href="#删除条目">删除条目</a></li>
-<li><a href="#查询条目">查询条目</a></li>
-<li><a href="#标签操作">标签操作</a></li>
-</ul></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#radix-tree介绍">Radix Tree介绍</a></li>
+        <li><a href="#基本数据结构">基本数据结构</a></li>
+        <li><a href="#radix-tree在linux下的图解">Radix Tree在linux下的图解</a></li>
+        <li><a href="#linux-api-介绍">Linux API 介绍</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -218,73 +194,58 @@
     
     <div class="post-content">
       <p>本文详细介绍了Linux的Radix树。</p>
-
 <blockquote>
 <p>注意：本文分析中引用的代码来自于centos系统自带的内核：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm">kernel-3.10.0-862.9.1.el7</a></p>
 </blockquote>
-
 <h3 id="radix-tree介绍">Radix Tree介绍</h3>
-
 <p>Linux基数树（radix tree）是将<code>指针</code>与<code>long整数键值</code>相关联的机制，它存储有效率，并且可快速查询，用于指针与整数值的映射（如：IDR机制）、内存管理等。</p>
-
 <p>Linux radix树最广泛的用途是用于内存管理，结构<code>address_space</code>通过<code>radix树</code>跟踪绑定到地址映射上的核心页，该<code>radix树允</code>许内存管理代码快速查找标识为<code>dirty</code>或<code>writeback</code>的页。<code>Linux radix树</code>的<code>API</code>函数在<code>lib/radix-tree.c</code>中实现。</p>
-
 <h3 id="基本数据结构">基本数据结构</h3>
+<h4 id="radix_tree_root">radix_tree_root</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* root tags are stored in gfp_mask, shifted by __GFP_BITS_SHIFT */</span>
+<span style="color:#66d9ef">struct</span> radix_tree_root {
+        RH_KABI_DEPRECATE(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span>, height)
+        gfp_t                   gfp_mask;       <span style="color:#75715e">//内存申请的标识
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> radix_tree_node  __rcu <span style="color:#f92672">*</span>rnode;   <span style="color:#75715e">//子节点指针
+</span><span style="color:#75715e"></span>};
 
-<h4 id="radix-tree-root">radix_tree_root</h4>
-
-<pre><code class="language-c">/* root tags are stored in gfp_mask, shifted by __GFP_BITS_SHIFT */
-struct radix_tree_root {
-        RH_KABI_DEPRECATE(unsigned int, height)
-        gfp_t                   gfp_mask;       //内存申请的标识
-        struct radix_tree_node  __rcu *rnode;   //子节点指针
-};
-
-</code></pre>
-
-<p><code>radix_tree_root</code>用来表示树的根：</p>
-
+</code></pre></div><p><code>radix_tree_root</code>用来表示树的根：</p>
 <ul>
 <li><code>height</code>在这个版本中已经废弃了</li>
 <li><code>gfp_mask</code>用于保存内存申请的标识</li>
 <li><code>rnode</code>用于指向基数的结点，一个空的基数，该指针为NULL</li>
 </ul>
+<h4 id="radix_tree_node">radix_tree_node</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * The radix_tree_node structure is never embedded in other data structures.
+</span><span style="color:#75715e"> * As a result, there&#39;s no need to preserve the size.  Because the structure
+</span><span style="color:#75715e"> * is reachable via others, though, we need to preserve the original contents
+</span><span style="color:#75715e"> * for the kabi checker.
+</span><span style="color:#75715e"> */</span>
 
-<h4 id="radix-tree-node">radix_tree_node</h4>
-
-<pre><code class="language-c">/*
- * The radix_tree_node structure is never embedded in other data structures.
- * As a result, there's no need to preserve the size.  Because the structure
- * is reachable via others, though, we need to preserve the original contents
- * for the kabi checker.
- */
-
-struct radix_tree_node {
-        RH_KABI_REPLACE2(       /* shift &amp; offset replaces path */
-                unsigned int    path,   /* Offset in parent &amp; height from the bottom */
-                unsigned char   shift,  /* Bits remaining in each slot */
-                unsigned char   offset  /* Slot offset in parent */
+<span style="color:#66d9ef">struct</span> radix_tree_node {
+        RH_KABI_REPLACE2(       <span style="color:#75715e">/* shift &amp; offset replaces path */</span>
+                <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span>    path,   <span style="color:#75715e">/* Offset in parent &amp; height from the bottom */</span>
+                <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span>   shift,  <span style="color:#75715e">/* Bits remaining in each slot */</span>
+                <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span>   offset  <span style="color:#75715e">/* Slot offset in parent */</span>
         )
-        unsigned int    count; //子节点个数
-        union {
-                struct {
-                        /* Used when ascending tree */
-                        struct radix_tree_node *parent; //父节点指针
-                        /* For tree user */
-                        void *private_data;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span>    count; <span style="color:#75715e">//子节点个数
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">union</span> {
+                <span style="color:#66d9ef">struct</span> {
+                        <span style="color:#75715e">/* Used when ascending tree */</span>
+                        <span style="color:#66d9ef">struct</span> radix_tree_node <span style="color:#f92672">*</span>parent; <span style="color:#75715e">//父节点指针
+</span><span style="color:#75715e"></span>                        <span style="color:#75715e">/* For tree user */</span>
+                        <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>private_data;
                 };
-                /* Used when freeing node */
-                struct rcu_head rcu_head; //用于节点释放的RCU链表
-        };
-        /* For tree user */
-        struct list_head private_list;
-        void __rcu      *slots[RADIX_TREE_MAP_SIZE];// slots[64] //指向存储数据指针
-        unsigned long   tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS]; // tags[3][1]
-};
-</code></pre>
-
-<p><code>radix_tree_node</code>用于表示基数树的内部结点：</p>
-
+                <span style="color:#75715e">/* Used when freeing node */</span>
+                <span style="color:#66d9ef">struct</span> rcu_head rcu_head; <span style="color:#75715e">//用于节点释放的RCU链表
+</span><span style="color:#75715e"></span>        };
+        <span style="color:#75715e">/* For tree user */</span>
+        <span style="color:#66d9ef">struct</span> list_head private_list;
+        <span style="color:#66d9ef">void</span> __rcu      <span style="color:#f92672">*</span>slots[RADIX_TREE_MAP_SIZE];<span style="color:#75715e">// slots[64] //指向存储数据指针
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>   tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS]; <span style="color:#75715e">// tags[3][1]
+</span><span style="color:#75715e"></span>};
+</code></pre></div><p><code>radix_tree_node</code>用于表示基数树的内部结点：</p>
 <ul>
 <li><code>offset</code>： 表示该结点在其父结点的slots中的偏移值</li>
 <li><code>shift</code>： 该node中的slots的指针中有多少位用于继续寻址，当node是最底层的叶子结点时，shift为0，每上一层，shift递增6</li>
@@ -293,106 +254,59 @@ struct radix_tree_node {
 <li><code>slots</code>： 64个指针，每层可以有64个子节点</li>
 <li><code>tags</code>： tags域用于记录该结点下面的子结点有没有相应的标志位,这是一个典型的用空间换时间的应用</li>
 </ul>
-
 <h3 id="radix-tree在linux下的图解">Radix Tree在linux下的图解</h3>
-
 <h4 id="初始化后的图示">初始化后的图示</h4>
-
 <p>当一个radix tree初始化后，其只有<code>radix_tree_root</code>结点，如下图：</p>
-
-<p><img src="./radix-tree-init.svg" alt="" /></p>
-
+<p><img src="./radix-tree-init.svg" alt=""></p>
 <h4 id="插入0-和4的图示">插入0 和4的图示</h4>
-
 <p>当插入0和4时，树的高度增加1，如下图所示：</p>
-
-<p><img src="./insert-0-and-4.svg" alt="" /></p>
-
+<p><img src="./insert-0-and-4.svg" alt=""></p>
 <h4 id="插入131的图示">插入131的图示</h4>
-
 <p>当插入131时，高度需要再增加1，如下图所示：</p>
-
-<p><img src="./insert-0-and-4-and-131.svg" alt="" /></p>
-
+<p><img src="./insert-0-and-4-and-131.svg" alt=""></p>
 <h4 id="插入4100的图示">插入4100的图示</h4>
-
 <p>当插入4100时，高度需要再增加1，如下图所示：</p>
-
-<p><img src="./insert-0-and-4-and-131-and-4100.svg" alt="" /></p>
-
+<p><img src="./insert-0-and-4-and-131-and-4100.svg" alt=""></p>
 <h3 id="linux-api-介绍">Linux API 介绍</h3>
-
 <h4 id="初始化">初始化</h4>
-
 <p>使用radix tree时，需要初始化，可以分为静态初始化和动态初始化两种方法：</p>
-
 <p>静态初始化<code>RADIX_TREE</code>：</p>
-
-<pre><code class="language-c">RADIX_TREE(mytree, GFP_KERNEL);
-</code></pre>
-
-<p>动态初始化：<code>INIT_RADIX_TREE</code></p>
-
-<pre><code class="language-c">struct radix_tree_root mytree;
-INIT_RADIX_TREE(&amp;mytree, GFP_KERNEL);
-</code></pre>
-
-<h4 id="插入条目">插入条目</h4>
-
-<pre><code class="language-c">int radix_tree_insert(struct radix_tree_root *root,
-                        unsigned long index, void *entry)
-</code></pre>
-
-<p>函数<code>radix_tree_insert</code>插入条目<code>entry</code>到树<code>root</code>中，如果插入条目中内存分配错误，将返回错误<code>-ENOMEM</code>。该函数不能覆盖写正存在的条目。如果索引键值<code>index</code>已存在于树中，返回错误<code>-EEXIST</code>。插入操作成功返回0。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">RADIX_TREE(mytree, GFP_KERNEL);
+</code></pre></div><p>动态初始化：<code>INIT_RADIX_TREE</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> radix_tree_root mytree;
+INIT_RADIX_TREE(<span style="color:#f92672">&amp;</span>mytree, GFP_KERNEL);
+</code></pre></div><h4 id="插入条目">插入条目</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> radix_tree_insert(<span style="color:#66d9ef">struct</span> radix_tree_root <span style="color:#f92672">*</span>root,
+                        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> index, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>entry)
+</code></pre></div><p>函数<code>radix_tree_insert</code>插入条目<code>entry</code>到树<code>root</code>中，如果插入条目中内存分配错误，将返回错误<code>-ENOMEM</code>。该函数不能覆盖写正存在的条目。如果索引键值<code>index</code>已存在于树中，返回错误<code>-EEXIST</code>。插入操作成功返回0。</p>
 <p>对于插入条目操作失败将引起严重问题的场合，下面的一对函数可避免插入操作失败：</p>
-
-<pre><code class="language-c">int radix_tree_preload(gfp_t gfp_mask);                                                                                                                       
-void radix_tree_preload_end(void);
-</code></pre>
-
-<p>函数<code>radix_tree_preload</code>尝试用给定的<code>gfp_mask</code>分配足够的内存，保证下一个插入操作不会失败。在调用插入操作函数之前调用此函数，分配的结构将存放在<code>每CPU</code>变量中。函数<code>radix_tree_preload</code>操作成功后，将关闭内核抢占。因此，在插入操作完成之后，用户应调用函数<code>radix_tree_preload_end</code>打开内核抢占。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">radix_tree_preload</span>(gfp_t gfp_mask);                                                                                                                       
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">radix_tree_preload_end</span>(<span style="color:#66d9ef">void</span>);
+</code></pre></div><p>函数<code>radix_tree_preload</code>尝试用给定的<code>gfp_mask</code>分配足够的内存，保证下一个插入操作不会失败。在调用插入操作函数之前调用此函数，分配的结构将存放在<code>每CPU</code>变量中。函数<code>radix_tree_preload</code>操作成功后，将关闭内核抢占。因此，在插入操作完成之后，用户应调用函数<code>radix_tree_preload_end</code>打开内核抢占。</p>
 <p><code>radix_tree_preload</code>有如下连个变种：</p>
-
-<pre><code class="language-c">int radix_tree_maybe_preload(gfp_t gfp_mask);                                                                        
-int radix_tree_maybe_preload_order(gfp_t gfp_mask, int order);  
-</code></pre>
-
-<h4 id="删除条目">删除条目</h4>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">radix_tree_maybe_preload</span>(gfp_t gfp_mask);                                                                        
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">radix_tree_maybe_preload_order</span>(gfp_t gfp_mask, <span style="color:#66d9ef">int</span> order);  
+</code></pre></div><h4 id="删除条目">删除条目</h4>
 <p>函数<code>radix_tree_delete</code>删除与索引键值<code>index</code>相关的条目，如果删除条目在树中，返回该条目的指针，否则返回NULL。
 函数<code>radix_tree_delete_item</code>删除与索引键值<code>index</code>相关的条目<code>item</code>，如果删除条目在树中，返回该条目的指针，否则返回NULL。</p>
-
-<pre><code class="language-c">void *radix_tree_delete(struct radix_tree_root *root, unsigned long index);
-void *radix_tree_delete_item(struct radix_tree_root *root, unsigned long index, void *item);
-</code></pre>
-
-<h4 id="查询条目">查询条目</h4>
-
-<pre><code class="language-c">void *radix_tree_lookup(struct radix_tree_root *root, unsigned long index);
-void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index);
-</code></pre>
-
-<ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">radix_tree_delete</span>(<span style="color:#66d9ef">struct</span> radix_tree_root <span style="color:#f92672">*</span>root, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> index);
+<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">radix_tree_delete_item</span>(<span style="color:#66d9ef">struct</span> radix_tree_root <span style="color:#f92672">*</span>root, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> index, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>item);
+</code></pre></div><h4 id="查询条目">查询条目</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">radix_tree_lookup</span>(<span style="color:#66d9ef">struct</span> radix_tree_root <span style="color:#f92672">*</span>root, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> index);
+<span style="color:#66d9ef">void</span> <span style="color:#f92672">**</span><span style="color:#a6e22e">radix_tree_lookup_slot</span>(<span style="color:#66d9ef">struct</span> radix_tree_root <span style="color:#f92672">*</span>root, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> index);
+</code></pre></div><ul>
 <li><code>radix_tree_lookup</code>在树中查找指定键值的条目，查找成功，返回该条目的指针，否则，返回NULL.</li>
-
-<li><p><code>radix_tree_lookup_slot</code>返回指向slot的指针，该slot含有指向查找到条目的指针</p>
-
-<pre><code class="language-c">unsigned int radix_tree_gang_lookup(struct radix_tree_root *root,                                                                                             
-                    void **results, unsigned long first_index,                                                   
-                    unsigned int max_items);                                                                     
-unsigned int radix_tree_gang_lookup_slot(struct radix_tree_root *root,                                               
-                    void ***results, unsigned long *indices,                                                     
-                    unsigned long first_index, unsigned int max_items); 
-
-</code></pre></li>
+<li><code>radix_tree_lookup_slot</code>返回指向slot的指针，该slot含有指向查找到条目的指针</li>
 </ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">radix_tree_gang_lookup</span>(<span style="color:#66d9ef">struct</span> radix_tree_root <span style="color:#f92672">*</span>root,                                                                                             
+                        <span style="color:#66d9ef">void</span> <span style="color:#f92672">**</span>results, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> first_index,                                                   
+                        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> max_items);                                                                     
+<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">radix_tree_gang_lookup_slot</span>(<span style="color:#66d9ef">struct</span> radix_tree_root <span style="color:#f92672">*</span>root,                                               
+                        <span style="color:#66d9ef">void</span> <span style="color:#f92672">***</span>results, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#f92672">*</span>indices,                                                     
+                        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> first_index, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> max_items); 
 
-<p><code>radix_tree_gang_lookup</code>多键值查找，max_items为需要查找的item个数，results表示查询结果。查询时键值索引从first_index开始</p>
-
+</code></pre></div><p><code>radix_tree_gang_lookup</code>多键值查找，max_items为需要查找的item个数，results表示查询结果。查询时键值索引从first_index开始</p>
 <h4 id="标签操作">标签操作</h4>
-
 <pre><code>void *radix_tree_tag_set(struct radix_tree_root *root,                                                               
                         unsigned long index, unsigned int tag);                                                      
 void *radix_tree_tag_clear(struct radix_tree_root *root,                                                             
@@ -400,17 +314,13 @@ void *radix_tree_tag_clear(struct radix_tree_root *root,
 int radix_tree_tag_get(struct radix_tree_root *root,                                                                 
                         unsigned long index, unsigned int tag);  
 int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
-</code></pre>
-
-<ul>
+</code></pre><ul>
 <li><code>radix_tree_tag_set</code>: 将键值index对应的条目设置标签tag，返回值为设置标签的条目</li>
 <li><code>radix_tree_tag_clear</code>: 从键值index对应的条目清除标签tag，返回值为清除标签的条目</li>
 <li><code>radix_tree_tag_get</code>: 检查键值index对应的条目tag是否设置。tag参数为0或者1</li>
 <li><code>radix_tree_tagged</code>: 如果树root中有任何条目使用tag标签，返回键值</li>
 </ul>
-
 <h3 id="参考文章">参考文章</h3>
-
 <ul>
 <li><a href="https://blog.csdn.net/xiaofeng_yan/article/details/78600190">https://blog.csdn.net/xiaofeng_yan/article/details/78600190</a></li>
 <li><a href="https://www.cnblogs.com/mingziday/p/3969269.html">https://www.cnblogs.com/mingziday/p/3969269.html</a></li>
@@ -508,7 +418,7 @@ int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

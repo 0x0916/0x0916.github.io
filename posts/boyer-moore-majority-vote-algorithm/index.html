@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/boyer-moore-majority-vote-algorithm/" />
@@ -53,7 +53,6 @@
 
 <meta property="og:title" content="Boyer-Moore majority vote algorithm(摩尔投票算法)" />
 <meta property="og:description" content="Boyer-Moore majority vote algorithm(摩尔投票算法)是一种在线性时间O(n)和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以Robert S.Boyer和J Strother Moore命名的，1981年发明的，是一种典型的流算法(streaming algorithm)。
-
 在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(n/2)的元素。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/posts/boyer-moore-majority-vote-algorithm/" />
@@ -61,12 +60,9 @@
 <meta property="article:modified_time" content="2017-11-11T18:28:24+08:00" />
 <meta itemprop="name" content="Boyer-Moore majority vote algorithm(摩尔投票算法)">
 <meta itemprop="description" content="Boyer-Moore majority vote algorithm(摩尔投票算法)是一种在线性时间O(n)和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以Robert S.Boyer和J Strother Moore命名的，1981年发明的，是一种典型的流算法(streaming algorithm)。
-
 在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(n/2)的元素。">
-
-
-<meta itemprop="datePublished" content="2017-11-11T17:58:21&#43;08:00" />
-<meta itemprop="dateModified" content="2017-11-11T18:28:24&#43;08:00" />
+<meta itemprop="datePublished" content="2017-11-11T17:58:21+08:00" />
+<meta itemprop="dateModified" content="2017-11-11T18:28:24+08:00" />
 <meta itemprop="wordCount" content="2454">
 
 
@@ -75,7 +71,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Boyer-Moore majority vote algorithm(摩尔投票算法)"/>
 <meta name="twitter:description" content="Boyer-Moore majority vote algorithm(摩尔投票算法)是一种在线性时间O(n)和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以Robert S.Boyer和J Strother Moore命名的，1981年发明的，是一种典型的流算法(streaming algorithm)。
-
 在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(n/2)的元素。"/>
 
 <!--[if lte IE 9]>
@@ -173,17 +168,15 @@
   
   <div class="post-toc-content always-active">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#基本的摩尔投票问题">基本的摩尔投票问题</a></li>
-<li><a href="#算法形式化描述">算法形式化描述</a></li>
-<li><a href="#c实现">C实现</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#基本的摩尔投票问题">基本的摩尔投票问题</a></li>
+        <li><a href="#算法形式化描述">算法形式化描述</a></li>
+        <li><a href="#c实现">C实现</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -191,19 +184,13 @@
     
     <div class="post-content">
       <p><a href="https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm">Boyer-Moore majority vote algorithm</a>(摩尔投票算法)是一种在线性时间<code>O(n)</code>和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以<code>Robert S.Boyer</code>和<code>J Strother Moore</code>命名的，1981年发明的，是一种典型的流算法(<code>streaming algorithm</code>)。</p>
-
 <p>在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(<code>n/2</code>)的元素。</p>
-
 <h3 id="基本的摩尔投票问题">基本的摩尔投票问题</h3>
-
 <blockquote>
 <p>找出一组数字序列中出现次数大于总数1/2的数字（并且假设这个数字一定存在）。显然这个数字只可能有一个。摩尔投票算法是基于这个事实：每次从序列里选择两个不相同的数字删除掉（或称为“抵消”），最后剩下一个数字或几个相同的数字，就是出现次数大于总数一半的那个。</p>
 </blockquote>
-
 <p>实现的算法从第一个数开始扫描整个数组，有两个变量<strong>major</strong>和<strong>count</strong>。其实这两个变量想表达的是一个<strong>隐形的数组array</strong>，<code>array</code>存储的是“当前暂时无法删除的数字”，我们先不要管<code>major</code>和<code>count</code>，只考虑这个<code>array</code>，同时再维护一个结果数组<code>result</code>，<code>result</code>里面存储的是每次删除一对元素之后的当前结果。</p>
-
 <p>为了方便理解举一个示例输入：{1,2,1,3,1,1,2,1,5}</p>
-
 <ul>
 <li>从第一个数字1开始，我们想要把它和一个不是1的数字一起从数组里抵消掉，但是目前我们只扫描了一个1，所以暂时无法抵消它，把它加入到array，array变成了{1}，result由于没有抵消任何元素所以还是原数组{1,2,1,3,1,1,2,1,5}。</li>
 <li>然后继续扫描第二个数，是2，我们可以把它和一个不是2的数字抵消掉了，因为我们之前扫描到一个1，所以array变成了{},result变成了{1,3,1,1,2,1,5}</li>
@@ -215,19 +202,13 @@
 <li>接下来扫描到1，不能抵消，array变成了{1,1}，result{1,1,5}</li>
 <li>接下来扫描到5，可以将5和一个1抵消，array变成了{1},result变成了{1}</li>
 </ul>
-
 <p>至此扫描完成了数组里的所有数，result里剩了1，所以1就是大于一半的数组。</p>
-
 <p>再回顾一下这个过程，其实就是删除（抵消）了（1，2），（1，3），（1，5）剩下了一个1。</p>
-
 <p>除去冗余关系：实际代码中没有<code>array</code>，也没有<code>result</code>，因为我们不需要。由于前面提到<code>array</code>里只可能同时存储一种数字，所以我们用major来表示当前<code>array</code>里存储的数，<code>count</code>表示<code>array</code>的长度,即目前暂时无法删除的元素个数，最后扫描完所有的数字，<code>array</code>和<code>result</code>变成一样了，都表示<strong>最后还是无法删除的数字</strong>。</p>
-
 <p>我们再根据只有两个变量的实际代码理一遍：</p>
-
 <p>major 初始化随便一个数，
 count 初始化为0
 输入：{1,2,1,3,1,1,2,1,5}</p>
-
 <ul>
 <li>扫描到1，count是0（没有元素可以和当前的1抵消），于是major = 1，count = 1（此时有1个1无法被抵消）</li>
 <li>扫描到2，它不等于major，于是可以抵消掉一个major =&gt; count -= 1，此时count = 0,其实可以理解为扫到的元素都抵消完了，这里可以暂时不改变major的值</li>
@@ -239,21 +220,15 @@ count 初始化为0
 <li>扫描到1，它等于major，无法抵消 =&gt; count += 1 =&gt; count = 2</li>
 <li>扫描到5，它不等于major，可以抵消一个major =&gt; count -= 1 =&gt; count = 1</li>
 </ul>
-
 <p>至此扫描完成，还剩1个1没有被抵消掉，它就是我们要找的数。</p>
-
 <h3 id="算法形式化描述">算法形式化描述</h3>
-
 <pre><code>Initialize an element m and a counter i with i = 0
 For each element x of the input sequence:
 		If i = 0, then assign m = x and i = 1
 		else if m = x, then assign i = i + 1
 		else assign i = i − 1
 Return m
-</code></pre>
-
-<p>一般在实践中，根据具体情况，可以判断最后找到的m的出现次数是否超过一半，如果未超过一半，则返回-1，所以有如下的形式化描述：</p>
-
+</code></pre><p>一般在实践中，根据具体情况，可以判断最后找到的m的出现次数是否超过一半，如果未超过一半，则返回-1，所以有如下的形式化描述：</p>
 <pre><code>Initialize an counter n with n = 0
 Initialize an element m and a counter i with i = 0
 For each element x of the input sequence:
@@ -268,78 +243,72 @@ For each element x of the input sequence:
 
 if mcount &gt; len(n/2), then return m
 else return -1
-</code></pre>
+</code></pre><h3 id="c实现">C实现</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
 
-<h3 id="c实现">C实现</h3>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">majority_element</span>(<span style="color:#66d9ef">int</span> array[], <span style="color:#66d9ef">int</span> len);
 
-<pre><code class="language-c">
-#include &lt;stdio.h&gt;
-
-
-int majority_element(int array[], int len);
-
-int main(int argc, char **argv)
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
 {
 
-	int a[] = {2, 2, 1, 1, 1, 2, 1};
-	int b[] = {2, 2, 1, 1, 1, 2, 3, 3, 3};
-	int c[] = {2, 2, 1, 2, 1, 2};
-	int d[] = {2, 2, 1, 1, 1, 2};
+	<span style="color:#66d9ef">int</span> a[] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span>};
+	<span style="color:#66d9ef">int</span> b[] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">3</span>};
+	<span style="color:#66d9ef">int</span> c[] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>};
+	<span style="color:#66d9ef">int</span> d[] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>};
 
-	printf(&quot;a[] = {2, 2, 1, 1, 1, 2, 1}\n&quot;);
-	printf(&quot;b[] = {2, 2, 1, 1, 1, 2, 3, 3, 3}\n&quot;);
-	printf(&quot;c[] = {2, 2, 1, 2, 1, 2}\n&quot;);
-	printf(&quot;d[] = {2, 2, 1, 1, 1, 2}\n&quot;);
-	printf(&quot;major element in a[] is %d\n&quot;, majority_element(a, 7));
-	printf(&quot;major element in b[] is %d\n&quot;, majority_element(b, 9));
-	printf(&quot;major element in c[] is %d\n&quot;, majority_element(c, 6));
-	printf(&quot;major element in d[] is %d\n&quot;, majority_element(d, 6));
-	return 0;
+	printf(<span style="color:#e6db74">&#34;a[] = {2, 2, 1, 1, 1, 2, 1}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	printf(<span style="color:#e6db74">&#34;b[] = {2, 2, 1, 1, 1, 2, 3, 3, 3}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	printf(<span style="color:#e6db74">&#34;c[] = {2, 2, 1, 2, 1, 2}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	printf(<span style="color:#e6db74">&#34;d[] = {2, 2, 1, 1, 1, 2}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	printf(<span style="color:#e6db74">&#34;major element in a[] is %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, majority_element(a, <span style="color:#ae81ff">7</span>));
+	printf(<span style="color:#e6db74">&#34;major element in b[] is %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, majority_element(b, <span style="color:#ae81ff">9</span>));
+	printf(<span style="color:#e6db74">&#34;major element in c[] is %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, majority_element(c, <span style="color:#ae81ff">6</span>));
+	printf(<span style="color:#e6db74">&#34;major element in d[] is %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, majority_element(d, <span style="color:#ae81ff">6</span>));
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
 
-int majority_element(int array[], int len)
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">majority_element</span>(<span style="color:#66d9ef">int</span> array[], <span style="color:#66d9ef">int</span> len)
 {
-	int major = 0, count = 0;
-	int i;
-	int num = 0;
+	<span style="color:#66d9ef">int</span> major <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+	<span style="color:#66d9ef">int</span> i;
+	<span style="color:#66d9ef">int</span> num <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 
-	for (i = 0 ; i &lt; len; i++) {
-		if (count == 0) {
-			major = array[i];
-			count = 1;
-		} else if (major == array[i]) {
-			count++;
-		} else {
-			count--;
+	<span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> ; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>) {
+		<span style="color:#66d9ef">if</span> (count <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+			major <span style="color:#f92672">=</span> array[i];
+			count <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (major <span style="color:#f92672">==</span> array[i]) {
+			count<span style="color:#f92672">++</span>;
+		} <span style="color:#66d9ef">else</span> {
+			count<span style="color:#f92672">--</span>;
 		}
 	}
 
-	for (i = 0; i &lt; len; i++) {
-		if (array[i] == major)
-			num++;
+	<span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>) {
+		<span style="color:#66d9ef">if</span> (array[i] <span style="color:#f92672">==</span> major)
+			num<span style="color:#f92672">++</span>;
 	}
 
-	if (num &gt; len/2)
-		return major;
-	return -1;
+	<span style="color:#66d9ef">if</span> (num <span style="color:#f92672">&gt;</span> len<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+		<span style="color:#66d9ef">return</span> major;
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 }
 
-</code></pre>
-
-<p>保存以上代码到<code>main.c</code>文件中，编译并执行，结果如下：</p>
-
-<pre><code class="language-bash"># gcc main.c -o majority-vote-algorithm
-# ./majority-vote-algorithm 
-a[] = {2, 2, 1, 1, 1, 2, 1}
-b[] = {2, 2, 1, 1, 1, 2, 3, 3, 3}
-c[] = {2, 2, 1, 2, 1, 2}
-d[] = {2, 2, 1, 1, 1, 2}
-major element in a[] is 1
-major element in b[] is -1
-major element in c[] is 2
-major element in d[] is -1
-</code></pre>
+</code></pre></div><p>保存以上代码到<code>main.c</code>文件中，编译并执行，结果如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># gcc main.c -o majority-vote-algorithm</span>
+<span style="color:#75715e"># ./majority-vote-algorithm </span>
+a<span style="color:#f92672">[]</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>2, 2, 1, 1, 1, 2, 1<span style="color:#f92672">}</span>
+b<span style="color:#f92672">[]</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>2, 2, 1, 1, 1, 2, 3, 3, 3<span style="color:#f92672">}</span>
+c<span style="color:#f92672">[]</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>2, 2, 1, 2, 1, 2<span style="color:#f92672">}</span>
+d<span style="color:#f92672">[]</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>2, 2, 1, 1, 1, 2<span style="color:#f92672">}</span>
+major element in a<span style="color:#f92672">[]</span> is <span style="color:#ae81ff">1</span>
+major element in b<span style="color:#f92672">[]</span> is -1
+major element in c<span style="color:#f92672">[]</span> is <span style="color:#ae81ff">2</span>
+major element in d<span style="color:#f92672">[]</span> is -1
+</code></pre></div>
     </div>
 
     
@@ -410,7 +379,7 @@ major element in d[] is -1
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

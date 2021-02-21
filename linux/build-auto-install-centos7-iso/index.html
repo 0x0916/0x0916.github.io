@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/build-auto-install-centos7-iso/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2019-02-10T20:20:18+08:00" />
 <meta itemprop="name" content="制作自动化安装的CENTOS7 ISO">
 <meta itemprop="description" content="本文以centos 7.6 的ISO为例，构建了用于自动化安装的ISO。">
-
-
-<meta itemprop="datePublished" content="2019-02-10T20:20:18&#43;08:00" />
-<meta itemprop="dateModified" content="2019-02-10T20:20:18&#43;08:00" />
+<meta itemprop="datePublished" content="2019-02-10T20:20:18+08:00" />
+<meta itemprop="dateModified" content="2019-02-10T20:20:18+08:00" />
 <meta itemprop="wordCount" content="2486">
 
 
@@ -166,29 +164,22 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#构建基础环境">构建基础环境</a></li>
-<li><a href="#确定需要安装的软件包">确定需要安装的软件包</a></li>
-<li><a href="#解决rpm依赖问题">解决RPM依赖问题</a></li>
-<li><a href="#生成rpm-repository">生成RPM repository</a></li>
-<li><a href="#生成iso镜像">生成ISO镜像</a></li>
-<li><a href="#测试iso镜像">测试ISO镜像</a></li>
-<li><a href="#定制自己的功能并制作iso">定制自己的功能并制作ISO</a>
-<ul>
-<li><a href="#第一阶段">第一阶段</a></li>
-<li><a href="#第二阶段">第二阶段</a></li>
-<li><a href="#具体操作流程">具体操作流程</a></li>
-</ul></li>
-<li><a href="#测试iso镜像-1">测试ISO镜像</a></li>
-<li><a href="#代码">代码</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#构建基础环境">构建基础环境</a></li>
+        <li><a href="#确定需要安装的软件包">确定需要安装的软件包</a></li>
+        <li><a href="#解决rpm依赖问题">解决RPM依赖问题</a></li>
+        <li><a href="#生成rpm-repository">生成RPM repository</a></li>
+        <li><a href="#生成iso镜像">生成ISO镜像</a></li>
+        <li><a href="#测试iso镜像">测试ISO镜像</a></li>
+        <li><a href="#定制自己的功能并制作iso">定制自己的功能并制作ISO</a></li>
+        <li><a href="#测试iso镜像-1">测试ISO镜像</a></li>
+        <li><a href="#代码">代码</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -196,24 +187,14 @@
     
     <div class="post-content">
       <p>本文以<code>centos 7.6</code> 的<code>ISO</code>为例，构建了用于自动化安装的<code>ISO</code>。</p>
-
-<p><img src="pic.jpg" alt="" /></p>
-
+<p><img src="pic.jpg" alt="" title=""></p>
 <h3 id="构建基础环境">构建基础环境</h3>
-
 <p>（1）下载<code>centos7.6</code>的<code>iso</code>文件</p>
-
-<pre><code class="language-bash"># cd ~
-# wget -c http://mirrors.163.com/centos/7.6.1810/isos/x86_64/CentOS-7-x86_64-DVD-1810.iso
-</code></pre>
-
-<p>（2）挂载到<code>/mnt</code>目录下</p>
-
-<pre><code class="language-bash"># mount -o loop /root/CentOS-7-x86_64-DVD-1810.iso /mnt
-</code></pre>
-
-<p>（3）在<code>$HOME</code>目录下创建如下目录</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cd ~</span>
+<span style="color:#75715e"># wget -c http://mirrors.163.com/centos/7.6.1810/isos/x86_64/CentOS-7-x86_64-DVD-1810.iso</span>
+</code></pre></div><p>（2）挂载到<code>/mnt</code>目录下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># mount -o loop /root/CentOS-7-x86_64-DVD-1810.iso /mnt</span>
+</code></pre></div><p>（3）在<code>$HOME</code>目录下创建如下目录</p>
 <pre><code># cd ~/BuildISO/
 # tree
 .
@@ -225,42 +206,24 @@
 |   |-- Packages
 |   `-- repodata
 `-- utils
-</code></pre>
-
-<p>创建目录的命令如下：</p>
-
-<pre><code class="language-bash"># mkdir ~/BuildISO
-# cd ~/BuildISO
-# mkdir  all_rpms  ISO  utils
-# cd ~/BuildISO/ISO
-# mkdir  images isolinux LiveOS Packages repodata
-# cd ~
-</code></pre>
-
-<p>（4）从<code>/mnt</code>挂载目录下拷贝<code>CentOS_buildTag EFI EULA GPL RPM-GPG-KEY-CentOS-7 RPM-GPG-KEY-CentOS-Testing-7 TRANS.TBL</code>文件到<code>~/BuildISO/ISO/</code>目录</p>
-
-<pre><code class="language-bash"># cp -r /mnt/CentOS_BuildTag /mnt/EFI /mnt/EULA /mnt/GPL /mnt/RPM-GPG-KEY-CentOS-* /mnt/TRANS.TBL ~/BuildISO/ISO/
-</code></pre>
-
-<p>（5）拷贝<code>/mnt/images/</code>目录下的所有内容到<code>~/BuildISO/ISO/images/</code>，拷贝<code>/mnt/isolinux/</code>下的所有内容到<code>~/BuildISO/ISO/isolinux/</code>目录，拷贝<code>/mnt/LiveOS/</code>目录下所有内容到<code>~/BuildISO/ISO/LiveOS</code>目录中</p>
-
-<pre><code class="language-bash"># cp -r /mnt/images/* ~/BuildISO/ISO/images/
-# cp -r /mnt/isolinux/* ~/BuildISO/ISO/isolinux/
-# cp -r /mnt/LiveOS/* ~/BuildISO/ISO/LiveOS/
-</code></pre>
-
-<p>（6）拷贝<code>/mnt/repodata/aced7d22b338fdf7c0a71ffcf32614e058f4422c42476d1f4b9e9364d567702f-c7-x86_64-comps.xml</code>到<code>~/BuildISO/</code>中，并重命名为<code>comps.xml</code></p>
-
-<pre><code class="language-bash"># cp /mnt/repodata/aced7d22b338fdf7c0a71ffcf32614e058f4422c42476d1f4b9e9364d567702f-c7-x86_64-comps.xml ~/BuildISO/comps.xml
-</code></pre>
-
-<p>（7）拷<code>/mnt/Packages/</code>目录下的所有RPM包到<code>~/BuildISO/all_rpms</code>目录中</p>
-
+</code></pre><p>创建目录的命令如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># mkdir ~/BuildISO</span>
+<span style="color:#75715e"># cd ~/BuildISO</span>
+<span style="color:#75715e"># mkdir  all_rpms  ISO  utils</span>
+<span style="color:#75715e"># cd ~/BuildISO/ISO</span>
+<span style="color:#75715e"># mkdir  images isolinux LiveOS Packages repodata</span>
+<span style="color:#75715e"># cd ~</span>
+</code></pre></div><p>（4）从<code>/mnt</code>挂载目录下拷贝<code>CentOS_buildTag EFI EULA GPL RPM-GPG-KEY-CentOS-7 RPM-GPG-KEY-CentOS-Testing-7 TRANS.TBL</code>文件到<code>~/BuildISO/ISO/</code>目录</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cp -r /mnt/CentOS_BuildTag /mnt/EFI /mnt/EULA /mnt/GPL /mnt/RPM-GPG-KEY-CentOS-* /mnt/TRANS.TBL ~/BuildISO/ISO/</span>
+</code></pre></div><p>（5）拷贝<code>/mnt/images/</code>目录下的所有内容到<code>~/BuildISO/ISO/images/</code>，拷贝<code>/mnt/isolinux/</code>下的所有内容到<code>~/BuildISO/ISO/isolinux/</code>目录，拷贝<code>/mnt/LiveOS/</code>目录下所有内容到<code>~/BuildISO/ISO/LiveOS</code>目录中</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cp -r /mnt/images/* ~/BuildISO/ISO/images/</span>
+<span style="color:#75715e"># cp -r /mnt/isolinux/* ~/BuildISO/ISO/isolinux/</span>
+<span style="color:#75715e"># cp -r /mnt/LiveOS/* ~/BuildISO/ISO/LiveOS/</span>
+</code></pre></div><p>（6）拷贝<code>/mnt/repodata/aced7d22b338fdf7c0a71ffcf32614e058f4422c42476d1f4b9e9364d567702f-c7-x86_64-comps.xml</code>到<code>~/BuildISO/</code>中，并重命名为<code>comps.xml</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cp /mnt/repodata/aced7d22b338fdf7c0a71ffcf32614e058f4422c42476d1f4b9e9364d567702f-c7-x86_64-comps.xml ~/BuildISO/comps.xml</span>
+</code></pre></div><p>（7）拷<code>/mnt/Packages/</code>目录下的所有RPM包到<code>~/BuildISO/all_rpms</code>目录中</p>
 <pre><code> cp -r /mnt/Packages/* ~/BuildISO/all_rpms/
-</code></pre>
-
-<p>（8）拷贝生产系统中<code>/root/anaconda-ks.cfg</code>到<code>~/BuildISO/isolinux/</code>目录，并重命名为<code>ks.cfg</code>，并对其内容进行修改，修改后内容如下代码所示：</p>
-
+</code></pre><p>（8）拷贝生产系统中<code>/root/anaconda-ks.cfg</code>到<code>~/BuildISO/isolinux/</code>目录，并重命名为<code>ks.cfg</code>，并对其内容进行修改，修改后内容如下代码所示：</p>
 <pre><code>#version=DEVEL
 # System authorization information
 auth --enableshadow --passalgo=sha512
@@ -337,32 +300,18 @@ kexec-tools
 %addon com_redhat_kdump --enable --reserve-mb='auto'
 
 %end
-</code></pre>
-
-<h3 id="确定需要安装的软件包">确定需要安装的软件包</h3>
-
+</code></pre><h3 id="确定需要安装的软件包">确定需要安装的软件包</h3>
 <p>通过运行<code>~/BuildISO/utils/gather_packages.pl</code>脚本来拷贝所有软件包:</p>
-
-<pre><code class="language-bash"># ~/BuildISO/utils/gather_packages.pl ~/BuildISO/comps.xml ~/BuildISO/all_rpms ~/BuildISO/ISO/Packages x86_64 development additional-devel debugging java-platform network-file-system-client performance perl-runtime
-</code></pre>
-
-<h3 id="解决rpm依赖问题">解决RPM依赖问题</h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># ~/BuildISO/utils/gather_packages.pl ~/BuildISO/comps.xml ~/BuildISO/all_rpms ~/BuildISO/ISO/Packages x86_64 development additional-devel debugging java-platform network-file-system-client performance perl-runtime</span>
+</code></pre></div><h3 id="解决rpm依赖问题">解决RPM依赖问题</h3>
 <p>现在已经将所有需要的组的<code>RPM</code>包拷贝到了<code>~/BuildISO/ISO/Packages</code>目录中，接下来就要检查此目录中的<code>RPM</code>包是否还缺少依赖的<code>RPM</code>包。我们可以通过脚本<code>~/BuildISO/utils/resove_deps.pl</code>来完成检查拷贝工作。</p>
-
-<pre><code class="language-bash"># ~/BuildISO/utils/resolve_deps.pl ~/BuildISO/all_rpms  ~/BuildISO/ISO/Packages  x86_64
-</code></pre>
-
-<p>现在我们已经得到了所需要的<code>RPM</code>包，现在需要测试一下<code>RPM</code>包的依赖关系</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># ~/BuildISO/utils/resolve_deps.pl ~/BuildISO/all_rpms  ~/BuildISO/ISO/Packages  x86_64</span>
+</code></pre></div><p>现在我们已经得到了所需要的<code>RPM</code>包，现在需要测试一下<code>RPM</code>包的依赖关系</p>
 <pre><code>cd ~/BuildISO/ISO/Packages
 mkdir /tmp/testdb
 rpm --initdb --dbpath /tmp/testdb
 rpm --test --dbpath /tmp/testdb -Uvh *.rpm
-</code></pre>
-
-<p>命令执行完，输出如下：</p>
-
+</code></pre><p>命令执行完，输出如下：</p>
 <pre><code># rpm --test --dbpath /tmp/testdb -Uvh *.rpm
 warning: abattis-cantarell-fonts-0.0.25-1.el7.noarch.rpm: Header V3 RSA/SHA256 Signature, key ID f4a80eb5: NOKEY
 error: Failed dependencies:
@@ -370,50 +319,31 @@ error: Failed dependencies:
 	/usr/bin/fipscheck is needed by fipscheck-lib-1.4.1-6.el7.x86_64
 	/usr/bin/db_stat is needed by rpm-4.11.3-35.el7.x86_64
 	/usr/bin/fusermount is needed by xdg-desktop-portal-1.0.2-1.el7.x86_64
-</code></pre>
-
-<p>说明还缺少一些依赖，可以通过命令<code>yum provides cgrulesengd</code>来查找所需的<code>RPM</code>包:</p>
-
+</code></pre><p>说明还缺少一些依赖，可以通过命令<code>yum provides cgrulesengd</code>来查找所需的<code>RPM</code>包:</p>
 <pre><code>yum provides cgrulesengd 
 yum provides fipscheck 
 yum provides db_stat 
 yum provides fusermount
 
-</code></pre>
-
-<p>需要手动从<code>~/BuildISO/all_rpms</code>拷贝相应的包到目录<code>~/BuildISO/ISO/Packages</code>中，然后再次运行<code>rpm --test --dbpath /tmp/testdb -Uvh *.rpm</code>直到输出如下信息为止：</p>
-
-<pre><code class="language-bash"># rpm --test --dbpath /tmp/testdb -Uvh *.rpm
+</code></pre><p>需要手动从<code>~/BuildISO/all_rpms</code>拷贝相应的包到目录<code>~/BuildISO/ISO/Packages</code>中，然后再次运行<code>rpm --test --dbpath /tmp/testdb -Uvh *.rpm</code>直到输出如下信息为止：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># rpm --test --dbpath /tmp/testdb -Uvh *.rpm</span>
 warning: abattis-cantarell-fonts-0.0.25-1.el7.noarch.rpm: Header V3 RSA/SHA256 Signature, key ID f4a80eb5: NOKEY
-Preparing...                          ################################# [100%]
-</code></pre>
-
-<p>此外，还需拷贝如下两个软件包</p>
-
-<pre><code class="language-bash"># cp ~/BuildISO/all_rpms/newt-python-0.52.15-4.el7.x86_64.rpm  ~/BuildISO/ISO/Packages/
-# cp ~/BuildISO/all_rpms/authconfig-6.2.8-30.el7.x86_64.rpm  ~/BuildISO/ISO/Packages/
-</code></pre>
-
-<h3 id="生成rpm-repository">生成RPM repository</h3>
-
-<pre><code class="language-bash"># cd ~/BuildISO/ISO/
-# createrepo -g ~/BuildISO/comps.xml .
-</code></pre>
-
-<h3 id="生成iso镜像">生成ISO镜像</h3>
-
+Preparing...                          <span style="color:#75715e">################################# [100%]</span>
+</code></pre></div><p>此外，还需拷贝如下两个软件包</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cp ~/BuildISO/all_rpms/newt-python-0.52.15-4.el7.x86_64.rpm  ~/BuildISO/ISO/Packages/</span>
+<span style="color:#75715e"># cp ~/BuildISO/all_rpms/authconfig-6.2.8-30.el7.x86_64.rpm  ~/BuildISO/ISO/Packages/</span>
+</code></pre></div><h3 id="生成rpm-repository">生成RPM repository</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cd ~/BuildISO/ISO/</span>
+<span style="color:#75715e"># createrepo -g ~/BuildISO/comps.xml .</span>
+</code></pre></div><h3 id="生成iso镜像">生成ISO镜像</h3>
 <p>修改<code>~/BuildISO/ISO/isolinux/isolinux.cfg</code>如下</p>
-
 <pre><code>label linux
   menu label ^Install CentOS 7
   kernel vmlinuz
   #去掉quiet，增加inst.ks=cdrom:/dev/cdrom:/isolinux/ks.cfg内容
   #append initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64 quiet
  append initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64  inst.ks=cdrom:/dev/cdrom:/isolinux/ks.cfg
-</code></pre>
-
-<p>制作<code>ISO</code>镜像</p>
-
+</code></pre><p>制作<code>ISO</code>镜像</p>
 <pre><code>mkisofs -U -r -v -T -J -joliet-long \
     -V &quot;CentOS 7 x86_64&quot; \
     -volset &quot;CentOS 7 x86_64&quot; \
@@ -425,26 +355,15 @@ Preparing...                          ################################# [100%]
     -eltorito-alt-boot -e images/efiboot.img \
     -no-emul-boot -o /root/CENTOS7.6-AUTO-INSTALL-ISO.iso \
     ~/BuildISO/ISO/
-</code></pre>
-
-<h3 id="测试iso镜像">测试ISO镜像</h3>
-
+</code></pre><h3 id="测试iso镜像">测试ISO镜像</h3>
 <p>将制作好的<code>ISO</code>镜像用<code>VirtualBox</code>安装测试，确认制作的<code>ISO</code>能够正常运行。</p>
-
 <h3 id="定制自己的功能并制作iso">定制自己的功能并制作ISO</h3>
-
 <p>在上面已经创建出了能够正常运行的<code>ISO</code>镜像，下面就是在上述<code>ISO</code>中添加自己的功能。</p>
-
 <p>为添加自己定制的功能，我们需要使用<code>postinstall script</code>，即在<code>ks.cfg</code>中增加<code>%post</code>区域。</p>
-
 <p>在<code>ks.cfg</code>配置文件中，<code>%post</code>域的命令在<code>anaconda</code>安装完成后开始执行。默认情况下，<code>%post</code>区域的命令运行在一个<code>chroot</code>环境下，此时<code>/mnt/sysimage</code>作为<code>/</code>目录，这样允许用户像访问正常目录一样进行访问，例如：如果要使用<code>/etc</code>目录，则应该使用<code>/etc</code>而不是<code>/mnt/sysimage/etc</code>。在<code>chroot</code>环境下最主要的缺点是无法访问安装介质。</p>
-
 <p>为了解决这个问题，这里将<code>postinstall script</code>分两个阶段来处理：</p>
-
 <h4 id="第一阶段">第一阶段</h4>
-
 <p>告诉<code>anaconda</code>不要去<code>chroot</code>，将需要的文件从安装介质（<code>ISO</code>）中拷贝到磁盘中：</p>
-
 <pre><code>%post --nochroot
 
 #!/bin/bash
@@ -457,14 +376,9 @@ echo &quot;==&gt; copying files from media to install drive...&quot;
 cp -r /run/install/repo/postinstall /mnt/sysimage/root
 
 %end
-</code></pre>
-
-<p>此次<code>ISO</code>镜像中定制安装文件放到了<code>~/BuildISO/ISO/</code>目录下的<code>postinstall</code>目录中。制作<code>ISO</code>镜像时的<code>~/BuildISO/ISO/</code>对应于安装介质的根目录，同时安装介质挂载在<code>/run/install/repo</code>目录下。所以<code>~/BuildISO/ISO/postinstall</code>可以通过<code>/run/install/repo/postinstall</code>获取。我们从安装介质上拷贝<code>postinstall</code>目录到新系统硬盘的<code>/root/postinstall</code>目录</p>
-
+</code></pre><p>此次<code>ISO</code>镜像中定制安装文件放到了<code>~/BuildISO/ISO/</code>目录下的<code>postinstall</code>目录中。制作<code>ISO</code>镜像时的<code>~/BuildISO/ISO/</code>对应于安装介质的根目录，同时安装介质挂载在<code>/run/install/repo</code>目录下。所以<code>~/BuildISO/ISO/postinstall</code>可以通过<code>/run/install/repo/postinstall</code>获取。我们从安装介质上拷贝<code>postinstall</code>目录到新系统硬盘的<code>/root/postinstall</code>目录</p>
 <h4 id="第二阶段">第二阶段</h4>
-
 <p>安装定制的功能</p>
-
 <pre><code>%post
 #!/bin/bash
 
@@ -476,18 +390,11 @@ ls -l /root/postinstall
 
 echo &quot;===&gt; install test...&quot;
 %end
-</code></pre>
-
-<h4 id="具体操作流程">具体操作流程</h4>
-
+</code></pre><h4 id="具体操作流程">具体操作流程</h4>
 <p>（1）在<code>~/BuildISO/ISO</code>中创建<code>postinstall</code>目录，并在其下创建相关目录：</p>
-
 <pre><code>mkdir -p ~/BuildISO/ISO/postinstall/app/test
-</code></pre>
-
-<p>（2）将<code>test</code>相关<code>RPM</code>包上传到<code>test</code>目录中
+</code></pre><p>（2）将<code>test</code>相关<code>RPM</code>包上传到<code>test</code>目录中
 （3）修改<code>ks.cfg</code>，通过两个<code>%post</code>来实现<code>RPM</code>包拷贝和<code>RPM</code>包的安装，具体如下：</p>
-
 <pre><code>%post --nochroot
 
 #!/bin/bash
@@ -514,10 +421,7 @@ echo &quot;===&gt; install test...&quot;
 yum install /root/postinstall/test/test.rpm    
 
 %end
-</code></pre>
-
-<p>（4）制作<code>ISO</code>镜像</p>
-
+</code></pre><p>（4）制作<code>ISO</code>镜像</p>
 <pre><code>mkisofs -U -r -v -T -J -joliet-long \
     -V &quot;CentOS 7 x86_64&quot; \
     -volset &quot;CentOS 7 x86_64&quot; \
@@ -529,21 +433,14 @@ yum install /root/postinstall/test/test.rpm
     -eltorito-alt-boot -e images/efiboot.img \
     -no-emul-boot -o /root/ISO-CM.iso \
     ~/BuildISO/ISO/
-</code></pre>
-
-<h3 id="测试iso镜像-1">测试ISO镜像</h3>
-
+</code></pre><h3 id="测试iso镜像-1">测试ISO镜像</h3>
 <p>安装测试<code>ISO</code>，并测试定制安装的功能是否能正常工作。</p>
-
 <h3 id="代码">代码</h3>
-
 <ul>
 <li><a href="./resolve_deps.pl">resolve_deps.pl</a></li>
 <li><a href="./gather_packages.pl">gather_packages.pl</a></li>
 </ul>
-
 <h3 id="参考文章">参考文章</h3>
-
 <ul>
 <li><a href="http://ry0117.com/2016/12/13/%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AE%89%E8%A3%85ISO%E5%88%B6%E4%BD%9C%E6%B5%81%E7%A8%8B/">http://ry0117.com/2016/12/13/%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AE%89%E8%A3%85ISO%E5%88%B6%E4%BD%9C%E6%B5%81%E7%A8%8B/</a></li>
 <li><a href="http://www.smorgasbork.com/2014/07/16/building-a-custom-centos-7-kickstart-disc-part-1/">http://www.smorgasbork.com/2014/07/16/building-a-custom-centos-7-kickstart-disc-part-1/</a></li>
@@ -633,7 +530,7 @@ yum install /root/postinstall/test/test.rpm
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

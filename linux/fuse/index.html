@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/fuse/" />
@@ -58,11 +58,9 @@
 <meta property="article:modified_time" content="2018-09-15T20:10:34+08:00" />
 <meta itemprop="name" content="FUSE介绍">
 <meta itemprop="description" content="本文介绍了FUSE（用户态文件系统），和其相应的编程库libfuse，并给出了示例程序。">
-
-
-<meta itemprop="datePublished" content="2018-09-15T20:10:34&#43;08:00" />
-<meta itemprop="dateModified" content="2018-09-15T20:10:34&#43;08:00" />
-<meta itemprop="wordCount" content="1590">
+<meta itemprop="datePublished" content="2018-09-15T20:10:34+08:00" />
+<meta itemprop="dateModified" content="2018-09-15T20:10:34+08:00" />
+<meta itemprop="wordCount" content="1586">
 
 
 
@@ -155,7 +153,7 @@
               <a href="/categories/file-system/"> File System </a>
             
           </div>
-        <span class="more-meta"> 1590 words </span>
+        <span class="more-meta"> 1586 words </span>
         <span class="more-meta"> 4 mins read </span>
         
       </div>
@@ -168,20 +166,18 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#fuse-概述">FUSE 概述</a></li>
-<li><a href="#fuse-特点">FUSE 特点</a></li>
-<li><a href="#fuse组成">FUSE组成</a></li>
-<li><a href="#libfuse">libfuse</a></li>
-<li><a href="#libfuse的简单示例">libfuse的简单示例</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#fuse-概述">FUSE 概述</a></li>
+        <li><a href="#fuse-特点">FUSE 特点</a></li>
+        <li><a href="#fuse组成">FUSE组成</a></li>
+        <li><a href="#libfuse">libfuse</a></li>
+        <li><a href="#libfuse的简单示例">libfuse的简单示例</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -189,15 +185,10 @@
     
     <div class="post-content">
       <p>本文介绍了<code>FUSE</code>（用户态文件系统），和其相应的编程库<code>libfuse</code>，并给出了示例程序。</p>
-
 <h3 id="fuse-概述">FUSE 概述</h3>
-
 <p><code>FUSE</code>（用户态文件系统）是一个实现在用户空间的文件系统框架，通过<code>FUSE</code>内核模块的支持，使用者只需要根据<code>fuse</code>提供的接口实现具体的文件操作就可以实现一个文件系统。</p>
-
 <p>在fuse出现以前，Linux中的文件系统都是完全实现在内核态，编写一个特定功能的文件系统，不管是代码编写还是调试都不太方便，就算是仅仅在现有传统文件系统上添加一个小小的功能，因为是在内核中实现仍需要做很大的工作量。在用户态文件系统FUSE出现后(2.6内核以后都支持fuse)，就会大大的减少工作量，也会很方便的进行调试。编写FUSE文件系统时，只需要内核加载了fuse内核模块即可，不需要重新编译内核。</p>
-
 <h3 id="fuse-特点">FUSE 特点</h3>
-
 <ul>
 <li>用户空间文件系统——类Unix OS的框架</li>
 <li>允许非超户在用户空间开发文件系统</li>
@@ -206,163 +197,142 @@
 <li>普通用户也可以挂载FUSE</li>
 <li>不用重新编译内核</li>
 </ul>
-
 <h3 id="fuse组成">FUSE组成</h3>
-
 <p>fuse主要由三部分组成：FUSE内核模块、用户空间库libfuse以及挂载工具fusermount。</p>
-
 <ul>
 <li><strong>fuse内核模块</strong>：实现了和VFS的对接，实现了一个能被用户空间进程打开的设备，当VFS发来文件操作请求之后，将请求转化为特定格式，并通过设备传递给用户空间进程，用户空间进程在处理完请求后，将结果返回给fuse内核模块，内核模块再将其还原为Linux kernel需要的格式，并返回给VFS；</li>
 <li><strong>fuse库libfuse</strong>：负责和内核空间通信，接收来自/dev/fuse的请求，并将其转化为一系列的函数调用，将结果写回到/dev/fuse；提供的函数可以对fuse文件系统进行挂载卸载、从linux内核读取请求以及发送响应到内核。libfuse提供了两个APIs：一个“high-level”同步API 和一个“low-level” 异步API 。这两种API 都从内核接收请求传递到主程序（fuse_main函数），主程序使用相应的回调函数进行处理。当使用high-level API时，回调函数使用文件名（file names）和路径（paths）工作，而不是索引节点inodes，回调函数返回时也就是一个请求处理的完成。使用low-level API 时，回调函数必须使用索引节点inode工作，响应发送必须显示的使用一套单独的API函数。</li>
 <li><strong>挂载工具</strong>：实现对用户态文件系统的挂载</li>
 </ul>
-
 <p>其工作原理可以用如下图表示：</p>
-
-<p><img src="./libfuse.png" alt="" /></p>
-
+<p><img src="./libfuse.png" alt=""></p>
 <h3 id="libfuse">libfuse</h3>
-
-<p>libfuse的仓库地址为：<a href="https://github.com/libfuse/libfuse">https://github.com/libfuse/libfuse</a></p>
-
+<p>libfuse的仓库地址为：https://github.com/libfuse/libfuse</p>
 <h3 id="libfuse的简单示例">libfuse的简单示例</h3>
-
 <p>刚才上面提到了两个API，一个<code>high-level API</code>，一个是<code>low-level API</code>，libfuse 提供了两个示例程序：</p>
-
 <ul>
 <li>High-Level API example: <a href="https://github.com/libfuse/libfuse/blob/fuse_2_9_bugfix/example/hello.c">https://github.com/libfuse/libfuse/blob/fuse_2_9_bugfix/example/hello.c</a></li>
 <li>Low-Level API example:  <a href="https://github.com/libfuse/libfuse/blob/fuse_2_9_bugfix/example/hello_ll.c">https://github.com/libfuse/libfuse/blob/fuse_2_9_bugfix/example/hello_ll.c</a></li>
 </ul>
-
 <p>这里学习了解一下<code>High-Level</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e">  FUSE: Filesystem in Userspace
+</span><span style="color:#75715e">  Copyright (C) 2001-2007  Miklos Szeredi &lt;miklos@szeredi.hu&gt;
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">  This program can be distributed under the terms of the GNU GPL.
+</span><span style="color:#75715e">  See the file COPYING.
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">  gcc -Wall hello.c `pkg-config fuse --cflags --libs` -o hello
+</span><span style="color:#75715e">*/</span>
 
-<pre><code class="language-c">/*
-  FUSE: Filesystem in Userspace
-  Copyright (C) 2001-2007  Miklos Szeredi &lt;miklos@szeredi.hu&gt;
+<span style="color:#75715e">#define FUSE_USE_VERSION 26
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fuse.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;errno.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>hello_str <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Hello World!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>;
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>hello_path <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/hello&#34;</span>;
 
-  This program can be distributed under the terms of the GNU GPL.
-  See the file COPYING.
-
-  gcc -Wall hello.c `pkg-config fuse --cflags --libs` -o hello
-*/
-
-#define FUSE_USE_VERSION 26
-
-#include &lt;fuse.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;string.h&gt;
-#include &lt;errno.h&gt;
-#include &lt;fcntl.h&gt;
-
-static const char *hello_str = &quot;Hello World!\n&quot;;
-static const char *hello_path = &quot;/hello&quot;;
-
-static int hello_getattr(const char *path, struct stat *stbuf)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">hello_getattr</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path, <span style="color:#66d9ef">struct</span> stat <span style="color:#f92672">*</span>stbuf)
 {
-	int res = 0;
+	<span style="color:#66d9ef">int</span> res <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 
-	memset(stbuf, 0, sizeof(struct stat));
-	if (strcmp(path, &quot;/&quot;) == 0) {
-		stbuf-&gt;st_mode = S_IFDIR | 0755;
-		stbuf-&gt;st_nlink = 2;
-	} else if (strcmp(path, hello_path) == 0) {
-		stbuf-&gt;st_mode = S_IFREG | 0444;
-		stbuf-&gt;st_nlink = 1;
-		stbuf-&gt;st_size = strlen(hello_str);
-	} else
-		res = -ENOENT;
+	memset(stbuf, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> stat));
+	<span style="color:#66d9ef">if</span> (strcmp(path, <span style="color:#e6db74">&#34;/&#34;</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+		stbuf<span style="color:#f92672">-&gt;</span>st_mode <span style="color:#f92672">=</span> S_IFDIR <span style="color:#f92672">|</span> <span style="color:#ae81ff">0755</span>;
+		stbuf<span style="color:#f92672">-&gt;</span>st_nlink <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+	} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (strcmp(path, hello_path) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+		stbuf<span style="color:#f92672">-&gt;</span>st_mode <span style="color:#f92672">=</span> S_IFREG <span style="color:#f92672">|</span> <span style="color:#ae81ff">0444</span>;
+		stbuf<span style="color:#f92672">-&gt;</span>st_nlink <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+		stbuf<span style="color:#f92672">-&gt;</span>st_size <span style="color:#f92672">=</span> strlen(hello_str);
+	} <span style="color:#66d9ef">else</span>
+		res <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>ENOENT;
 
-	return res;
+	<span style="color:#66d9ef">return</span> res;
 }
 
-static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">hello_readdir</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>buf, fuse_fill_dir_t filler,
+			 off_t offset, <span style="color:#66d9ef">struct</span> fuse_file_info <span style="color:#f92672">*</span>fi)
 {
-	(void) offset;
-	(void) fi;
+	(<span style="color:#66d9ef">void</span>) offset;
+	(<span style="color:#66d9ef">void</span>) fi;
 
-	if (strcmp(path, &quot;/&quot;) != 0)
-		return -ENOENT;
+	<span style="color:#66d9ef">if</span> (strcmp(path, <span style="color:#e6db74">&#34;/&#34;</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>ENOENT;
 
-	filler(buf, &quot;.&quot;, NULL, 0);
-	filler(buf, &quot;..&quot;, NULL, 0);
-	filler(buf, hello_path + 1, NULL, 0);
+	filler(buf, <span style="color:#e6db74">&#34;.&#34;</span>, NULL, <span style="color:#ae81ff">0</span>);
+	filler(buf, <span style="color:#e6db74">&#34;..&#34;</span>, NULL, <span style="color:#ae81ff">0</span>);
+	filler(buf, hello_path <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, NULL, <span style="color:#ae81ff">0</span>);
 
-	return 0;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
-static int hello_open(const char *path, struct fuse_file_info *fi)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">hello_open</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path, <span style="color:#66d9ef">struct</span> fuse_file_info <span style="color:#f92672">*</span>fi)
 {
-	if (strcmp(path, hello_path) != 0)
-		return -ENOENT;
+	<span style="color:#66d9ef">if</span> (strcmp(path, hello_path) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>ENOENT;
 
-	if ((fi-&gt;flags &amp; 3) != O_RDONLY)
-		return -EACCES;
+	<span style="color:#66d9ef">if</span> ((fi<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">3</span>) <span style="color:#f92672">!=</span> O_RDONLY)
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>EACCES;
 
-	return 0;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
-static int hello_read(const char *path, char *buf, size_t size, off_t offset,
-		      struct fuse_file_info *fi)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">hello_read</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>buf, size_t size, off_t offset,
+		      <span style="color:#66d9ef">struct</span> fuse_file_info <span style="color:#f92672">*</span>fi)
 {
 	size_t len;
-	(void) fi;
-	if(strcmp(path, hello_path) != 0)
-		return -ENOENT;
+	(<span style="color:#66d9ef">void</span>) fi;
+	<span style="color:#66d9ef">if</span>(strcmp(path, hello_path) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>ENOENT;
 
-	len = strlen(hello_str);
-	if (offset &lt; len) {
-		if (offset + size &gt; len)
-			size = len - offset;
-		memcpy(buf, hello_str + offset, size);
-	} else
-		size = 0;
+	len <span style="color:#f92672">=</span> strlen(hello_str);
+	<span style="color:#66d9ef">if</span> (offset <span style="color:#f92672">&lt;</span> len) {
+		<span style="color:#66d9ef">if</span> (offset <span style="color:#f92672">+</span> size <span style="color:#f92672">&gt;</span> len)
+			size <span style="color:#f92672">=</span> len <span style="color:#f92672">-</span> offset;
+		memcpy(buf, hello_str <span style="color:#f92672">+</span> offset, size);
+	} <span style="color:#66d9ef">else</span>
+		size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 
-	return size;
+	<span style="color:#66d9ef">return</span> size;
 }
 
-static struct fuse_operations hello_oper = {
-	.getattr	= hello_getattr,
-	.readdir	= hello_readdir,
-	.open		= hello_open,
-	.read		= hello_read,
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> fuse_operations hello_oper <span style="color:#f92672">=</span> {
+	.getattr	<span style="color:#f92672">=</span> hello_getattr,
+	.readdir	<span style="color:#f92672">=</span> hello_readdir,
+	.open		<span style="color:#f92672">=</span> hello_open,
+	.read		<span style="color:#f92672">=</span> hello_read,
 };
 
-int main(int argc, char *argv[])
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[])
 {
-	return fuse_main(argc, argv, &amp;hello_oper, NULL);
+	<span style="color:#66d9ef">return</span> fuse_main(argc, argv, <span style="color:#f92672">&amp;</span>hello_oper, NULL);
 }
-</code></pre>
-
-<p>编译</p>
-
-<pre><code class="language-bash"># gcc -Wall hello.c `pkg-config fuse --cflags --libs` -o hello
-</code></pre>
-
-<p>运行示例</p>
-
-<pre><code class="language-bash">~/work/libfuse  # mkdir mnt
-~/work/libfuse  # ./hello  mnt/
-~/work/libfuse  # cd mnt/
-~/work/libfuse/mnt  # ls 
+</code></pre></div><p>编译</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># gcc -Wall hello.c `pkg-config fuse --cflags --libs` -o hello</span>
+</code></pre></div><p>运行示例</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~/work/libfuse  <span style="color:#75715e"># mkdir mnt</span>
+~/work/libfuse  <span style="color:#75715e"># ./hello  mnt/</span>
+~/work/libfuse  <span style="color:#75715e"># cd mnt/</span>
+~/work/libfuse/mnt  <span style="color:#75715e"># ls </span>
 hello
-~/work/libfuse/mnt  # ls -al
-total 4
-drwxr-xr-x 2 root root    0 Jan  1  1970 .
-drwxr-xr-x 3 root root 4096 Sep 15 20:44 ..
--r--r--r-- 1 root root   13 Jan  1  1970 hello
-~/work/libfuse/mnt  # cat hello 
+~/work/libfuse/mnt  <span style="color:#75715e"># ls -al</span>
+total <span style="color:#ae81ff">4</span>
+drwxr-xr-x <span style="color:#ae81ff">2</span> root root    <span style="color:#ae81ff">0</span> Jan  <span style="color:#ae81ff">1</span>  <span style="color:#ae81ff">1970</span> .
+drwxr-xr-x <span style="color:#ae81ff">3</span> root root <span style="color:#ae81ff">4096</span> Sep <span style="color:#ae81ff">15</span> 20:44 ..
+-r--r--r-- <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">13</span> Jan  <span style="color:#ae81ff">1</span>  <span style="color:#ae81ff">1970</span> hello
+~/work/libfuse/mnt  <span style="color:#75715e"># cat hello </span>
 Hello World!
-~/work/libfuse/mnt  # touch hello1
+~/work/libfuse/mnt  <span style="color:#75715e"># touch hello1</span>
 touch: cannot touch ‘hello1’: Function not implemented
-~/work/libfuse/mnt  # mkdir test1
+~/work/libfuse/mnt  <span style="color:#75715e"># mkdir test1</span>
 mkdir: cannot create directory ‘test1’: Function not implemented
-~/work/libfuse/mnt  # cd ..
-~/work/libfuse  # fusermount -u mnt/
-</code></pre>
-
-<h3 id="参考文章">参考文章</h3>
-
+~/work/libfuse/mnt  <span style="color:#75715e"># cd ..</span>
+~/work/libfuse  <span style="color:#75715e"># fusermount -u mnt/</span>
+</code></pre></div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="https://github.com/libfuse/libfuse/">https://github.com/libfuse/libfuse/</a></li>
 <li><a href="https://blog.csdn.net/ty_laurel/article/details/51685193">https://blog.csdn.net/ty_laurel/article/details/51685193</a></li>
@@ -460,7 +430,7 @@ mkdir: cannot create directory ‘test1’: Function not implemented
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

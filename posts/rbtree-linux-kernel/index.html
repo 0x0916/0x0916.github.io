@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/rbtree-linux-kernel/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2018-08-06T16:10:14+08:00" />
 <meta itemprop="name" content="红黑树(二)——linux 内核的设计实现">
 <meta itemprop="description" content="本文介绍了红黑树在linux kernel中实现，使用的内核版本为：centos 3.10.0-693.11.6">
-
-
-<meta itemprop="datePublished" content="2018-08-06T16:10:14&#43;08:00" />
-<meta itemprop="dateModified" content="2018-08-06T16:10:14&#43;08:00" />
+<meta itemprop="datePublished" content="2018-08-06T16:10:14+08:00" />
+<meta itemprop="dateModified" content="2018-08-06T16:10:14+08:00" />
 <meta itemprop="wordCount" content="1637">
 
 
@@ -168,21 +166,19 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#内核中的实现">内核中的实现</a>
-<ul>
-<li><a href="#源码位置">源码位置</a></li>
-<li><a href="#rb-node">rb_node</a></li>
-<li><a href="#rb-parent-color-相关的宏">rb_parent_color 相关的宏</a></li>
-<li><a href="#基本接口">基本接口</a></li>
-<li><a href="#用于遍历的接口">用于遍历的接口</a></li>
-<li><a href="#其他接口">其他接口</a></li>
-</ul></li>
-<li><a href="#内核或者模块中红黑树的使用方法">内核或者模块中红黑树的使用方法</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#内核中的实现">内核中的实现</a>
+      <ul>
+        <li><a href="#源码位置">源码位置</a></li>
+        <li><a href="#rb_node">rb_node</a></li>
+        <li><a href="#rb_parent_color-相关的宏">rb_parent_color 相关的宏</a></li>
+        <li><a href="#基本接口">基本接口</a></li>
+        <li><a href="#用于遍历的接口">用于遍历的接口</a></li>
+        <li><a href="#其他接口">其他接口</a></li>
+      </ul>
+    </li>
+    <li><a href="#内核或者模块中红黑树的使用方法">内核或者模块中红黑树的使用方法</a></li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -190,93 +186,71 @@
     
     <div class="post-content">
       <p>本文介绍了红黑树在linux kernel中实现，使用的内核版本为：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm">centos 3.10.0-693.11.6</a></p>
-
 <h2 id="内核中的实现">内核中的实现</h2>
-
 <h3 id="源码位置">源码位置</h3>
-
 <p>内核中关于红黑树的文件如下：</p>
-
-<pre><code> include/linux/rbtree_augmented.h
- include/linux/rbtree.h
- lib/rbtree.c 
- lib/rbtree_test.c 
- Documentation/rbtree.txt
-</code></pre>
-
-<h3 id="rb-node">rb_node</h3>
-
+<pre><code>include/linux/rbtree_augmented.h
+include/linux/rbtree.h
+lib/rbtree.c 
+lib/rbtree_test.c 
+Documentation/rbtree.txt
+</code></pre><h3 id="rb_node">rb_node</h3>
 <p>先说说红黑树的基本数据结构吧：</p>
-
-<pre><code class="language-c">//本结构体四字节对齐，因而其地址中低位两个bit永远是0
-//内核中用其中一个空闲的位来存储颜色信息
-//__rb_parent_color成员实际上包含了父节点指针和自己的颜色信息
-struct rb_node {
-        unsigned long  __rb_parent_color; //保存父节点的指针值（父节点的地址）同时保存节点的color
-        struct rb_node *rb_right;
-        struct rb_node *rb_left;
-} __attribute__((aligned(sizeof(long))));
-</code></pre>
-
-<p><code>rb_node</code>结构体描述了红黑树中的一个结点，但在<code>linux</code>的实现中没有<code>key</code>域，这是<code>linux</code>数据结构的一大特色，就是结构不包括数据，而是由数据和基本结构被包括在同一个<code>struct</code>中，就像<code>list_head</code>中没有<code>data</code>域，需要用链表的<code>struct</code>中要包含<code>list_head</code>域一样。（由结构体获取数据信息是通过<code>container_of</code>这个宏来实现的，它利用了一些编译器的特性，有兴趣的可以参考<code>Linux的链表</code>源码。）</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">//本结构体四字节对齐，因而其地址中低位两个bit永远是0
+</span><span style="color:#75715e">//内核中用其中一个空闲的位来存储颜色信息
+</span><span style="color:#75715e">//__rb_parent_color成员实际上包含了父节点指针和自己的颜色信息
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> rb_node {
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>  __rb_parent_color; <span style="color:#75715e">//保存父节点的指针值（父节点的地址）同时保存节点的color
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb_right;
+        <span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb_left;
+} __attribute__((aligned(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">long</span>))));
+</code></pre></div><p><code>rb_node</code>结构体描述了红黑树中的一个结点，但在<code>linux</code>的实现中没有<code>key</code>域，这是<code>linux</code>数据结构的一大特色，就是结构不包括数据，而是由数据和基本结构被包括在同一个<code>struct</code>中，就像<code>list_head</code>中没有<code>data</code>域，需要用链表的<code>struct</code>中要包含<code>list_head</code>域一样。（由结构体获取数据信息是通过<code>container_of</code>这个宏来实现的，它利用了一些编译器的特性，有兴趣的可以参考<code>Linux的链表</code>源码。）</p>
 <p><code>rb_node</code>结构体，被一个<code>__attribute__((aligned(sizeof(long))))</code>所包装(非常重要，技巧就在这!)，
 <code>__attribute__((aligned(sizeof(long))))</code>的意思是把结构体的地址按<code>sizeof(long)</code>对齐，对于<code>32</code>位机,<code>sizeof(long)</code>为<code>4</code>(即结构体内的数据类型的地址为4的倍数) ,对于<code>64</code>位机，<code>sizeof(long)</code>为<code>8</code>(即结构体内的数据类型的地址为8的倍数)。</p>
-
 <p>所以以4（或8）为倍数的地址以二进制表示的特点是：以4为倍数(字节对齐)的地址（32位机器）最后两位肯定为零(看好了是存储变量的地址，而不是变量)，对于<strong>64位机器是后三位肯定为零</strong>。</p>
-
 <p>对于红黑树中每一个节点，都需要标记一个颜色(要么是红、要么是黑)，而这里的技巧就在<code>__attribute__((aligned(sizeof(long))))</code>,因为红黑树的每个节点都用<code>rb_node</code>结构来表示，利用字节对齐技巧，任何<code>rb_node</code>结构体的地址的<strong>低两位肯定都是零</strong>，与其空着不用，还不如用它们表示颜色，反正颜色就两种，其实一位就已经够了。<code>unsigned long rb_parent_color</code>变量有两个作用（见名知义）：</p>
-
 <ul>
 <li>存储父节点的地址</li>
 <li>用后2位，标识此节点的color</li>
 </ul>
-
-<h3 id="rb-parent-color-相关的宏">rb_parent_color 相关的宏</h3>
-
+<h3 id="rb_parent_color-相关的宏">rb_parent_color 相关的宏</h3>
 <p><code>rb_parent_color</code> 成员保存了上提到的两个重要的信息，<code>include/linux/rbtree_augmented.h</code>和<code>include/linux/rbtree.h</code>有些与其相关的宏：</p>
-
-<pre><code class="language-c"> //获得父结点的地址
-#define rb_parent(r)   ((struct rb_node *)((r)-&gt;__rb_parent_color &amp; ~3))
-#define __rb_parent(pc)    ((struct rb_node *)(pc &amp; ~3))
-
-// 判断结点的颜色
-#define __rb_color(pc)     ((pc) &amp; 1)
-#define __rb_is_black(pc)  __rb_color(pc)
-#define __rb_is_red(pc)    (!__rb_color(pc))
-#define rb_color(rb)       __rb_color((rb)-&gt;__rb_parent_color)
-#define rb_is_red(rb)      __rb_is_red((rb)-&gt;__rb_parent_color)
-#define rb_is_black(rb)    __rb_is_black((rb)-&gt;__rb_parent_color)
-
-// 设置结点的父结点
-static inline void rb_set_parent(struct rb_node *rb, struct rb_node *p) 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"> <span style="color:#75715e">//获得父结点的地址
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define rb_parent(r)   ((struct rb_node *)((r)-&gt;__rb_parent_color &amp; ~3))
+</span><span style="color:#75715e">#define __rb_parent(pc)    ((struct rb_node *)(pc &amp; ~3))
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// 判断结点的颜色
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define __rb_color(pc)     ((pc) &amp; 1)
+</span><span style="color:#75715e">#define __rb_is_black(pc)  __rb_color(pc)
+</span><span style="color:#75715e">#define __rb_is_red(pc)    (!__rb_color(pc))
+</span><span style="color:#75715e">#define rb_color(rb)       __rb_color((rb)-&gt;__rb_parent_color)
+</span><span style="color:#75715e">#define rb_is_red(rb)      __rb_is_red((rb)-&gt;__rb_parent_color)
+</span><span style="color:#75715e">#define rb_is_black(rb)    __rb_is_black((rb)-&gt;__rb_parent_color)
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// 设置结点的父结点
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">rb_set_parent</span>(<span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb, <span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>p) 
 {
-        rb-&gt;__rb_parent_color = rb_color(rb) | (unsigned long)p;
+        rb<span style="color:#f92672">-&gt;</span>__rb_parent_color <span style="color:#f92672">=</span> rb_color(rb) <span style="color:#f92672">|</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)p;
 }
 
-// 设置结点的父结点和颜色
-static inline void rb_set_parent_color(struct rb_node *rb,
-                                       struct rb_node *p, int color)
+<span style="color:#75715e">// 设置结点的父结点和颜色
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">rb_set_parent_color</span>(<span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb,
+                                       <span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>p, <span style="color:#66d9ef">int</span> color)
 {
-        rb-&gt;__rb_parent_color = (unsigned long)p | color;
+        rb<span style="color:#f92672">-&gt;</span>__rb_parent_color <span style="color:#f92672">=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)p <span style="color:#f92672">|</span> color;
 }
 
-//设置结点颜色为黑色
-static inline void rb_set_black(struct rb_node *rb)
+<span style="color:#75715e">//设置结点颜色为黑色
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">rb_set_black</span>(<span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb)
 {
-        rb-&gt;__rb_parent_color |= RB_BLACK;
+        rb<span style="color:#f92672">-&gt;</span>__rb_parent_color <span style="color:#f92672">|=</span> RB_BLACK;
 }
-</code></pre>
-
-<h3 id="基本接口">基本接口</h3>
-
+</code></pre></div><h3 id="基本接口">基本接口</h3>
 <ul>
 <li><code>rb_erase</code>： 删除结点</li>
 <li><code>rb_insert_color</code>： 插入结点</li>
 </ul>
-
 <h3 id="用于遍历的接口">用于遍历的接口</h3>
-
 <ul>
 <li><code>rb_first</code>: 寻找中序遍历的第一个结点，即最左的结点</li>
 <li><code>rb_last</code>: 寻找中序遍历的最后一个结点，即最右的结点</li>
@@ -286,19 +260,14 @@ static inline void rb_set_black(struct rb_node *rb)
 <li><code>rb_first_postorder</code>: 找后续遍历的第一个结点</li>
 <li><code>rbtree_postorder_for_each_entry_safe</code>： 后续遍历红黑树</li>
 </ul>
-
 <h3 id="其他接口">其他接口</h3>
-
 <ul>
 <li><code>rb_insert_augmented</code>： 增强的插入接口</li>
 <li><code>__rb_insert_augmented</code>： 增强的插入接口</li>
 </ul>
-
 <h2 id="内核或者模块中红黑树的使用方法">内核或者模块中红黑树的使用方法</h2>
-
 <p>本来想详细写内核中如何使用红黑树的，发现内核中的红黑树的测试代码逻辑很清晰，大家可以参考，代码位置：<code>lib/rbtree_test.c</code>。</p>
-
-<p>另外，内核中的红黑树实现了增强的接口，称之为<code>Augmented rbtrees</code>，具体信息，请参阅：<a href="https://elixir.bootlin.com/linux/v4.17/source/Documentation/rbtree.txt#L229">https://elixir.bootlin.com/linux/v4.17/source/Documentation/rbtree.txt#L229</a></p>
+<p>另外，内核中的红黑树实现了增强的接口，称之为<code>Augmented rbtrees</code>，具体信息，请参阅：https://elixir.bootlin.com/linux/v4.17/source/Documentation/rbtree.txt#L229</p>
     </div>
 
     
@@ -383,7 +352,7 @@ static inline void rb_set_black(struct rb_node *rb)
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

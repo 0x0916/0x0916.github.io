@@ -30,7 +30,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/" />
@@ -55,11 +55,8 @@
 
 <meta property="og:title" content="cgroup源码分析4——css_set的哈希表分析" />
 <meta property="og:description" content="在描述进程的结构体task_struct中有一个类型为css_set的成员cgroups，它描述了进程的所有cgroup信息，从前面的分析文章中我们已经知道通过task_struct-&gt;cgroups可以找到进程的所有不同cgroup控制器的信息。
-
 当我们新创建一个进程时，新进程的task_struct-&gt;cgroups的值继承自其父进程。此后，如果我们将新创建的进程添加到一个新的cgroup中时，就需要重新给task_struct-&gt;cgroups赋值，这个值要么是一个已经存在的css_set结构的指针，要么是新创建的css_set的结构的指针。
-
 所以，我们就需要通过进程的cgroup信息，快速查找其对应的css_set结构是否存在，如果不存在的话就去创建它。linux kernel 使用一个hash表来完成这个工作。本文主要分析该hash表的实现。
-
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 " />
@@ -69,19 +66,14 @@
 <meta property="article:modified_time" content="2018-08-25T16:31:46+08:00" />
 <meta itemprop="name" content="cgroup源码分析4——css_set的哈希表分析">
 <meta itemprop="description" content="在描述进程的结构体task_struct中有一个类型为css_set的成员cgroups，它描述了进程的所有cgroup信息，从前面的分析文章中我们已经知道通过task_struct-&gt;cgroups可以找到进程的所有不同cgroup控制器的信息。
-
 当我们新创建一个进程时，新进程的task_struct-&gt;cgroups的值继承自其父进程。此后，如果我们将新创建的进程添加到一个新的cgroup中时，就需要重新给task_struct-&gt;cgroups赋值，这个值要么是一个已经存在的css_set结构的指针，要么是新创建的css_set的结构的指针。
-
 所以，我们就需要通过进程的cgroup信息，快速查找其对应的css_set结构是否存在，如果不存在的话就去创建它。linux kernel 使用一个hash表来完成这个工作。本文主要分析该hash表的实现。
-
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 ">
-
-
-<meta itemprop="datePublished" content="2018-08-25T16:31:46&#43;08:00" />
-<meta itemprop="dateModified" content="2018-08-25T16:31:46&#43;08:00" />
-<meta itemprop="wordCount" content="3072">
+<meta itemprop="datePublished" content="2018-08-25T16:31:46+08:00" />
+<meta itemprop="dateModified" content="2018-08-25T16:31:46+08:00" />
+<meta itemprop="wordCount" content="3071">
 
 
 
@@ -89,11 +81,8 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="cgroup源码分析4——css_set的哈希表分析"/>
 <meta name="twitter:description" content="在描述进程的结构体task_struct中有一个类型为css_set的成员cgroups，它描述了进程的所有cgroup信息，从前面的分析文章中我们已经知道通过task_struct-&gt;cgroups可以找到进程的所有不同cgroup控制器的信息。
-
 当我们新创建一个进程时，新进程的task_struct-&gt;cgroups的值继承自其父进程。此后，如果我们将新创建的进程添加到一个新的cgroup中时，就需要重新给task_struct-&gt;cgroups赋值，这个值要么是一个已经存在的css_set结构的指针，要么是新创建的css_set的结构的指针。
-
 所以，我们就需要通过进程的cgroup信息，快速查找其对应的css_set结构是否存在，如果不存在的话就去创建它。linux kernel 使用一个hash表来完成这个工作。本文主要分析该hash表的实现。
-
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 "/>
@@ -182,7 +171,7 @@
               <a href="/categories/cgroup/"> cgroup </a>
             
           </div>
-        <span class="more-meta"> 3072 words </span>
+        <span class="more-meta"> 3071 words </span>
         <span class="more-meta"> 7 mins read </span>
         
       </div>
@@ -195,20 +184,18 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#数据结构">数据结构</a></li>
-<li><a href="#hash-方法">hash 方法</a></li>
-<li><a href="#向css-set-table中添加css-set">向css_set_table中添加css_set</a></li>
-<li><a href="#删除css-set-table中的css-set">删除css_set_table中的css_set</a></li>
-<li><a href="#在css-set-table查找一个css-set">在css_set_table查找一个css_set</a></li>
-<li><a href="#通过crash可以查看css-set-table">通过crash可以查看css_set_table</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#数据结构">数据结构</a></li>
+        <li><a href="#hash-方法">hash 方法</a></li>
+        <li><a href="#向css_set_table中添加css_set">向css_set_table中添加css_set</a></li>
+        <li><a href="#删除css_set_table中的css_set">删除css_set_table中的css_set</a></li>
+        <li><a href="#在css_set_table查找一个css_set">在css_set_table查找一个css_set</a></li>
+        <li><a href="#通过crash可以查看css_set_table">通过crash可以查看css_set_table</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -216,325 +203,281 @@
     
     <div class="post-content">
       <p>在描述进程的结构体<code>task_struct</code>中有一个类型为<code>css_set</code>的成员<code>cgroups</code>，它描述了进程的所有<code>cgroup</code>信息，从前面的分析文章中我们已经知道通过<code>task_struct-&gt;cgroups</code>可以找到进程的所有不同<code>cgroup</code>控制器的信息。</p>
-
 <p>当我们新创建一个进程时，新进程的<code>task_struct-&gt;cgroups</code>的值继承自其<code>父进程</code>。此后，如果我们将新创建的进程添加到一个新的<code>cgroup</code>中时，就需要重新给<code>task_struct-&gt;cgroups</code>赋值，这个值要么是一个已经存在的<code>css_set</code>结构的指针，要么是新创建的<code>css_set</code>的结构的指针。</p>
-
 <p>所以，我们就需要通过<code>进程的cgroup信息</code>，快速查找其对应的<code>css_set结构</code>是否存在，如果不存在的话就去创建它。<code>linux kernel</code> 使用一个<code>hash</code>表来完成这个工作。本文主要分析该<code>hash</code>表的实现。</p>
-
 <blockquote>
 <p>注意：本文基于<code>3.10.0-862.el7.x86_64</code>版本<code>kernel</code>进行分析。</p>
 </blockquote>
-
 <h3 id="数据结构">数据结构</h3>
-
-<pre><code class="language-c">/*
- * hash table for cgroup groups. This improves the performance to find
- * an existing css_set. This hash doesn't (currently) take into
- * account cgroups in empty hierarchies.
- */
-#define CSS_SET_HASH_BITS       7
-static DEFINE_HASHTABLE(css_set_table, CSS_SET_HASH_BITS);
-</code></pre>
-
-<p>其中<code>CSS_SET_HASH_BITS</code>的值为7，所以定义的<code>css_set_table</code>这个hash数组由128个元素(1&lt;&lt;7)。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * hash table for cgroup groups. This improves the performance to find
+</span><span style="color:#75715e"> * an existing css_set. This hash doesn&#39;t (currently) take into
+</span><span style="color:#75715e"> * account cgroups in empty hierarchies.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#75715e">#define CSS_SET_HASH_BITS       7
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#a6e22e">DEFINE_HASHTABLE</span>(css_set_table, CSS_SET_HASH_BITS);
+</code></pre></div><p>其中<code>CSS_SET_HASH_BITS</code>的值为7，所以定义的<code>css_set_table</code>这个hash数组由128个元素(1&laquo;7)。</p>
 <pre><code>crash&gt; whatis css_set_table
 struct hlist_head css_set_table[128];
-</code></pre>
-
-<p><code>css_set</code>有成员<code>hlist</code>，用来将具有相同<code>hash</code>值的<code>css_set</code>链接到一起，如下：</p>
-
-<pre><code class="language-c">struct css_set {
+</code></pre><p><code>css_set</code>有成员<code>hlist</code>，用来将具有相同<code>hash</code>值的<code>css_set</code>链接到一起，如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> css_set {
 
 	...
-        /*
-         * List running through all cgroup groups in the same hash
-         * slot. Protected by css_set_lock
-         */
-        struct hlist_node hlist;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * List running through all cgroup groups in the same hash
+</span><span style="color:#75715e">         * slot. Protected by css_set_lock
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">struct</span> hlist_node hlist;
 	...
 };
-</code></pre>
-
-<h3 id="hash-方法">hash 方法</h3>
-
+</code></pre></div><h3 id="hash-方法">hash 方法</h3>
 <p>此种场景下，如果进程的<code>cgroup</code>信息都相同的话，他们的<code>css_set</code>也应该相同，所以<code>css_set</code>的<code>hash</code>方法如下：</p>
-
 <p>使用各个<code>cgroup</code>的<code>cgroup_subsys_state</code>的地址来计算<code>hash</code>值，计算方法如下：</p>
-
-<pre><code class="language-c">static unsigned long css_set_hash(struct cgroup_subsys_state *css[])
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#a6e22e">css_set_hash</span>(<span style="color:#66d9ef">struct</span> cgroup_subsys_state <span style="color:#f92672">*</span>css[])
 {
-        int i;
-        unsigned long key = 0UL;
+        <span style="color:#66d9ef">int</span> i;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> key <span style="color:#f92672">=</span> <span style="color:#ae81ff">0UL</span>;
 
-        for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++)
-                key += (unsigned long)css[i];
-        key = (key &gt;&gt; 16) ^ key;
+        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> CGROUP_SUBSYS_COUNT; i<span style="color:#f92672">++</span>)
+                key <span style="color:#f92672">+=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)css[i];
+        key <span style="color:#f92672">=</span> (key <span style="color:#f92672">&gt;&gt;</span> <span style="color:#ae81ff">16</span>) <span style="color:#f92672">^</span> key;
 
-        return key;
+        <span style="color:#66d9ef">return</span> key;
 }
-</code></pre>
-
-<blockquote>
+</code></pre></div><blockquote>
 <p>注意：这里的返回值<code>key</code>肯定是一个大于<code>127</code>的数字，而我们的<code>css_set_table</code>数组只有<code>128</code>个，其实不用担心，再<code>hash_add</code>方法中会自动根据hash数组的大小进行调整的。</p>
 </blockquote>
-
-<h3 id="向css-set-table中添加css-set">向css_set_table中添加css_set</h3>
-
+<h3 id="向css_set_table中添加css_set">向css_set_table中添加css_set</h3>
 <p>当系统初始化时，需要将<code>init_css_set</code>添加到<code>css_set_table</code>中：</p>
-
-<pre><code class="language-c">        /* Add init_css_set to the hash table */
-        key = css_set_hash(init_css_set.subsys);
-        hash_add(css_set_table, &amp;init_css_set.hlist, key);  
-</code></pre>
-
-<p>在<code>find_css_set</code>函数中，如果没有找到<code>css_set</code>，新建一个新的<code>css_set</code>后，需要将这个新的<code>css_set</code>添加到<code>css_set_table</code>：</p>
-
-<pre><code class="language-c">/*
- * find_css_set() takes an existing cgroup group and a
- * cgroup object, and returns a css_set object that's
- * equivalent to the old group, but with the given cgroup
- * substituted into the appropriate hierarchy. Must be called with
- * cgroup_mutex held
- */
-static struct css_set *find_css_set(
-        struct css_set *oldcg, struct cgroup *cgrp)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">        <span style="color:#75715e">/* Add init_css_set to the hash table */</span>
+        key <span style="color:#f92672">=</span> css_set_hash(init_css_set.subsys);
+        hash_add(css_set_table, <span style="color:#f92672">&amp;</span>init_css_set.hlist, key);  
+</code></pre></div><p>在<code>find_css_set</code>函数中，如果没有找到<code>css_set</code>，新建一个新的<code>css_set</code>后，需要将这个新的<code>css_set</code>添加到<code>css_set_table</code>：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * find_css_set() takes an existing cgroup group and a
+</span><span style="color:#75715e"> * cgroup object, and returns a css_set object that&#39;s
+</span><span style="color:#75715e"> * equivalent to the old group, but with the given cgroup
+</span><span style="color:#75715e"> * substituted into the appropriate hierarchy. Must be called with
+</span><span style="color:#75715e"> * cgroup_mutex held
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span><span style="color:#a6e22e">find_css_set</span>(
+        <span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>oldcg, <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp)
 {
 	....
-        read_lock(&amp;css_set_lock);
-        res = find_existing_css_set(oldcg, cgrp, template);
-        if (res)
+        read_lock(<span style="color:#f92672">&amp;</span>css_set_lock);
+        res <span style="color:#f92672">=</span> find_existing_css_set(oldcg, cgrp, template);
+        <span style="color:#66d9ef">if</span> (res)
                 get_css_set(res);
-        read_unlock(&amp;css_set_lock);
-	// 找到了直接返回
-        if (res)
-                return res;
+        read_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
+	<span style="color:#75715e">// 找到了直接返回
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> (res)
+                <span style="color:#66d9ef">return</span> res;
 
-	// 没有找到，新创建一个css_set
-        res = kmalloc(sizeof(*res), GFP_KERNEL);
-        if (!res)
-                return NULL;
+	<span style="color:#75715e">// 没有找到，新创建一个css_set
+</span><span style="color:#75715e"></span>        res <span style="color:#f92672">=</span> kmalloc(<span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>res), GFP_KERNEL);
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>res)
+                <span style="color:#66d9ef">return</span> NULL;
 
 	...
 	...
-        css_set_count++;
+        css_set_count<span style="color:#f92672">++</span>;
 
-        /* Add this cgroup group to the hash table */
-        key = css_set_hash(res-&gt;subsys);
-        hash_add(css_set_table, &amp;res-&gt;hlist, key);
+        <span style="color:#75715e">/* Add this cgroup group to the hash table */</span>
+        key <span style="color:#f92672">=</span> css_set_hash(res<span style="color:#f92672">-&gt;</span>subsys);
+        hash_add(css_set_table, <span style="color:#f92672">&amp;</span>res<span style="color:#f92672">-&gt;</span>hlist, key);
 
-        write_unlock(&amp;css_set_lock);
+        write_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
 
-        return res;
+        <span style="color:#66d9ef">return</span> res;
 }
-</code></pre>
-
-<p>在<code>cgroup_load_subsys</code>函数中，由于添加了新的cgroup子系统，导致系统上所有<code>css_set</code>的hash值都发生了变化，都必须重新计算<code>css_set</code>的hash，并添加到适当的hash数组中。</p>
-
-<pre><code class="language-c">/**
- * cgroup_load_subsys: load and register a modular subsystem at runtime
- * @ss: the subsystem to load
- *
- * This function should be called in a modular subsystem's initcall. If the
- * subsystem is built as a module, it will be assigned a new subsys_id and set
- * up for use. If the subsystem is built-in anyway, work is delegated to the
- * simpler cgroup_init_subsys.
- */
-int __init_or_module cgroup_load_subsys(struct cgroup_subsys *ss)
+</code></pre></div><p>在<code>cgroup_load_subsys</code>函数中，由于添加了新的cgroup子系统，导致系统上所有<code>css_set</code>的hash值都发生了变化，都必须重新计算<code>css_set</code>的hash，并添加到适当的hash数组中。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * cgroup_load_subsys: load and register a modular subsystem at runtime
+</span><span style="color:#75715e"> * @ss: the subsystem to load
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * This function should be called in a modular subsystem&#39;s initcall. If the
+</span><span style="color:#75715e"> * subsystem is built as a module, it will be assigned a new subsys_id and set
+</span><span style="color:#75715e"> * up for use. If the subsystem is built-in anyway, work is delegated to the
+</span><span style="color:#75715e"> * simpler cgroup_init_subsys.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">int</span> __init_or_module <span style="color:#a6e22e">cgroup_load_subsys</span>(<span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss)
 {
 	...
-        write_lock(&amp;css_set_lock);
+        write_lock(<span style="color:#f92672">&amp;</span>css_set_lock);
         hash_for_each_safe(css_set_table, i, tmp, cg, hlist) {
-                /* skip entries that we already rehashed */
-                if (cg-&gt;subsys[ss-&gt;subsys_id])
-                        continue;
-                /* remove existing entry */
-                hash_del(&amp;cg-&gt;hlist); // 删除旧的
-                /* set new value */
-                cg-&gt;subsys[ss-&gt;subsys_id] = css;
-                /* recompute hash and restore entry */
-                key = css_set_hash(cg-&gt;subsys); // 添加新的
-                hash_add(css_set_table, &amp;cg-&gt;hlist, key);
+                <span style="color:#75715e">/* skip entries that we already rehashed */</span>
+                <span style="color:#66d9ef">if</span> (cg<span style="color:#f92672">-&gt;</span>subsys[ss<span style="color:#f92672">-&gt;</span>subsys_id])
+                        <span style="color:#66d9ef">continue</span>;
+                <span style="color:#75715e">/* remove existing entry */</span>
+                hash_del(<span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>hlist); <span style="color:#75715e">// 删除旧的
+</span><span style="color:#75715e"></span>                <span style="color:#75715e">/* set new value */</span>
+                cg<span style="color:#f92672">-&gt;</span>subsys[ss<span style="color:#f92672">-&gt;</span>subsys_id] <span style="color:#f92672">=</span> css;
+                <span style="color:#75715e">/* recompute hash and restore entry */</span>
+                key <span style="color:#f92672">=</span> css_set_hash(cg<span style="color:#f92672">-&gt;</span>subsys); <span style="color:#75715e">// 添加新的
+</span><span style="color:#75715e"></span>                hash_add(css_set_table, <span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>hlist, key);
         }
-        write_unlock(&amp;css_set_lock);
+        write_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
 	...
 }
-</code></pre>
-
-<p><code>cgroup_unload_subsys</code>的情况跟<code>cgroup_load_subsys</code>类似。</p>
-
-<h3 id="删除css-set-table中的css-set">删除css_set_table中的css_set</h3>
-
+</code></pre></div><p><code>cgroup_unload_subsys</code>的情况跟<code>cgroup_load_subsys</code>类似。</p>
+<h3 id="删除css_set_table中的css_set">删除css_set_table中的css_set</h3>
 <p>当一个<code>cgroup</code>的最后一个进程退出时，该进程对应的css_set就没有用了，需要从<code>css_set_table</code>中删除，其实现位于函数<code>__put_css_set</code>:</p>
-
-<pre><code class="language-c">static void __put_css_set(struct css_set *cg, int taskexit)                                                                                    
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__put_css_set</span>(<span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>cg, <span style="color:#66d9ef">int</span> taskexit)                                                                                    
 {
-        struct cg_cgroup_link *link;
-        struct cg_cgroup_link *saved_link;
-        /*
-         * Ensure that the refcount doesn't hit zero while any readers
-         * can see it. Similar to atomic_dec_and_lock(), but for an
-         * rwlock
-         */
-        if (atomic_add_unless(&amp;cg-&gt;refcount, -1, 1))
-                return;
-        write_lock(&amp;css_set_lock);
-        if (!atomic_dec_and_test(&amp;cg-&gt;refcount)) {
-                write_unlock(&amp;css_set_lock);
-                return;
+        <span style="color:#66d9ef">struct</span> cg_cgroup_link <span style="color:#f92672">*</span>link;
+        <span style="color:#66d9ef">struct</span> cg_cgroup_link <span style="color:#f92672">*</span>saved_link;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * Ensure that the refcount doesn&#39;t hit zero while any readers
+</span><span style="color:#75715e">         * can see it. Similar to atomic_dec_and_lock(), but for an
+</span><span style="color:#75715e">         * rwlock
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">if</span> (atomic_add_unless(<span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>refcount, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>))
+                <span style="color:#66d9ef">return</span>;
+        write_lock(<span style="color:#f92672">&amp;</span>css_set_lock);
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>atomic_dec_and_test(<span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>refcount)) {
+                write_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
+                <span style="color:#66d9ef">return</span>;
         }
 
-        /* This css_set is dead. unlink it and release cgroup refcounts */
-        hash_del(&amp;cg-&gt;hlist);
-        css_set_count--;
+        <span style="color:#75715e">/* This css_set is dead. unlink it and release cgroup refcounts */</span>
+        hash_del(<span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>hlist);
+        css_set_count<span style="color:#f92672">--</span>;
 	...
 	...
 }
-</code></pre>
-
-<h3 id="在css-set-table查找一个css-set">在css_set_table查找一个css_set</h3>
-
+</code></pre></div><h3 id="在css_set_table查找一个css_set">在css_set_table查找一个css_set</h3>
 <p><code>find_existing_css_set</code>函数用于查找一个css_se是否存在，这个函数的参考有点怪，我们仔细分析一下：</p>
-
 <ul>
 <li><code>oldcg</code>为该进程原来的<code>css_set</code></li>
 <li><code>cgrp</code>为要将进程添加进这个<code>cgroup</code></li>
-
-<li><p><code>template</code>为临时变量，用来传递进程最终的<code>cgroup</code>信息</p>
-
-<pre><code class="language-c">/*
-* find_existing_css_set() is a helper for
-* find_css_set(), and checks to see whether an existing
-* css_set is suitable.
-*
-* oldcg: the cgroup group that we're using before the cgroup
-* transition
-*
-* cgrp: the cgroup that we're moving into
-*
-* template: location in which to build the desired set of subsystem
-* state objects for the new cgroup group
-*/
-static struct css_set *find_existing_css_set(
-    struct css_set *oldcg,
-    struct cgroup *cgrp,
-    struct cgroup_subsys_state *template[])
-{
-    int i;
-    struct cgroupfs_root *root = cgrp-&gt;root;
-    struct css_set *cg;
-    unsigned long key;
-
-    /*
-     * Build the set of subsystem state objects that we want to see in the
-     * new css_set. while subsystems can change globally, the entries here
-     * won't change, so no need for locking.
-     */
-    for (i = 0; i &lt; CGROUP_SUBSYS_COUNT; i++) {
-            if (root-&gt;subsys_mask &amp; (1UL &lt;&lt; i)) {
-                    /* Subsystem is in this hierarchy. So we want
-                     * the subsystem state from the new
-                     * cgroup */
-                    template[i] = cgrp-&gt;subsys[i];
-            } else {
-                    /* Subsystem is not in this hierarchy, so we
-                     * don't want to change the subsystem state */
-                    template[i] = oldcg-&gt;subsys[i];
-            }
-    }
-
-    key = css_set_hash(template);
-    hash_for_each_possible(css_set_table, cg, hlist, key) {
-            if (!compare_css_sets(cg, oldcg, cgrp, template))
-                    continue;
-
-            /* This css_set matches what we need */
-            return cg;
-    }
-
-    /* No existing cgroup group matched */
-    return NULL;
-}
-</code></pre></li>
+<li><code>template</code>为临时变量，用来传递进程最终的<code>cgroup</code>信息</li>
 </ul>
-
-<p>在查找过程中，如果判断两个css_set相等呢？这个重任就交给了函数<code>compare_css_sets</code>:</p>
-
-<pre><code class="language-c">/*
- * compare_css_sets - helper function for find_existing_css_set().
- * @cg: candidate css_set being tested
- * @old_cg: existing css_set for a task
- * @new_cgrp: cgroup that's being entered by the task
- * @template: desired set of css pointers in css_set (pre-calculated)
- *
- * Returns true if &quot;cg&quot; matches &quot;old_cg&quot; except for the hierarchy
- * which &quot;new_cgrp&quot; belongs to, for which it should match &quot;new_cgrp&quot;.
- */
-static bool compare_css_sets(struct css_set *cg,
-                             struct css_set *old_cg,
-                             struct cgroup *new_cgrp,
-                             struct cgroup_subsys_state *template[])
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * find_existing_css_set() is a helper for
+</span><span style="color:#75715e"> * find_css_set(), and checks to see whether an existing
+</span><span style="color:#75715e"> * css_set is suitable.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * oldcg: the cgroup group that we&#39;re using before the cgroup
+</span><span style="color:#75715e"> * transition
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * cgrp: the cgroup that we&#39;re moving into
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * template: location in which to build the desired set of subsystem
+</span><span style="color:#75715e"> * state objects for the new cgroup group
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span><span style="color:#a6e22e">find_existing_css_set</span>(
+        <span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>oldcg,
+        <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp,
+        <span style="color:#66d9ef">struct</span> cgroup_subsys_state <span style="color:#f92672">*</span>template[])
 {
-        struct list_head *l1, *l2;
-	// 判断cgroup_subsys_state是否完全相等
-        if (memcmp(template, cg-&gt;subsys, sizeof(cg-&gt;subsys))) {
-                /* Not all subsystems matched */
-                return false;
-        }
+        <span style="color:#66d9ef">int</span> i;
+        <span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root <span style="color:#f92672">=</span> cgrp<span style="color:#f92672">-&gt;</span>root;
+        <span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>cg;
+        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> key;
 
-        /*
-         * Compare cgroup pointers in order to distinguish between
-         * different cgroups in heirarchies with no subsystems. We
-         * could get by with just this check alone (and skip the
-         * memcmp above) but on most setups the memcmp check will
-         * avoid the need for this more expensive check on almost all
-         * candidates.
-         */
-	// 进一步严格判断各个链表的长度和其指向的值是否一致
-        l1 = &amp;cg-&gt;cg_links;
-        l2 = &amp;old_cg-&gt;cg_links;
-        while (1) {
-                struct cg_cgroup_link *cgl1, *cgl2;
-                struct cgroup *cg1, *cg2;
-
-                l1 = l1-&gt;next;
-                l2 = l2-&gt;next;
-                /* See if we reached the end - both lists are equal length. */
-                if (l1 == &amp;cg-&gt;cg_links) {
-                        BUG_ON(l2 != &amp;old_cg-&gt;cg_links);
-                        break;
-                } else {
-                        BUG_ON(l2 == &amp;old_cg-&gt;cg_links);
-                }
-                /* Locate the cgroups associated with these links. */
-                cgl1 = list_entry(l1, struct cg_cgroup_link, cg_link_list);
-                cgl2 = list_entry(l2, struct cg_cgroup_link, cg_link_list);
-                cg1 = cgl1-&gt;cgrp;
-                cg2 = cgl2-&gt;cgrp;
-                /* Hierarchies should be linked in the same order. */
-                BUG_ON(cg1-&gt;root != cg2-&gt;root);
-
-                /*
-                 * If this hierarchy is the hierarchy of the cgroup
-                 * that's changing, then we need to check that this
-                 * css_set points to the new cgroup; if it's any other
-                 * hierarchy, then this css_set should point to the
-                 * same cgroup as the old css_set.
-                 */
-                if (cg1-&gt;root == new_cgrp-&gt;root) {
-                        if (cg1 != new_cgrp)
-                                return false;
-                } else {
-                        if (cg1 != cg2)
-                                return false;
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * Build the set of subsystem state objects that we want to see in the
+</span><span style="color:#75715e">         * new css_set. while subsystems can change globally, the entries here
+</span><span style="color:#75715e">         * won&#39;t change, so no need for locking.
+</span><span style="color:#75715e">         */</span>
+        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> CGROUP_SUBSYS_COUNT; i<span style="color:#f92672">++</span>) {
+                <span style="color:#66d9ef">if</span> (root<span style="color:#f92672">-&gt;</span>subsys_mask <span style="color:#f92672">&amp;</span> (<span style="color:#ae81ff">1UL</span> <span style="color:#f92672">&lt;&lt;</span> i)) {
+                        <span style="color:#75715e">/* Subsystem is in this hierarchy. So we want
+</span><span style="color:#75715e">                         * the subsystem state from the new
+</span><span style="color:#75715e">                         * cgroup */</span>
+                        template[i] <span style="color:#f92672">=</span> cgrp<span style="color:#f92672">-&gt;</span>subsys[i];
+                } <span style="color:#66d9ef">else</span> {
+                        <span style="color:#75715e">/* Subsystem is not in this hierarchy, so we
+</span><span style="color:#75715e">                         * don&#39;t want to change the subsystem state */</span>
+                        template[i] <span style="color:#f92672">=</span> oldcg<span style="color:#f92672">-&gt;</span>subsys[i];
                 }
         }
-        return true;
+
+        key <span style="color:#f92672">=</span> css_set_hash(template);
+        hash_for_each_possible(css_set_table, cg, hlist, key) {
+                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>compare_css_sets(cg, oldcg, cgrp, template))
+                        <span style="color:#66d9ef">continue</span>;
+
+                <span style="color:#75715e">/* This css_set matches what we need */</span>
+                <span style="color:#66d9ef">return</span> cg;
+        }
+
+        <span style="color:#75715e">/* No existing cgroup group matched */</span>
+        <span style="color:#66d9ef">return</span> NULL;
 }
-</code></pre>
+</code></pre></div><p>在查找过程中，如果判断两个css_set相等呢？这个重任就交给了函数<code>compare_css_sets</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * compare_css_sets - helper function for find_existing_css_set().
+</span><span style="color:#75715e"> * @cg: candidate css_set being tested
+</span><span style="color:#75715e"> * @old_cg: existing css_set for a task
+</span><span style="color:#75715e"> * @new_cgrp: cgroup that&#39;s being entered by the task
+</span><span style="color:#75715e"> * @template: desired set of css pointers in css_set (pre-calculated)
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * Returns true if &#34;cg&#34; matches &#34;old_cg&#34; except for the hierarchy
+</span><span style="color:#75715e"> * which &#34;new_cgrp&#34; belongs to, for which it should match &#34;new_cgrp&#34;.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">compare_css_sets</span>(<span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>cg,
+                             <span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>old_cg,
+                             <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>new_cgrp,
+                             <span style="color:#66d9ef">struct</span> cgroup_subsys_state <span style="color:#f92672">*</span>template[])
+{
+        <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>l1, <span style="color:#f92672">*</span>l2;
+	<span style="color:#75715e">// 判断cgroup_subsys_state是否完全相等
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> (memcmp(template, cg<span style="color:#f92672">-&gt;</span>subsys, <span style="color:#66d9ef">sizeof</span>(cg<span style="color:#f92672">-&gt;</span>subsys))) {
+                <span style="color:#75715e">/* Not all subsystems matched */</span>
+                <span style="color:#66d9ef">return</span> false;
+        }
 
-<h3 id="通过crash可以查看css-set-table">通过crash可以查看css_set_table</h3>
+        <span style="color:#75715e">/*
+</span><span style="color:#75715e">         * Compare cgroup pointers in order to distinguish between
+</span><span style="color:#75715e">         * different cgroups in heirarchies with no subsystems. We
+</span><span style="color:#75715e">         * could get by with just this check alone (and skip the
+</span><span style="color:#75715e">         * memcmp above) but on most setups the memcmp check will
+</span><span style="color:#75715e">         * avoid the need for this more expensive check on almost all
+</span><span style="color:#75715e">         * candidates.
+</span><span style="color:#75715e">         */</span>
+	<span style="color:#75715e">// 进一步严格判断各个链表的长度和其指向的值是否一致
+</span><span style="color:#75715e"></span>        l1 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>cg_links;
+        l2 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>old_cg<span style="color:#f92672">-&gt;</span>cg_links;
+        <span style="color:#66d9ef">while</span> (<span style="color:#ae81ff">1</span>) {
+                <span style="color:#66d9ef">struct</span> cg_cgroup_link <span style="color:#f92672">*</span>cgl1, <span style="color:#f92672">*</span>cgl2;
+                <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cg1, <span style="color:#f92672">*</span>cg2;
 
+                l1 <span style="color:#f92672">=</span> l1<span style="color:#f92672">-&gt;</span>next;
+                l2 <span style="color:#f92672">=</span> l2<span style="color:#f92672">-&gt;</span>next;
+                <span style="color:#75715e">/* See if we reached the end - both lists are equal length. */</span>
+                <span style="color:#66d9ef">if</span> (l1 <span style="color:#f92672">==</span> <span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>cg_links) {
+                        BUG_ON(l2 <span style="color:#f92672">!=</span> <span style="color:#f92672">&amp;</span>old_cg<span style="color:#f92672">-&gt;</span>cg_links);
+                        <span style="color:#66d9ef">break</span>;
+                } <span style="color:#66d9ef">else</span> {
+                        BUG_ON(l2 <span style="color:#f92672">==</span> <span style="color:#f92672">&amp;</span>old_cg<span style="color:#f92672">-&gt;</span>cg_links);
+                }
+                <span style="color:#75715e">/* Locate the cgroups associated with these links. */</span>
+                cgl1 <span style="color:#f92672">=</span> list_entry(l1, <span style="color:#66d9ef">struct</span> cg_cgroup_link, cg_link_list);
+                cgl2 <span style="color:#f92672">=</span> list_entry(l2, <span style="color:#66d9ef">struct</span> cg_cgroup_link, cg_link_list);
+                cg1 <span style="color:#f92672">=</span> cgl1<span style="color:#f92672">-&gt;</span>cgrp;
+                cg2 <span style="color:#f92672">=</span> cgl2<span style="color:#f92672">-&gt;</span>cgrp;
+                <span style="color:#75715e">/* Hierarchies should be linked in the same order. */</span>
+                BUG_ON(cg1<span style="color:#f92672">-&gt;</span>root <span style="color:#f92672">!=</span> cg2<span style="color:#f92672">-&gt;</span>root);
+
+                <span style="color:#75715e">/*
+</span><span style="color:#75715e">                 * If this hierarchy is the hierarchy of the cgroup
+</span><span style="color:#75715e">                 * that&#39;s changing, then we need to check that this
+</span><span style="color:#75715e">                 * css_set points to the new cgroup; if it&#39;s any other
+</span><span style="color:#75715e">                 * hierarchy, then this css_set should point to the
+</span><span style="color:#75715e">                 * same cgroup as the old css_set.
+</span><span style="color:#75715e">                 */</span>
+                <span style="color:#66d9ef">if</span> (cg1<span style="color:#f92672">-&gt;</span>root <span style="color:#f92672">==</span> new_cgrp<span style="color:#f92672">-&gt;</span>root) {
+                        <span style="color:#66d9ef">if</span> (cg1 <span style="color:#f92672">!=</span> new_cgrp)
+                                <span style="color:#66d9ef">return</span> false;
+                } <span style="color:#66d9ef">else</span> {
+                        <span style="color:#66d9ef">if</span> (cg1 <span style="color:#f92672">!=</span> cg2)
+                                <span style="color:#66d9ef">return</span> false;
+                }
+        }
+        <span style="color:#66d9ef">return</span> true;
+}
+</code></pre></div><h3 id="通过crash可以查看css_set_table">通过crash可以查看css_set_table</h3>
 <pre><code>crash&gt; p css_set_count
 css_set_count = $4 = 42
 crash&gt; p css_set_table
@@ -890,7 +833,7 @@ crash&gt;
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

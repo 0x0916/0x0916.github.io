@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/get-init-pid-for-any-task/" />
@@ -53,7 +53,6 @@
 
 <meta property="og:title" content="获取容器中init进程的pid" />
 <meta property="og:description" content="本文题目为『获取容器中init进程的pid』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的pid namespace中，而我们有时需要在顶级的pid namespace中获取其init进程对应的在顶级pid namespace的pid。
-
 本文简要介绍了完成这个任务的一种方法。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/linux/get-init-pid-for-any-task/" />
@@ -61,13 +60,10 @@
 <meta property="article:modified_time" content="2018-10-08T14:26:43+08:00" />
 <meta itemprop="name" content="获取容器中init进程的pid">
 <meta itemprop="description" content="本文题目为『获取容器中init进程的pid』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的pid namespace中，而我们有时需要在顶级的pid namespace中获取其init进程对应的在顶级pid namespace的pid。
-
 本文简要介绍了完成这个任务的一种方法。">
-
-
-<meta itemprop="datePublished" content="2018-10-08T14:26:43&#43;08:00" />
-<meta itemprop="dateModified" content="2018-10-08T14:26:43&#43;08:00" />
-<meta itemprop="wordCount" content="1467">
+<meta itemprop="datePublished" content="2018-10-08T14:26:43+08:00" />
+<meta itemprop="dateModified" content="2018-10-08T14:26:43+08:00" />
+<meta itemprop="wordCount" content="1458">
 
 
 
@@ -75,7 +71,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="获取容器中init进程的pid"/>
 <meta name="twitter:description" content="本文题目为『获取容器中init进程的pid』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的pid namespace中，而我们有时需要在顶级的pid namespace中获取其init进程对应的在顶级pid namespace的pid。
-
 本文简要介绍了完成这个任务的一种方法。"/>
 
 <!--[if lte IE 9]>
@@ -160,7 +155,7 @@
               <a href="/categories/linux/"> linux </a>
             
           </div>
-        <span class="more-meta"> 1467 words </span>
+        <span class="more-meta"> 1458 words </span>
         <span class="more-meta"> 3 mins read </span>
         
       </div>
@@ -173,18 +168,16 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#实现方法">实现方法</a></li>
-<li><a href="#代码实现">代码实现</a></li>
-<li><a href="#编译运行">编译运行</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#实现方法">实现方法</a></li>
+        <li><a href="#代码实现">代码实现</a></li>
+        <li><a href="#编译运行">编译运行</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -192,389 +185,372 @@
     
     <div class="post-content">
       <p>本文题目为『<strong>获取容器中init进程的pid</strong>』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的<code>pid namespace</code>中，而我们有时需要在顶级的<code>pid namespace</code>中获取其<code>init</code>进程对应的在顶级<code>pid namespace</code>的<code>pid</code>。</p>
-
 <p>本文简要介绍了完成这个任务的一种方法。</p>
-
 <h3 id="实现方法">实现方法</h3>
-
 <p>我们注意到<a href="http://man7.org/linux/man-pages/man7/pid_namespaces.7.html">man 7 pid_namespaces</a>有如下一段描述：</p>
-
 <pre><code>   Miscellaneous
        When a process ID is passed over a UNIX domain socket to a process in
        a different PID namespace (see the description of SCM_CREDENTIALS in
        unix(7)), it is translated into the corresponding PID value in the
        receiving process's PID namespace.
-</code></pre>
-
-<p>什么意思呢？简单翻译一下：</p>
-
+</code></pre><p>什么意思呢？简单翻译一下：</p>
 <p>当通过<code>Unix domain socket</code>进行发送<code>UNIX credentials</code>到不同的<code>pid namespace</code>中的进程时，对应的pid号会被转换成再接受进程所在的<code>pid namespace</code>中的进程号。</p>
-
 <p>所以，我们可以使用如下办法完成任务：</p>
-
 <ul>
 <li>新建一个进程A，建立一个<code>unix domain socket</code></li>
 <li>fork 进程B，将B添加到目标<code>pid namespace</code>中</li>
 <li>B 通过<code>unix domain socket</code>发送<code>UNIX credentials</code>到A，发送的pid设置为1</li>
 <li>A解析出收到的pid号就是我们想要的</li>
 </ul>
-
 <h3 id="代码实现">代码实现</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define _GNU_SOURCE
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/socket.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;errno.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdbool.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/epoll.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;wait.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#define SEND_CREDS_OK 0
+</span><span style="color:#75715e">#define SEND_CREDS_NOTSK 1
+</span><span style="color:#75715e">#define SEND_CREDS_FAIL 2
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">recv_creds</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">struct</span> ucred <span style="color:#f92672">*</span>cred, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>v);
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">wait_for_pid</span>(pid_t pid);
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_creds</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">struct</span> ucred <span style="color:#f92672">*</span>cred, <span style="color:#66d9ef">char</span> v, <span style="color:#66d9ef">bool</span> pingfirst);
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_creds_clone_wrapper</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg);
 
-<pre><code class="language-c">#define _GNU_SOURCE
 
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;sys/socket.h&gt;
-#include &lt;errno.h&gt;
-#include &lt;fcntl.h&gt;
-#include &lt;string.h&gt;
-#include &lt;stdbool.h&gt;
-#include &lt;sys/epoll.h&gt;
-#include &lt;wait.h&gt;
-
-#define SEND_CREDS_OK 0
-#define SEND_CREDS_NOTSK 1
-#define SEND_CREDS_FAIL 2
-static bool recv_creds(int sock, struct ucred *cred, char *v);
-static int wait_for_pid(pid_t pid);
-static int send_creds(int sock, struct ucred *cred, char v, bool pingfirst);
-static int send_creds_clone_wrapper(void *arg);
-
-
-static int send_creds_clone_wrapper(void *arg)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_creds_clone_wrapper</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg)
 {
-	struct ucred cred;
-	char v;
-	int sock = *(int*)arg;
+	<span style="color:#66d9ef">struct</span> ucred cred;
+	<span style="color:#66d9ef">char</span> v;
+	<span style="color:#66d9ef">int</span> sock <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span>)arg;
 
-	cred.uid = 0;
-	cred.gid = 0;
-	cred.pid = 1;
+	cred.uid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+	cred.gid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+	cred.pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
 
-	v = '1';
-	if (send_creds(sock, &amp;cred, v, true) != SEND_CREDS_OK)
-		return 1;
-	return 0;
+	v <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1&#39;</span>;
+	<span style="color:#66d9ef">if</span> (send_creds(sock, <span style="color:#f92672">&amp;</span>cred, v, true) <span style="color:#f92672">!=</span> SEND_CREDS_OK)
+		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
-static int wait_for_pid(pid_t pid)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">wait_for_pid</span>(pid_t pid)
 {
-	int status, ret;
+	<span style="color:#66d9ef">int</span> status, ret;
 
-	if (pid &lt; 0)
-		return -1;
+	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 
 again:
-	ret = waitpid(pid, &amp;status, 0);
-	if (ret == -1) {
-		if (errno = EINTR)
-			goto again;
-		return -1;
+	ret <span style="color:#f92672">=</span> waitpid(pid, <span style="color:#f92672">&amp;</span>status, <span style="color:#ae81ff">0</span>);
+	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+		<span style="color:#66d9ef">if</span> (errno <span style="color:#f92672">=</span> EINTR)
+			<span style="color:#66d9ef">goto</span> again;
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 	}
 
-	if (ret != pid)
-		goto again;
+	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">!=</span> pid)
+		<span style="color:#66d9ef">goto</span> again;
 
-	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
-		return -1;
+	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>WIFEXITED(status) <span style="color:#f92672">||</span> WEXITSTATUS(status) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 
-	return 0;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
-/*
- * clone a task which switches to @task's namespace and writes '1'.
- * over a unix sock so we can read the task's reaper's pid in our
- * namespace
- *
- * Note: glibc's fork() does not respect pidns, which can lead to failed
- * assertions inside glibc (and thus failed forks) if the child's pid in
- * the pidns and the parent pid outside are identical. Using clone prevents
- * this issue.
- */
-static void write_task_init_pid_exit(int sock, pid_t target)
+<span style="color:#75715e">/*
+</span><span style="color:#75715e"> * clone a task which switches to @task&#39;s namespace and writes &#39;1&#39;.
+</span><span style="color:#75715e"> * over a unix sock so we can read the task&#39;s reaper&#39;s pid in our
+</span><span style="color:#75715e"> * namespace
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * Note: glibc&#39;s fork() does not respect pidns, which can lead to failed
+</span><span style="color:#75715e"> * assertions inside glibc (and thus failed forks) if the child&#39;s pid in
+</span><span style="color:#75715e"> * the pidns and the parent pid outside are identical. Using clone prevents
+</span><span style="color:#75715e"> * this issue.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">write_task_init_pid_exit</span>(<span style="color:#66d9ef">int</span> sock, pid_t target)
 {
-	char fnam[100];
+	<span style="color:#66d9ef">char</span> fnam[<span style="color:#ae81ff">100</span>];
 	pid_t pid;
-	int fd, ret;
-	size_t stack_size = sysconf(_SC_PAGESIZE);
-	void *stack = alloca(stack_size);
+	<span style="color:#66d9ef">int</span> fd, ret;
+	size_t stack_size <span style="color:#f92672">=</span> sysconf(_SC_PAGESIZE);
+	<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>stack <span style="color:#f92672">=</span> alloca(stack_size);
 
-	ret = snprintf(fnam, sizeof(fnam), &quot;/proc/%d/ns/pid&quot;, (int)target);
-	if (ret &lt; 0 || ret &gt;= sizeof(fnam))
-		_exit(1);
+	ret <span style="color:#f92672">=</span> snprintf(fnam, <span style="color:#66d9ef">sizeof</span>(fnam), <span style="color:#e6db74">&#34;/proc/%d/ns/pid&#34;</span>, (<span style="color:#66d9ef">int</span>)target);
+	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> ret <span style="color:#f92672">&gt;=</span> <span style="color:#66d9ef">sizeof</span>(fnam))
+		_exit(<span style="color:#ae81ff">1</span>);
 
-	fd = open(fnam, O_RDONLY);
-	if (fd &lt; 0) {
-		perror(&quot;write_task_init_pid_exit open of ns/pid&quot; );
-		_exit(1);
+	fd <span style="color:#f92672">=</span> open(fnam, O_RDONLY);
+	<span style="color:#66d9ef">if</span> (fd <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
+		perror(<span style="color:#e6db74">&#34;write_task_init_pid_exit open of ns/pid&#34;</span> );
+		_exit(<span style="color:#ae81ff">1</span>);
 	}
 
-	if (setns(fd, 0)) {
-		perror(&quot;write_task_init_pid_exit setns 1&quot;);
+	<span style="color:#66d9ef">if</span> (setns(fd, <span style="color:#ae81ff">0</span>)) {
+		perror(<span style="color:#e6db74">&#34;write_task_init_pid_exit setns 1&#34;</span>);
 		close(fd);
-		_exit(1);
+		_exit(<span style="color:#ae81ff">1</span>);
 	}
 
-	pid = clone(send_creds_clone_wrapper, stack+stack_size, SIGCHLD, &amp;sock);
-	if (pid &lt; 0)
-		_exit(1);
+	pid <span style="color:#f92672">=</span> clone(send_creds_clone_wrapper, stack<span style="color:#f92672">+</span>stack_size, SIGCHLD, <span style="color:#f92672">&amp;</span>sock);
+	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+		_exit(<span style="color:#ae81ff">1</span>);
 
-	if (pid != 0) {
-		if (!wait_for_pid(pid))
-			_exit(1);
-		_exit(0);
+	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+		<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>wait_for_pid(pid))
+			_exit(<span style="color:#ae81ff">1</span>);
+		_exit(<span style="color:#ae81ff">0</span>);
 	}
 }
 
-static pid_t get_init_pid_for_task(pid_t task)
+<span style="color:#66d9ef">static</span> pid_t <span style="color:#a6e22e">get_init_pid_for_task</span>(pid_t task)
 {
-	int sock[2];
+	<span style="color:#66d9ef">int</span> sock[<span style="color:#ae81ff">2</span>];
 	pid_t pid;
-	pid_t ret = -1;
-	char v = '0';
-	struct ucred cred;
+	pid_t ret <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+	<span style="color:#66d9ef">char</span> v <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0&#39;</span>;
+	<span style="color:#66d9ef">struct</span> ucred cred;
 
-	if (socketpair(AF_UNIX, SOCK_DGRAM, 0, sock) &lt; 0 ) {
-		perror(&quot;socketpair&quot;);
-		return -1;
+	<span style="color:#66d9ef">if</span> (socketpair(AF_UNIX, SOCK_DGRAM, <span style="color:#ae81ff">0</span>, sock) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> ) {
+		perror(<span style="color:#e6db74">&#34;socketpair&#34;</span>);
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 	}
 
-	pid = fork();
+	pid <span style="color:#f92672">=</span> fork();
 
-	if (pid &lt; 0)
-		goto out;
+	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+		<span style="color:#66d9ef">goto</span> out;
 
-	if (!pid) {
-		// Child process
-		close(sock[1]);
-		write_task_init_pid_exit(sock[0], task);
-		_exit(0);
+	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>pid) {
+		<span style="color:#75715e">// Child process
+</span><span style="color:#75715e"></span>		close(sock[<span style="color:#ae81ff">1</span>]);
+		write_task_init_pid_exit(sock[<span style="color:#ae81ff">0</span>], task);
+		_exit(<span style="color:#ae81ff">0</span>);
 	}
 
-	if (!recv_creds(sock[1], &amp;cred, &amp;v))
-		goto out;
+	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>recv_creds(sock[<span style="color:#ae81ff">1</span>], <span style="color:#f92672">&amp;</span>cred, <span style="color:#f92672">&amp;</span>v))
+		<span style="color:#66d9ef">goto</span> out;
 
-	ret = cred.pid;
+	ret <span style="color:#f92672">=</span> cred.pid;
 
 out:
-	close(sock[0]);
-	close(sock[1]);
+	close(sock[<span style="color:#ae81ff">0</span>]);
+	close(sock[<span style="color:#ae81ff">1</span>]);
 
-	if (pid &gt; 0)
+	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>)
 		wait_for_pid(pid);
 
-	return ret;
+	<span style="color:#66d9ef">return</span> ret;
 }
 
-void usage(int argc, char **argv)
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">usage</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
 {
-	printf(&quot;Usage:\n&quot;);
-	printf(&quot;\t%s pid\n&quot;, argv[1]);
+	printf(<span style="color:#e6db74">&#34;Usage:</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	printf(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">%s pid</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">1</span>]);
 }
 
-int main(int argc, char **argv)
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
 {
 	pid_t result;
 	pid_t target;
 
-	if (argc != 2) {
+	<span style="color:#66d9ef">if</span> (argc <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span>) {
 		usage(argc, argv);
-		exit(0);
+		exit(<span style="color:#ae81ff">0</span>);
 	}
 
-	target = (pid_t)atoi(argv[1]);
-	result = get_init_pid_for_task(target);
+	target <span style="color:#f92672">=</span> (pid_t)atoi(argv[<span style="color:#ae81ff">1</span>]);
+	result <span style="color:#f92672">=</span> get_init_pid_for_task(target);
 
-	printf(&quot;pid %d 's init pid is %d\n&quot;, (int)target, (int)result);
+	printf(<span style="color:#e6db74">&#34;pid %d &#39;s init pid is %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, (<span style="color:#66d9ef">int</span>)target, (<span style="color:#66d9ef">int</span>)result);
 }
 
 
 
-#define POLLIN_SET ( EPOLLIN | EPOLLHUP | EPOLLRDHUP )
-
-static bool wait_for_sock(int sock, int timeout)
+<span style="color:#75715e">#define POLLIN_SET ( EPOLLIN | EPOLLHUP | EPOLLRDHUP )
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">wait_for_sock</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">int</span> timeout)
 {
-	struct epoll_event ev;
-	int epfd, ret, now, starttime, deltatime, saved_errno;
+	<span style="color:#66d9ef">struct</span> epoll_event ev;
+	<span style="color:#66d9ef">int</span> epfd, ret, now, starttime, deltatime, saved_errno;
 
-	if ((starttime = time(NULL)) &lt; 0)
-		return false;
+	<span style="color:#66d9ef">if</span> ((starttime <span style="color:#f92672">=</span> time(NULL)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+		<span style="color:#66d9ef">return</span> false;
 
-	if ((epfd = epoll_create(1)) &lt; 0) {
-		printf(&quot;%s\n&quot;, &quot;Failed to create epoll socket: %m.&quot;);
-		return false;
+	<span style="color:#66d9ef">if</span> ((epfd <span style="color:#f92672">=</span> epoll_create(<span style="color:#ae81ff">1</span>)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
+		printf(<span style="color:#e6db74">&#34;%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#e6db74">&#34;Failed to create epoll socket: %m.&#34;</span>);
+		<span style="color:#66d9ef">return</span> false;
 	}
 
-	ev.events = POLLIN_SET;
-	ev.data.fd = sock;
-	if (epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &amp;ev) &lt; 0) {
-		printf(&quot;%s\n&quot;, &quot;Failed adding socket to epoll: %m.&quot;);
+	ev.events <span style="color:#f92672">=</span> POLLIN_SET;
+	ev.data.fd <span style="color:#f92672">=</span> sock;
+	<span style="color:#66d9ef">if</span> (epoll_ctl(epfd, EPOLL_CTL_ADD, sock, <span style="color:#f92672">&amp;</span>ev) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
+		printf(<span style="color:#e6db74">&#34;%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#e6db74">&#34;Failed adding socket to epoll: %m.&#34;</span>);
 		close(epfd);
-		return false;
+		<span style="color:#66d9ef">return</span> false;
 	}
 
 again:
-	if ((now = time(NULL)) &lt; 0) {
+	<span style="color:#66d9ef">if</span> ((now <span style="color:#f92672">=</span> time(NULL)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
 		close(epfd);
-		return false;
+		<span style="color:#66d9ef">return</span> false;
 	}
 
-	deltatime = (starttime + timeout) - now;
-	if (deltatime &lt; 0) { // timeout
-		errno = 0;
+	deltatime <span style="color:#f92672">=</span> (starttime <span style="color:#f92672">+</span> timeout) <span style="color:#f92672">-</span> now;
+	<span style="color:#66d9ef">if</span> (deltatime <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) { <span style="color:#75715e">// timeout
+</span><span style="color:#75715e"></span>		errno <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 		close(epfd);
-		return false;
+		<span style="color:#66d9ef">return</span> false;
 	}
-	ret = epoll_wait(epfd, &amp;ev, 1, 1000*deltatime + 1);
-	if (ret &lt; 0 &amp;&amp; errno == EINTR)
-		goto again;
-	saved_errno = errno;
+	ret <span style="color:#f92672">=</span> epoll_wait(epfd, <span style="color:#f92672">&amp;</span>ev, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1000</span><span style="color:#f92672">*</span>deltatime <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
+	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> errno <span style="color:#f92672">==</span> EINTR)
+		<span style="color:#66d9ef">goto</span> again;
+	saved_errno <span style="color:#f92672">=</span> errno;
 	close(epfd);
 
-	if (ret &lt;= 0) {
-		errno = saved_errno;
-		return false;
+	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>) {
+		errno <span style="color:#f92672">=</span> saved_errno;
+		<span style="color:#66d9ef">return</span> false;
 	}
-	return true;
+	<span style="color:#66d9ef">return</span> true;
 }
 
-static int msgrecv(int sockfd, void *buf, size_t len)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">msgrecv</span>(<span style="color:#66d9ef">int</span> sockfd, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>buf, size_t len)
 {
-	if (!wait_for_sock(sockfd, 2))
-		return -1;
-	return recv(sockfd, buf, len, MSG_DONTWAIT);
+	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>wait_for_sock(sockfd, <span style="color:#ae81ff">2</span>))
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+	<span style="color:#66d9ef">return</span> recv(sockfd, buf, len, MSG_DONTWAIT);
 }
 
-static int send_creds(int sock, struct ucred *cred, char v, bool pingfirst)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_creds</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">struct</span> ucred <span style="color:#f92672">*</span>cred, <span style="color:#66d9ef">char</span> v, <span style="color:#66d9ef">bool</span> pingfirst)
 {
-	struct msghdr msg = { 0 };
-	struct iovec iov;
-	struct cmsghdr *cmsg;
-	char cmsgbuf[CMSG_SPACE(sizeof(*cred))];
-	char buf[1];
-	buf[0] = 'p';
+	<span style="color:#66d9ef">struct</span> msghdr msg <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0</span> };
+	<span style="color:#66d9ef">struct</span> iovec iov;
+	<span style="color:#66d9ef">struct</span> cmsghdr <span style="color:#f92672">*</span>cmsg;
+	<span style="color:#66d9ef">char</span> cmsgbuf[CMSG_SPACE(<span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>cred))];
+	<span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">1</span>];
+	buf[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;p&#39;</span>;
 
-	if (pingfirst) {
-		if (msgrecv(sock, buf, 1) != 1) {
-			printf(&quot;%s\n&quot;, &quot;Error getting reply from server over socketpair.&quot;);
-			return SEND_CREDS_FAIL;
+	<span style="color:#66d9ef">if</span> (pingfirst) {
+		<span style="color:#66d9ef">if</span> (msgrecv(sock, buf, <span style="color:#ae81ff">1</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>) {
+			printf(<span style="color:#e6db74">&#34;%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#e6db74">&#34;Error getting reply from server over socketpair.&#34;</span>);
+			<span style="color:#66d9ef">return</span> SEND_CREDS_FAIL;
 		}
 	}
 
-	msg.msg_control = cmsgbuf;
-	msg.msg_controllen = sizeof(cmsgbuf);
+	msg.msg_control <span style="color:#f92672">=</span> cmsgbuf;
+	msg.msg_controllen <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(cmsgbuf);
 
-	cmsg = CMSG_FIRSTHDR(&amp;msg);
-	cmsg-&gt;cmsg_len = CMSG_LEN(sizeof(struct ucred));
-	cmsg-&gt;cmsg_level = SOL_SOCKET;
-	cmsg-&gt;cmsg_type = SCM_CREDENTIALS;
-	memcpy(CMSG_DATA(cmsg), cred, sizeof(*cred));
+	cmsg <span style="color:#f92672">=</span> CMSG_FIRSTHDR(<span style="color:#f92672">&amp;</span>msg);
+	cmsg<span style="color:#f92672">-&gt;</span>cmsg_len <span style="color:#f92672">=</span> CMSG_LEN(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> ucred));
+	cmsg<span style="color:#f92672">-&gt;</span>cmsg_level <span style="color:#f92672">=</span> SOL_SOCKET;
+	cmsg<span style="color:#f92672">-&gt;</span>cmsg_type <span style="color:#f92672">=</span> SCM_CREDENTIALS;
+	memcpy(CMSG_DATA(cmsg), cred, <span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>cred));
 
-	msg.msg_name = NULL;
-	msg.msg_namelen = 0;
+	msg.msg_name <span style="color:#f92672">=</span> NULL;
+	msg.msg_namelen <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 
-	buf[0] = v;
-	iov.iov_base = buf;
-	iov.iov_len = sizeof(buf);
-	msg.msg_iov = &amp;iov;
-	msg.msg_iovlen = 1;
+	buf[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> v;
+	iov.iov_base <span style="color:#f92672">=</span> buf;
+	iov.iov_len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(buf);
+	msg.msg_iov <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>iov;
+	msg.msg_iovlen <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
 
-	if (sendmsg(sock, &amp;msg, 0) &lt; 0) {
-		printf(&quot;Failed at sendmsg: %s.\n&quot;,strerror(errno));
-		if (errno == 3)
-			return SEND_CREDS_NOTSK;
-		return SEND_CREDS_FAIL;
+	<span style="color:#66d9ef">if</span> (sendmsg(sock, <span style="color:#f92672">&amp;</span>msg, <span style="color:#ae81ff">0</span>) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
+		printf(<span style="color:#e6db74">&#34;Failed at sendmsg: %s.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,strerror(errno));
+		<span style="color:#66d9ef">if</span> (errno <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>)
+			<span style="color:#66d9ef">return</span> SEND_CREDS_NOTSK;
+		<span style="color:#66d9ef">return</span> SEND_CREDS_FAIL;
 	}
 
-	return SEND_CREDS_OK;
+	<span style="color:#66d9ef">return</span> SEND_CREDS_OK;
 }
 
-static bool recv_creds(int sock, struct ucred *cred, char *v)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">recv_creds</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">struct</span> ucred <span style="color:#f92672">*</span>cred, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>v)
 {
-	struct msghdr msg = { 0 };
-	struct iovec iov;
-	struct cmsghdr *cmsg;
-	char cmsgbuf[CMSG_SPACE(sizeof(*cred))];
-	char buf[1];
-	int ret;
-	int optval = 1;
+	<span style="color:#66d9ef">struct</span> msghdr msg <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0</span> };
+	<span style="color:#66d9ef">struct</span> iovec iov;
+	<span style="color:#66d9ef">struct</span> cmsghdr <span style="color:#f92672">*</span>cmsg;
+	<span style="color:#66d9ef">char</span> cmsgbuf[CMSG_SPACE(<span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>cred))];
+	<span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">1</span>];
+	<span style="color:#66d9ef">int</span> ret;
+	<span style="color:#66d9ef">int</span> optval <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
 
-	*v = '1';
+	<span style="color:#f92672">*</span>v <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1&#39;</span>;
 
-	cred-&gt;pid = -1;
-	cred-&gt;uid = -1;
-	cred-&gt;gid = -1;
+	cred<span style="color:#f92672">-&gt;</span>pid <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+	cred<span style="color:#f92672">-&gt;</span>uid <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+	cred<span style="color:#f92672">-&gt;</span>gid <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 
-	if (setsockopt(sock, SOL_SOCKET, SO_PASSCRED, &amp;optval, sizeof(optval)) == -1) {
-		printf(&quot;Failed to set passcred: %s\n&quot;, strerror(errno));
-		return false;
+	<span style="color:#66d9ef">if</span> (setsockopt(sock, SOL_SOCKET, SO_PASSCRED, <span style="color:#f92672">&amp;</span>optval, <span style="color:#66d9ef">sizeof</span>(optval)) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+		printf(<span style="color:#e6db74">&#34;Failed to set passcred: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
+		<span style="color:#66d9ef">return</span> false;
 	}
-	buf[0] = '1';
-	if (write(sock, buf, 1) != 1) {
-		printf(&quot;Failed to start write on scm fd: %s\n&quot;, strerror(errno));
-		return false;
-	}
-
-	msg.msg_name = NULL;
-	msg.msg_namelen = 0;
-	msg.msg_control = cmsgbuf;
-	msg.msg_controllen = sizeof(cmsgbuf);
-
-	iov.iov_base = buf;
-	iov.iov_len = sizeof(buf);
-	msg.msg_iov = &amp;iov;
-	msg.msg_iovlen = 1;
-
-	if (!wait_for_sock(sock, 2)) {
-		printf(&quot;Timed out waiting for scm_cred: %s\n&quot;, strerror(errno));
-		return false;
-	}
-	ret = recvmsg(sock, &amp;msg, MSG_DONTWAIT);
-	if (ret &lt; 0) {
-		printf(&quot;Failed to receive scm_cred: %s\n&quot;, strerror(errno));
-		return false;
+	buf[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1&#39;</span>;
+	<span style="color:#66d9ef">if</span> (write(sock, buf, <span style="color:#ae81ff">1</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>) {
+		printf(<span style="color:#e6db74">&#34;Failed to start write on scm fd: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
+		<span style="color:#66d9ef">return</span> false;
 	}
 
-	cmsg = CMSG_FIRSTHDR(&amp;msg);
+	msg.msg_name <span style="color:#f92672">=</span> NULL;
+	msg.msg_namelen <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+	msg.msg_control <span style="color:#f92672">=</span> cmsgbuf;
+	msg.msg_controllen <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(cmsgbuf);
 
-	if (cmsg &amp;&amp; cmsg-&gt;cmsg_len == CMSG_LEN(sizeof(struct ucred)) &amp;&amp;
-			cmsg-&gt;cmsg_level == SOL_SOCKET &amp;&amp;
-			cmsg-&gt;cmsg_type == SCM_CREDENTIALS) {
-		memcpy(cred, CMSG_DATA(cmsg), sizeof(*cred));
+	iov.iov_base <span style="color:#f92672">=</span> buf;
+	iov.iov_len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(buf);
+	msg.msg_iov <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>iov;
+	msg.msg_iovlen <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+
+	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>wait_for_sock(sock, <span style="color:#ae81ff">2</span>)) {
+		printf(<span style="color:#e6db74">&#34;Timed out waiting for scm_cred: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
+		<span style="color:#66d9ef">return</span> false;
 	}
-	*v = buf[0];
+	ret <span style="color:#f92672">=</span> recvmsg(sock, <span style="color:#f92672">&amp;</span>msg, MSG_DONTWAIT);
+	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
+		printf(<span style="color:#e6db74">&#34;Failed to receive scm_cred: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
+		<span style="color:#66d9ef">return</span> false;
+	}
 
-	return true;
+	cmsg <span style="color:#f92672">=</span> CMSG_FIRSTHDR(<span style="color:#f92672">&amp;</span>msg);
+
+	<span style="color:#66d9ef">if</span> (cmsg <span style="color:#f92672">&amp;&amp;</span> cmsg<span style="color:#f92672">-&gt;</span>cmsg_len <span style="color:#f92672">==</span> CMSG_LEN(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> ucred)) <span style="color:#f92672">&amp;&amp;</span>
+			cmsg<span style="color:#f92672">-&gt;</span>cmsg_level <span style="color:#f92672">==</span> SOL_SOCKET <span style="color:#f92672">&amp;&amp;</span>
+			cmsg<span style="color:#f92672">-&gt;</span>cmsg_type <span style="color:#f92672">==</span> SCM_CREDENTIALS) {
+		memcpy(cred, CMSG_DATA(cmsg), <span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>cred));
+	}
+	<span style="color:#f92672">*</span>v <span style="color:#f92672">=</span> buf[<span style="color:#ae81ff">0</span>];
+
+	<span style="color:#66d9ef">return</span> true;
 }
-</code></pre>
-
-<h3 id="编译运行">编译运行</h3>
-
-<pre><code class="language-bash"># # 将源码保存为main.c
-# gcc -o get_init_pid  main.c 
-# docker top 9ce36bf4bb30
+</code></pre></div><h3 id="编译运行">编译运行</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># # 将源码保存为main.c</span>
+<span style="color:#75715e"># gcc -o get_init_pid  main.c </span>
+<span style="color:#75715e"># docker top 9ce36bf4bb30</span>
 UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
-root                3244                3228                0                   14:22               pts/1               00:00:00            /bin/bash
-root                3312                3286                0                   14:22               ?                   00:00:00            sleep 3400
-root                3313                3286                0                   14:22               ?                   00:00:00            sleep 3400
-root                3314                3286                0                   14:22               ?                   00:00:00            sleep 3400
-root                3315                3286                0                   14:22               ?                   00:00:00            sleep 3400
-# ./get_init_pid 3312
-pid 3312 's init pid is 3244
-# ./get_init_pid 3315
-pid 3315 's init pid is 3244
-# ./get_init_pid 3244
-pid 3244 's init pid is 3244
-# ./get_init_pid 1
-pid 1 's init pid is 1
-# ./get_init_pid 2
-pid 2 's init pid is 1
-</code></pre>
-
-<h3 id="参考文章">参考文章</h3>
-
+root                <span style="color:#ae81ff">3244</span>                <span style="color:#ae81ff">3228</span>                <span style="color:#ae81ff">0</span>                   14:22               pts/1               00:00:00            /bin/bash
+root                <span style="color:#ae81ff">3312</span>                <span style="color:#ae81ff">3286</span>                <span style="color:#ae81ff">0</span>                   14:22               ?                   00:00:00            sleep <span style="color:#ae81ff">3400</span>
+root                <span style="color:#ae81ff">3313</span>                <span style="color:#ae81ff">3286</span>                <span style="color:#ae81ff">0</span>                   14:22               ?                   00:00:00            sleep <span style="color:#ae81ff">3400</span>
+root                <span style="color:#ae81ff">3314</span>                <span style="color:#ae81ff">3286</span>                <span style="color:#ae81ff">0</span>                   14:22               ?                   00:00:00            sleep <span style="color:#ae81ff">3400</span>
+root                <span style="color:#ae81ff">3315</span>                <span style="color:#ae81ff">3286</span>                <span style="color:#ae81ff">0</span>                   14:22               ?                   00:00:00            sleep <span style="color:#ae81ff">3400</span>
+<span style="color:#75715e"># ./get_init_pid 3312</span>
+pid <span style="color:#ae81ff">3312</span> <span style="color:#e6db74">&#39;s init pid is 3244
+</span><span style="color:#e6db74"># ./get_init_pid 3315
+</span><span style="color:#e6db74">pid 3315 &#39;</span>s init pid is <span style="color:#ae81ff">3244</span>
+<span style="color:#75715e"># ./get_init_pid 3244</span>
+pid <span style="color:#ae81ff">3244</span> <span style="color:#e6db74">&#39;s init pid is 3244
+</span><span style="color:#e6db74"># ./get_init_pid 1
+</span><span style="color:#e6db74">pid 1 &#39;</span>s init pid is <span style="color:#ae81ff">1</span>
+<span style="color:#75715e"># ./get_init_pid 2</span>
+pid <span style="color:#ae81ff">2</span> <span style="color:#960050;background-color:#1e0010">&#39;</span>s init pid is <span style="color:#ae81ff">1</span>
+</code></pre></div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="http://man7.org/linux/man-pages/man7/unix.7.html">http://man7.org/linux/man-pages/man7/unix.7.html</a></li>
 <li><a href="http://man7.org/linux/man-pages/man7/pid_namespaces.7.html">http://man7.org/linux/man-pages/man7/pid_namespaces.7.html</a></li>
@@ -669,7 +645,7 @@ pid 2 's init pid is 1
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -29,7 +29,7 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/tmux/" />
@@ -54,9 +54,7 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
 
 <meta property="og:title" content="tmux快捷键总结" />
 <meta property="og:description" content="tmux (Terminal Multiplexer的简称), 是一款优秀的终端复用软件，类似 GNU screen，但比screen更出色。
-
 Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 Tmux 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。
-
 本文总结了tmux常用的一些快捷键。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/posts/tmux/" />
@@ -64,12 +62,8 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
 <meta property="article:modified_time" content="2017-04-01T19:20:04-07:00" />
 <meta itemprop="name" content="tmux快捷键总结">
 <meta itemprop="description" content="tmux (Terminal Multiplexer的简称), 是一款优秀的终端复用软件，类似 GNU screen，但比screen更出色。
-
 Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 Tmux 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。
-
 本文总结了tmux常用的一些快捷键。">
-
-
 <meta itemprop="datePublished" content="2017-02-01T19:20:04-07:00" />
 <meta itemprop="dateModified" content="2017-04-01T19:20:04-07:00" />
 <meta itemprop="wordCount" content="855">
@@ -80,9 +74,7 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="tmux快捷键总结"/>
 <meta name="twitter:description" content="tmux (Terminal Multiplexer的简称), 是一款优秀的终端复用软件，类似 GNU screen，但比screen更出色。
-
 Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 Tmux 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。
-
 本文总结了tmux常用的一些快捷键。"/>
 
 <!--[if lte IE 9]>
@@ -180,15 +172,12 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
   
   <div class="post-toc-content always-active">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#session">session</a></li>
-<li><a href="#window">window</a></li>
-<li><a href="#pane">pane</a></li>
-<li><a href="#other">other</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#session">session</a></li>
+    <li><a href="#window">window</a></li>
+    <li><a href="#pane">pane</a></li>
+    <li><a href="#other">other</a></li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -196,15 +185,10 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
     
     <div class="post-content">
       <p><code>tmux</code> (<code>Terminal Multiplexer</code>的简称), 是一款优秀的终端复用软件，类似 <code>GNU screen</code>，但比<code>screen</code>更出色。</p>
-
 <p><code>Tmux</code> 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 <code>Tmux</code> 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。</p>
-
 <p>本文总结了<code>tmux</code>常用的一些快捷键。</p>
-
 <h2 id="session">session</h2>
-
 <p><code>session</code>指的是按下tmux命令后 存在的连接便是session</p>
-
 <table>
 <thead>
 <tr>
@@ -212,54 +196,43 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
 <th>命令</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>创建session</td>
 <td>tmux</td>
 </tr>
-
 <tr>
 <td>创建seesion 并指定名字</td>
 <td>tmux new -s $session_name</td>
 </tr>
-
 <tr>
 <td>删除session</td>
 <td>Ctrl+b :kill-session</td>
 </tr>
-
 <tr>
 <td>临时退出session</td>
 <td>Ctrl+b d</td>
 </tr>
-
 <tr>
 <td>列出session</td>
 <td>tmux ls</td>
 </tr>
-
 <tr>
 <td>进入已存在的session</td>
 <td>tmux a -t $session_name</td>
 </tr>
-
 <tr>
 <td>删除所有session</td>
 <td>Ctrl+b :kill-server</td>
 </tr>
-
 <tr>
 <td>删除指定session</td>
 <td>tmux kill-session -t $session_name</td>
 </tr>
 </tbody>
 </table>
-
 <h2 id="window">window</h2>
-
 <p>window在session里，可以有N个window，并且window可以在不同的session里移动</p>
-
 <table>
 <thead>
 <tr>
@@ -267,49 +240,39 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
 <th>命令</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>创建window</td>
 <td>Ctrl+b +c</td>
 </tr>
-
 <tr>
 <td>删除window</td>
 <td>Ctrl+b &amp;</td>
 </tr>
-
 <tr>
 <td>下一个window</td>
 <td>Ctrl+b n</td>
 </tr>
-
 <tr>
 <td>上一个window</td>
 <td>Ctrl+b p</td>
 </tr>
-
 <tr>
 <td>重命名window</td>
 <td>Ctrl+b ,</td>
 </tr>
-
 <tr>
 <td>在多个window里搜索关键字</td>
 <td>Ctrl+b f</td>
 </tr>
-
 <tr>
 <td>在相邻的两个window里切换</td>
 <td>Ctrl+b l</td>
 </tr>
 </tbody>
 </table>
-
 <h2 id="pane">pane</h2>
-
 <p>pane在window里，可以有N个pane，并且pane可以在不同的window里移动、合并、拆分</p>
-
 <table>
 <thead>
 <tr>
@@ -317,97 +280,78 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
 <th>命令</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>创建pane 横切split pane horizontal</td>
 <td>Ctrl+b ” (问号的上面，shift+’)</td>
 </tr>
-
 <tr>
 <td>竖切split pane vertical</td>
 <td>Ctrl+b % （shift+5）</td>
 </tr>
-
 <tr>
 <td>按顺序在pane之间移动</td>
 <td>Ctrl+b o</td>
 </tr>
-
 <tr>
 <td>上下左右选择pane</td>
 <td>Ctrl+b 方向键上下左右</td>
 </tr>
-
 <tr>
 <td>调整pane的大小</td>
 <td>Ctrl+b :resize-pane -U #向上</td>
 </tr>
-
 <tr>
 <td></td>
 <td>Ctrl+b :resize-pane -D #向下</td>
 </tr>
-
 <tr>
 <td></td>
 <td>Ctrl+b :resize-pane -L #向左</td>
 </tr>
-
 <tr>
 <td></td>
 <td>Ctrl+b :resize-pane -R #向右</td>
 </tr>
-
 <tr>
 <td>在上下左右的调整里，最后的参数可以加数字 用以控制移动的大小，例如：</td>
 <td>Ctrl+b :resize-pane -D 50</td>
 </tr>
-
 <tr>
 <td>在同一个window里左右移动pane</td>
 <td>Ctrl+b { （往左边，往上面）</td>
 </tr>
-
 <tr>
 <td></td>
 <td>Ctrl+b } （往右边，往下面）</td>
 </tr>
-
 <tr>
 <td>删除pane</td>
 <td>Ctrl+b x</td>
 </tr>
-
 <tr>
 <td>更换pane排版</td>
 <td>Ctrl+b “空格”</td>
 </tr>
-
 <tr>
 <td>移动pane至window</td>
 <td>Ctrl+b !</td>
 </tr>
-
 <tr>
 <td>移动pane合并至某个window</td>
 <td>Ctrl+b :join-pane -t $window_name</td>
 </tr>
-
 <tr>
 <td>显示pane编号</td>
 <td>Ctrl+b q</td>
 </tr>
-
 <tr>
 <td>按顺序移动pane位置</td>
 <td>Ctrl+b Ctrl+o</td>
 </tr>
 </tbody>
 </table>
-
 <h2 id="other">other</h2>
-
 <table>
 <thead>
 <tr>
@@ -415,43 +359,35 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
 <th>命令</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>复制模式</td>
 <td>Ctrl+b [  空格标记复制开始，回车结束复制。粘贴最后一个缓冲区内容</td>
 </tr>
-
 <tr>
 <td>选择性粘贴缓冲区</td>
 <td>Ctrl+b =</td>
 </tr>
-
 <tr>
 <td>列出缓冲区目标</td>
 <td>Ctrl+b :list-buffer</td>
 </tr>
-
 <tr>
 <td>查看缓冲区内容</td>
 <td>Ctrl+b :show-buffer</td>
 </tr>
-
 <tr>
 <td>vi模式</td>
 <td>Ctrl+b :set mode-keys vi</td>
 </tr>
-
 <tr>
 <td>显示时间</td>
 <td>Ctrl+b t</td>
 </tr>
-
 <tr>
 <td>快捷键帮助</td>
 <td>Ctrl+b ? (Ctrl+b :list-keys)</td>
 </tr>
-
 <tr>
 <td>tmux内置命令帮助</td>
 <td>Ctrl+b :list-commands</td>
@@ -543,7 +479,7 @@ Tmux 用于在一个终端窗口中运行多个终端会话。不仅如此，你
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

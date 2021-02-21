@@ -6,11 +6,7 @@
     <description>Recent content in radix-tree on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 09 Sep 2018 13:36:38 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/radix-tree/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sun, 09 Sep 2018 13:36:38 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/radix-tree/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Radix Tree </title>
       <link>http://linux.laoqinren.net/kernel/radix-tree/</link>
@@ -18,7 +14,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/radix-tree/</guid>
       <description>&lt;p&gt;本文详细介绍了Linux的Radix树。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>

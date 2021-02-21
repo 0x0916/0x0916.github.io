@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/static_key/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2019-08-05T19:43:48+08:00" />
 <meta itemprop="name" content="内核基础设施——static_key">
 <meta itemprop="description" content="本节介绍了static_key这个内核基础设施。">
-
-
-<meta itemprop="datePublished" content="2019-08-05T19:43:48&#43;08:00" />
-<meta itemprop="dateModified" content="2019-08-05T19:43:48&#43;08:00" />
+<meta itemprop="datePublished" content="2019-08-05T19:43:48+08:00" />
+<meta itemprop="dateModified" content="2019-08-05T19:43:48+08:00" />
 <meta itemprop="wordCount" content="2386">
 
 
@@ -166,23 +164,15 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#理解问题">理解问题</a></li>
-<li><a href="#static-key机制">static_key机制</a>
-<ul>
-<li><a href="#定义一个static-key">定义一个static_key</a></li>
-<li><a href="#判断语句">判断语句</a></li>
-<li><a href="#修改判断条件">修改判断条件</a></li>
-<li><a href="#static-key的内核实现">static-key的内核实现</a></li>
-</ul></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#理解问题">理解问题</a></li>
+        <li><a href="#static_key机制">static_key机制</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -190,15 +180,10 @@
     
     <div class="post-content">
       <p>本节介绍了<code>static_key</code>这个内核基础设施。</p>
-
-<p><img src="pic.jpg" alt="" /></p>
-
+<p><img src="pic.jpg" alt="" title=""></p>
 <h3 id="理解问题">理解问题</h3>
-
 <p>在<code>linux</code>内核中，<code>control cgroup</code>是实现容器的核心技术之一，在<code>control cgroup</code>中有一个叫做<code>cpu cgroup</code>的子系统，它用来限制一组进程的<code>cpu</code>使用量。为了达到限制的目的，就需要对进程单位时间内使用的<code>cpu</code>时间进行统计，而统计会耗费一定的代价，所以内核设计者为了减少系统损耗，只有当系统启用了<code>cpu cgroup</code>且被设置了<code>cpu</code>限制时，采用执行统计<code>cpu</code>时间信息的代码。</p>
-
 <p>内核中有一个全局的变量<code>__cfs_bandwidth_used</code>，初始化时，其值为<code>0</code>，</p>
-
 <pre><code>crash&gt; p __cfs_bandwidth_used
 __cfs_bandwidth_used = $1 = {
   enabled = {
@@ -208,17 +193,11 @@ __cfs_bandwidth_used = $1 = {
   next = 0x0
 }
 crash&gt; 
-</code></pre>
-
-<p>当创建了一个新的<code>cpu cgroup</code>,并且设置<code>cpu quota</code>，其值加<code>1</code>:</p>
-
+</code></pre><p>当创建了一个新的<code>cpu cgroup</code>,并且设置<code>cpu quota</code>，其值加<code>1</code>:</p>
 <pre><code># cd /sys/fs/cgroup/cpu
 # mkdir test
 # echo 100000 &gt; test/cpu.cfs_quota_us 
-</code></pre>
-
-<p>查看<code>__cfs_bandwidth_used</code>的值</p>
-
+</code></pre><p>查看<code>__cfs_bandwidth_used</code>的值</p>
 <pre><code>crash&gt; p __cfs_bandwidth_used
 __cfs_bandwidth_used = $2 = {
   enabled = {
@@ -227,15 +206,9 @@ __cfs_bandwidth_used = $2 = {
   entries = 0xffffffffa9521640, 
   next = 0x0
 }
-</code></pre>
-
-<p>当取消对该<code>cpu cgoup</code>的<code>cpu</code>限制时，该值减少<code>1</code></p>
-
+</code></pre><p>当取消对该<code>cpu cgoup</code>的<code>cpu</code>限制时，该值减少<code>1</code></p>
 <pre><code># echo -1 &gt; test/cpu.cfs_quota_us 
-</code></pre>
-
-<p>查看<code>__cfs_bandwidth_used</code>的值</p>
-
+</code></pre><p>查看<code>__cfs_bandwidth_used</code>的值</p>
 <pre><code>crash&gt; p __cfs_bandwidth_used
 __cfs_bandwidth_used = $3 = {
   enabled = {
@@ -244,51 +217,31 @@ __cfs_bandwidth_used = $3 = {
   entries = 0xffffffffa9521640, 
   next = 0x0
 }
-</code></pre>
-
-<p>在内核代码中，就是通过判断<code>__cfs_bandwidth_used</code>的值是否为<code>0</code>，来决定是否需要执行相关<code>cpu</code>时间的统计代码。</p>
-
+</code></pre><p>在内核代码中，就是通过判断<code>__cfs_bandwidth_used</code>的值是否为<code>0</code>，来决定是否需要执行相关<code>cpu</code>时间的统计代码。</p>
 <ul>
 <li><code>__cfs_bandwidth_used</code>的值为0， 不执行时间统计相关代码</li>
 <li><code>__cfs_bandwidth_used</code>的值为非0，执行时间统计相关代码</li>
 </ul>
-
 <p>由于调度代码比较核心，在里面判断<code>__cfs_bandwidth_used</code>是否为<code>0</code>也有一定的开销，所以内核开发者为了优化，利用编译器的特性，就有了<code>static_key</code>这个机制了。</p>
-
-<h3 id="static-key机制">static_key机制</h3>
-
+<h3 id="static_key机制">static_key机制</h3>
 <p>简单来说，如果你对代码性能很敏感，而且大多数情况下分支路径是确定的，可以考虑使用<code>static keys</code>。<code>static keys</code>可以代替普通的变量进行分支判断，目的是用来优化频繁使用<code>if-else</code>判断的问题，这里涉及到指令分支预取的一下问题。简单地说，现代<code>cpu</code>都有预测功能，变量的判断有可能会造成硬件预测失败，影响流水线性能。虽然有<code>likely</code>和<code>unlikely</code>，但还是会有小概率的预测失败。</p>
-
-<h4 id="定义一个static-key">定义一个static_key</h4>
-
-<pre><code class="language-c">struct static_key key = STATIC_KEY_INIT_FALSE; 
-</code></pre>
-
-<p>注意：这个<code>key</code>及其初始值必须是静态存在的，不能定义为局部变量或者使用动态分配的内存。通常为全局变量或者静态变量。
+<h4 id="定义一个static_key">定义一个static_key</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> static_key key <span style="color:#f92672">=</span> STATIC_KEY_INIT_FALSE; 
+</code></pre></div><p>注意：这个<code>key</code>及其初始值必须是静态存在的，不能定义为局部变量或者使用动态分配的内存。通常为全局变量或者静态变量。
 其中的<code>STATIC_KEY_INIT_FALSE</code>表示这个<code>key</code>的默认值为<code>false</code>，对应的分支默认不进入，如果是需要默认进入的，用<code>STATIC_KEY_INIT_TRUE</code>，这里如果不赋值，系统默认为<code>STATIC_KEY_INIT_FALSE</code>，在代码运行中不能再用<code>STATIC_KEY_INIT_FALSE/STATIC_KEY_INIT_TRUE</code>进行赋值。</p>
-
 <h4 id="判断语句">判断语句</h4>
-
 <p>对于默认为<code>false（STATIC_KEY_INIT_FALSE）</code>的，使用</p>
-
-<pre><code class="language-c">if (static_key_false(&amp;key))
-	do unlikely code
-else
-	do likely code
-</code></pre>
-
-<p>对于默认为<code>true（STATIC_KEY_INIT_TRUE）</code>的，使用</p>
-
-<pre><code class="language-c">if (static_key_true((&amp;static_key))) 
-	do the likely work; 
-else 
-	do unlikely work
-</code></pre>
-
-<h4 id="修改判断条件">修改判断条件</h4>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">if</span> (static_key_false(<span style="color:#f92672">&amp;</span>key))
+	<span style="color:#66d9ef">do</span> unlikely code
+<span style="color:#66d9ef">else</span>
+	<span style="color:#66d9ef">do</span> likely code
+</code></pre></div><p>对于默认为<code>true（STATIC_KEY_INIT_TRUE）</code>的，使用</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">if</span> (static_key_true((<span style="color:#f92672">&amp;</span>static_key))) 
+	<span style="color:#66d9ef">do</span> the likely work; 
+<span style="color:#66d9ef">else</span> 
+	<span style="color:#66d9ef">do</span> unlikely work
+</code></pre></div><h4 id="修改判断条件">修改判断条件</h4>
 <p>使用<code>static_key_slow_inc</code>让分支条件变成<code>true</code>，使用<code>static_key_slow_dec</code>让分支条件变成<code>false</code>，与其初始的默认值无关。该接口是带计数的， 也就是：</p>
-
 <ul>
 <li>初始值为<code>STATIC_KEY_INIT_FALSE</code>的，那么： <code>static_key_slow_inc; static_key_slow_inc; static_key_slow_dec</code> 那么
 <code>if (static_key_false((&amp;static_key)))</code>对应的分支会进入，而再次<code>static_key_slow_dec</code>后，该分支就不再进入了。</li>
@@ -296,13 +249,9 @@ else
 <code>static_key_slow_dec; static_key_slow_dec; static_key_slow_inc</code> 那么
 <code>if (static_key_true((&amp;static_key)))</code>对应的分支不会进入，而再次<code>static_key_slow_inc</code>后，该分支就进入了。</li>
 </ul>
-
 <h4 id="static-key的内核实现">static-key的内核实现</h4>
-
 <p><code>static_key_false</code>的实现：</p>
-
 <p>对<code>X86</code>场景其实现如下，其它架构下的实现类似。</p>
-
 <pre><code>static __always_inline bool static_key_false(struct static_key *key)
 {
         return arch_static_branch(key);
@@ -321,47 +270,32 @@ static __always_inline bool arch_static_branch(struct static_key *key)
 l_yes:
         return true;
 }
-</code></pre>
-
-<ul>
-<li>其中的<code>asm_volatile_goto</code>宏 使用了<code>asm goto</code>，是<code>gcc</code>的特性，其允许在嵌入式汇编中<code>jump</code>到一个<code>C</code>语言的<code>label</code>，详见<code>gcc</code>的<code>manual</code>(<a href="https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html)，">https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html)，</a> 但是本处其作用只是将<code>C</code>语言的<code>label “l_yes”</code>传递到嵌入式汇编中。</li>
-<li><code>STATIC_KEY_INITIAL_NOP</code>其实就是<code>NOP</code>指令</li>
-<li><code>.pushsection __jump_table</code>是通知编译器，以下的内容写入到段<code>“__jump_table”</code></li>
+</code></pre><ul>
+<li>其中的<code>asm_volatile_goto</code>宏 使用了<code>asm goto</code>，是<code>gcc</code>的特性，其允许在嵌入式汇编中<code>jump</code>到一个<code>C</code>语言的<code>label</code>，详见<code>gcc</code>的<code>manual</code>(<a href="https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html">https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html</a>)， 但是本处其作用只是将<code>C</code>语言的<code>label “l_yes”</code>传递到嵌入式汇编中。</li>
+<li><code> STATIC_KEY_INITIAL_NOP</code>其实就是<code>NOP</code>指令</li>
+<li><code> .pushsection __jump_table</code>是通知编译器，以下的内容写入到段<code>“__jump_table”</code></li>
 <li><code>_ASM_PTR “1b, %l[l_yes], %c0</code>，是往段<code>“__jump_table”</code>中写入<code>label “1b”、C label “l_yes”</code>和输入参数<code>struct static_key *key</code>的地址，这些信息对应于<code>struct jump_entry</code> 中的<code>code</code>、<code>target</code>、<code>key</code>成员，在后续的处理中非常重要。</li>
-<li><code>.popsection</code>表示以下的内容回到之前的段，其实多半就是<code>.text</code>段。</li>
+<li><code> .popsection</code>表示以下的内容回到之前的段，其实多半就是<code>.text</code>段。</li>
 </ul>
-
 <p>可见，以上代码的作用就是：执行<code>NOP</code>指令后返回<code>false</code>，同时把<code>NOP</code>指令的地址、代码<code>”return true”</code>对应地址、<code>struct static_key *key</code>的地址写入到段<code>“__jump_table”</code>。由于固定返回为<code>false</code>且为<code>always inline</code>，编译器会把</p>
-
 <pre><code>if (static_key_false((&amp;static_key))) 
 do the unlikely work; 
 else 
 do likely work 
-</code></pre>
-
-<p>优化为：</p>
-
+</code></pre><p>优化为：</p>
 <pre><code>nop 
 do likely work 
 retq 
 l_yes: 
 do the unlikely work; 
-</code></pre>
-
-<p>正常场景，就没有判断了。</p>
-
+</code></pre><p>正常场景，就没有判断了。</p>
 <p><code>static_key_true</code>的实现：</p>
-
 <pre><code>static __always_inline bool static_key_true(struct static_key *key)                                               
 {                                    
         return !static_key_false(key);                                                                               
 }
-</code></pre>
-
-<p>执行<code>static_key_slow_inc(&amp;key)</code>后，底层通过<code>gcc</code>提供的<code>goto</code>功能，再结合<code>c</code>代码编写的动态修改内存功能，就可以让使用<code>key</code>的代码从执行<code>false</code>分支变成执行<code>true</code>分支。当然这个更改代价时比较昂贵的，不是所有的情况都适用。</p>
-
+</code></pre><p>执行<code>static_key_slow_inc(&amp;key)</code>后，底层通过<code>gcc</code>提供的<code>goto</code>功能，再结合<code>c</code>代码编写的动态修改内存功能，就可以让使用<code>key</code>的代码从执行<code>false</code>分支变成执行<code>true</code>分支。当然这个更改代价时比较昂贵的，不是所有的情况都适用。</p>
 <h3 id="参考文章">参考文章</h3>
-
 <ul>
 <li><a href="https://blog.csdn.net/phenix_lord/article/details/49232297">https://blog.csdn.net/phenix_lord/article/details/49232297</a></li>
 </ul>
@@ -455,7 +389,7 @@ do the unlikely work;
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

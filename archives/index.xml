@@ -6,10 +6,6 @@
     <description>Recent content in Archives on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 06 Apr 2018 16:51:43 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/archives/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Fri, 06 Apr 2018 16:51:43 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/archives/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

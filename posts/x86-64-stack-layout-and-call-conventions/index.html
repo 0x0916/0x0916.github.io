@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/" />
@@ -53,7 +53,6 @@
 
 <meta property="og:title" content="关于x86-64的栈布局和函数调用约定" />
 <meta property="og:description" content="在内核panic时，会打印出出问题的调用栈信息，同时也可以通过kdump结合crash进行更深入的分析定位问题。
-
 本文分析了x86-64的栈帧结构，为分析问题提供帮助。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/" />
@@ -61,12 +60,9 @@
 <meta property="article:modified_time" content="2020-07-28T16:03:59+08:00" />
 <meta itemprop="name" content="关于x86-64的栈布局和函数调用约定">
 <meta itemprop="description" content="在内核panic时，会打印出出问题的调用栈信息，同时也可以通过kdump结合crash进行更深入的分析定位问题。
-
 本文分析了x86-64的栈帧结构，为分析问题提供帮助。">
-
-
-<meta itemprop="datePublished" content="2020-07-28T16:03:59&#43;08:00" />
-<meta itemprop="dateModified" content="2020-07-28T16:03:59&#43;08:00" />
+<meta itemprop="datePublished" content="2020-07-28T16:03:59+08:00" />
+<meta itemprop="dateModified" content="2020-07-28T16:03:59+08:00" />
 <meta itemprop="wordCount" content="3857">
 
 
@@ -75,7 +71,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="关于x86-64的栈布局和函数调用约定"/>
 <meta name="twitter:description" content="在内核panic时，会打印出出问题的调用栈信息，同时也可以通过kdump结合crash进行更深入的分析定位问题。
-
 本文分析了x86-64的栈帧结构，为分析问题提供帮助。"/>
 
 <!--[if lte IE 9]>
@@ -169,21 +164,19 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#关于x86架构下栈的基础知识">关于x86架构下栈的基础知识</a></li>
-<li><a href="#x86-64通用寄存器">x86_64通用寄存器</a></li>
-<li><a href="#x86-64函数调用传递参数使用的寄存器">x86_64函数调用传递参数使用的寄存器</a></li>
-<li><a href="#red-zone">red zone</a></li>
-<li><a href="#fomit-frame-pointer">-fomit-frame-pointer</a></li>
-<li><a href="#对于浮点数">对于浮点数</a></li>
-<li><a href="#参考文档">参考文档：</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#关于x86架构下栈的基础知识">关于x86架构下栈的基础知识</a></li>
+        <li><a href="#x86_64通用寄存器">x86_64通用寄存器</a></li>
+        <li><a href="#x86_64函数调用传递参数使用的寄存器">x86_64函数调用传递参数使用的寄存器</a></li>
+        <li><a href="#red-zone">red zone</a></li>
+        <li><a href="#-fomit-frame-pointer">-fomit-frame-pointer</a></li>
+        <li><a href="#对于浮点数">对于浮点数</a></li>
+        <li><a href="#参考文档">参考文档：</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -191,117 +184,67 @@
     
     <div class="post-content">
       <p>在内核<code>panic</code>时，会打印出出问题的调用栈信息，同时也可以通过<code>kdump</code>结合<code>crash</code>进行更深入的分析定位问题。</p>
-
 <p>本文分析了<code>x86-64</code>的栈帧结构，为分析问题提供帮助。</p>
-
 <h3 id="关于x86架构下栈的基础知识">关于x86架构下栈的基础知识</h3>
-
 <p>英特尔的 <code>x86</code>架构把它的栈<strong>头朝下</strong>。它从某个地址开始，逐渐发展到一个较低的地址。下面是它的样子:</p>
-
-<p><center>
-<img src="./stack1.png" alt="" title="stack1" />
-</center></p>
-
+<!-- raw HTML omitted -->
 <p>因此，当我们说 <code>x86</code>上的<strong>栈顶部</strong>时，我们实际上指的是栈占用的内存区域中的最低地址。</p>
-
 <p><code>x86</code>架构保留了一个特殊的寄存器——<code>ESP (Extended Stack Pointer)</code>，来指向栈的顶部。</p>
-
-<p><center>
-<img src="./stack2.png" alt="" title="stack2" />
-</center></p>
-
+<!-- raw HTML omitted -->
 <p>如上图所示，地址<code>0x9080ABCC</code>是栈的顶部，ESP寄存器保存了指向栈顶的地址<code>0x9080ABCC</code>。</p>
-
 <p>我们使用<code>push</code>指令将新数据放入栈中，<code>push</code>所做的首先递减<code>ESP（ESP-4）</code>，然后将其操作数放到<code>ESP</code>指向的位置，所以</p>
-
 <pre><code>push eax
-</code></pre>
-
-<p>等价于</p>
-
+</code></pre><p>等价于</p>
 <pre><code>sub esp 4
 mov [esp], exa
-</code></pre>
-
-<p>假设<code>exa</code>保存的值为<code>0xDEADBEEF</code>，那么<code>push</code>后，栈就会变成如下：</p>
-
-<p><center>
-<img src="./stack3.png" alt="" title="stack3" />
-</center></p>
-
+</code></pre><p>假设<code>exa</code>保存的值为<code>0xDEADBEEF</code>，那么<code>push</code>后，栈就会变成如下：</p>
+<!-- raw HTML omitted -->
 <p>类似的，<code>pop</code>指令从栈顶获取一个值将其放到操作数中，然后增加<code>ESP（ESP+4</code>），也就是说</p>
-
 <pre><code>pop eax
-</code></pre>
-
-<p>等价于</p>
-
+</code></pre><p>等价于</p>
 <pre><code>mov eax, [esp]
 add esp + 4
-</code></pre>
-
-<p><code>pop exa</code>执行后，栈的情况如下：</p>
-
-<p><center>
-<img src="./stack4.png" alt="" title="stack4" />
-</center></p>
-
-<p>值<code>0xDEADBEEF</code> 将被写入<code>eax</code>。注意，<code>0xDEADBEEF</code> 也保留在地址<code>0x9080ABC8</code>，因为我们还没有覆盖它。</p>
-
+</code></pre><p><code>pop exa</code>执行后，栈的情况如下：</p>
+<!-- raw HTML omitted -->
+<p>值<code>0xDEADBEEF</code> 将被写入<code> eax</code>。注意，<code>0xDEADBEEF</code> 也保留在地址<code>0x9080ABC8</code>，因为我们还没有覆盖它。</p>
 <blockquote>
 <p>注意：上面主要以x86架构，介绍了关于栈的基础知识，下面会以x86-64架构，来介绍函数参数的传递约定。</p>
 </blockquote>
-
-<h3 id="x86-64通用寄存器">x86_64通用寄存器</h3>
-
+<h3 id="x86_64通用寄存器">x86_64通用寄存器</h3>
 <p><code>x86</code> 有<code>8</code>个通用的寄存器 (<code>eax, ebx, ecx, edx, ebp, esp, esi, edi</code>).<code>x86_64</code>对他们进行扩展，变成了<code>64</code>位 (前缀由<code>e</code>变成了<code>r</code>) ，并且增加了另外<code>8</code>个寄存器  (<code>r8, r9, r10, r11, r12, r13, r14, r15</code>).</p>
-
-<h3 id="x86-64函数调用传递参数使用的寄存器">x86_64函数调用传递参数使用的寄存器</h3>
-
+<h3 id="x86_64函数调用传递参数使用的寄存器">x86_64函数调用传递参数使用的寄存器</h3>
 <p><code>x86_64</code>了提高性能速度，将前<code>6</code>个参数通过寄存器传递，其顺序为<code>rdi</code>、<code>rsi</code>、<code>rdx</code>、<code>rcx</code>、<code>r8</code>、<code>r9</code>，第<code>7</code>个及以后的参数通过栈进行传递。</p>
-
 <p>考虑如下的代码：</p>
-
-<pre><code class="language-c">long utilfunc(long a, long b, long c)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">utilfunc</span>(<span style="color:#66d9ef">long</span> a, <span style="color:#66d9ef">long</span> b, <span style="color:#66d9ef">long</span> c)
 {
-	long xx = a + 2;
-	long yy = b + 3;
-	long zz = c + 4;
-	long sum = xx + yy + zz;
+	<span style="color:#66d9ef">long</span> xx <span style="color:#f92672">=</span> a <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>;
+	<span style="color:#66d9ef">long</span> yy <span style="color:#f92672">=</span> b <span style="color:#f92672">+</span> <span style="color:#ae81ff">3</span>;
+	<span style="color:#66d9ef">long</span> zz <span style="color:#f92672">=</span> c <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span>;
+	<span style="color:#66d9ef">long</span> sum <span style="color:#f92672">=</span> xx <span style="color:#f92672">+</span> yy <span style="color:#f92672">+</span> zz;
 
-	return xx * yy * zz + sum;
+	<span style="color:#66d9ef">return</span> xx <span style="color:#f92672">*</span> yy <span style="color:#f92672">*</span> zz <span style="color:#f92672">+</span> sum;
 }
 
-long myfunc(long a, long b, long c, long d,
-            long e, long f, long g, long h)
+<span style="color:#66d9ef">long</span> <span style="color:#a6e22e">myfunc</span>(<span style="color:#66d9ef">long</span> a, <span style="color:#66d9ef">long</span> b, <span style="color:#66d9ef">long</span> c, <span style="color:#66d9ef">long</span> d,
+            <span style="color:#66d9ef">long</span> e, <span style="color:#66d9ef">long</span> f, <span style="color:#66d9ef">long</span> g, <span style="color:#66d9ef">long</span> h)
 {
-	long xx = a * b * c * d * e * f * g * h;
-	long yy = a + b + c + d + e + f + g + h;
-	long zz = utilfunc(xx, yy, xx % yy);
+	<span style="color:#66d9ef">long</span> xx <span style="color:#f92672">=</span> a <span style="color:#f92672">*</span> b <span style="color:#f92672">*</span> c <span style="color:#f92672">*</span> d <span style="color:#f92672">*</span> e <span style="color:#f92672">*</span> f <span style="color:#f92672">*</span> g <span style="color:#f92672">*</span> h;
+	<span style="color:#66d9ef">long</span> yy <span style="color:#f92672">=</span> a <span style="color:#f92672">+</span> b <span style="color:#f92672">+</span> c <span style="color:#f92672">+</span> d <span style="color:#f92672">+</span> e <span style="color:#f92672">+</span> f <span style="color:#f92672">+</span> g <span style="color:#f92672">+</span> h;
+	<span style="color:#66d9ef">long</span> zz <span style="color:#f92672">=</span> utilfunc(xx, yy, xx <span style="color:#f92672">%</span> yy);
 
-	return zz + 20;
+	<span style="color:#66d9ef">return</span> zz <span style="color:#f92672">+</span> <span style="color:#ae81ff">20</span>;
 }
 
-int main(int argc, char **argv) {
-	myfunc(1,2,3,4,5,6,7,8);
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv) {
+	myfunc(<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4</span>,<span style="color:#ae81ff">5</span>,<span style="color:#ae81ff">6</span>,<span style="color:#ae81ff">7</span>,<span style="color:#ae81ff">8</span>);
 
-	return 0;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
-</code></pre>
-
-<p>编译</p>
-
+</code></pre></div><p>编译</p>
 <pre><code># gcc -o a.out -g  main.c 
-</code></pre>
-
-<p>调用函数<code>myfunc</code>时，其栈如下：</p>
-
-<p><center>
-<img src="./stack-x86-64.png" alt="" title="stack-x86-64" />
-</center></p>
-
+</code></pre><p>调用函数<code>myfunc</code>时，其栈如下：</p>
+<!-- raw HTML omitted -->
 <p>使用gdb调试如下：</p>
-
 <pre><code>[root@localhost stack]# gdb a.out 
 GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
 Copyright (C) 2013 Free Software Foundation, Inc.
@@ -460,22 +403,15 @@ Dump of assembler code for function myfunc:
    0x00000000004005de &lt;+173&gt;:	leaveq 
    0x00000000004005df &lt;+174&gt;:	retq   
 End of assembler dump.
-</code></pre>
-
-<h3 id="red-zone">red zone</h3>
-
+</code></pre><h3 id="red-zone">red zone</h3>
 <p>对于<code>leaf function</code>，<code>x86</code>下有一个优化，其特性依赖于 <code>red zone</code>,其官方解释为：</p>
-
 <pre><code>The 128-byte area beyond the location pointed to by %rsp is considered
 to be reserved and shall not be modified by signal or interrupt handlers.
 Therefore, functions may use this area for temporary data that is not
 needed across function calls. In particular, leaf functions may use this
 area for their entire stack frame, rather than adjusting the stack pointer
 in the prologue and epilogue. This area is known as the red zone.
-</code></pre>
-
-<p><code>leaf function</code>就是不会再调用其它函数的函数，上面的例子中，<code>utilfunc</code>就是一个<code>leaf function</code>。对于<code>leaf function</code>函数，由于它不会在调用其他函数，所以就不需要更改其<code>rsp</code>寄存器，免得函数返回时还要恢复<code>rsp</code>寄存器。</p>
-
+</code></pre><p><code>leaf function</code>就是不会再调用其它函数的函数，上面的例子中，<code>utilfunc</code>就是一个<code>leaf function</code>。对于<code>leaf function</code>函数，由于它不会在调用其他函数，所以就不需要更改其<code>rsp</code>寄存器，免得函数返回时还要恢复<code>rsp</code>寄存器。</p>
 <pre><code>[root@localhost stack]# gdb a.out 
 GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
 Copyright (C) 2013 Free Software Foundation, Inc.
@@ -564,18 +500,10 @@ Dump of assembler code for function utilfunc:
    0x000000000040052f &lt;+98&gt;:	pop    %rbp
    0x0000000000400530 &lt;+99&gt;:	retq   
 End of assembler dump.
-</code></pre>
-
-<p>当调用该叶子函数时，其栈如下：</p>
-
-<p><center>
-<img src="./stack-x86-64-redzone.png" alt="" title="stack-x86-64-redzone" />
-</center></p>
-
-<h3 id="fomit-frame-pointer">-fomit-frame-pointer</h3>
-
+</code></pre><p>当调用该叶子函数时，其栈如下：</p>
+<!-- raw HTML omitted -->
+<h3 id="-fomit-frame-pointer">-fomit-frame-pointer</h3>
 <p>实际上<code>rbp</code>不是必须的，如果编译器进行了优化，代码中就不会使用<code>rbp</code>寄存器了。</p>
-
 <pre><code>~/work/stack  # gcc -g -fomit-frame-pointer main.c  -o omit-frame-pointer
 root@127.0.0.1::[08:18:07]::[Exit Code: 0] -&gt;
 ~/work/stack  # gdb omit-frame-pointer 
@@ -677,40 +605,32 @@ Dump of assembler code for function utilfunc:
    0x0000000000400559 &lt;+108&gt;:	add    %rdx,%rax
    0x000000000040055c &lt;+111&gt;:	retq   
 End of assembler dump.
-</code></pre>
-
-<h3 id="对于浮点数">对于浮点数</h3>
-
+</code></pre><h3 id="对于浮点数">对于浮点数</h3>
 <p>函数参数中有浮点数的情况下，对于浮点数使用<code>xmm0</code>,<code>xmm1</code>,<code>xmm2</code>,<code>xmm3</code>到<code>xmm7</code>来传递。</p>
-
 <p>考虑如下函数</p>
-
-<pre><code class="language-c">~/work/stack  # cat float.c 
-#include &lt;stdio.h&gt;
-
-long myfunc(long a, long b, long c,
-	double d, long e, long f, double g, long h, long i, long j)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#f92672">~/</span>work<span style="color:#f92672">/</span>stack  <span style="color:#960050;background-color:#1e0010">#</span> cat <span style="color:#66d9ef">float</span>.c 
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">long</span> myfunc(<span style="color:#66d9ef">long</span> a, <span style="color:#66d9ef">long</span> b, <span style="color:#66d9ef">long</span> c,
+	<span style="color:#66d9ef">double</span> d, <span style="color:#66d9ef">long</span> e, <span style="color:#66d9ef">long</span> f, <span style="color:#66d9ef">double</span> g, <span style="color:#66d9ef">long</span> h, <span style="color:#66d9ef">long</span> i, <span style="color:#66d9ef">long</span> j)
 {
-	long xx = a + 2 + e;
-	long yy = b + 3 + f;
-	long zz = c + 4 + h;
-	long ww = i + j;
-	double vv = d + g;
-	long sum = xx + yy + zz + ww + vv;
+	<span style="color:#66d9ef">long</span> xx <span style="color:#f92672">=</span> a <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">+</span> e;
+	<span style="color:#66d9ef">long</span> yy <span style="color:#f92672">=</span> b <span style="color:#f92672">+</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">+</span> f;
+	<span style="color:#66d9ef">long</span> zz <span style="color:#f92672">=</span> c <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">+</span> h;
+	<span style="color:#66d9ef">long</span> ww <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> j;
+	<span style="color:#66d9ef">double</span> vv <span style="color:#f92672">=</span> d <span style="color:#f92672">+</span> g;
+	<span style="color:#66d9ef">long</span> sum <span style="color:#f92672">=</span> xx <span style="color:#f92672">+</span> yy <span style="color:#f92672">+</span> zz <span style="color:#f92672">+</span> ww <span style="color:#f92672">+</span> vv;
 
-	return xx * yy * zz + sum;
+	<span style="color:#66d9ef">return</span> xx <span style="color:#f92672">*</span> yy <span style="color:#f92672">*</span> zz <span style="color:#f92672">+</span> sum;
 }
 
-int main(int argc, char **argv) {
-	myfunc(1,2,3,4.0,5,6,7.0,8, 9, 10);
+<span style="color:#66d9ef">int</span> main(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv) {
+	myfunc(<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4.0</span>,<span style="color:#ae81ff">5</span>,<span style="color:#ae81ff">6</span>,<span style="color:#ae81ff">7.0</span>,<span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>, <span style="color:#ae81ff">10</span>);
 
-	return 0;
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 r
-</code></pre>
-
-<p>gdb 效果如下：</p>
-
+</code></pre></div><p>gdb 效果如下：</p>
 <pre><code>~/work/stack  # gcc float.c -o float -g
 root@127.0.0.1::[08:30:35]::[Exit Code: 0] -&gt;
 ~/work/stack  # gdb float
@@ -844,13 +764,14 @@ Dump of assembler code for function myfunc:
    0x00000000004005af &lt;+194&gt;:	retq   
 End of assembler dump.
 
-</code></pre>
-
-<h3 id="参考文档">参考文档：</h3>
-
+</code></pre><h3 id="参考文档">参考文档：</h3>
 <ul>
-<li><a href="https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64/">https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64/</a></li>
-<li><a href="https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf">https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf</a></li>
+<li>
+<p><a href="https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64/">https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64/</a></p>
+</li>
+<li>
+<p><a href="https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf">https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf</a></p>
+</li>
 </ul>
     </div>
 
@@ -936,7 +857,7 @@ End of assembler dump.
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

@@ -27,7 +27,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/out-of-memory/" />
@@ -58,10 +58,8 @@
 <meta property="article:modified_time" content="2018-04-11T12:24:17+08:00" />
 <meta itemprop="name" content="Linux OOM 机制分析">
 <meta itemprop="description" content="本文简要介绍了Linux OOM机制，并详细分析了OOM机制的全局参数配置和进程级别的参数配置。">
-
-
-<meta itemprop="datePublished" content="2018-04-11T12:24:17&#43;08:00" />
-<meta itemprop="dateModified" content="2018-04-11T12:24:17&#43;08:00" />
+<meta itemprop="datePublished" content="2018-04-11T12:24:17+08:00" />
+<meta itemprop="dateModified" content="2018-04-11T12:24:17+08:00" />
 <meta itemprop="wordCount" content="2531">
 
 
@@ -166,27 +164,19 @@
   
   <div class="post-toc-content always-active">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#oom机制">OOM机制</a></li>
-<li><a href="#oom全局内控制优参数">OOM全局内控制优参数</a></li>
-<li><a href="#oom-进程级别的参数"><code>OOM</code>进程级别的参数</a></li>
-<li><a href="#宿主机上人为产生-oom-的方法">宿主机上人为产生<code>oom</code>的方法</a>
-<ul>
-<li><a href="#宿主机上完整的-oom-日志如下">宿主机上完整的<code>oom</code>日志如下</a></li>
-</ul></li>
-<li><a href="#容器内产生-oom-的方法">容器内产生<code>oom</code>的方法</a>
-<ul>
-<li><a href="#容器内完整的-oom-日志">容器内完整的<code>oom</code>日志</a></li>
-</ul></li>
-<li><a href="#建议宿主机上的配置">建议宿主机上的配置</a></li>
-<li><a href="#参考文章">参考文章</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#oom机制">OOM机制</a></li>
+        <li><a href="#oom全局内控制优参数">OOM全局内控制优参数</a></li>
+        <li><a href="#oom进程级别的参数"><code>OOM</code>进程级别的参数</a></li>
+        <li><a href="#宿主机上人为产生oom的方法">宿主机上人为产生<code>oom</code>的方法</a></li>
+        <li><a href="#容器内产生oom的方法">容器内产生<code>oom</code>的方法</a></li>
+        <li><a href="#建议宿主机上的配置">建议宿主机上的配置</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -194,62 +184,46 @@
     
     <div class="post-content">
       <p>本文简要介绍了<code>Linux OOM</code>机制，并详细分析了<code>OOM</code>机制的全局参数配置和进程级别的参数配置。</p>
-
 <h3 id="oom机制">OOM机制</h3>
-
 <p><code>OOM(Out Of Memory)</code>机制为<code>Linux</code>内核中一种自我保护机制，当系统分配不出内存时(触发条件)会触发这个机制，由系统在已有进程中挑选一个占用内存较多，回收内存收益最大的进程杀掉来释放内存。</p>
-
 <h3 id="oom全局内控制优参数">OOM全局内控制优参数</h3>
-
 <p><code>panic_on_oom</code> : 用于决定在发生<code>oom</code>时，内核是否<code>panic</code>, 可以设置的值为<code>0</code>、<code>1</code>、<code>2</code>，默认为<code>0</code></p>
-
 <ul>
 <li><code>1</code>： 当<code>cpuset</code>、<code>mempolicy</code>、<code>memcg</code>等分配失败引起的<code>oom</code>，不进行<code>panic</code></li>
 <li><code>2</code>：任何情况的的<code>oom</code>，都进行<code>panic</code></li>
 </ul>
-
 <p><code>oom_dump_tasks</code>: 如果启用，在内核执行<code>oom killer</code>时，会打印系统内进程的信息，这些信息可以帮助我们找出为什么<code>oom killer</code>被执行，找到导致<code>oom</code>的进程，以及了解为什么进程会被选中, 默认为<code>1</code></p>
-
 <ul>
 <li><code>非0</code>: 打印系统内进程的信息</li>
 <li><code>0</code>: 不打印系统内进程的信息</li>
 </ul>
-
 <p><code>oom_kill_allocating_task</code>: 决定在<code>oom</code>时，<code>oom killer</code>杀哪些进程,默认设置为<code>0</code></p>
-
 <ul>
 <li><code>非0</code>: 它会扫描进程队列，将可能导致内存溢出的进程杀掉，也就是占用内存最大的进程</li>
 <li><code>0</code>:  oom killer只杀导致oom的那个进程，避免了进程队列的扫描，但是释放的内存大小有限</li>
 </ul>
-
-<h3 id="oom-进程级别的参数"><code>OOM</code>进程级别的参数</h3>
-
+<h3 id="oom进程级别的参数"><code>OOM</code>进程级别的参数</h3>
 <p><code>oom killer</code>机制提供了几个参数来调节进程在<code>oom killer</code>中的行为</p>
-
 <ul>
-<li><p><code>/proc/&lt;pid&gt;/oom_score_adj</code> 可以设置<code>-1000</code>到<code>1000</code>，当设置为<code>-1000</code>时表示不会被<code>oom killer</code>选中</p></li>
-
-<li><p><code>/proc/&lt;pid&gt;/oom_adj</code> 它的值从<code>-17</code>到<code>15</code>，值越大越容易被<code>oom killer</code>选中，值越小表示选中的可能性越小。当值为<code>-17</code>是，表示该进程永远不会被选中。这个<code>oom_adj</code>是要被<code>oom_score_adj</code>替代的，只是为了兼容旧的内核版本，暂时保留，以后会被废弃。</p></li>
-
-<li><p><code>/proc/&lt;pid&gt;/oom_score</code>   表示当前进程的<code>oom</code>分数</p></li>
+<li>
+<p><code>/proc/&lt;pid&gt;/oom_score_adj</code> 可以设置<code>-1000</code>到<code>1000</code>，当设置为<code>-1000</code>时表示不会被<code>oom killer</code>选中</p>
+</li>
+<li>
+<p><code>/proc/&lt;pid&gt;/oom_adj</code> 它的值从<code>-17</code>到<code>15</code>，值越大越容易被<code>oom killer</code>选中，值越小表示选中的可能性越小。当值为<code>-17</code>是，表示该进程永远不会被选中。这个<code>oom_adj</code>是要被<code>oom_score_adj</code>替代的，只是为了兼容旧的内核版本，暂时保留，以后会被废弃。</p>
+</li>
+<li>
+<p><code>/proc/&lt;pid&gt;/oom_score</code>   表示当前进程的<code>oom</code>分数</p>
+</li>
 </ul>
-
-<h3 id="宿主机上人为产生-oom-的方法">宿主机上人为产生<code>oom</code>的方法</h3>
-
-<pre><code class="language-bash"># echo f &gt; /proc/sysrq-trigger
-</code></pre>
-
-<p>该操作在容器中不可用。</p>
-
-<pre><code class="language-c">static void moom_callback(struct work_struct *ignored)
-{// echo f &gt; /proc/sysrq-trigger 后执行的函数
-        out_of_memory(node_zonelist(first_memory_node, GFP_KERNEL), GFP_KERNEL,                    
-                      0, NULL, true);
+<h3 id="宿主机上人为产生oom的方法">宿主机上人为产生<code>oom</code>的方法</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># echo f &gt; /proc/sysrq-trigger</span>
+</code></pre></div><p>该操作在容器中不可用。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">moom_callback</span>(<span style="color:#66d9ef">struct</span> work_struct <span style="color:#f92672">*</span>ignored)
+{<span style="color:#75715e">// echo f &gt; /proc/sysrq-trigger 后执行的函数
+</span><span style="color:#75715e"></span>        out_of_memory(node_zonelist(first_memory_node, GFP_KERNEL), GFP_KERNEL,                    
+                      <span style="color:#ae81ff">0</span>, NULL, true);
 }
-</code></pre>
-
-<h4 id="宿主机上完整的-oom-日志如下">宿主机上完整的<code>oom</code>日志如下</h4>
-
+</code></pre></div><h4 id="宿主机上完整的oom日志如下">宿主机上完整的<code>oom</code>日志如下</h4>
 <pre><code>[13933.589425] SysRq : Manual OOM execution
 [13933.594196] kworker/2:1 invoked oom-killer: gfp_mask=0xd0, order=0, oom_score_adj=0
 [13933.594216] kworker/2:1 cpuset=/ mems_allowed=0
@@ -357,19 +331,13 @@
 [13933.594483] [14901]     0 14901    26976      153      12        0             0 sleep
 [13933.594485] Out of memory: Kill process 1065 (tuned) score 0 or sacrifice child
 [13933.602190] Killed process 1065 (tuned) total-vm:562324kB, anon-rss:10760kB, file-rss:5888kB, shmem-rss:0kB
-</code></pre>
-
-<h3 id="容器内产生-oom-的方法">容器内产生<code>oom</code>的方法</h3>
-
-<pre><code class="language-bash"> root@15e3eaa960e4:/# stress -m 8 -t 30
-stress: info: [31] dispatching hogs: 0 cpu, 0 io, 8 vm, 0 hdd
-stress: FAIL: [31] (415) &lt;-- worker 39 got signal 9
-stress: WARN: [31] (417) now reaping child worker processes
-stress: FAIL: [31] (451) failed run completed in 0s
-</code></pre>
-
-<h4 id="容器内完整的-oom-日志">容器内完整的<code>oom</code>日志</h4>
-
+</code></pre><h3 id="容器内产生oom的方法">容器内产生<code>oom</code>的方法</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> root@15e3eaa960e4:/# stress -m <span style="color:#ae81ff">8</span> -t <span style="color:#ae81ff">30</span>
+stress: info: <span style="color:#f92672">[</span>31<span style="color:#f92672">]</span> dispatching hogs: <span style="color:#ae81ff">0</span> cpu, <span style="color:#ae81ff">0</span> io, <span style="color:#ae81ff">8</span> vm, <span style="color:#ae81ff">0</span> hdd
+stress: FAIL: <span style="color:#f92672">[</span>31<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>415<span style="color:#f92672">)</span> &lt;-- worker <span style="color:#ae81ff">39</span> got signal <span style="color:#ae81ff">9</span>
+stress: WARN: <span style="color:#f92672">[</span>31<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>417<span style="color:#f92672">)</span> now reaping child worker processes
+stress: FAIL: <span style="color:#f92672">[</span>31<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>451<span style="color:#f92672">)</span> failed run completed in 0s
+</code></pre></div><h4 id="容器内完整的oom日志">容器内完整的<code>oom</code>日志</h4>
 <pre><code>[13449.623801] stress invoked oom-killer: gfp_mask=0xd0, order=0, oom_score_adj=0
 [13449.623806] stress cpuset=docker-15e3eaa960e4ac016d47ea7247961a70254bbbaaaec3981a9090f68606623b50.scope mems_allowed=0
 [13449.623808] CPU: 0 PID: 14726 Comm: stress Not tainted 3.10.0-693.el7.x86_64.debug #1
@@ -407,10 +375,7 @@ stress: FAIL: [31] (451) failed run completed in 0s
 [13449.623989] [14728]     0 14728    67404     6605      83    31751             0 stress
 [13449.623991] Memory cgroup out of memory: Kill process 14728 (stress) score 750 or sacrifice child
 [13449.633291] Killed process 14728 (stress) total-vm:269616kB, anon-rss:24064kB, file-rss:4kB, shmem-rss:0kB
-</code></pre>
-
-<p>关闭<code>oom_dump_tasks</code>后，日志如下：</p>
-
+</code></pre><p>关闭<code>oom_dump_tasks</code>后，日志如下：</p>
 <pre><code>[13603.131330] stress invoked oom-killer: gfp_mask=0xd0, order=0, oom_score_adj=0
 [13603.131335] stress cpuset=docker-15e3eaa960e4ac016d47ea7247961a70254bbbaaaec3981a9090f68606623b50.scope mems_allowed=0
 [13603.131337] CPU: 6 PID: 14806 Comm: stress Not tainted 3.10.0-693.42.el7.x86_64.debug #1
@@ -436,22 +401,20 @@ stress: FAIL: [31] (451) failed run completed in 0s
 [13603.131392] Memory cgroup stats for /system.slice/docker-15e3eaa960e4ac016d47ea7247961a70254bbbaaaec3981a9090f68606623b50.scope: cache:0KB rss:101716KB rss_huge:2048KB mapped_file:0KB dirty:0KB writeback:36KB swap:103084KB inactive_anon:50892KB active_anon:50256KB inactive_file:0KB active_file:0KB unevictable:0KB
 [13603.131405] Memory cgroup out of memory: Kill process 14806 (stress) score 634 or sacrifice child
 [13603.140754] Killed process 14806 (stress) total-vm:269616kB, anon-rss:55384kB, file-rss:4kB, shmem-rss:0kB
-</code></pre>
-
-<h3 id="建议宿主机上的配置">建议宿主机上的配置</h3>
-
+</code></pre><h3 id="建议宿主机上的配置">建议宿主机上的配置</h3>
 <p>最优配置要看具体使用场景:</p>
-
 <ul>
-<li><p>对于<code>panic_on_oom</code>，如果是嵌入式场景，可以配置成<code>2</code>，当出现oom时，通过自动重启将系统恢复正常。但对于服务器系统来说，<code>panic</code>就不太友好了，建议配置为默认的0即可。</p></li>
-
-<li><p>对于<code>oom_dump_tasks</code>,如果是调试阶段，建议配置为<code>1</code>,如果在生产环境下，特别是系统上进程较多的情况下，建议配置为<code>0</code>。内核文档中也建议配置为<code>0</code>(参考：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v4.16/Documentation/sysctl/vm.txt#L595#L615"> Documentation/sysctl/vm.txt(line 595-615) </a>).</p></li>
-
-<li><p>对于<code>oom_kill_allocating_task</code>,建议设置为默认值即可。</p></li>
+<li>
+<p>对于<code>panic_on_oom</code>，如果是嵌入式场景，可以配置成<code>2</code>，当出现oom时，通过自动重启将系统恢复正常。但对于服务器系统来说，<code>panic</code>就不太友好了，建议配置为默认的0即可。</p>
+</li>
+<li>
+<p>对于<code>oom_dump_tasks</code>,如果是调试阶段，建议配置为<code>1</code>,如果在生产环境下，特别是系统上进程较多的情况下，建议配置为<code>0</code>。内核文档中也建议配置为<code>0</code>(参考：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v4.16/Documentation/sysctl/vm.txt#L595#L615"> Documentation/sysctl/vm.txt(line 595-615) </a>).</p>
+</li>
+<li>
+<p>对于<code>oom_kill_allocating_task</code>,建议设置为默认值即可。</p>
+</li>
 </ul>
-
 <h3 id="参考文章">参考文章</h3>
-
 <ul>
 <li><a href="https://github.com/torvalds/linux/blob/v4.16/Documentation/sysctl/vm.txt">https://github.com/torvalds/linux/blob/v4.16/Documentation/sysctl/vm.txt</a></li>
 </ul>
@@ -542,7 +505,7 @@ stress: FAIL: [31] (451) failed run completed in 0s
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

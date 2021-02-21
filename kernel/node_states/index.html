@@ -28,7 +28,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/node_states/" />
@@ -53,7 +53,6 @@
 
 <meta property="og:title" content="描述系统上cpu和memory的状态:node_states" />
 <meta property="og:description" content="在内存管理和调度负载均衡中，有许多代码逻辑要遍历node上的内存和cpu信息，加上现在的内核都支持内存和cpu的热插拔，所以系统上node的状态在内核上要有专门的数据结构进行描述。
-
 本文就研究一下用于描述node信息的数据结构。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://linux.laoqinren.net/kernel/node_states/" />
@@ -61,12 +60,9 @@
 <meta property="article:modified_time" content="2019-01-20T11:24:14+08:00" />
 <meta itemprop="name" content="描述系统上cpu和memory的状态:node_states">
 <meta itemprop="description" content="在内存管理和调度负载均衡中，有许多代码逻辑要遍历node上的内存和cpu信息，加上现在的内核都支持内存和cpu的热插拔，所以系统上node的状态在内核上要有专门的数据结构进行描述。
-
 本文就研究一下用于描述node信息的数据结构。">
-
-
-<meta itemprop="datePublished" content="2019-01-20T11:24:14&#43;08:00" />
-<meta itemprop="dateModified" content="2019-01-20T11:24:14&#43;08:00" />
+<meta itemprop="datePublished" content="2019-01-20T11:24:14+08:00" />
+<meta itemprop="dateModified" content="2019-01-20T11:24:14+08:00" />
 <meta itemprop="wordCount" content="1469">
 
 
@@ -75,7 +71,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="描述系统上cpu和memory的状态:node_states"/>
 <meta name="twitter:description" content="在内存管理和调度负载均衡中，有许多代码逻辑要遍历node上的内存和cpu信息，加上现在的内核都支持内存和cpu的热插拔，所以系统上node的状态在内核上要有专门的数据结构进行描述。
-
 本文就研究一下用于描述node信息的数据结构。"/>
 
 <!--[if lte IE 9]>
@@ -173,17 +168,15 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#系统环境">系统环境</a></li>
-<li><a href="#查看numa信息">查看numa信息</a></li>
-<li><a href="#node-states-全局变量">node_states 全局变量</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#系统环境">系统环境</a></li>
+        <li><a href="#查看numa信息">查看numa信息</a></li>
+        <li><a href="#node_states-全局变量">node_states 全局变量</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -191,96 +184,71 @@
     
     <div class="post-content">
       <p>在内存管理和调度负载均衡中，有许多代码逻辑要遍历<code>node</code>上的<strong>内存</strong>和<strong>cpu</strong>信息，加上现在的内核都支持内存和<code>cpu</code>的热插拔，所以系统上<code>node</code>的状态在内核上要有专门的数据结构进行描述。</p>
-
 <p>本文就研究一下用于描述<code>node</code>信息的数据结构。</p>
-
-<p><img src="./pic.jpg" alt="" /></p>
-
+<p><img src="./pic.jpg" alt="" title=""></p>
 <h3 id="系统环境">系统环境</h3>
-
 <ul>
 <li>发行版：<code>centos7.5</code></li>
 <li>内核版本：<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a></li>
 <li>处理器：<code>40core（Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz）</code></li>
 <li>内存：<code>128GB</code>，两个<code>NUMA node</code></li>
 </ul>
-
 <h3 id="查看numa信息">查看numa信息</h3>
-
 <p>我们知道，现在的服务器一般都是<code>NUMA</code>架构，通常包含两个<code>numa node</code>，每个<code>node</code>上都有与其比较近的<code>cpu</code>和内存，我们可以通过命令<code>numactl --hardware</code>查看信息：</p>
-
-<pre><code class="language-bash">$ numactl --hardware
-available: 2 nodes (0-1)
-node 0 cpus: 0 1 2 3 4 5 6 7 8 9 20 21 22 23 24 25 26 27 28 29
-node 0 size: 65133 MB
-node 0 free: 16561 MB
-node 1 cpus: 10 11 12 13 14 15 16 17 18 19 30 31 32 33 34 35 36 37 38 39
-node 1 size: 65536 MB
-node 1 free: 5572 MB
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ numactl --hardware
+available: <span style="color:#ae81ff">2</span> nodes <span style="color:#f92672">(</span>0-1<span style="color:#f92672">)</span>
+node <span style="color:#ae81ff">0</span> cpus: <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">4</span> <span style="color:#ae81ff">5</span> <span style="color:#ae81ff">6</span> <span style="color:#ae81ff">7</span> <span style="color:#ae81ff">8</span> <span style="color:#ae81ff">9</span> <span style="color:#ae81ff">20</span> <span style="color:#ae81ff">21</span> <span style="color:#ae81ff">22</span> <span style="color:#ae81ff">23</span> <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">25</span> <span style="color:#ae81ff">26</span> <span style="color:#ae81ff">27</span> <span style="color:#ae81ff">28</span> <span style="color:#ae81ff">29</span>
+node <span style="color:#ae81ff">0</span> size: <span style="color:#ae81ff">65133</span> MB
+node <span style="color:#ae81ff">0</span> free: <span style="color:#ae81ff">16561</span> MB
+node <span style="color:#ae81ff">1</span> cpus: <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">11</span> <span style="color:#ae81ff">12</span> <span style="color:#ae81ff">13</span> <span style="color:#ae81ff">14</span> <span style="color:#ae81ff">15</span> <span style="color:#ae81ff">16</span> <span style="color:#ae81ff">17</span> <span style="color:#ae81ff">18</span> <span style="color:#ae81ff">19</span> <span style="color:#ae81ff">30</span> <span style="color:#ae81ff">31</span> <span style="color:#ae81ff">32</span> <span style="color:#ae81ff">33</span> <span style="color:#ae81ff">34</span> <span style="color:#ae81ff">35</span> <span style="color:#ae81ff">36</span> <span style="color:#ae81ff">37</span> <span style="color:#ae81ff">38</span> <span style="color:#ae81ff">39</span>
+node <span style="color:#ae81ff">1</span> size: <span style="color:#ae81ff">65536</span> MB
+node <span style="color:#ae81ff">1</span> free: <span style="color:#ae81ff">5572</span> MB
 node distances:
-node   0   1 
-  0:  10  21 
-  1:  21  10 
-</code></pre>
-
-<p>此外，在<code>linux</code>系统中，每个<code>node</code>的详细信息，可以通过目录<code>/sys/devices/system/node</code>进行查看：</p>
-
-<pre><code class="language-bash"> $ pwd
+node   <span style="color:#ae81ff">0</span>   <span style="color:#ae81ff">1</span> 
+  0:  <span style="color:#ae81ff">10</span>  <span style="color:#ae81ff">21</span> 
+  1:  <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">10</span> 
+</code></pre></div><p>此外，在<code>linux</code>系统中，每个<code>node</code>的详细信息，可以通过目录<code>/sys/devices/system/node</code>进行查看：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> $ pwd
 /sys/devices/system/node
  $ ls -l
-total 0
--r--r--r-- 1 root root 4096 Jan  4 10:36 has_cpu
--r--r--r-- 1 root root 4096 Jan  4 10:36 has_memory
--r--r--r-- 1 root root 4096 Jan  4 10:36 has_normal_memory
-drwxr-xr-x 4 root root    0 Nov 14 15:39 node0
-drwxr-xr-x 4 root root    0 Nov 14 15:39 node1
--r--r--r-- 1 root root 4096 Jan  4 10:36 online
--r--r--r-- 1 root root 4096 Jan  4 10:36 possible
-drwxr-xr-x 2 root root    0 Jan  3 16:51 power
--rw-r--r-- 1 root root 4096 Jan  4 10:36 uevent
-</code></pre>
-
-<h3 id="node-states-全局变量">node_states 全局变量</h3>
-
+total <span style="color:#ae81ff">0</span>
+-r--r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4096</span> Jan  <span style="color:#ae81ff">4</span> 10:36 has_cpu
+-r--r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4096</span> Jan  <span style="color:#ae81ff">4</span> 10:36 has_memory
+-r--r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4096</span> Jan  <span style="color:#ae81ff">4</span> 10:36 has_normal_memory
+drwxr-xr-x <span style="color:#ae81ff">4</span> root root    <span style="color:#ae81ff">0</span> Nov <span style="color:#ae81ff">14</span> 15:39 node0
+drwxr-xr-x <span style="color:#ae81ff">4</span> root root    <span style="color:#ae81ff">0</span> Nov <span style="color:#ae81ff">14</span> 15:39 node1
+-r--r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4096</span> Jan  <span style="color:#ae81ff">4</span> 10:36 online
+-r--r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4096</span> Jan  <span style="color:#ae81ff">4</span> 10:36 possible
+drwxr-xr-x <span style="color:#ae81ff">2</span> root root    <span style="color:#ae81ff">0</span> Jan  <span style="color:#ae81ff">3</span> 16:51 power
+-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4096</span> Jan  <span style="color:#ae81ff">4</span> 10:36 uevent
+</code></pre></div><h3 id="node_states-全局变量">node_states 全局变量</h3>
 <p><code>linux</code> 内核定义了一个全局变量<code>node_states</code>，其类型为<code>nodemask_t</code>:</p>
-
-<pre><code class="language-c">typedef struct { DECLARE_BITMAP(bits, MAX_NUMNODES); } nodemask_t;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> { DECLARE_BITMAP(bits, MAX_NUMNODES); } nodemask_t;
 nodemask_t node_states[NR_NODE_STATES] __read_mostly;
-</code></pre>
-
-<p>通过<code>crash</code>命令，我们可以看到在真实的服务器系统上，这些变量的实际定义：</p>
-
-<pre><code class="language-c">crash&gt; whatis nodemask_t
-typedef struct {
-    unsigned long bits[16];
+</code></pre></div><p>通过<code>crash</code>命令，我们可以看到在真实的服务器系统上，这些变量的实际定义：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">crash<span style="color:#f92672">&gt;</span> whatis nodemask_t
+<span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> bits[<span style="color:#ae81ff">16</span>];
 } nodemask_t;
-SIZE: 128
-crash&gt; whatis node_states
-nodemask_t node_states[5];
-</code></pre>
-
-<p>从上可以看出：</p>
-
+SIZE: <span style="color:#ae81ff">128</span>
+crash<span style="color:#f92672">&gt;</span> whatis node_states
+nodemask_t node_states[<span style="color:#ae81ff">5</span>];
+</code></pre></div><p>从上可以看出：</p>
 <ul>
 <li><code>NR_NODE_STATES</code>的值为<code>5</code>，经过对比代码，目前系统上描述了以下几种资源
-
 <ul>
 <li><code>N_POSSIBLE</code>： 描述对应的<code>node</code>上未来是否会<code>online</code></li>
 <li><code>N_ONLINE</code>：描述对应的<code>node</code>是否<code>online</code></li>
 <li><code>N_NORMAL_MEMORY</code>：描述对应的<code>node</code>是否有<code>normal memory</code></li>
 <li><code>N_MEMORY</code>：描述对应的<code>node</code>是否有内存</li>
 <li><code>N_CPU</code>：描述对应的<code>node</code>上是否有<code>cpu</code></li>
-</ul></li>
-
-<li><p>通过<code>nodemask_t</code>可以看出，系统上最大支持<code>1024</code>（<code>16*64</code>）个node，其实，通过内核的<code>config</code>，也可以计算出系统最大支持<code>1024</code>个<code>node</code>，这里的<code>CONFIG_NODES_SHIFT</code>为<code>10</code>。</p>
-
-<pre><code class="language-c">#define NODES_SHIFT     CONFIG_NODES_SHIFT
-#define MAX_NUMNODES    (1 &lt;&lt; NODES_SHIFT)
-</code></pre></li>
 </ul>
-
-<p>我所查看的机器上有两个<code>node</code>，那么接下来我们通过<code>crash</code>查看一下<code>node_states</code>的值：</p>
-
+</li>
+<li>通过<code>nodemask_t</code>可以看出，系统上最大支持<code>1024</code>（<code>16*64</code>）个node，其实，通过内核的<code>config</code>，也可以计算出系统最大支持<code>1024</code>个<code>node</code>，这里的<code>CONFIG_NODES_SHIFT</code>为<code>10</code>。</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define NODES_SHIFT     CONFIG_NODES_SHIFT
+</span><span style="color:#75715e">#define MAX_NUMNODES    (1 &lt;&lt; NODES_SHIFT)
+</span></code></pre></div><p>我所查看的机器上有两个<code>node</code>，那么接下来我们通过<code>crash</code>查看一下<code>node_states</code>的值：</p>
 <pre><code>crash&gt; p node_states
 node_states = $1 = {
   {
@@ -295,35 +263,31 @@ node_states = $1 = {
     bits = {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
   }
   }
-</code></pre>
-
-<ul>
+</code></pre><ul>
 <li>第一行<code>3</code>代表系统上只会有两个<code>node</code>，<code>node0</code>和<code>node1</code></li>
 <li>第二行<code>3</code>代表系统上目前<code>node0</code>和<code>node1</code>都是<code>online</code>的</li>
 <li>第三行<code>3</code>代表系统上<code>node0</code>和<code>node1</code>都有<code>normal memory</code></li>
 <li>第四行<code>3</code>代表系统上<code>node0</code>和<code>node1</code>都有内存</li>
 <li>第五行<code>3</code>代表系统上<code>node0</code>和<code>node1</code>上都有<code>cpu</code></li>
 </ul>
-
 <p>有了<code>node_states</code>后，我们就可以方便的遍历所有<code>node</code>，并且跳过那些已经不存在或者没有某些资源的<code>node</code>。</p>
-
-<pre><code class="language-c">//遍历所有可能的node结点
-#define for_each_node(node)        for_each_node_state(node, N_POSSIBLE)
-//遍历已经online的node结点
-#define for_each_online_node(node) for_each_node_state(node, N_ONLINE)
-//统计总的online状态的node结点个数
-#define num_online_nodes()      num_node_state(N_ONLINE)
-//统计总的可能得node结点个数
-#define num_possible_nodes()    num_node_state(N_POSSIBLE)
-//判断node结点是否online
-#define node_online(node)       node_state((node), N_ONLINE)
-//判断是否存在node结点
-#define node_possible(node)     node_state((node), N_POSSIBLE)
-//选择第一个online的node结点
-#define first_online_node       first_node(node_states[N_ONLINE])
-//选择第一个有内存的node结点
-#define first_memory_node       first_node(node_states[N_MEMORY])
-</code></pre>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">//遍历所有可能的node结点
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define for_each_node(node)        for_each_node_state(node, N_POSSIBLE)
+</span><span style="color:#75715e"></span><span style="color:#75715e">//遍历已经online的node结点
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define for_each_online_node(node) for_each_node_state(node, N_ONLINE)
+</span><span style="color:#75715e"></span><span style="color:#75715e">//统计总的online状态的node结点个数
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define num_online_nodes()      num_node_state(N_ONLINE)
+</span><span style="color:#75715e"></span><span style="color:#75715e">//统计总的可能得node结点个数
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define num_possible_nodes()    num_node_state(N_POSSIBLE)
+</span><span style="color:#75715e"></span><span style="color:#75715e">//判断node结点是否online
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define node_online(node)       node_state((node), N_ONLINE)
+</span><span style="color:#75715e"></span><span style="color:#75715e">//判断是否存在node结点
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define node_possible(node)     node_state((node), N_POSSIBLE)
+</span><span style="color:#75715e"></span><span style="color:#75715e">//选择第一个online的node结点
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define first_online_node       first_node(node_states[N_ONLINE])
+</span><span style="color:#75715e"></span><span style="color:#75715e">//选择第一个有内存的node结点
+</span><span style="color:#75715e"></span><span style="color:#75715e">#define first_memory_node       first_node(node_states[N_MEMORY])
+</span></code></pre></div>
     </div>
 
     
@@ -414,7 +378,7 @@ node_states = $1 = {
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>

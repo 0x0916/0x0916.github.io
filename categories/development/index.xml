@@ -6,11 +6,7 @@
     <description>Recent content in Development on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 01 Feb 2017 19:20:04 -0700</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/categories/development/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Wed, 01 Feb 2017 19:20:04 -0700</lastBuildDate><atom:link href="http://linux.laoqinren.net/categories/development/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>tmux快捷键总结</title>
       <link>http://linux.laoqinren.net/posts/tmux/</link>
@@ -18,9 +14,7 @@
       
       <guid>http://linux.laoqinren.net/posts/tmux/</guid>
       <description>&lt;p&gt;&lt;code&gt;tmux&lt;/code&gt; (&lt;code&gt;Terminal Multiplexer&lt;/code&gt;的简称), 是一款优秀的终端复用软件，类似 &lt;code&gt;GNU screen&lt;/code&gt;，但比&lt;code&gt;screen&lt;/code&gt;更出色。&lt;/p&gt;
-
 &lt;p&gt;&lt;code&gt;Tmux&lt;/code&gt; 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 &lt;code&gt;Tmux&lt;/code&gt; 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。&lt;/p&gt;
-
 &lt;p&gt;本文总结了&lt;code&gt;tmux&lt;/code&gt;常用的一些快捷键。&lt;/p&gt;</description>
     </item>
     

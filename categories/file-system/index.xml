@@ -6,11 +6,7 @@
     <description>Recent content in File System on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 15 Sep 2018 20:10:34 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/categories/file-system/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sat, 15 Sep 2018 20:10:34 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/categories/file-system/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>FUSE介绍</title>
       <link>http://linux.laoqinren.net/linux/fuse/</link>

@@ -6,10 +6,16 @@
     <description>Recent content in linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 03 Aug 2020 17:47:08 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
-    
+    <lastBuildDate>Sun, 30 Aug 2020 10:08:20 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux内核跟踪技术之——kprobe技术</title>
+      <link>http://linux.laoqinren.net/kernel/linux-kprobe/</link>
+      <pubDate>Sun, 30 Aug 2020 10:08:20 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/linux-kprobe/</guid>
+      <description>&lt;p&gt;Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。&lt;/p&gt;
+&lt;p&gt;本文将介绍kprobe的用法和解析其工作原理。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>__KERNEL__宏的作用是什么呢？该如何使用呢？</title>
@@ -27,7 +33,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/xarray/</guid>
       <description>&lt;p&gt;本文详细介绍了Linux的XArray数据结构。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文分析中引用的代码来自于：&lt;a href=&#34;https://kernel.org/pub/linux/kernel/v5.x/linux-5.1.21.tar.xz&#34;&gt;linux-5.1.21.tar.xz&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -96,7 +101,7 @@
       <pubDate>Wed, 13 Mar 2019 22:30:09 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/kernel/kernel-dynamic-debug/</guid>
-      <description>&lt;p&gt;本文介绍了如何使用内核的&lt;code&gt;dynamic debug (dyndbg)&lt;/code&gt;特性。&lt;/p&gt;</description>
+      <description>&lt;p&gt;本文介绍了如何使用内核的&lt;code&gt;dynamic debug (dyndbg) &lt;/code&gt;特性。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -124,7 +129,6 @@
       
       <guid>http://linux.laoqinren.net/linux/access-physical-address/</guid>
       <description>&lt;p&gt;用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。&lt;/p&gt;
-
 &lt;p&gt;如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现&lt;code&gt;Linux&lt;/code&gt;中用户态程序访问所有物理内存。&lt;/p&gt;</description>
     </item>
     
@@ -153,7 +157,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/node_states/</guid>
       <description>&lt;p&gt;在内存管理和调度负载均衡中，有许多代码逻辑要遍历&lt;code&gt;node&lt;/code&gt;上的&lt;strong&gt;内存&lt;/strong&gt;和&lt;strong&gt;cpu&lt;/strong&gt;信息，加上现在的内核都支持内存和&lt;code&gt;cpu&lt;/code&gt;的热插拔，所以系统上&lt;code&gt;node&lt;/code&gt;的状态在内核上要有专门的数据结构进行描述。&lt;/p&gt;
-
 &lt;p&gt;本文就研究一下用于描述&lt;code&gt;node&lt;/code&gt;信息的数据结构。&lt;/p&gt;</description>
     </item>
     
@@ -173,7 +176,6 @@
       
       <guid>http://linux.laoqinren.net/linux/proc-memory/</guid>
       <description>&lt;p&gt;在&lt;code&gt;linux&lt;/code&gt;内核中，整个内存信息和状态的展示可以通过以下几个文件获得：&lt;/p&gt;
-
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -181,32 +183,26 @@
 &lt;th&gt;描述&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
-
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;/proc/buddyinfo&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;展示系统上各个&lt;code&gt;zone&lt;/code&gt;的&lt;code&gt;buddy&lt;/code&gt;信息，主要用来分析内存碎片问题&lt;/td&gt;
 &lt;/tr&gt;
-
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;/proc/pagetypeinfo&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;输出系统上各个&lt;code&gt;zone&lt;/code&gt;中的不同迁移类型的详细状态信息&lt;/td&gt;
 &lt;/tr&gt;
-
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;/proc/vmstat&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;描述内存统计信息&lt;/td&gt;
 &lt;/tr&gt;
-
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;/proc/zoneinfo&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;输出系统上各个内存&lt;code&gt;zone&lt;/code&gt;的详细信息&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-
 &lt;p&gt;在详细介绍这些接口之前，我们先要明确一下几点：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;现在的内核中，内存管理最大概念为&lt;code&gt;node&lt;/code&gt;。&lt;/li&gt;
 &lt;li&gt;在node上再分为一个或者几个&lt;code&gt;zone&lt;/code&gt;&lt;/li&gt;
@@ -221,9 +217,7 @@
       
       <guid>http://linux.laoqinren.net/kernel/memory-compaction/</guid>
       <description>&lt;p&gt;伙伴系统是基于页来管理的内存的，内存碎片也是基于页的，即由大量离散且不连续的页面导致的。本文详细分析一下去内存碎片的机制：&lt;strong&gt;内存规整&lt;/strong&gt;。&lt;/p&gt;
-
 &lt;p&gt;包括如下内容：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;内存规整相关的内存管理参数&lt;/li&gt;
 &lt;li&gt;描述内存碎片化程度的指数：&lt;code&gt;extfrag_index&lt;/code&gt;和&lt;code&gt;unusable_index&lt;/code&gt;&lt;/li&gt;
@@ -265,7 +259,6 @@
       
       <guid>http://linux.laoqinren.net/linux/get-init-pid-for-any-task/</guid>
       <description>&lt;p&gt;本文题目为『&lt;strong&gt;获取容器中init进程的pid&lt;/strong&gt;』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的&lt;code&gt;pid namespace&lt;/code&gt;中，而我们有时需要在顶级的&lt;code&gt;pid namespace&lt;/code&gt;中获取其&lt;code&gt;init&lt;/code&gt;进程对应的在顶级&lt;code&gt;pid namespace&lt;/code&gt;的&lt;code&gt;pid&lt;/code&gt;。&lt;/p&gt;
-
 &lt;p&gt;本文简要介绍了完成这个任务的一种方法。&lt;/p&gt;</description>
     </item>
     
@@ -294,7 +287,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/radix-tree/</guid>
       <description>&lt;p&gt;本文详细介绍了Linux的Radix树。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -307,9 +299,7 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-default-file/</guid>
       <description>&lt;p&gt;cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。&lt;/p&gt;
-
 &lt;p&gt;这些文件包括：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;notify_on_release&lt;/li&gt;
 &lt;li&gt;release_agent&lt;/li&gt;
@@ -319,7 +309,6 @@
 &lt;li&gt;cgroup.event_control&lt;/li&gt;
 &lt;li&gt;cgroup.sane_behavior&lt;/li&gt;
 &lt;/ul&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文分析中引用的代码来自于centos系统自带的内核：&lt;a href=&#34;http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm&#34;&gt;kernel-3.10.0-862.9.1.el7&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -332,7 +321,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-proc-pid-cgroup/</guid>
       <description>&lt;p&gt;本文详细分析了&lt;code&gt;/proc/pid/cgroup&lt;/code&gt;文件的内核实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -345,11 +333,8 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-css-set-hash/</guid>
       <description>&lt;p&gt;在描述进程的结构体&lt;code&gt;task_struct&lt;/code&gt;中有一个类型为&lt;code&gt;css_set&lt;/code&gt;的成员&lt;code&gt;cgroups&lt;/code&gt;，它描述了进程的所有&lt;code&gt;cgroup&lt;/code&gt;信息，从前面的分析文章中我们已经知道通过&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;可以找到进程的所有不同&lt;code&gt;cgroup&lt;/code&gt;控制器的信息。&lt;/p&gt;
-
 &lt;p&gt;当我们新创建一个进程时，新进程的&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;的值继承自其&lt;code&gt;父进程&lt;/code&gt;。此后，如果我们将新创建的进程添加到一个新的&lt;code&gt;cgroup&lt;/code&gt;中时，就需要重新给&lt;code&gt;task_struct-&amp;gt;cgroups&lt;/code&gt;赋值，这个值要么是一个已经存在的&lt;code&gt;css_set&lt;/code&gt;结构的指针，要么是新创建的&lt;code&gt;css_set&lt;/code&gt;的结构的指针。&lt;/p&gt;
-
 &lt;p&gt;所以，我们就需要通过&lt;code&gt;进程的cgroup信息&lt;/code&gt;，快速查找其对应的&lt;code&gt;css_set结构&lt;/code&gt;是否存在，如果不存在的话就去创建它。&lt;code&gt;linux kernel&lt;/code&gt; 使用一个&lt;code&gt;hash&lt;/code&gt;表来完成这个工作。本文主要分析该&lt;code&gt;hash&lt;/code&gt;表的实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -362,7 +347,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/</guid>
       <description>&lt;p&gt;本文继续该系列文章，分析了&lt;code&gt;cgroup&lt;/code&gt;各个子系统的&lt;code&gt;mount&lt;/code&gt;流程，当然也包括&lt;code&gt;umount/remount&lt;/code&gt;流程。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本&lt;code&gt;kernel&lt;/code&gt;进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -375,7 +359,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-cgroup_init/</guid>
       <description>&lt;p&gt;本文详细分析了&lt;code&gt;cgroup&lt;/code&gt;初始化的过程。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -388,7 +371,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/</guid>
       <description>&lt;p&gt;本系列文章主要从源码入手，分析&lt;code&gt;linux kernel&lt;/code&gt;中&lt;code&gt;cgroup&lt;/code&gt;的实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;本文基于&lt;code&gt;3.10.0-862.el7.x86_64&lt;/code&gt;版本kernel进行分析。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -401,9 +383,7 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-debug/</guid>
       <description>&lt;p&gt;&lt;code&gt;cgroup&lt;/code&gt;的&lt;code&gt;debug子系统&lt;/code&gt;其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核&lt;code&gt;cgroup&lt;/code&gt;框架的使用方法，同时也展示了&lt;code&gt;cgroup&lt;/code&gt;框架中各个数据结构之间的关系。&lt;/p&gt;
-
 &lt;p&gt;本文就通过研究&lt;code&gt;debug&lt;/code&gt;子系统，来展示&lt;code&gt;cgroup&lt;/code&gt;框架中各个数据结构的关系。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意: 内核代码采用&lt;code&gt;linux-3.10.0-862.9.1.el7&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -416,7 +396,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/list/</guid>
       <description>&lt;p&gt;&lt;code&gt;list_head&lt;/code&gt;用法经常在&lt;code&gt;Linux kernel&lt;/code&gt;里面经常看见，该文对内核中的&lt;code&gt;list_head&lt;/code&gt;进行了总结分析。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文的中的代码来自于内核版本&lt;code&gt;v4.16&lt;/code&gt;。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -431,25 +410,18 @@
       <description>&lt;blockquote&gt;
 &lt;p&gt;注意：本文中的代码参考于linux v4.16。&lt;/p&gt;
 &lt;/blockquote&gt;
-
 &lt;h2 id=&#34;数据结构&#34;&gt;数据结构&lt;/h2&gt;
-
 &lt;p&gt;&lt;code&gt;hlist_head&lt;/code&gt;和&lt;code&gt;hlist_node&lt;/code&gt;用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:&lt;/p&gt;
-
 &lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190&#34;&gt; include/linux/types.h(line 190) &lt;/a&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct hlist_head {
-	struct hlist_node *first;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_head {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;first;
 };
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct hlist_node {
-	struct hlist_node *next, **pprev;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;next, &lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;pprev;
 };
 
-&lt;/code&gt;&lt;/pre&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
     </item>
     
     <item>
@@ -459,12 +431,10 @@
       
       <guid>http://linux.laoqinren.net/kernel/cgroup-cpuacct/</guid>
       <description>&lt;p&gt;&lt;code&gt;cpuacct子系统&lt;/code&gt;（CPU accounting）会自动生成报告来显示&lt;code&gt;cgroup中&lt;/code&gt;任务所使用的&lt;code&gt;CPU&lt;/code&gt;资源，其中包括子群组任务。报告有两大类：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;usage&lt;/code&gt;: 统计&lt;code&gt;cgroup&lt;/code&gt;中进程使用CPU的时间，单位为纳秒。&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;stat&lt;/code&gt;: 统计&lt;code&gt;cgroup&lt;/code&gt;中进程使用CPU的时间，单位为&lt;code&gt;USER_HZ&lt;/code&gt;。&lt;/li&gt;
 &lt;/ul&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -477,7 +447,6 @@
       
       <guid>http://linux.laoqinren.net/linux/cgroup-cpuset/</guid>
       <description>&lt;p&gt;最近分析了内核&lt;code&gt;cpuset&lt;/code&gt;的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的&lt;code&gt;docker&lt;/code&gt;也只是使用了其最简单的功能。本文对&lt;code&gt;cpuset&lt;/code&gt;进行了简要总结，并总结了&lt;code&gt;docker&lt;/code&gt;如何使用它。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v5.2&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -490,11 +459,8 @@
       
       <guid>http://linux.laoqinren.net/kernel/wait-queue/</guid>
       <description>&lt;h2 id=&#34;什么是等待队列&#34;&gt;什么是等待队列？&lt;/h2&gt;
-
 &lt;p&gt;在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。&lt;code&gt;Linux&lt;/code&gt;中提供了等待队列的机制，该机制在内核中应用很广泛。&lt;/p&gt;
-
 &lt;p&gt;等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。&lt;/p&gt;
-
 &lt;p&gt;在&lt;code&gt;Linux&lt;/code&gt;内核中使用等待队列的过程很简单，首先定义一个&lt;code&gt;wait_queue_head&lt;/code&gt;，然后如果一个&lt;code&gt;task&lt;/code&gt;想等待某种事件，那么调用&lt;code&gt;wait_event（等待队列，事件）&lt;/code&gt;就可以了。&lt;/p&gt;</description>
     </item>
     
@@ -504,8 +470,7 @@
       <pubDate>Fri, 04 May 2018 21:07:38 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/linux/linux-swap/</guid>
-      <description>&lt;p&gt;本文转载于：&lt;a href=&#34;https://segmentfault.com/a/1190000008125116&#34;&gt;https://segmentfault.com/a/1190000008125116&lt;/a&gt;&lt;/p&gt;
-
+      <description>&lt;p&gt;本文转载于：https://segmentfault.com/a/1190000008125116&lt;/p&gt;
 &lt;p&gt;每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。&lt;/p&gt;</description>
     </item>
     
@@ -515,15 +480,12 @@
       <pubDate>Sat, 28 Apr 2018 15:06:33 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</guid>
-      <description>&lt;p&gt;本文转载于：&lt;a href=&#34;http://ilinuxkernel.com/?p=1248&#34;&gt;http://ilinuxkernel.com/?p=1248&lt;/a&gt;&lt;/p&gt;
-
+      <description>&lt;p&gt;本文转载于：http://ilinuxkernel.com/?p=1248&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。
 本文中使用的内核版本为：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.21.1.el7.src.rpm&#34;&gt;3.10.0-693.21.1&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
-
 &lt;p&gt;用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。&lt;/p&gt;
-
 &lt;p&gt;通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在&lt;code&gt;Linux&lt;/code&gt;中用户态程序访问所有物理内存。&lt;/p&gt;</description>
     </item>
     
@@ -533,10 +495,8 @@
       <pubDate>Wed, 25 Apr 2018 22:03:05 +0800</pubDate>
       
       <guid>http://linux.laoqinren.net/kernel/memory-model/</guid>
-      <description>&lt;p&gt;本文转载于：&lt;a href=&#34;http://www.wowotech.net/memory_management/memory_model.html&#34;&gt;http://www.wowotech.net/memory_management/memory_model.html&lt;/a&gt;&lt;/p&gt;
-
+      <description>&lt;p&gt;本文转载于：http://www.wowotech.net/memory_management/memory_model.html&lt;/p&gt;
 &lt;p&gt;在原文的基础上，做了如下的改动：&lt;/p&gt;
-
 &lt;ol&gt;
 &lt;li&gt;文中出现的内核代码修改成基于&lt;code&gt;4.4.128&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;对于体系结构相关的代码,使用&lt;code&gt;x86&lt;/code&gt;架构中的代码&lt;/li&gt;
@@ -561,7 +521,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/floating-proportions/</guid>
       <description>&lt;p&gt;&lt;code&gt;flex proportions&lt;/code&gt;基础设施的作用是：根据不同类型的事件，计算其所占的比例部分。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意，本文中的代码是基于稳定版本的内核&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -583,7 +542,6 @@
       
       <guid>http://linux.laoqinren.net/kernel/percpu-counter/</guid>
       <description>&lt;p&gt;内核里很多模块都需要对一些事件进行统计，有一个叫做&lt;code&gt;percpu_counter&lt;/code&gt;的基础设施，来完成该任务。本文简单介绍了其用法和内核中的实现。&lt;/p&gt;
-
 &lt;blockquote&gt;
 &lt;p&gt;注意：本文中引用的内核代码版本为&lt;code&gt;v4.4.128&lt;/code&gt;。&lt;/p&gt;
 &lt;/blockquote&gt;</description>
@@ -596,12 +554,10 @@
       
       <guid>http://linux.laoqinren.net/linux/syscall-eventfd/</guid>
       <description>&lt;p&gt;&lt;code&gt;eventfd&lt;/code&gt; 是&lt;code&gt;linux&lt;/code&gt;特有的&lt;code&gt;API&lt;/code&gt;，用于通知/等待机制的实现,该函数一般有两个使用场景：&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;（1）用来实现用户态进程(线程)间的&lt;strong&gt;等待/通知(&lt;code&gt;wait/notify&lt;/code&gt;)&lt;/strong&gt; 机制&lt;/li&gt;
 &lt;li&gt;（2）内核用来通知用户态应用程序某个事件的发生。&lt;/li&gt;
 &lt;/ul&gt;
-
 &lt;p&gt;第一种场景，本文会给一个示例程序进行说明;第二种场景，可以通过cgroup中的事件通知机制进行了解和学习。&lt;/p&gt;</description>
     </item>
     

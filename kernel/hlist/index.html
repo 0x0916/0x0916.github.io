@@ -19,7 +19,7 @@
 <meta name="author" content="laoqinren" />
   <meta name="description" content=" 注意：本文中的代码参考于linux v4.16。
  数据结构 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
-include/linux/types.h(line 190)  struct hlist_head { struct hlist_node *first; };  include/linux/types.h(line 194)  struct hlist_node { struct hlist_node *next, **pprev; }; " />
+include/linux/types.h(line 190)  struct hlist_head { struct hlist_node *first; }; include/linux/types.h(line 194)  struct hlist_node { struct hlist_node *next, **pprev; }; " />
 
   <meta name="keywords" content="Linux, kernel" />
 
@@ -28,7 +28,7 @@ include/linux/types.h(line 190)  struct hlist_head { struct hlist_node *first; }
 
 
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/hlist/" />
@@ -55,20 +55,13 @@ include/linux/types.h(line 190)  struct hlist_head { struct hlist_node *first; }
 <meta property="og:description" content="
 注意：本文中的代码参考于linux v4.16。
 
-
 数据结构
-
 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
-
  include/linux/types.h(line 190) 
-
 struct hlist_head {
 	struct hlist_node *first;
 };
-
-
  include/linux/types.h(line 194) 
-
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };
@@ -82,30 +75,21 @@ struct hlist_node {
 <meta itemprop="description" content="
 注意：本文中的代码参考于linux v4.16。
 
-
 数据结构
-
 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
-
  include/linux/types.h(line 190) 
-
 struct hlist_head {
 	struct hlist_node *first;
 };
-
-
  include/linux/types.h(line 194) 
-
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };
 
 ">
-
-
-<meta itemprop="datePublished" content="2018-06-20T23:08:40&#43;08:00" />
-<meta itemprop="dateModified" content="2018-06-20T23:08:40&#43;08:00" />
-<meta itemprop="wordCount" content="2018">
+<meta itemprop="datePublished" content="2018-06-20T23:08:40+08:00" />
+<meta itemprop="dateModified" content="2018-06-20T23:08:40+08:00" />
+<meta itemprop="wordCount" content="2015">
 
 
 
@@ -115,20 +99,13 @@ struct hlist_node {
 <meta name="twitter:description" content="
 注意：本文中的代码参考于linux v4.16。
 
-
 数据结构
-
 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
-
  include/linux/types.h(line 190) 
-
 struct hlist_head {
 	struct hlist_node *first;
 };
-
-
  include/linux/types.h(line 194) 
-
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };
@@ -217,7 +194,7 @@ struct hlist_node {
               <a href="/categories/kernel/"> kernel </a>
             
           </div>
-        <span class="more-meta"> 2018 words </span>
+        <span class="more-meta"> 2015 words </span>
         <span class="more-meta"> 5 mins read </span>
         
       </div>
@@ -230,20 +207,18 @@ struct hlist_node {
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#数据结构">数据结构</a></li>
-<li><a href="#相关api">相关API</a></li>
-<li><a href="#程序示例">程序示例</a>
-<ul>
-<li><a href="#模块代码">模块代码</a></li>
-<li><a href="#执行结果">执行结果</a></li>
-</ul></li>
-<li><a href="#其他">其他</a></li>
-<li><a href="#参考文档">参考文档</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#数据结构">数据结构</a></li>
+    <li><a href="#相关api">相关API</a></li>
+    <li><a href="#程序示例">程序示例</a>
+      <ul>
+        <li><a href="#模块代码">模块代码</a></li>
+        <li><a href="#执行结果">执行结果</a></li>
+      </ul>
+    </li>
+    <li><a href="#其他">其他</a></li>
+    <li><a href="#参考文档">参考文档</a></li>
+  </ul>
 </nav>
   </div>
 </div>
@@ -253,79 +228,51 @@ struct hlist_node {
       <blockquote>
 <p>注意：本文中的代码参考于linux v4.16。</p>
 </blockquote>
-
 <h2 id="数据结构">数据结构</h2>
-
 <p><code>hlist_head</code>和<code>hlist_node</code>用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:</p>
-
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190"> include/linux/types.h(line 190) </a>
-
-<pre><code class="language-c">struct hlist_head {
-	struct hlist_node *first;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> hlist_head {
+	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>first;
 };
-</code></pre>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
-
-<pre><code class="language-c">struct hlist_node {
-	struct hlist_node *next, **pprev;
+</code></pre></div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> hlist_node {
+	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>next, <span style="color:#f92672">**</span>pprev;
 };
 
-</code></pre>
-
-<p>在内核中的普通双向链表基本上都是通过<code>list_head</code>实现的：</p>
-
+</code></pre></div><p>在内核中的普通双向链表基本上都是通过<code>list_head</code>实现的：</p>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n186"> include/linux/types.h(line 186) </a>
-
-<pre><code class="language-c">struct list_head {
-	struct list_head *next, *prev;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> list_head {
+	<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>next, <span style="color:#f92672">*</span>prev;
 };
-</code></pre>
-
-<p><code>list_head</code>很好理解，但是<code>hlist_head</code>和<code>hlist_node</code>为何要这样设计呢？</p>
-
+</code></pre></div><p><code>list_head</code>很好理解，但是<code>hlist_head</code>和<code>hlist_node</code>为何要这样设计呢？</p>
 <p>先看下<code>hlist_head</code>和<code>hlist_node</code>的示意图:</p>
-
-<p><img src="./list_head-and-hlist_node.png" alt="hlist_head and hlist_node" title="list_head-and-hlist_node" /></p>
-
+<p><img src="./list_head-and-hlist_node.png" alt="hlist_head and hlist_node" title="list_head-and-hlist_node"></p>
 <p><code>hash_table</code>为散列表（数组），其中的元素类型为<code>struct hlist_head</code>。以<code>hlist_head</code>为链表头的链表，其中的节点<code>hash</code>值是相同的（也叫冲突）。<code>first</code>指针指向链表中的节点①，然后节点①的<code>pprev</code>指针指向<code>hlist_head</code>中的<code>first</code>，节点①的<code>next</code>指针指向节点②。以此类推。</p>
-
 <p><code>hash_table</code>的列表头仅存放一个指针,也就是<code>first</code>指针,指向的是对应链表的头结点,没有<code>tail</code>指针,也就是指向链表尾节点的指针,这样的考虑是为了节省空间——尤其在<code>hash bucket</code>(数组size)很大的情况下可以节省一半的指针空间。</p>
-
 <p><strong>为什么<code>pprev</code>是一个指向指针的指针呢</strong>？按照这个设计，我们如果想要得到尾节点，必须遍历整个链表，可如果是一个指向节点的指针，那么头结点现在的<code>pprev</code>便可以直接指向尾节点，也就是<code>list_head</code>的做法。</p>
-
 <p>对于散列表来说，一般发生冲突的情况并不多（除非<code>hash</code>设计出现了问题），所以一个链表中的元素数量比较有限，遍历的劣势基本可以忽略。</p>
-
 <p><strong>在删除链表头结点的时候，<code>pprev</code>这个设计无需判断删除的节点是否为头结点</strong>。如果是普通双向链表的设计，那么删除头结点之后，hlist_head中的first指针需要指向新的头结点。通过下面2个函数来加深理解:</p>
-
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n669"> include/linux/list.h(line 669) </a>
-
-<pre><code class="language-c">static inline void hlist_add_head(struct hlist_node *n, struct hlist_head *h)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">hlist_add_head</span>(<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>n, <span style="color:#66d9ef">struct</span> hlist_head <span style="color:#f92672">*</span>h)
 {
-	struct hlist_node *first = h-&gt;first;
-	n-&gt;next = first; //新节点的next指针指向原头结点
-	if (first) 
-		first-&gt;pprev = &amp;n-&gt;next;//原头结点的pprev指向新节点的next字段
-	WRITE_ONCE(h-&gt;first, n);//first指针指向新的节点（更换了头结点）
-	n-&gt;pprev = &amp;h-&gt;first;//此时n是链表的头结点,将它的pprev指向list_head的first字段
-}
-</code></pre>
-
-<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n644"> include/linux/list.h(line 644) </a>
-
-<pre><code class="language-c">static inline void __hlist_del(struct hlist_node *n)
+	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>first <span style="color:#f92672">=</span> h<span style="color:#f92672">-&gt;</span>first;
+	n<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> first; <span style="color:#75715e">//新节点的next指针指向原头结点
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (first) 
+		first<span style="color:#f92672">-&gt;</span>pprev <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>n<span style="color:#f92672">-&gt;</span>next;<span style="color:#75715e">//原头结点的pprev指向新节点的next字段
+</span><span style="color:#75715e"></span>	WRITE_ONCE(h<span style="color:#f92672">-&gt;</span>first, n);<span style="color:#75715e">//first指针指向新的节点（更换了头结点）
+</span><span style="color:#75715e"></span>	n<span style="color:#f92672">-&gt;</span>pprev <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>h<span style="color:#f92672">-&gt;</span>first;<span style="color:#75715e">//此时n是链表的头结点,将它的pprev指向list_head的first字段
+</span><span style="color:#75715e"></span>}
+</code></pre></div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n644"> include/linux/list.h(line 644) </a>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__hlist_del</span>(<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>n)
 {
-	struct hlist_node *next = n-&gt;next;
-	struct hlist_node **pprev = n-&gt;pprev;
+	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>next <span style="color:#f92672">=</span> n<span style="color:#f92672">-&gt;</span>next;
+	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">**</span>pprev <span style="color:#f92672">=</span> n<span style="color:#f92672">-&gt;</span>pprev;
 
-	WRITE_ONCE(*pprev, next); // pprev指向的是前一个节点的next指针,当该节点是头节点时指向 hlist_head的first,两种情况下不论该节点是一般的节点还是头结点都可以通过这个操作删除掉所需删除的节点。
-	if (next)
-		next-&gt;pprev = pprev;//使删除节点的后一个节点的pprev指向删除节点的前一个节点的next字段，节点成功删除。
-}
-</code></pre>
-
-<h2 id="相关api">相关API</h2>
-
+	WRITE_ONCE(<span style="color:#f92672">*</span>pprev, next); <span style="color:#75715e">// pprev指向的是前一个节点的next指针,当该节点是头节点时指向 hlist_head的first,两种情况下不论该节点是一般的节点还是头结点都可以通过这个操作删除掉所需删除的节点。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (next)
+		next<span style="color:#f92672">-&gt;</span>pprev <span style="color:#f92672">=</span> pprev;<span style="color:#75715e">//使删除节点的后一个节点的pprev指向删除节点的前一个节点的next字段，节点成功删除。
+</span><span style="color:#75715e"></span>}
+</code></pre></div><h2 id="相关api">相关API</h2>
 <table>
 <thead>
 <tr>
@@ -333,207 +280,177 @@ struct hlist_node {
 <th>说明</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>HLIST_HEAD_INIT</td>
 <td>静态初始化hlist_head</td>
 </tr>
-
 <tr>
 <td>HLIST_HEAD</td>
 <td>静态初始化hlist_head</td>
 </tr>
-
 <tr>
 <td>INIT_HLIST_HEAD</td>
 <td>动态初始化hlist_head</td>
 </tr>
-
 <tr>
 <td>INIT_HLIST_NODE</td>
 <td>动态初始化hlist_node</td>
 </tr>
-
 <tr>
 <td>hlist_unhashed</td>
 <td>判断hlist_node是否添加到hash链表中</td>
 </tr>
-
 <tr>
 <td>hlist_empty</td>
 <td>判断hash链表是否为空</td>
 </tr>
-
 <tr>
 <td>hlist_del</td>
 <td>在hash链表中删除一个节点</td>
 </tr>
-
 <tr>
 <td>hlist_del_init</td>
 <td>在hash链表中删除一个节点</td>
 </tr>
-
 <tr>
 <td>hlist_add_head</td>
 <td>在hash链表头添加一个节点</td>
 </tr>
-
 <tr>
 <td>hlist_add_before</td>
 <td>在指定节点之前添加一个节点</td>
 </tr>
-
 <tr>
 <td>hlist_add_behind</td>
 <td>在指定节点之后添加一个节点</td>
 </tr>
-
 <tr>
 <td>hlist_add_fake</td>
 <td></td>
 </tr>
-
 <tr>
 <td>hlist_fake</td>
 <td></td>
 </tr>
-
 <tr>
 <td>hlist_is_singular_node</td>
 <td>判断hlist是否只有一个节点</td>
 </tr>
-
 <tr>
 <td>hlist_move_list</td>
 <td>将一个hash链表从一个hlist_head移动到另外一个hlist_head中</td>
 </tr>
-
 <tr>
 <td>hlist_entry</td>
 <td>根据hlist_node找到其外层结构体</td>
 </tr>
-
 <tr>
 <td>hlist_entry_safe</td>
 <td>同上</td>
 </tr>
-
 <tr>
 <td>hlist_for_each</td>
 <td>遍历hash链表</td>
 </tr>
-
 <tr>
 <td>hlist_for_each_safe</td>
 <td>同上</td>
 </tr>
-
 <tr>
 <td>hlist_for_each_entry</td>
 <td>遍历hash链表</td>
 </tr>
-
 <tr>
 <td>hlist_for_each_entry_safe</td>
 <td>同上</td>
 </tr>
-
 <tr>
 <td>hlist_for_each_entry_continue</td>
 <td>从当前节点之后遍历hash链表</td>
 </tr>
-
 <tr>
 <td>hlist_for_each_entry_from</td>
 <td>从当前节点开始遍历hash链表</td>
 </tr>
 </tbody>
 </table>
-
 <h2 id="程序示例">程序示例</h2>
-
 <p>写一个测试模块，验证一下各个API</p>
-
 <h3 id="模块代码">模块代码</h3>
-
-<pre><code class="language-c">#include &lt;linux/module.h&gt;
-#include &lt;linux/kernel.h&gt;
-#include &lt;linux/init.h&gt;
-#include &lt;linux/list.h&gt;
-
-struct node {
-	int val;
-	struct hlist_node list;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/init.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/list.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">struct</span> node {
+	<span style="color:#66d9ef">int</span> val;
+	<span style="color:#66d9ef">struct</span> hlist_node list;
 };
 
-static int __init hlist_test_init(void)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">hlist_test_init</span>(<span style="color:#66d9ef">void</span>)
 {
-	struct hlist_head  head;
-	struct node a, b, c, d, e;
-	struct node *pos;
-	struct hlist_node *p;
+	<span style="color:#66d9ef">struct</span> hlist_head  head;
+	<span style="color:#66d9ef">struct</span> node a, b, c, d, e;
+	<span style="color:#66d9ef">struct</span> node <span style="color:#f92672">*</span>pos;
+	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>p;
 
-	printk(KERN_ALERT &quot;[Hello] hlist_test \n&quot;);
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;[Hello] hlist_test </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 
-	INIT_HLIST_HEAD(&amp;head); //初始化链表头
-	a.val = 1;
-	b.val = 2;
-	c.val = 3;
-	d.val = 4;
-	e.val = 5;
+	INIT_HLIST_HEAD(<span style="color:#f92672">&amp;</span>head); <span style="color:#75715e">//初始化链表头
+</span><span style="color:#75715e"></span>	a.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+	b.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+	c.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;
+	d.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;
+	e.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
 
-	hlist_add_head(&amp;a.list, &amp;head); //添加节点
-	hlist_add_head(&amp;b.list, &amp;head);
-	hlist_add_head(&amp;c.list, &amp;head);
+	hlist_add_head(<span style="color:#f92672">&amp;</span>a.list, <span style="color:#f92672">&amp;</span>head); <span style="color:#75715e">//添加节点
+</span><span style="color:#75715e"></span>	hlist_add_head(<span style="color:#f92672">&amp;</span>b.list, <span style="color:#f92672">&amp;</span>head);
+	hlist_add_head(<span style="color:#f92672">&amp;</span>c.list, <span style="color:#f92672">&amp;</span>head);
 
-	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
-	//遍历链表，打印结果 方法1
-	hlist_for_each_entry(pos, &amp;head, list) {
-		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
-	} // print 3 2 1
-
-	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
-	// 遍历链表，打印结果 方法2
-	hlist_for_each(p, &amp;head) {
-		pos = hlist_entry(p, struct node, list);
-		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
-	} // print 3 2 1
-
-	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
-	hlist_del_init(&amp;b.list); // 删除中间节点
-	hlist_for_each_entry(pos, &amp;head, list) {
-		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
-	} // print 3 1
-
-	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
-	hlist_add_before(&amp;d.list, &amp;a.list); //在最后一个节点之前添加新节点
-	hlist_for_each_entry(pos, &amp;head, list) {
-		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
-	} // print 3 4 1
-
-	printk(KERN_ALERT &quot;-------------------------------------- \n&quot;);
-	hlist_add_behind(&amp;e.list, &amp;a.list);//在最后一个节点之后添加新节点
-	hlist_for_each_entry(pos, &amp;head, list) {
-		printk(KERN_ALERT &quot;node.val = %d\n&quot;, pos-&gt;val);
-	} // print 3 4 1 5
-
-	return 0;
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	<span style="color:#75715e">//遍历链表，打印结果 方法1
+</span><span style="color:#75715e"></span>	hlist_for_each_entry(pos, <span style="color:#f92672">&amp;</span>head, list) {
+		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
+	} <span style="color:#75715e">// print 3 2 1
+</span><span style="color:#75715e"></span>
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	<span style="color:#75715e">// 遍历链表，打印结果 方法2
+</span><span style="color:#75715e"></span>	hlist_for_each(p, <span style="color:#f92672">&amp;</span>head) {
+		pos <span style="color:#f92672">=</span> hlist_entry(p, <span style="color:#66d9ef">struct</span> node, list);
+		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
+	} <span style="color:#75715e">// print 3 2 1
+</span><span style="color:#75715e"></span>
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	hlist_del_init(<span style="color:#f92672">&amp;</span>b.list); <span style="color:#75715e">// 删除中间节点
+</span><span style="color:#75715e"></span>	hlist_for_each_entry(pos, <span style="color:#f92672">&amp;</span>head, list) {
+		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
+	} <span style="color:#75715e">// print 3 1
+</span><span style="color:#75715e"></span>
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	hlist_add_before(<span style="color:#f92672">&amp;</span>d.list, <span style="color:#f92672">&amp;</span>a.list); <span style="color:#75715e">//在最后一个节点之前添加新节点
+</span><span style="color:#75715e"></span>	hlist_for_each_entry(pos, <span style="color:#f92672">&amp;</span>head, list) {
+		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
+	} <span style="color:#75715e">// print 3 4 1
+</span><span style="color:#75715e"></span>
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	hlist_add_behind(<span style="color:#f92672">&amp;</span>e.list, <span style="color:#f92672">&amp;</span>a.list);<span style="color:#75715e">//在最后一个节点之后添加新节点
+</span><span style="color:#75715e"></span>	hlist_for_each_entry(pos, <span style="color:#f92672">&amp;</span>head, list) {
+		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
+	} <span style="color:#75715e">// print 3 4 1 5
+</span><span style="color:#75715e"></span>
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }
 
-static void __exit hlist_test_exit(void)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">hlist_test_exit</span>(<span style="color:#66d9ef">void</span>)
 {
-	printk(KERN_ALERT &quot;[Goodbye] hlist_test\n&quot;);
+	printk(KERN_ALERT <span style="color:#e6db74">&#34;[Goodbye] hlist_test</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 }
 
 module_init(hlist_test_init);
 module_exit(hlist_test_exit);
-MODULE_LICENSE(&quot;GPL&quot;);
-</code></pre>
-
-<h3 id="执行结果">执行结果</h3>
-
+MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
+</code></pre></div><h3 id="执行结果">执行结果</h3>
 <pre><code>[  944.056943] [Hello] hlist_test 
 [  944.056947] -------------------------------------- 
 [  944.056948] node.val = 3
@@ -555,32 +472,29 @@ MODULE_LICENSE(&quot;GPL&quot;);
 [  944.056964] node.val = 4
 [  944.056965] node.val = 1
 [  944.056965] node.val = 5
-</code></pre>
-
-<h2 id="其他">其他</h2>
-
+</code></pre><h2 id="其他">其他</h2>
 <p>内核中用<code>hlist</code>来实现 <code>hash table</code>，在内核上一般有如下的<code>hash table</code>：</p>
-
-<pre><code class="language-bash"># dmesg | grep &quot;hash table entries&quot; 
-[    0.000000] PV qspinlock hash table entries: 256 (order: 0, 4096 bytes)
-[    0.000000] PID hash table entries: 4096 (order: 3, 32768 bytes)
-[    0.294869] Dentry cache hash table entries: 524288 (order: 10, 4194304 bytes)
-[    0.296328] Inode-cache hash table entries: 262144 (order: 9, 2097152 bytes)
-[    0.296589] Mount-cache hash table entries: 8192 (order: 4, 65536 bytes)
-[    0.296595] Mountpoint-cache hash table entries: 8192 (order: 4, 65536 bytes)
-[    0.614525] TCP established hash table entries: 32768 (order: 6, 262144 bytes)
-[    0.614769] TCP bind hash table entries: 32768 (order: 9, 2621440 bytes)
-[    0.616607] UDP hash table entries: 2048 (order: 6, 393216 bytes)
-[    0.616794] UDP-Lite hash table entries: 2048 (order: 6, 393216 bytes)
-[    1.053747] futex hash table entries: 1024 (order: 5, 131072 bytes)
-[    1.079062] Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
-</code></pre>
-
-<h2 id="参考文档">参考文档</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># dmesg | grep &#34;hash table entries&#34; </span>
+<span style="color:#f92672">[</span>    0.000000<span style="color:#f92672">]</span> PV qspinlock hash table entries: <span style="color:#ae81ff">256</span> <span style="color:#f92672">(</span>order: 0, <span style="color:#ae81ff">4096</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.000000<span style="color:#f92672">]</span> PID hash table entries: <span style="color:#ae81ff">4096</span> <span style="color:#f92672">(</span>order: 3, <span style="color:#ae81ff">32768</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.294869<span style="color:#f92672">]</span> Dentry cache hash table entries: <span style="color:#ae81ff">524288</span> <span style="color:#f92672">(</span>order: 10, <span style="color:#ae81ff">4194304</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.296328<span style="color:#f92672">]</span> Inode-cache hash table entries: <span style="color:#ae81ff">262144</span> <span style="color:#f92672">(</span>order: 9, <span style="color:#ae81ff">2097152</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.296589<span style="color:#f92672">]</span> Mount-cache hash table entries: <span style="color:#ae81ff">8192</span> <span style="color:#f92672">(</span>order: 4, <span style="color:#ae81ff">65536</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.296595<span style="color:#f92672">]</span> Mountpoint-cache hash table entries: <span style="color:#ae81ff">8192</span> <span style="color:#f92672">(</span>order: 4, <span style="color:#ae81ff">65536</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.614525<span style="color:#f92672">]</span> TCP established hash table entries: <span style="color:#ae81ff">32768</span> <span style="color:#f92672">(</span>order: 6, <span style="color:#ae81ff">262144</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.614769<span style="color:#f92672">]</span> TCP bind hash table entries: <span style="color:#ae81ff">32768</span> <span style="color:#f92672">(</span>order: 9, <span style="color:#ae81ff">2621440</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.616607<span style="color:#f92672">]</span> UDP hash table entries: <span style="color:#ae81ff">2048</span> <span style="color:#f92672">(</span>order: 6, <span style="color:#ae81ff">393216</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    0.616794<span style="color:#f92672">]</span> UDP-Lite hash table entries: <span style="color:#ae81ff">2048</span> <span style="color:#f92672">(</span>order: 6, <span style="color:#ae81ff">393216</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    1.053747<span style="color:#f92672">]</span> futex hash table entries: <span style="color:#ae81ff">1024</span> <span style="color:#f92672">(</span>order: 5, <span style="color:#ae81ff">131072</span> bytes<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>    1.079062<span style="color:#f92672">]</span> Dquot-cache hash table entries: <span style="color:#ae81ff">512</span> <span style="color:#f92672">(</span>order 0, <span style="color:#ae81ff">4096</span> bytes<span style="color:#f92672">)</span>
+</code></pre></div><h2 id="参考文档">参考文档</h2>
 <ul>
-<li><a href="https://vinoit.me/2016/09/01/linux-kernel-hlist_head-and-hlist_node/">https://vinoit.me/2016/09/01/linux-kernel-hlist_head-and-hlist_node/</a></li>
-<li><a href="http://blog.sina.com.cn/s/blog_508d2c500100gdnp.html">http://blog.sina.com.cn/s/blog_508d2c500100gdnp.html</a></li>
+<li>
+<p><a href="https://vinoit.me/2016/09/01/linux-kernel-hlist_head-and-hlist_node/">https://vinoit.me/2016/09/01/linux-kernel-hlist_head-and-hlist_node/</a></p>
+</li>
+<li>
+<p><a href="http://blog.sina.com.cn/s/blog_508d2c500100gdnp.html">http://blog.sina.com.cn/s/blog_508d2c500100gdnp.html</a></p>
+</li>
 </ul>
     </div>
 
@@ -678,7 +592,7 @@ MODULE_LICENSE(&quot;GPL&quot;);
     &copy; 
     
       2016 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>
