@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>001-计算机是如何启动的 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="通常计算机的启动方式有两种，传统的BIOS-MBR启动模式和新的UEFI-GPT启动模式，本文将介绍传统的BIOS-MBR启动模式。
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.80.0" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/posts/001-how-to-start/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="001-计算机是如何启动的" />
+<meta property="og:description" content="通常计算机的启动方式有两种，传统的BIOS-MBR启动模式和新的UEFI-GPT启动模式，本文将介绍传统的BIOS-MBR启动模式。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/001-how-to-start/" />
+<meta property="article:published_time" content="2021-02-21T23:58:42+08:00" />
+<meta property="article:modified_time" content="2021-02-21T23:58:42+08:00" />
+<meta itemprop="name" content="001-计算机是如何启动的">
+<meta itemprop="description" content="通常计算机的启动方式有两种，传统的BIOS-MBR启动模式和新的UEFI-GPT启动模式，本文将介绍传统的BIOS-MBR启动模式。">
+<meta itemprop="datePublished" content="2021-02-21T23:58:42+08:00" />
+<meta itemprop="dateModified" content="2021-02-21T23:58:42+08:00" />
+<meta itemprop="wordCount" content="3555">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="001-计算机是如何启动的"/>
+<meta name="twitter:description" content="通常计算机的启动方式有两种，传统的BIOS-MBR启动模式和新的UEFI-GPT启动模式，本文将介绍传统的BIOS-MBR启动模式。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">001-计算机是如何启动的</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2021-02-21 </span>
+        
+        <span class="more-meta"> 3555 words </span>
+        <span class="more-meta"> 8 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#intel-80386计算机加电时寄存器的值">intel 80386计算机加电时，寄存器的值</a></li>
+        <li><a href="#实验1通过qemu了解intel-80386启动后的cs和eip值并分析第一条指令的内容">实验1：通过qemu了解Intel 80386启动后的CS和EIP值，并分析第一条指令的内容</a></li>
+        <li><a href="#intel-80386计算机启动流程">intel 80386计算机启动流程</a></li>
+        <li><a href="#引导扇区">引导扇区</a></li>
+        <li><a href="#小工具">小工具</a></li>
+        <li><a href="#进一步debug-bios的启动过程">进一步debug BIOS的启动过程</a></li>
+        <li><a href="#总结">总结</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>通常计算机的启动方式有两种，传统的<code>BIOS-MBR</code>启动模式和新的<code>UEFI-GPT</code>启动模式，本文将介绍传统的<code>BIOS-MBR</code>启动模式。</p>
+<h3 id="intel-80386计算机加电时寄存器的值">intel 80386计算机加电时，寄存器的值</h3>
+<p>首先，我们看一下按下计算机的电源或者复位键之后<code>CPU</code>中寄存器的初始值。</p>
+<p><img src="./power_on_register.png" alt=""></p>
+<p>我们需要重点关注一下<code>cs</code>寄存器和<code>eip</code>寄存器，初始化状态的<code>CS</code>和<code>EIP</code>确定了处理器的初始执行地址，此时<code>CS</code>中可见部分-选择子（<code>selector</code>）的值为<code>0xF000</code>，而其不可见部分-基地址（<code>base</code>）的值为<code>0xFFFF0000</code>；EIP的值是<code>0xFFF0</code>，这样实际的线性地址（由于没有启动页机制，所以线性地址就是物理地址）为<code>CS.base+EIP=0xFFFFFFF0</code>。在<code>0xFFFFFFF0</code>这里只是存放了一条跳转指令，通过跳转指令跳到<code>BIOS</code>例行程序起始点。</p>
+<p>在这里我们先暂停，做个简单的实验，用硬件模拟机器<code>qemu</code>来进一步认识上述结果。</p>
+<h3 id="实验1通过qemu了解intel-80386启动后的cs和eip值并分析第一条指令的内容">实验1：通过qemu了解Intel 80386启动后的CS和EIP值，并分析第一条指令的内容</h3>
+<ol>
+<li>首先，启动qemu并让其停到执行第一条指令前，这需要增加一个参数&quot;-S&quot;, 如下：</li>
+</ol>
+<pre><code>qemu-system-i386 -S
+</code></pre><ul>
+<li><code>-S</code> 参数告诉虚拟机启动后先不运行。</li>
+</ul>
+<p>这时<code>qemu</code>会弹出一个没有任何显示内容的图形窗口，显示如下：</p>
+<p><img src="./qemu-paused.png" alt=""></p>
+<ol start="2">
+<li>然后通过按<code>Ctrl+Alt+2</code>进入<code>qemu</code>的<code>monitor</code>界面，为了了解<code>80386</code>此时的寄存器内容，在<code>monitor</code>界面下输入命令<code>info registers</code></li>
+</ol>
+<p><img src="./qemu-registers.png" alt=""></p>
+<p>我们可以看到<code>EIP=0xfff0</code>，<code>CS</code>的<code>selector=0xf000</code>，<code>CS</code>的<code>base=0xfff0000</code>。</p>
+<h3 id="intel-80386计算机启动流程">intel 80386计算机启动流程</h3>
+<p>由上节我们知道，<code>intel 80386</code>计算机加电后，执行的第一条指令的位置是：<code>0xFFFFFFF0</code>，该位置其实是<code>BIOS</code>程序，它做完计算机硬件自检和初始化后，会选择一个启动设备（例如软盘、硬盘、光盘等），并且读取该设备的第一扇区(即主引导扇区或启动扇区)到内存一个特定的地址<code>0x7c00</code>处，然后<code>CPU</code>控制权会转移到那个地址继续执行。</p>
+<p>其实，了解了如上信息，就足够了，着急的读者可以直接跳到下一节。不过我还是想详细介绍了计算机的启动流程。</p>
+<p>当计算机上电初始化时，物理内存被设置成从地址<code>0</code>开始的连续区域。除了地址从<code>0xA0000</code>到<code>0xFFFFF</code>(<code>640K</code>到<code>1M</code>共<code>384K</code>)和<code>0xFFFE0000</code>到<code>0xFFFFFFFF</code>(<code>4G</code>处的最后<code>64K</code>)范围以外的所有内存都可用作<strong>系统内存</strong>。这两个特定范围被用于<code>I/O</code>设备和<code>BIOS</code>程序。<code>640K–1M</code>之间的<code>384K</code>用作下图中指明的用途。其中地址<code>0xA0000</code>开始的<code>128K</code>用作显存缓冲区，随后部分用于其他控制卡的<code>ROM BIOS</code>或其映射区域，而<code>0xF0000</code>到<code>1M</code>范围用于高端系统<code>ROM BIOS</code>的映射区。</p>
+<p><img src="./memory_area.png" alt=""></p>
+<p><code>ROM-BIOS</code>是一段固化在主板上的程序，这段程序在计算机加电后会自动被加载到内存中，主要用于计算机的自检和初始化。根据上面的分析可知<code>0xFFFFFFF0</code>正好处于这段程序中，位于<code>4G</code>空间最后一个<code>64K</code>的最后<code>16</code>字节处。这里会被安排一条<code>ljmp</code>指令，用于跳转到<code>BIOS</code>代码中<code>64KB</code>范围内的某一条指令开始执行。<code>BIOS</code>在执行了一系列硬件检测和初始化操作之后，会把与原来<code>PC</code>机兼容的<code>64KB BIOS</code>代码和数据复制到内存低端<code>1M</code>末端的<code>64K</code>处，然后跳转到这个地方并让<code>CPU</code>运行在实地址模式下。过程如下图所示。</p>
+<p><img src="./Flash-ROM-BIOS.png" alt=""></p>
+<p>最后，如果硬盘或软盘是首选的启动设备的话，<code>BIOS</code>会读取其中的<code>0</code>柱面<code>0</code>磁道<code>1</code>扇区，并检测是否为可引导设备，如果是的话，这个扇区将被加载到内存<code>0x7c00</code>处并被执行。可引导的标志是扇区的最后两个字节为<code>0x55</code>和<code>0xAA</code>。</p>
+<h3 id="引导扇区">引导扇区</h3>
+<p>上面提到，<code>BIOS</code>程序完成计算机硬件的自检和初始化后，会选择一个启动设备，并读取该设备的第一个扇区到特定的地址<code>0x7c00</code>处，然后将<code>CPU</code>控制权转移到那个地址继续执行。</p>
+<p>其实引导扇区是有规范的，如果不符合规范，<code>BIOS</code>程序会提示找不到启动磁盘的。下面我们就演示一下。</p>
+<p>首先我们创建一个空的磁盘映像文件，使用<code>dd</code>命令。</p>
+<pre><code># dd if=/dev/zero of=disk0.img bs=1024 count=200
+</code></pre><p>上面我们创建了一个<code>200KB</code>大的硬盘映像。</p>
+<p>查看一下硬盘映像中的内容。因为我们在创建时输入使用的是产生<code>0</code>的设备文件，所以现在的这块<strong>硬盘</strong>中的内容全部为零，为了加深印象我们还是查看一下。</p>
+<pre><code># xxd -a disk0.img 
+00000000: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+*
+00031ff0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+</code></pre><p>可以看到<code>disk0.img</code>中的内容全为零。</p>
+<p>下面我们试试看如果直接用虚拟机去启动这块硬盘的话会发生什么。</p>
+<pre><code># qemu-system-i386 disk0.img
+</code></pre><p>虚拟机启动后结果如下，<code>Boot failed: not a bootable disk</code>。提示磁盘不可引导。</p>
+<p><img src="./qemu-disk0-img.png" alt=""></p>
+<p>我们将<code>disk0.img</code>复制一份，命名为<code>disk1.img</code>，现在将<code>disk1.img</code>文件的第<code>510</code>、<code>511</code>字节改为<code>0x55</code>、<code>0xAA</code>，然后重新启动看看结果。</p>
+<p>这里我们使用<code>hexedit</code>这个工具，对<code>disk1.img</code>进行编辑。</p>
+<pre><code># cp disk0.img disk1.img
+# hexedit disk1.img
+</code></pre><p>通过键盘方向键定位到位置<code>0x1FE</code>即十进制<code>510</code>这个位置，将连续的两个字节分别修改为<code>0x55</code>、<code>0xAA</code>，<code>Ctrl + X</code>保存退出。</p>
+<p><img src="./hexedit-disk1.png" alt=""></p>
+<p>再次查看，可以看出已经有了我们需要的可引导标记。</p>
+<pre><code># xxd -a disk1.img 
+00000000: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+*
+000001f0: 0000 0000 0000 0000 0000 0000 0000 55aa  ..............U.
+00000200: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+*
+00031ff0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+</code></pre><p>我们再次尝试启动虚拟机，看看这次的结果。</p>
+<pre><code># qemu-system-i386 disk1.img
+</code></pre><p><img src="./qemu-disk1-img.png" alt=""></p>
+<p>如我们所愿，虚拟机这次告诉我们已经从硬盘开始引导了。但是我们的硬盘里一行指令也没有，所以现在虚拟机就傻傻的在那里等着。</p>
+<h3 id="小工具">小工具</h3>
+<p>本节介绍一个小工具，用于生成合法的主引导记录，也就是磁盘的<code>0</code>柱面<code>0</code>磁道<code>1</code>扇区，即对磁盘映像文件的前<code>512</code>个字节设置为可引导的。</p>
+<p>程序的功能如下：</p>
+<ol>
+<li>读入一个不大于<code>510</code>字节的文件</li>
+<li>将它补齐到<code>510</code>字节</li>
+<li>将第<code>510</code>、<code>511</code>字节(从<code>0</code>开始计数)设置为<code>0x55</code>、<code>0xAA</code></li>
+<li>写入新的文件</li>
+</ol>
+<p>程序的代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// copy form: https://github.com/chyyuu/os_kernel_lab/blob/master/labcodes/lab1/tools/sign.c
+</span><span style="color:#75715e"></span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;errno.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/stat.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span>
+<span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[]) {
+    <span style="color:#66d9ef">struct</span> stat st;
+    <span style="color:#66d9ef">if</span> (argc <span style="color:#f92672">!=</span> <span style="color:#ae81ff">3</span>) {
+        fprintf(stderr, <span style="color:#e6db74">&#34;Usage: &lt;input filename&gt; &lt;output filename&gt;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+    }
+    <span style="color:#66d9ef">if</span> (stat(argv[<span style="color:#ae81ff">1</span>], <span style="color:#f92672">&amp;</span>st) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+        fprintf(stderr, <span style="color:#e6db74">&#34;Error opening file &#39;%s&#39;: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">1</span>], strerror(errno));
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+    }
+    printf(<span style="color:#e6db74">&#34;&#39;%s&#39; size: %lld bytes</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">1</span>], (<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)st.st_size);
+    <span style="color:#66d9ef">if</span> (st.st_size <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">510</span>) {
+        fprintf(stderr, <span style="color:#e6db74">&#34;%lld &gt;&gt; 510!!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, (<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)st.st_size);
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+    }
+    <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">512</span>];
+    memset(buf, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(buf));
+    FILE <span style="color:#f92672">*</span>ifp <span style="color:#f92672">=</span> fopen(argv[<span style="color:#ae81ff">1</span>], <span style="color:#e6db74">&#34;rb&#34;</span>);
+    <span style="color:#66d9ef">int</span> size <span style="color:#f92672">=</span> fread(buf, <span style="color:#ae81ff">1</span>, st.st_size, ifp);
+    <span style="color:#66d9ef">if</span> (size <span style="color:#f92672">!=</span> st.st_size) {
+        fprintf(stderr, <span style="color:#e6db74">&#34;read &#39;%s&#39; error, size is %d.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">1</span>], size);
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+    }
+    fclose(ifp);
+    buf[<span style="color:#ae81ff">510</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x55</span>;
+    buf[<span style="color:#ae81ff">511</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xAA</span>;
+    FILE <span style="color:#f92672">*</span>ofp <span style="color:#f92672">=</span> fopen(argv[<span style="color:#ae81ff">2</span>], <span style="color:#e6db74">&#34;wb+&#34;</span>);
+    size <span style="color:#f92672">=</span> fwrite(buf, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">512</span>, ofp);
+    <span style="color:#66d9ef">if</span> (size <span style="color:#f92672">!=</span> <span style="color:#ae81ff">512</span>) {
+        fprintf(stderr, <span style="color:#e6db74">&#34;write &#39;%s&#39; error, size is %d.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">2</span>], size);
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+    }
+    fclose(ofp);
+    printf(<span style="color:#e6db74">&#34;build 512 bytes boot sector: &#39;%s&#39; success!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">2</span>]);
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+
+</code></pre></div><p>编译连接</p>
+<pre><code># gcc -o sign sign.c
+</code></pre><p>创建一个小文件（小于<code>510</code>字节），并查看：</p>
+<pre><code># echo &quot;Hello, World.&quot; &gt; boot
+# xxd -a boot 
+00000000: 4865 6c6c 6f2c 2057 6f72 6c64 2e0a       Hello, World..
+</code></pre><p>接下来用我们的工具处理一下这个文件：</p>
+<pre><code># ./sign boot boot.img
+'boot' size: 14 bytes
+build 512 bytes boot sector: 'boot.img' success!
+</code></pre><p>查看生成的文件<code>boot.img</code>, 此时生成的文件已经是<code>512</code>字节了。</p>
+<pre><code># xxd -a boot.img 
+00000000: 4865 6c6c 6f2c 2057 6f72 6c64 2e0a 0000  Hello, World....
+00000010: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+*
+000001f0: 0000 0000 0000 0000 0000 0000 0000 55aa  ..............U.
+</code></pre><p>用虚拟机从这个磁盘映像文件启动：</p>
+<pre><code># qemu-system-i386 boot.img
+</code></pre><p><img src="./qemu-disk1-img.png" alt=""></p>
+<p>结果和之前使用<code>hexedit</code>手动编辑是一样的，引导成功。</p>
+<h3 id="进一步debug-bios的启动过程">进一步debug BIOS的启动过程</h3>
+<p>上面提到，计算机加电后，执行的第一条指令的位置是：<code>0xFFFFFFF0</code>，实际上，该位置是一个<strong>跳转指令</strong>，跳到<code>BIOS</code>程序完成计算机硬件自检和初始化，最后读取启动设备的第一个扇区内容到<code>0x7c00</code>处，下面我们通过<code>qemu</code>来验证一下这些内容。</p>
+<p>首先我们通过上面的小工具制作一个合法的引导扇区。我们在扇区的开头的位置，写入字符串<code>Hello，World!</code>，然后通过<code>sign</code>工具，将第<code>510</code>、<code>511</code>字节(从<code>0</code>开始计数)设置为<code>0x55</code>、<code>0xAA</code>。命令如下：</p>
+<pre><code># echo &quot;Hello,World!&quot; &gt; boot.bin
+# ./sign boot.bin boot.img
+</code></pre><p>查看其内容如下：</p>
+<pre><code># xxd -a boot.img 
+00000000: 4865 6c6c 6f2c 576f 726c 6421 0a00 0000  Hello,World!....
+00000010: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+*
+000001f0: 0000 0000 0000 0000 0000 0000 0000 55aa  ..............U.
+</code></pre><p>用虚拟机从这个磁盘映像文件启动：</p>
+<pre><code>qemu-system-i386 boot.img -S -s
+</code></pre><ul>
+<li><code>-S</code> 参数告诉虚拟机启动后先不运行。</li>
+<li><code>-s</code> 参数告诉虚拟机开启一个<code>GDB</code>服务器等待客户端的连接，服务默认监听<code>TCP</code>端口<code>1234</code>。</li>
+</ul>
+<p>在另外一个终端中，启动<code>GDB</code>：</p>
+<pre><code># gdb -q
+(gdb) 
+</code></pre><ul>
+<li><code>-q</code>: 参数表示静默启动，不显示版本信息。</li>
+</ul>
+<p>连接到目标服务器：</p>
+<pre><code>(gdb) target remote localhost:1234
+Remote debugging using localhost:1234
+0x0000fff0 in ?? ()
+(gdb) 
+
+</code></pre><p>设置<code>CPU</code>架构为<code>i8086</code>，因为最开始的这段代码运行在<code>16</code>位实地址模式：</p>
+<pre><code>(gdb) set architecture i8086
+warning: A handler for the OS ABI &quot;GNU/Linux&quot; is not built into this configuration
+of GDB.  Attempting to continue with the default i8086 settings.
+
+The target architecture is assumed to be i8086
+(gdb) 
+</code></pre><p>设置当程序停住或单步调试时自动显示指令：</p>
+<pre><code>(gdb) display/i $cs*16+$pc
+1: x/i $cs*16+$pc
+   0xffff0:	ljmp   $0xf000,$0xe05b
+(gdb) 
+</code></pre><p>从上面可以看出，<code>$cs*16+$pc</code>就是计算机加电时的开始执行的地址，该位置时一条<code>ljmp</code>指令，跳转到<code>BIOS</code>程序中进行初始化，然后会读取引导扇区到内存一个特定的地址<code>0x7c00</code>处，<code>CPU</code>控制权会转移到那个地址继续执行。</p>
+<p>接下来，我们在<code>0x7c00</code>处设置一个断点：</p>
+<pre><code>(gdb) b *0x7c00
+Breakpoint 1 at 0x7c00
+</code></pre><p>输入<code>c</code>使虚拟机恢复运行：</p>
+<pre><code>(gdb) c
+Continuing.
+
+Breakpoint 1, 0x00007c00 in ?? ()
+1: x/i $cs*16+$pc
+=&gt; 0x7c00:	dec    %ax
+</code></pre><p>查看<code>0x7c00</code>处的内容：</p>
+<pre><code>(gdb) x/16xb 0x7c00
+0x7c00:	0x48	0x65	0x6c	0x6c	0x6f	0x2c	0x57	0x6f
+0x7c08:	0x72	0x6c	0x64	0x21	0x0a	0x00	0x00	0x00
+</code></pre><p>上面<code>GDB</code>的输出，正是引导分区开头处的内容，即字符串<code>Hello，World!</code>。</p>
+<h3 id="总结">总结</h3>
+<p>本文介绍了<code>Intel 80386</code>加电后的启动过程，并结合<code>qemu</code>分析验证了所学到的知识，为后续开启操作系统的学习打下基础。</p>
+<h3 id="参考文章">参考文章</h3>
+<ul>
+<li><a href="https://kviccn.github.io/posts/2020/02/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E4%B8%80%E5%8F%91%E5%85%A5%E9%AD%82-0x00-%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%98%AF%E5%A6%82%E4%BD%95%E5%90%AF%E5%8A%A8%E7%9A%84/">汇编语言一发入魂-0x00-计算机是如何启动的</a></li>
+<li><a href="https://chyyuu.gitbooks.io/simple_os_book/content/zh/chapter-1/poweron.html">Intel 80386加电后启动过程</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2021-02-21</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/posts/001-how-to-start/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/posts/002-print-hello-world/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">002-在屏幕上打印Hello，World！</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/posts/do-while-zero/">
+            <span class="next-text nav-default">do{}while(0)为什么要这样写呢？</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2021
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

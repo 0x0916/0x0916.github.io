@@ -141,21 +141,22 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/012-bootloader-with-elf-kernel/">012-可以加载ELF格式内核的Bootloader</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/x86-64-stack-layout-and-call-conventions/">关于x86-64的栈布局和函数调用约定</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-03-01 </span>
+      <span class="post-time"> 2020-07-28 </span>
       
-      <span class="more-meta"> 3629 words </span>
+      <span class="more-meta"> 3857 words </span>
       <span class="more-meta"> 8 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>上篇文章中我们的<code>内核</code>最终是纯<code>二进制</code>的指令，我们并不知道内核的大小，只是假设它小于<code>512</code>字节，所以我们只从硬盘读取了一个扇区，加载到内存并执行。规范的做法是将内核组装成约定的格式，最终的内核映像符合这种格式。它有一个<code>header</code>，用于保存内核的<code>元信息</code>，内核的起始地址、加载到何处、由多少段组成等等。我们选择一种通用的格式<code>ELF</code>，下面我们简要介绍一下这种格式。</p>
+      <p>在内核<code>panic</code>时，会打印出出问题的调用栈信息，同时也可以通过<code>kdump</code>结合<code>crash</code>进行更深入的分析定位问题。</p>
+<p>本文分析了<code>x86-64</code>的栈帧结构，为分析问题提供帮助。</p>
     </div>
     <div class="read-more">
-      <a href="/posts/012-bootloader-with-elf-kernel/" class="read-more-link">Read more..</a>
+      <a href="/posts/x86-64-stack-layout-and-call-conventions/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -163,21 +164,29 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/009-protect-mode/">009-进入保护模式</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/hierarchy-without-controller-group/">Cgroup之不绑定任何subsystem</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-02-27 </span>
-      
-      <span class="more-meta"> 3958 words </span>
+      <span class="post-time"> 2018-08-14 </span>
+      <div class="post-category">
+          
+            <a href="/categories/cgroup/"> cgroup </a>
+          
+        </div>
+      <span class="more-meta"> 3734 words </span>
       <span class="more-meta"> 8 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。</p>
+      <p>本文将创建并挂载一颗不和任何<code>subsystem</code>系统绑定的<code>cgroup</code>树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个<code>cgroup</code>中默认都有的几个文件的含义。</p>
+<p>最后，介绍了这样使用<code>cgroup</code>的一个用户。</p>
+<blockquote>
+<p>本文所有例子在<code>centos 7.5</code> 下执行通过</p>
+</blockquote>
     </div>
     <div class="read-more">
-      <a href="/posts/009-protect-mode/" class="read-more-link">Read more..</a>
+      <a href="/posts/hierarchy-without-controller-group/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -185,21 +194,30 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/008-interrupt/">008-中断</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/reuse-linux-kernel-rbtree/">红黑树(三)—— 在应用中复用linux的代码实现</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-02-26 </span>
-      
-      <span class="more-meta"> 3129 words </span>
-      <span class="more-meta"> 7 mins read </span>
+      <span class="post-time"> 2018-08-06 </span>
+      <div class="post-category">
+          
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+          
+            <a href="/categories/algorithm/"> algorithm </a>
+          
+        </div>
+      <span class="more-meta"> 819 words </span>
+      <span class="more-meta"> 2 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>本文将介绍中断的基础知识，并通过一些示例感受一些中断。</p>
+      <p>红黑树在linux上的实现比较高效，本文详细介绍了如何在一个用户态的C程序中复用linux 内核的红黑树的实现。</p>
+<blockquote>
+<p>注意：本文中的代码来自于：http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm</p>
+</blockquote>
     </div>
     <div class="read-more">
-      <a href="/posts/008-interrupt/" class="read-more-link">Read more..</a>
+      <a href="/posts/reuse-linux-kernel-rbtree/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -207,21 +225,27 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/007-function-call/">007-过程调用</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/rbtree-linux-kernel/">红黑树(二)——linux 内核的设计实现</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-02-26 </span>
-      
-      <span class="more-meta"> 5615 words </span>
-      <span class="more-meta"> 12 mins read </span>
+      <span class="post-time"> 2018-08-06 </span>
+      <div class="post-category">
+          
+            <a href="/categories/algorithm/"> algorithm </a>
+          
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+          
+        </div>
+      <span class="more-meta"> 1637 words </span>
+      <span class="more-meta"> 4 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>前面文章中介绍了如何控制屏幕光标，如何从硬盘读取数据。这种常用的功能，我们希望将其封装成过程调用，类似于高级语言中的函数，这样当我们需要控制光标或者从硬盘读数据时，就不用写大段的重复代码了。</p>
+      <p>本文介绍了红黑树在linux kernel中实现，使用的内核版本为：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm">centos 3.10.0-693.11.6</a></p>
     </div>
     <div class="read-more">
-      <a href="/posts/007-function-call/" class="read-more-link">Read more..</a>
+      <a href="/posts/rbtree-linux-kernel/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -229,21 +253,25 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/005-io-interface/">005-I/O接口技术</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/process_resource/">Process Resource</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-02-25 </span>
-      
-      <span class="more-meta"> 2985 words </span>
-      <span class="more-meta"> 6 mins read </span>
+      <span class="post-time"> 2018-07-30 </span>
+      <div class="post-category">
+          
+            <a href="/categories/linux/"> linux </a>
+          
+        </div>
+      <span class="more-meta"> 1811 words </span>
+      <span class="more-meta"> 4 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p><code>I/O</code>接口用于<code>CPU</code>与外部<code>I/O</code>设备进行信息交换。例如与键盘、鼠标、打印机和显示等设备交互。<code>I/O</code>接口电路与总线系统看似很复杂，但是落实到汇编语言代码上实则是很简单的。下面简要介绍一下<code>I/O</code>接口技术。</p>
+      <p>每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。</p>
     </div>
     <div class="read-more">
-      <a href="/posts/005-io-interface/" class="read-more-link">Read more..</a>
+      <a href="/posts/process_resource/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -253,8 +281,12 @@
   
   <nav class="pagination">
     
+      <a class="prev" href="/posts/page/2/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text">Prev</span>
+      </a>
     
-      <a class="next" href="/posts/page/2/">
+      <a class="next" href="/posts/page/4/">
         <span class="next-text">Next</span>
         <i class="iconfont icon-right"></i>
       </a>

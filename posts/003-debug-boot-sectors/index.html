@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>003-调试引导扇区 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="调试是软件开发过程中重要的一个环节，本文将详细介绍如何调试引导扇区。 其实第一节也涉及了部分调试命令。
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.80.0" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/posts/003-debug-boot-sectors/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="003-调试引导扇区" />
+<meta property="og:description" content="调试是软件开发过程中重要的一个环节，本文将详细介绍如何调试引导扇区。
+其实第一节也涉及了部分调试命令。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/003-debug-boot-sectors/" />
+<meta property="article:published_time" content="2021-02-23T23:48:51+08:00" />
+<meta property="article:modified_time" content="2021-02-23T23:48:51+08:00" />
+<meta itemprop="name" content="003-调试引导扇区">
+<meta itemprop="description" content="调试是软件开发过程中重要的一个环节，本文将详细介绍如何调试引导扇区。
+其实第一节也涉及了部分调试命令。">
+<meta itemprop="datePublished" content="2021-02-23T23:48:51+08:00" />
+<meta itemprop="dateModified" content="2021-02-23T23:48:51+08:00" />
+<meta itemprop="wordCount" content="1277">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="003-调试引导扇区"/>
+<meta name="twitter:description" content="调试是软件开发过程中重要的一个环节，本文将详细介绍如何调试引导扇区。
+其实第一节也涉及了部分调试命令。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">003-调试引导扇区</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2021-02-23 </span>
+        
+        <span class="more-meta"> 1277 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#使用gdb进行调试">使用GDB进行调试</a></li>
+        <li><a href="#直接重启虚拟机的方法">直接重启虚拟机的方法</a></li>
+        <li><a href="#总结">总结</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>调试是软件开发过程中重要的一个环节，本文将详细介绍如何调试引导扇区。
+其实第一节也涉及了部分调试命令。</p>
+<p>在操作系统的开发过程中我们通常使用<code>QEMU</code>虚拟机来运行我们开发的操作系统，使用<code>GDB</code>作为调试工具。<code>GDB</code>支持远程调试，这是通过一个简单的协议来实现的。<code>QEMU</code>支持该协议，所以我们可以配合这两者来完成我们的调试工作。</p>
+<h3 id="使用gdb进行调试">使用GDB进行调试</h3>
+<p>先编译生成引导扇区文件：</p>
+<pre><code># as --32 boot.s -o boot.o
+# objcopy -O binary -j .text boot.o boot.bin
+</code></pre><p>通过如下命令启动虚拟机：</p>
+<pre><code># qemu-system-i386 boot.bin -S -s
+</code></pre><ul>
+<li><code>-S</code> : 参数告诉虚拟机启动后先不运行。</li>
+<li><code>-s</code> : 参数告诉虚拟机开启一个GDB服务器等待客户端的连接，服务默认监听TCP端口1234。</li>
+</ul>
+<p>启动<code>GDB</code>：</p>
+<pre><code># gdb -q
+(gdb) 
+</code></pre><ul>
+<li><code>-q</code>: 参数表示静默启动，不显示版本信息。</li>
+</ul>
+<p>连接到目标服务器：</p>
+<pre><code>(gdb) target remote localhost:1234
+Remote debugging using localhost:1234
+0x0000fff0 in ?? ()
+(gdb)
+</code></pre><p>设置<code>CPU</code>架构为<code>i8086</code>，因为最开始的这段代码运行在<code>16</code>位实地址模式：</p>
+<pre><code>(gdb) set architecture i8086
+warning: A handler for the OS ABI &quot;GNU/Linux&quot; is not built into this configuration
+of GDB.  Attempting to continue with the default i8086 settings.
+
+The target architecture is assumed to be i8086
+(gdb)
+</code></pre><p>设置当程序停住或单步调试时自动显示指令</p>
+<pre><code>(gdb) display/i $cs*16+$pc
+1: x/i $cs*16+$pc
+   0xffff0:	ljmp   $0xf000,$0xe05b
+(gdb) 
+</code></pre><p><code>16</code>位实地址模式下物理地址计算方式为段寄存器左移<code>4</code>位，即乘以十进制的<code>16</code>，再加上偏移地址。</p>
+<p>因为<code>BIOS</code>会将引导扇区加载到<code>0x7c00</code>处开始执行，所以我们在这里打个断点：</p>
+<pre><code>(gdb) b *0x7c00
+Breakpoint 1 at 0x7c00
+(gdb) 
+</code></pre><p>输入<code>c</code>使虚拟机恢复运行：</p>
+<pre><code>(gdb) c
+Continuing.
+
+Breakpoint 1, 0x00007c00 in ?? ()
+1: x/i $cs*16+$pc
+=&gt; 0x7c00:	mov    $0x7c0,%ax
+(gdb) 
+</code></pre><p>观察第<code>6</code>行，正是我们的引导扇区的第一条指令。</p>
+<p>查看寄存器内容：</p>
+<pre><code>(gdb) info registers
+eax            0xaa55	43605
+ecx            0x0	0
+edx            0x80	128
+ebx            0x0	0
+esp            0x6ef4	0x6ef4
+ebp            0x0	0x0
+esi            0x0	0
+edi            0x0	0
+eip            0x7c00	0x7c00
+eflags         0x202	[ IF ]
+cs             0x0	0
+ss             0x0	0
+ds             0x0	0
+es             0x0	0
+fs             0x0	0
+gs             0x0	0
+(gdb) 
+</code></pre><p>此时<code>eax</code>寄存器的内容为<code>0xaa55</code>。单步执行下一条指令再查看寄存器内容：</p>
+<pre><code>(gdb) si
+0x00007c03 in ?? ()
+1: x/i $cs*16+$pc
+=&gt; 0x7c03:	mov    %ax,%ds
+(gdb) info registers
+eax            0x7c0	1984
+ecx            0x0	0
+edx            0x80	128
+ebx            0x0	0
+esp            0x6ef4	0x6ef4
+ebp            0x0	0x0
+esi            0x0	0
+edi            0x0	0
+eip            0x7c03	0x7c03
+eflags         0x202	[ IF ]
+cs             0x0	0
+ss             0x0	0
+ds             0x0	0
+es             0x0	0
+fs             0x0	0
+gs             0x0	0
+</code></pre><p>此时<code>eax</code>寄存器的内容为<code>0x7c0</code>。继续调试：</p>
+<pre><code>(gdb) si
+0x00007c05 in ?? ()
+1: x/i $cs*16+$pc
+=&gt; 0x7c05:	mov    $0xb800,%ax
+(gdb) info registers
+eax            0x7c0	1984
+ecx            0x0	0
+edx            0x80	128
+ebx            0x0	0
+esp            0x6ef4	0x6ef4
+ebp            0x0	0x0
+esi            0x0	0
+edi            0x0	0
+eip            0x7c05	0x7c05
+eflags         0x202	[ IF ]
+cs             0x0	0
+ss             0x0	0
+ds             0x7c0	1984
+es             0x0	0
+fs             0x0	0
+gs             0x0	0
+</code></pre><p>此时数据段寄存器<code>ds</code>的内容已经是<code>0x7c0</code>了。再向后执行两条指令并查看寄存器内容：</p>
+<pre><code>(gdb) si 2
+0x00007c0a in ?? ()
+1: x/i $cs*16+$pc
+=&gt; 0x7c0a:	cld    
+(gdb) info registers
+eax            0xb800	47104
+ecx            0x0	0
+edx            0x80	128
+ebx            0x0	0
+esp            0x6ef4	0x6ef4
+ebp            0x0	0x0
+esi            0x0	0
+edi            0x0	0
+eip            0x7c0a	0x7c0a
+eflags         0x202	[ IF ]
+cs             0x0	0
+ss             0x0	0
+ds             0x7c0	1984
+es             0xb800	47104
+fs             0x0	0
+gs             0x0	0
+</code></pre><p>此时附加数据段寄存器<code>es</code>的内容为<code>0xb800</code>。</p>
+<p>引导扇区调试的基本过程就是这样了。在调试过程中可能会需要重启虚拟机，如果重新手动执行<code>qemu</code>和<code>gdb</code>，再重新走一遍上面的流程多少是有点麻烦的。下面教大家两种直接重启虚拟机的方法。</p>
+<h3 id="直接重启虚拟机的方法">直接重启虚拟机的方法</h3>
+<p>第一种方法：切换到<code>QEMU</code>窗口并按<code>Ctrl-Alt-2</code>以获取<code>QEMU</code>监视器，键入命令<code>system_reset</code>并使用<code>Ctrl-Alt-1</code>切换回去。如下所示：</p>
+<p><img src="./qemu-system-reset.png" alt=""></p>
+<p>第二种方法：跳转到<code>BIOS</code>重置指令的地址<code>0xf000:0xfff0</code>处。</p>
+<pre><code>(gdb) set $cs = 0xf000
+(gdb) set $pc = 0xfff0
+(gdb) c
+Continuing.
+
+Breakpoint 1, 0x00007c00 in ?? ()
+1: x/i $cs*16+$pc
+=&gt; 0x7c00:      mov    $0x7c0,%ax
+(gdb)
+</code></pre><h3 id="总结">总结</h3>
+<p>本文中的命令摘要：</p>
+<pre><code>$ qemu-system-i386 boot.bin -S -s
+(gdb) target remote localhost:1234
+(gdb) set architecture i8086  # 16-bit mode
+(gdb) display/i $cs*16+$pc    # show next instruction
+(gdb) b *0x7c00               # breakpoint at boot sector
+(gdb) set $cs = 0xf000
+(gdb) set $pc = 0xfff0        # reboot
+(gdb) c                       # continue execution
+(gdb) si                      # step instruction
+(gdb) x/5i $cs*16+$pc         # disassemble five instrs
+(gdb) info registers          # show all registers
+(qemu) system_reset
+</code></pre><h3 id="参考文章">参考文章</h3>
+<ul>
+<li><a href="https://kviccn.github.io/posts/2020/03/%E8%B0%83%E8%AF%95%E5%BC%95%E5%AF%BC%E6%89%87%E5%8C%BA/">调试引导扇区</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2021-02-23</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/posts/003-debug-boot-sectors/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/posts/004-stack/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">004-理解一下堆栈</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/posts/002-print-hello-world/">
+            <span class="next-text nav-default">002-在屏幕上打印Hello，World！</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2021
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

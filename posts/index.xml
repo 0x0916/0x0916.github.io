@@ -6,7 +6,90 @@
     <description>Recent content on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 03 Aug 2020 18:02:43 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 01 Mar 2021 17:06:40 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>012-可以加载ELF格式内核的Bootloader</title>
+      <link>http://linux.laoqinren.net/posts/012-bootloader-with-elf-kernel/</link>
+      <pubDate>Mon, 01 Mar 2021 17:06:40 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/012-bootloader-with-elf-kernel/</guid>
+      <description>&lt;p&gt;上篇文章中我们的&lt;code&gt;内核&lt;/code&gt;最终是纯&lt;code&gt;二进制&lt;/code&gt;的指令，我们并不知道内核的大小，只是假设它小于&lt;code&gt;512&lt;/code&gt;字节，所以我们只从硬盘读取了一个扇区，加载到内存并执行。规范的做法是将内核组装成约定的格式，最终的内核映像符合这种格式。它有一个&lt;code&gt;header&lt;/code&gt;，用于保存内核的&lt;code&gt;元信息&lt;/code&gt;，内核的起始地址、加载到何处、由多少段组成等等。我们选择一种通用的格式&lt;code&gt;ELF&lt;/code&gt;，下面我们简要介绍一下这种格式。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>009-进入保护模式</title>
+      <link>http://linux.laoqinren.net/posts/009-protect-mode/</link>
+      <pubDate>Sat, 27 Feb 2021 13:57:08 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/009-protect-mode/</guid>
+      <description>&lt;p&gt;保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>008-中断</title>
+      <link>http://linux.laoqinren.net/posts/008-interrupt/</link>
+      <pubDate>Fri, 26 Feb 2021 21:15:53 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/008-interrupt/</guid>
+      <description>&lt;p&gt;本文将介绍中断的基础知识，并通过一些示例感受一些中断。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>007-过程调用</title>
+      <link>http://linux.laoqinren.net/posts/007-function-call/</link>
+      <pubDate>Fri, 26 Feb 2021 01:57:49 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/007-function-call/</guid>
+      <description>&lt;p&gt;前面文章中介绍了如何控制屏幕光标，如何从硬盘读取数据。这种常用的功能，我们希望将其封装成过程调用，类似于高级语言中的函数，这样当我们需要控制光标或者从硬盘读数据时，就不用写大段的重复代码了。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>005-I/O接口技术</title>
+      <link>http://linux.laoqinren.net/posts/005-io-interface/</link>
+      <pubDate>Thu, 25 Feb 2021 15:11:27 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/005-io-interface/</guid>
+      <description>&lt;p&gt;&lt;code&gt;I/O&lt;/code&gt;接口用于&lt;code&gt;CPU&lt;/code&gt;与外部&lt;code&gt;I/O&lt;/code&gt;设备进行信息交换。例如与键盘、鼠标、打印机和显示等设备交互。&lt;code&gt;I/O&lt;/code&gt;接口电路与总线系统看似很复杂，但是落实到汇编语言代码上实则是很简单的。下面简要介绍一下&lt;code&gt;I/O&lt;/code&gt;接口技术。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>004-理解一下堆栈</title>
+      <link>http://linux.laoqinren.net/posts/004-stack/</link>
+      <pubDate>Wed, 24 Feb 2021 20:38:27 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/004-stack/</guid>
+      <description>&lt;p&gt;本文将详细分析一下计算机上堆栈细节。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>003-调试引导扇区</title>
+      <link>http://linux.laoqinren.net/posts/003-debug-boot-sectors/</link>
+      <pubDate>Tue, 23 Feb 2021 23:48:51 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/003-debug-boot-sectors/</guid>
+      <description>&lt;p&gt;调试是软件开发过程中重要的一个环节，本文将详细介绍如何调试引导扇区。
+其实第一节也涉及了部分调试命令。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>002-在屏幕上打印Hello，World！</title>
+      <link>http://linux.laoqinren.net/posts/002-print-hello-world/</link>
+      <pubDate>Mon, 22 Feb 2021 23:19:30 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/002-print-hello-world/</guid>
+      <description>&lt;p&gt;本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印&lt;code&gt;Hello World&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;经过学习，我们可以到一些基本的&lt;code&gt;GNU&lt;/code&gt;汇编语言的用法，同时也会了解在屏幕上打印字符的原理。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>001-计算机是如何启动的</title>
+      <link>http://linux.laoqinren.net/posts/001-how-to-start/</link>
+      <pubDate>Sun, 21 Feb 2021 23:58:42 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/posts/001-how-to-start/</guid>
+      <description>&lt;p&gt;通常计算机的启动方式有两种，传统的&lt;code&gt;BIOS-MBR&lt;/code&gt;启动模式和新的&lt;code&gt;UEFI-GPT&lt;/code&gt;启动模式，本文将介绍传统的&lt;code&gt;BIOS-MBR&lt;/code&gt;启动模式。&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>do{}while(0)为什么要这样写呢？</title>
       <link>http://linux.laoqinren.net/posts/do-while-zero/</link>

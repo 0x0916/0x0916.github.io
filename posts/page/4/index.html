@@ -141,21 +141,33 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/012-bootloader-with-elf-kernel/">012-可以加载ELF格式内核的Bootloader</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/rbtree/">红黑树(一) ——原理</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-03-01 </span>
-      
-      <span class="more-meta"> 3629 words </span>
-      <span class="more-meta"> 8 mins read </span>
+      <span class="post-time"> 2018-07-16 </span>
+      <div class="post-category">
+          
+            <a href="/categories/algorithm/"> algorithm </a>
+          
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+          
+        </div>
+      <span class="more-meta"> 4311 words </span>
+      <span class="more-meta"> 9 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>上篇文章中我们的<code>内核</code>最终是纯<code>二进制</code>的指令，我们并不知道内核的大小，只是假设它小于<code>512</code>字节，所以我们只从硬盘读取了一个扇区，加载到内存并执行。规范的做法是将内核组装成约定的格式，最终的内核映像符合这种格式。它有一个<code>header</code>，用于保存内核的<code>元信息</code>，内核的起始地址、加载到何处、由多少段组成等等。我们选择一种通用的格式<code>ELF</code>，下面我们简要介绍一下这种格式。</p>
+      <p>在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。</p>
+<p>本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。</p>
+<h2 id="红黑树介绍">红黑树介绍</h2>
+<p>红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：<strong>红黑树</strong>。</p>
+<p>红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？</p>
+<p>了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。</p>
+<p>自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。</p>
     </div>
     <div class="read-more">
-      <a href="/posts/012-bootloader-with-elf-kernel/" class="read-more-link">Read more..</a>
+      <a href="/posts/rbtree/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -163,21 +175,26 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/009-protect-mode/">009-进入保护模式</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/use-high-version-of-gcc-in-centos7/">在centos7中使用高版本的GCC</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-02-27 </span>
-      
-      <span class="more-meta"> 3958 words </span>
-      <span class="more-meta"> 8 mins read </span>
+      <span class="post-time"> 2018-06-27 </span>
+      <div class="post-category">
+          
+            <a href="/categories/gcc/"> gcc </a>
+          
+        </div>
+      <span class="more-meta"> 506 words </span>
+      <span class="more-meta"> 2 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。</p>
+      <p>在<code>centos</code>上进行内核开发时，由于一些内核特性依赖于高版本的<code>GCC特性</code>（<code>gcc &gt; 5.0</code>），而<code>centos</code>默认的GCC一般为<code>4.8.x</code>。</p>
+<p>本文记录一种非常简单的在<code>centos</code>上使用高版本的<code>GCC</code>的方法。</p>
     </div>
     <div class="read-more">
-      <a href="/posts/009-protect-mode/" class="read-more-link">Read more..</a>
+      <a href="/posts/use-high-version-of-gcc-in-centos7/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -185,21 +202,26 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/008-interrupt/">008-中断</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/boyer-moore-majority-vote-algorithm/">Boyer-Moore majority vote algorithm(摩尔投票算法)</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-02-26 </span>
-      
-      <span class="more-meta"> 3129 words </span>
-      <span class="more-meta"> 7 mins read </span>
+      <span class="post-time"> 2017-11-11 </span>
+      <div class="post-category">
+          
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+          
+        </div>
+      <span class="more-meta"> 2454 words </span>
+      <span class="more-meta"> 5 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>本文将介绍中断的基础知识，并通过一些示例感受一些中断。</p>
+      <p><a href="https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm">Boyer-Moore majority vote algorithm</a>(摩尔投票算法)是一种在线性时间<code>O(n)</code>和空间复杂度的情况下，在一个元素序列中查找包含最多的元素。它是以<code>Robert S.Boyer</code>和<code>J Strother Moore</code>命名的，1981年发明的，是一种典型的流算法(<code>streaming algorithm</code>)。</p>
+<p>在它最简单的形式就是，查找最多的元素，也就是在输入中重复出现超过一半以上(<code>n/2</code>)的元素。</p>
     </div>
     <div class="read-more">
-      <a href="/posts/008-interrupt/" class="read-more-link">Read more..</a>
+      <a href="/posts/boyer-moore-majority-vote-algorithm/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -207,43 +229,27 @@
     
       <article class="post">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/007-function-call/">007-过程调用</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/posts/tmux/">tmux快捷键总结</a></h1>
     <div class="post-meta">
-      <span class="post-time"> 2021-02-26 </span>
-      
-      <span class="more-meta"> 5615 words </span>
-      <span class="more-meta"> 12 mins read </span>
+      <span class="post-time"> 2017-02-01 </span>
+      <div class="post-category">
+          
+            <a href="/categories/development/"> Development </a>
+          
+        </div>
+      <span class="more-meta"> 855 words </span>
+      <span class="more-meta"> 2 mins read </span>
     </div>
   </header>
   
   <div class="post-content">
     <div class="post-summary">
-      <p>前面文章中介绍了如何控制屏幕光标，如何从硬盘读取数据。这种常用的功能，我们希望将其封装成过程调用，类似于高级语言中的函数，这样当我们需要控制光标或者从硬盘读数据时，就不用写大段的重复代码了。</p>
+      <p><code>tmux</code> (<code>Terminal Multiplexer</code>的简称), 是一款优秀的终端复用软件，类似 <code>GNU screen</code>，但比<code>screen</code>更出色。</p>
+<p><code>Tmux</code> 用于在一个终端窗口中运行多个终端会话。不仅如此，你还可以通过 <code>Tmux</code> 使终端会话运行于后台或是按需接入、断开会话，这个功能非常实用。</p>
+<p>本文总结了<code>tmux</code>常用的一些快捷键。</p>
     </div>
     <div class="read-more">
-      <a href="/posts/007-function-call/" class="read-more-link">Read more..</a>
-    </div>
-  </div>
-</article>
-
-    
-      <article class="post">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/posts/005-io-interface/">005-I/O接口技术</a></h1>
-    <div class="post-meta">
-      <span class="post-time"> 2021-02-25 </span>
-      
-      <span class="more-meta"> 2985 words </span>
-      <span class="more-meta"> 6 mins read </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    <div class="post-summary">
-      <p><code>I/O</code>接口用于<code>CPU</code>与外部<code>I/O</code>设备进行信息交换。例如与键盘、鼠标、打印机和显示等设备交互。<code>I/O</code>接口电路与总线系统看似很复杂，但是落实到汇编语言代码上实则是很简单的。下面简要介绍一下<code>I/O</code>接口技术。</p>
-    </div>
-    <div class="read-more">
-      <a href="/posts/005-io-interface/" class="read-more-link">Read more..</a>
+      <a href="/posts/tmux/" class="read-more-link">Read more..</a>
     </div>
   </div>
 </article>
@@ -253,11 +259,11 @@
   
   <nav class="pagination">
     
-    
-      <a class="next" href="/posts/page/2/">
-        <span class="next-text">Next</span>
-        <i class="iconfont icon-right"></i>
+      <a class="prev" href="/posts/page/3/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text">Prev</span>
       </a>
+    
   </nav>
 
         </div>

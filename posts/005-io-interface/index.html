@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>005-I/O接口技术 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="I/O接口用于CPU与外部I/O设备进行信息交换。例如与键盘、鼠标、打印机和显示等设备交互。I/O接口电路与总线系统看似很复杂，但是落实到汇编语言代码上实则是很简单的。下面简要介绍一下I/O接口技术。
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.80.0" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/posts/005-io-interface/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="005-I/O接口技术" />
+<meta property="og:description" content="I/O接口用于CPU与外部I/O设备进行信息交换。例如与键盘、鼠标、打印机和显示等设备交互。I/O接口电路与总线系统看似很复杂，但是落实到汇编语言代码上实则是很简单的。下面简要介绍一下I/O接口技术。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/005-io-interface/" />
+<meta property="article:published_time" content="2021-02-25T15:11:27+08:00" />
+<meta property="article:modified_time" content="2021-02-25T15:11:27+08:00" />
+<meta itemprop="name" content="005-I/O接口技术">
+<meta itemprop="description" content="I/O接口用于CPU与外部I/O设备进行信息交换。例如与键盘、鼠标、打印机和显示等设备交互。I/O接口电路与总线系统看似很复杂，但是落实到汇编语言代码上实则是很简单的。下面简要介绍一下I/O接口技术。">
+<meta itemprop="datePublished" content="2021-02-25T15:11:27+08:00" />
+<meta itemprop="dateModified" content="2021-02-25T15:11:27+08:00" />
+<meta itemprop="wordCount" content="2985">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="005-I/O接口技术"/>
+<meta name="twitter:description" content="I/O接口用于CPU与外部I/O设备进行信息交换。例如与键盘、鼠标、打印机和显示等设备交互。I/O接口电路与总线系统看似很复杂，但是落实到汇编语言代码上实则是很简单的。下面简要介绍一下I/O接口技术。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">005-I/O接口技术</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2021-02-25 </span>
+        
+        <span class="more-meta"> 2985 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#io-接口技术">I/O 接口技术</a></li>
+        <li><a href="#实验屏幕光标控制">实验：屏幕光标控制</a></li>
+        <li><a href="#用汇编代码控制屏幕光标位置">用汇编代码控制屏幕光标位置</a></li>
+        <li><a href="#参考文章">参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p><code>I/O</code>接口用于<code>CPU</code>与外部<code>I/O</code>设备进行信息交换。例如与键盘、鼠标、打印机和显示等设备交互。<code>I/O</code>接口电路与总线系统看似很复杂，但是落实到汇编语言代码上实则是很简单的。下面简要介绍一下<code>I/O</code>接口技术。</p>
+<h3 id="io-接口技术">I/O 接口技术</h3>
+<p>在计算机中，<code>CPU</code>与外设并不是直接相连的，在它们中间设有<code>I/O</code>接口电路。<code>CPU</code>通过数据总线、地址总线和控制总线与<code>I/O</code>接口电路相连，以实现与外设交换数据信息、状态信息和控制信息。外设的状态信息通过接口电路的状态端口经由数据总线进入<code>CPU</code>，而<code>CPU</code>向外设发出的控制信号也是经由数据总线，通过接口电路的控制端口来实现的。</p>
+<h4 id="io-端口">I/O 端口</h4>
+<p>具体来说，<code>CPU</code>是通过<code>I/O</code>端口和外设交互的。<code>I/O</code>端口是接口电路中能被<code>CPU</code>直接访问的寄存器或存储器。通常，根据数据性质，<code>I/O</code>接口电路中可分为<code>3</code>种类型的端口，即<code>数据端口</code>、<code>状态端口</code>和<code>控制端口</code>。</p>
+<ol>
+<li>
+<p>数据端口。用于存放<code>CPU</code>与外设之间交换的数据，数据的长度通常为<code>1~2</code>个字节。</p>
+</li>
+<li>
+<p>状态端口。用于指示外设的当前状态。每种状态用<code>1</code>位二进制数据表示，可由<code>CPU</code>通过数据总线和相关电路读取。状态端口的不同状态位的含义有：</p>
+<ul>
+<li>
+<p>准备就绪位<code>(ready)</code>。对于输入端口，<code>ready=1</code>表示数据寄存器已准备好数据，等待<code>CPU</code>读取；当数据取走后，此位由<code>CPU</code>清零；对于输出端口，<code>ready=1</code>表示输出数据寄存器已空，可以接受下一个数据；当新数据到达后，该位由外设清零。</p>
+</li>
+<li>
+<p>忙位<code>(busy)</code>。<code>busy</code>表明外设是否能够接收数据。<code>busy=1</code>表示外设忙，暂时不允许<code>CPU</code>送数据过来。<code>busy=0</code>表示外设已空闲，允许<code>CPU</code>发送下一个数据。</p>
+</li>
+<li>
+<p>错误位<code>(error)</code>。<code>error=1</code>表示在数据传送过程中出现错误，<code>CPU</code>正在进行相应的处理，重新传送或中止操作等。</p>
+</li>
+</ul>
+</li>
+<li>
+<p>控制端口。用于存放<code>CPU</code>向接口发出的各种命令、控制字和控制信号，以便控制外设的不同操作。</p>
+</li>
+</ol>
+<h4 id="io-端口的寻址方式">I/O 端口的寻址方式</h4>
+<p><code>CPU</code>对端口的寻址方式通常有两种：</p>
+<ol>
+<li>存储器统一编址。又称为存储器映像编址，在这种编址方式中，<code>I/O</code>端口和内存单元统一编址，即把<code>I/O</code>端口当作内存单元对待，从整个内存空间中划出一个子空间给<code>I/O</code>端口，每一个<code>I/O</code>端口分配一个地址码，用访问存储器的指令对<code>I/O</code>端口进行操作。典型的例子是我们一直在使用的显存缓冲区，虽然我们使用的是操作内存的方式，但实际上操作的是显卡。</li>
+<li><code>I/O</code>独立编址。<code>I/O</code>端口编址和存储器的编址相互独立，即<code>I/O</code>端口地址空间和存储器地址空间分开设置，互不影响。采用这种编址方式，对<code>I/O</code>端口的操作使用输入/输出指令（<code>I/O</code>指令）。</li>
+</ol>
+<h4 id="io-端口地址分配">I/O 端口地址分配</h4>
+<table>
+<thead>
+<tr>
+<th>端口地址范围</th>
+<th>分配说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x000 &mdash; 0x01F</td>
+<td>8237A DMA控制器1</td>
+</tr>
+<tr>
+<td>0x020 &mdash; 0x03F</td>
+<td>8259A可编程中断控制器1</td>
+</tr>
+<tr>
+<td>0x040 &mdash; 0x05F</td>
+<td>8253/8254A 定时计数器</td>
+</tr>
+<tr>
+<td>0x060 &mdash; 0x06F</td>
+<td>8042键盘控制器</td>
+</tr>
+<tr>
+<td>0x070 &mdash; 0x07F</td>
+<td>CMOS RAM/实时时钟RTC</td>
+</tr>
+<tr>
+<td>0x080 &mdash; 0x09F</td>
+<td>DMA页面寄存器访问端口</td>
+</tr>
+<tr>
+<td>0x0A0 &mdash; 0x0BF</td>
+<td>8259A可编程中断控制器2</td>
+</tr>
+<tr>
+<td>0x0C0 &mdash; 0x0DF</td>
+<td>8237A DMA控制器2</td>
+</tr>
+<tr>
+<td>0x0F0 &mdash; 0x0FF</td>
+<td>协处理器访问端口</td>
+</tr>
+<tr>
+<td>0x170 &mdash; 0x177</td>
+<td>IDE硬盘控制器1</td>
+</tr>
+<tr>
+<td>0x1F0 &mdash; 0x1F7</td>
+<td>IDE硬盘控制器0</td>
+</tr>
+<tr>
+<td>0x278 &mdash; 0x27F</td>
+<td>并行打印机端口2</td>
+</tr>
+<tr>
+<td>0x2F8 &mdash; 0x2FF</td>
+<td>串行控制器2</td>
+</tr>
+<tr>
+<td>0x378 &mdash; 0x37F</td>
+<td>并行打印机端口1</td>
+</tr>
+<tr>
+<td>0x3B0 &mdash; 0x3BF</td>
+<td>单色MDA显示控制器</td>
+</tr>
+<tr>
+<td>0x3C0 &mdash; 0x3CF</td>
+<td>彩色CGA显示控制器</td>
+</tr>
+<tr>
+<td>0x3D0 &mdash; 0x3DF</td>
+<td>彩色EGA/VGA显示控制器</td>
+</tr>
+<tr>
+<td>0x3F0 &mdash; 0x3F7</td>
+<td>软盘控制器</td>
+</tr>
+<tr>
+<td>0x3F8 &mdash; 0x3FF</td>
+<td>串行控制器1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="实验屏幕光标控制">实验：屏幕光标控制</h3>
+<p>这一小节给大家介绍一下关于屏幕光标的一些知识，并借助<code>QEMU</code>提供的访问<code>I/O</code>端口的能力在不写代码的情况下体验一下<code>I/O</code>端口的操作。</p>
+<p>我们从控制屏幕光标来学习<code>I/O</code>端口的操作，因为控制屏幕光标很简单，只需要操作两个端口即可。</p>
+<p>在之前的学习中，我们知道了计算机启动后显卡默认被初始化到<code>标准 VGA 文本模式</code>，该模式下屏幕总共可以显示<code>80 x 25 = 2000</code>个字符。从<code>0</code>开始计数，光标的范围在数值上为<code>0~1999</code>。光标在屏幕上的位置保存在显卡内部的两个光标寄存器中，每个寄存器都是<code>8</code>位的，合起来形成一个<code>16</code>位的数值。这两个寄存器在显卡内部的索引值分别是<code>14(0x0e)</code>和<code>15(0x0f)</code>，分别用于提供光标位置的高<code>8</code>位和低<code>8</code>位。在读写这两个寄存器之前需要先通过索引寄存器指定它们的索引，索引寄存器的端口号是<code>0x3d4</code>。指定了寄存器之后，就可以通过数据端口<code>0x3d5</code>来进行读写了。</p>
+<p>下面就让我们通过<code>QEMU</code>来体验一下如何操作<code>I/O</code>端口。配合这个实验的主引导扇区代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#75715e"># 告诉编译器以16位模式编译，因为BIOS在加载并运行我们的代码时是处于16位实地址模式的
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">.code16</span>
+
+	<span style="color:#a6e22e">jmp</span>	.
+
+	<span style="color:#75715e"># .org伪指令指示编译器把位置计数器移动到操作数所指定的位置，这里是将位置计数器移动到510处
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">.org</span>	<span style="color:#ae81ff">510</span>
+	<span style="color:#75715e"># .word伪指令指示编译器在当前位置写入一个字大小的数据
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">.word</span>	<span style="color:#ae81ff">0xaa55</span>
+</code></pre></div><p>这段代码只有一个功能，就是陷入死循环。下面启动虚拟机：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ as --32 boot.s -o boot.o
+$ objcopy -O binary -j .text boot.o boot.bin
+$ qemu-system-i386 boot.bin
+</code></pre></div><p><img src="./qemu-3.png" alt=""></p>
+<p>可以看到光标的默认位置在<code>B</code>下方，我们通过端口将光标的实际位置取出来，看看和我们肉眼所见的位置一不一样。</p>
+<p>通过<code>Ctrl-Alt-2</code>切换到<code>监视器</code>。</p>
+<p>向索引寄存器的端口<code>0x3d4</code>写入<code>0xe</code>，因为我们接下来准备读取光标位置的高<code>8</code>位：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>qemu<span style="color:#f92672">)</span> o/1xb 0x3d4 0xe
+</code></pre></div><p>这是<code>QEMU</code>提供的读写<code>I/O</code>端口的命令，并不是汇编指令，这一点不要搞混。</p>
+<p>从数据端口<code>0x3d5</code>读取光标位置高<code>8</code>位：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>qemu<span style="color:#f92672">)</span> i/1xb 0x3d5
+portb<span style="color:#f92672">[</span>0x03d5<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> 0x2
+</code></pre></div><p>结果是<code>0x2</code>。</p>
+<p>再用同样的方式读取光标位置低<code>8</code>位：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>qemu<span style="color:#f92672">)</span> o/1xb 0x3d4 0xf
+<span style="color:#f92672">(</span>qemu<span style="color:#f92672">)</span> i/1xb 0x3d5
+portb<span style="color:#f92672">[</span>0x03d5<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> 0x80
+</code></pre></div><p>如图所示：</p>
+<p><img src="./qemu-2.png" alt=""></p>
+<p>结果是<code>0x80</code>，将高<code>8</code>位与低<code>8</code>位组合在一起得到<code>0x280</code>，即十进制<code>640</code>，除以每行字符数<code>80</code>，得到<code>8</code>。即第<code>8</code>行，从<code>0</code>开始计。可能不太好数，我们来换个方式，把位置<code>0</code>写入到光标位置寄存器，看看光标会发生什么变化。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>qemu<span style="color:#f92672">)</span> o/1xb 0x3d4 0xe
+<span style="color:#f92672">(</span>qemu<span style="color:#f92672">)</span> o/1xb 0x3d5 <span style="color:#ae81ff">0</span>
+<span style="color:#f92672">(</span>qemu<span style="color:#f92672">)</span> o/1xb 0x3d4 0xf
+<span style="color:#f92672">(</span>qemu<span style="color:#f92672">)</span> o/1xb 0x3d5 <span style="color:#ae81ff">0</span>
+</code></pre></div><p>此时的结果如下：
+<img src="qemu-1.png" alt=""></p>
+<p>可以看到光标已经在左上角的位置了。</p>
+<p><em>上面用到的<code>Qemu</code>命令的格式我并没有解释，<code>1xb</code>分别代表什么请查看<a href="https://www.qemu.org/docs/master/system/monitor.html">文档</a>。</em></p>
+<h3 id="用汇编代码控制屏幕光标位置">用汇编代码控制屏幕光标位置</h3>
+<p>下面我们使用汇编语言完成和上面一样的功能，当程序运行完成后，光标的初始位置被保存在<code>cx</code>中。</p>
+<p>代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#75715e"># 告诉编译器以16位模式编译，因为BIOS在加载并运行我们的代码时是处于16位实地址模式的
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">.code16</span>
+
+<span style="color:#75715e"># 将初始光标位置读入 cx
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movw</span> <span style="color:#66d9ef">$0x3d4</span>, %dx
+	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0xe</span>, %al
+	<span style="color:#a6e22e">outb</span> %al, %dx
+
+	<span style="color:#a6e22e">movw</span> <span style="color:#66d9ef">$0x3d5</span>, %dx
+	<span style="color:#a6e22e">inb</span> %dx, %al
+	<span style="color:#a6e22e">movb</span> %al, %ch
+
+	<span style="color:#a6e22e">movw</span> <span style="color:#66d9ef">$0x3d4</span>, %dx
+	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0xf</span>, %al
+	<span style="color:#a6e22e">outb</span> %al, %dx
+
+	<span style="color:#a6e22e">movw</span> <span style="color:#66d9ef">$0x3d5</span>, %dx
+	<span style="color:#a6e22e">inb</span> %dx, %al
+	<span style="color:#a6e22e">movb</span> %al, %cl
+
+	<span style="color:#75715e"># 设置光标位置为 0
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movw</span> <span style="color:#66d9ef">$0x3d4</span>, %dx
+	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0xe</span>, %al
+	<span style="color:#a6e22e">outb</span> %al, %dx
+
+	<span style="color:#a6e22e">movw</span> <span style="color:#66d9ef">$0x3d5</span>, %dx
+	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0</span>, %al
+	<span style="color:#a6e22e">outb</span> %al, %dx
+
+	<span style="color:#a6e22e">movw</span> <span style="color:#66d9ef">$0x3d4</span>, %dx
+	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0xf</span>, %al
+	<span style="color:#a6e22e">outb</span> %al, %dx
+
+	<span style="color:#a6e22e">movw</span> <span style="color:#66d9ef">$0x3d5</span>, %dx
+	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0</span>, %al
+	<span style="color:#a6e22e">outb</span> %al, %dx
+
+	<span style="color:#a6e22e">jmp</span>	.
+
+	<span style="color:#75715e"># .org伪指令指示编译器把位置计数器移动到操作数所指定的位置，这里是将位置计数器移动到510处
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">.org</span>	<span style="color:#ae81ff">510</span>
+	<span style="color:#75715e"># .word伪指令指示编译器在当前位置写入一个字大小的数据
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">.word</span>	<span style="color:#ae81ff">0xaa55</span>
+</code></pre></div><h4 id="解释">解释</h4>
+<p>第<code>4~6</code>行使用<code>out</code>指令将<code>0xe</code>写入端口<code>0x3d4</code>，用于设置要访问的寄存器的索引。<code>out</code>指令的格式是固定的，源操作数必须是寄存器<code>al</code>或者<code>ax</code>，目的操作数可以是<code>8</code>位立即数或者寄存器<code>dx</code>。因为目标端口是一个<code>8</code>位端口，所以使用<code>al</code>寄存器；因为端口号<code>0x3d5</code>大于<code>0xff（8位立即数能表示的最大端口号）</code>，所以使用<code>dx</code>寄存器。</p>
+<p>第<code>8、9</code>行从数据端口<code>0x3d5</code>读取数据到<code>al</code>。<code>in</code>指令的格式与<code>out</code>指令正好相反。</p>
+<p>第<code>10</code>行将光标位置的高<code>8</code>位从<code>al</code>移动到<code>ch</code>，因为稍后还要使用<code>al</code>。</p>
+<p>第<code>12~18</code>行用于读出光标位置的低<code>8</code>位并移动到<code>cl</code>中。此时<code>cx</code>中保存着光标完整的位置。</p>
+<p>剩下的指令用于将光标位置的高<code>8</code>位和低<code>8</code>位分别置为<code>0</code>。</p>
+<h4 id="运行">运行</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ as --32 boot.s -o boot.o
+$ objcopy -O binary -j .text boot.o boot.bin
+$ qemu-system-i386 boot.bin
+</code></pre></div><p>结果与上面一致，就不贴图了。</p>
+<p>此时我们查看寄存器的值：</p>
+<p><img src="./qemu-4.png" alt=""></p>
+<p>内容比较多，我们只关注<code>ecx</code>，值为<code>0x280</code>。与我们之前手动取出来的值是一致的。</p>
+<h3 id="参考文章">参考文章</h3>
+<ul>
+<li><a href="https://kviccn.github.io/posts/2020/03/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E4%B8%80%E5%8F%91%E5%85%A5%E9%AD%82-0x05-i/o%E6%8E%A5%E5%8F%A3%E6%8A%80%E6%9C%AF/">汇编语言一发入魂 0x05 - I/O接口技术</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2021-02-25</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/posts/005-io-interface/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/posts/007-function-call/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">007-过程调用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/posts/004-stack/">
+            <span class="next-text nav-default">004-理解一下堆栈</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2021
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>008-中断 - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="本文将介绍中断的基础知识，并通过一些示例感受一些中断。
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.80.0" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/posts/008-interrupt/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="008-中断" />
+<meta property="og:description" content="本文将介绍中断的基础知识，并通过一些示例感受一些中断。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/008-interrupt/" />
+<meta property="article:published_time" content="2021-02-26T21:15:53+08:00" />
+<meta property="article:modified_time" content="2021-02-26T21:15:53+08:00" />
+<meta itemprop="name" content="008-中断">
+<meta itemprop="description" content="本文将介绍中断的基础知识，并通过一些示例感受一些中断。">
+<meta itemprop="datePublished" content="2021-02-26T21:15:53+08:00" />
+<meta itemprop="dateModified" content="2021-02-26T21:15:53+08:00" />
+<meta itemprop="wordCount" content="3129">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="008-中断"/>
+<meta name="twitter:description" content="本文将介绍中断的基础知识，并通过一些示例感受一些中断。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">008-中断</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2021-02-26 </span>
+        
+        <span class="more-meta"> 3129 words </span>
+        <span class="more-meta"> 7 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#中断">中断</a>
+      <ul>
+        <li><a href="#中断的分类">中断的分类</a></li>
+        <li><a href="#中断向量表">中断向量表</a></li>
+        <li><a href="#中断处理过程">中断处理过程</a></li>
+      </ul>
+    </li>
+    <li><a href="#实战">实战</a>
+      <ul>
+        <li><a href="#示例一">示例一</a></li>
+        <li><a href="#示例二">示例二</a></li>
+        <li><a href="#示例三">示例三</a></li>
+      </ul>
+    </li>
+    <li><a href="#参考文章">参考文章</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>本文将介绍中断的基础知识，并通过一些示例感受一些中断。</p>
+<h2 id="中断">中断</h2>
+<p>中断就是打断<code>CPU</code>当前的执行流程，让<code>CPU</code>去处理一下别的事情。当然，<code>CPU</code>也可以选择拒绝。</p>
+<h3 id="中断的分类">中断的分类</h3>
+<p>中断按中断源可以分为<code>内部中断</code>和<code>外部中断</code>。</p>
+<h4 id="内部中断">内部中断</h4>
+<p>内部中断可以由中断指令<code>int</code>来触发，也可以是因为指令执行中出现了错误而触发，例如运算结果溢出会触发溢出中断；除法指令的除数为<code>0</code>会触发除法出错中断。</p>
+<h4 id="外部中断">外部中断</h4>
+<p>外部中断通过<code>NMI</code>和<code>INTR</code>这两条中断信号线接入<code>CPU</code>。</p>
+<ul>
+<li>
+<p>由<code>NMI</code>接入的是非屏蔽中断<code>(Non Maskable Interrupt)</code>，来自这个引脚的中断请求信号是不受中断允许标志<code>IF</code>限制的，<code>CPU</code>接收到非屏蔽中断请求后，无论当前正在做什么事情，都必须在执行完当前指令后响应中断。因此非屏蔽中断常用于系统掉电处理，紧急停机等重大故障时。<code>NMI</code>统一被赋予中断号<code>2</code>。</p>
+</li>
+<li>
+<p>由<code>INTR</code>接入的是可屏蔽中断。在<code>IBM PC/AT</code>机中，这个信号由两片<code>8259A</code>级联组成，接入<code>CPU</code>的中断控制逻辑电路，可管理<code>15</code>级中断。</p>
+</li>
+</ul>
+<h3 id="中断向量表">中断向量表</h3>
+<p><code>8086</code>的中断系统可以识别<code>256</code>个不同类型的中断，每个中断对应一个<code>0~255</code>的编号，这个编号即中断类型码。每个中断类型码对应一个中断服务程序的入口地址，<code>256</code>个中断，理论上就需要<code>256</code>段中断处理程序。在实模式下，处理器要求将它们的入口点集中存放到内存中从物理地址 <code>0x00000</code>开始，到<code>0x003ff</code>结束，共<code>1KB</code>的空间内，这就是所谓的中断向量表<code>(Interrupt Vector Table, IVT)</code>。</p>
+<p>每个中断在中断向量表中占<code>2</code>个字，分别是中断处理程序的偏移地址和段地址。中断<code>0</code>的入口点位于物理地址<code>0x00000</code>处，也就是逻辑地址<code>0x0000:0x0000</code>；中断<code>1</code>的入口点位于物理地址<code>0x00004</code>处，即逻辑地址<code>0x0000:0x0004</code>，其他中断依次类推。</p>
+<h3 id="中断处理过程">中断处理过程</h3>
+<ol>
+<li>
+<p>保护断点的现场。先将标志寄存器<code>FLAGS</code>压栈，然后清除<code>IF</code>位和<code>TF</code>位。将当前的代码段寄存器<code>cs</code>和指令指针寄存器<code>ip</code>压栈。</p>
+</li>
+<li>
+<p>执行中断处理程序。将中断类型码乘以<code>4</code>（每个中断在中断向量表中占<code>4</code>个字节），得到了该中断入口点在中断向量表中的偏移地址。从中断向量表中依次取出中断程序的偏移地址和段地址，分别替换<code>ip</code>和<code>cs</code>以转入中断处理程序执行。</p>
+</li>
+<li>
+<p>返回到断点接着执行。中断处理程序的最后一条指令必须是中断返回指令<code>iret</code>。<code>iret</code>执行时处理器依次从堆栈中弹出<code>ip、cs、flags</code>，于是处理器转到主程序继续执行。</p>
+</li>
+</ol>
+<p>下面我们通过几个例子感受一下。</p>
+<h2 id="实战">实战</h2>
+<h3 id="示例一">示例一</h3>
+<p>该示例演示内部中断。</p>
+<h4 id="代码">代码</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">.code16</span>
+
+<span style="color:#75715e"># 设置了两个符号常量，类似于c语言中的#define。
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">.set</span>	<span style="color:#66d9ef">INIT_TYPE_CODE</span>, <span style="color:#ae81ff">0x70</span>		<span style="color:#75715e"># 表示我们要使用的中断类型码，这个示例中我们打算手动触发0x70号中
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">.set</span>	<span style="color:#66d9ef">INIT_HANDLER_BASE</span>, <span style="color:#ae81ff">0x07c0</span>	<span style="color:#75715e"># 表示中断处理程序所在的段地址。
+</span><span style="color:#75715e"></span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$0xb800</span>, %ax
+	<span style="color:#a6e22e">movw</span>	%ax, %es
+	
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$0x7c00</span>, %sp
+	
+	<span style="color:#a6e22e">call</span>	<span style="color:#66d9ef">install_ivt</span>		<span style="color:#75715e"># 调用安装中断向量表的例程
+</span><span style="color:#75715e"></span>	
+	<span style="color:#66d9ef">int</span>	<span style="color:#66d9ef">$INIT_TYPE_CODE</span>		<span style="color:#75715e"># 手动触发中断
+</span><span style="color:#75715e"></span>	
+	<span style="color:#66d9ef">jmp</span>	.
+
+install_ivt:
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$INIT_TYPE_CODE</span>, %bx
+	<span style="color:#a6e22e">shlw</span>	<span style="color:#66d9ef">$2</span>, %bx			<span style="color:#75715e"># 根据中断号计算中断向量在中断向量表中的偏移地址。计算方法是左移2位，即乘4
+</span><span style="color:#75715e"></span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$handler</span>, (%bx)		<span style="color:#75715e"># 将中断处理程序的段内偏移写入中断向量对应的偏移地址的前两个字节
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">movw</span>	<span style="color:#66d9ef">$INIT_HANDLER_BASE</span>, <span style="color:#ae81ff">2</span>(%bx)	<span style="color:#75715e">#  将中断处理程序所在的段地址写入中断向量对应的偏移地址的后两个字节。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">ret</span>
+
+
+<span style="color:#75715e"># 断处理程序。只打印了一个字符，然后通过iret返回。
+</span><span style="color:#75715e"></span>handler:
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">A</span><span style="color:#960050;background-color:#1e0010">&#39;</span> <span style="color:#960050;background-color:#1e0010">|</span> <span style="color:#ae81ff">0x0a00</span>, %es:<span style="color:#ae81ff">0</span>
+	<span style="color:#a6e22e">iret</span>
+
+	<span style="color:#a6e22e">.org</span>	<span style="color:#ae81ff">510</span>
+	<span style="color:#a6e22e">.word</span>	<span style="color:#ae81ff">0xAA55</span>
+</code></pre></div><h4 id="运行">运行</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ as --32 boot.s -o boot.o
+$ objcopy -O binary -j .text boot.o boot.bin
+$ qemu-system-i386 boot.bin
+</code></pre></div><p><img src="./interrupt-1.png" alt=""></p>
+<h3 id="示例二">示例二</h3>
+<p>该示例演示外部中断。</p>
+<h4 id="代码-1">代码</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">.code16</span>
+
+<span style="color:#75715e"># 设置了两个符号常量，类似于c语言中的#define。
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">.set</span>	<span style="color:#66d9ef">INIT_TYPE_CODE</span>, <span style="color:#ae81ff">0x08</span>		<span style="color:#75715e"># 0x08。这个中断号在BIOS对8259a做过初始化之后是分配给主片的0级中断的，这个引脚用于连接8254可编程定时/计数器。
+</span><span style="color:#75715e"></span>					<span style="color:#75715e"># 8254在被BIOS初始化后会每隔54.925 ms向这个引脚输出1个信号。
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">.set</span>	<span style="color:#66d9ef">INIT_HANDLER_BASE</span>, <span style="color:#ae81ff">0x07c0</span>	<span style="color:#75715e"># 表示中断处理程序所在的段地址。
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">.set</span>	<span style="color:#66d9ef">_8259A_MASTER</span>, <span style="color:#ae81ff">0x20</span>		<span style="color:#75715e"># 8259a的主片0x20端口。分配给8259a主片的端口是0x20、0x21，从片的端口是0xa0, 0xa1。
+</span><span style="color:#75715e"></span>					<span style="color:#75715e"># 这个示例中我们不对8259a进行编程，但是在中断处理完成之后需要通过0x20告诉主片这个中断已经处理完了。
+</span><span style="color:#75715e"></span>					<span style="color:#75715e"># 如果中断来自从片的话那就需要同时向主片，从片发送处理完成的信号。
+</span><span style="color:#75715e"></span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$0xb800</span>, %ax
+	<span style="color:#a6e22e">movw</span>	%ax, %es
+	
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$0x7c00</span>, %sp
+
+	<span style="color:#a6e22e">xorw</span>	%si, %si		<span style="color:#75715e"># 将si置0，我们打算每触发一次中断就在屏幕上打印一个字符，通过si控制打印位置。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">call</span>	<span style="color:#66d9ef">install_ivt</span>		<span style="color:#75715e"># 调用安装中断向量表的例程
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e"># 初始化 8259a
+</span><span style="color:#75715e"># 使用默认配置
+</span><span style="color:#75715e"></span>
+
+sleep:
+	<span style="color:#a6e22e">hlt</span>				<span style="color:#75715e"># 通过hlt指令使处理器停止执行指令，并处于停机状态。停机状态可以被中断唤醒，继续执行。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">jmp</span>	<span style="color:#66d9ef">sleep</span>	
+
+<span style="color:#66d9ef">install_ivt</span>:
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$INIT_TYPE_CODE</span>, %bx
+	<span style="color:#a6e22e">shlw</span>	<span style="color:#66d9ef">$2</span>, %bx			<span style="color:#75715e"># 根据中断号计算中断向量在中断向量表中的偏移地址。计算方法是左移2位，即乘4
+</span><span style="color:#75715e"></span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$handler</span>, (%bx)		<span style="color:#75715e"># 将中断处理程序的段内偏移写入中断向量对应的偏移地址的前两个字节
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">movw</span>	<span style="color:#66d9ef">$INIT_HANDLER_BASE</span>, <span style="color:#ae81ff">2</span>(%bx)	<span style="color:#75715e">#  将中断处理程序所在的段地址写入中断向量对应的偏移地址的后两个字节。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">ret</span>
+
+
+<span style="color:#75715e"># 断处理程序。只打印了一个字符，然后通过iret返回。
+</span><span style="color:#75715e"></span>handler:
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">B</span><span style="color:#960050;background-color:#1e0010">&#39;</span> <span style="color:#960050;background-color:#1e0010">|</span> <span style="color:#ae81ff">0x0a00</span>, %es:(%si)
+	<span style="color:#a6e22e">addw</span>	<span style="color:#66d9ef">$2</span>, %si			<span style="color:#75715e"># 将索引移动到下一个位置。
+</span><span style="color:#75715e"></span>
+	<span style="color:#75715e"># send eoi
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x20</span>, %al
+	<span style="color:#a6e22e">outb</span>	%al, <span style="color:#66d9ef">$_8259A_MASTER</span>	<span style="color:#75715e"># 向8259a主片发送中断结束命令0x20，使8259a可以继续接收中断信号
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">iret</span>
+
+	<span style="color:#a6e22e">.org</span>	<span style="color:#ae81ff">510</span>
+	<span style="color:#a6e22e">.word</span>	<span style="color:#ae81ff">0xAA55</span>
+</code></pre></div><h4 id="运行-1">运行</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ as --32 boot.s -o boot.o
+$ objcopy -O binary -j .text boot.o boot.bin
+$ qemu-system-i386 boot.bin
+</code></pre></div><p><img src="./interrupt-2.png" alt=""></p>
+<p>中断每隔<code>54.925 ms</code>触发一次，屏幕上也会每隔<code>54.925 ms</code>打印一次字符。这个示例程序中我们没有控制<code>si</code>的大小，在运行的时候要注意这一点。</p>
+<h3 id="示例三">示例三</h3>
+<p>该示例演示外部中断，并且重新设置了<code>8259a</code>。</p>
+<h4 id="代码-2">代码</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">.code16</span>
+
+<span style="color:#75715e"># 设置了两个符号常量，类似于c语言中的#define。
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">.set</span>	<span style="color:#66d9ef">INIT_TYPE_CODE</span>, <span style="color:#ae81ff">0x20</span>		<span style="color:#75715e"># 0x08。这个中断号在BIOS对8259a做过初始化之后是分配给主片的0级中断的，这个引脚用于连接8254可编程定时/计数器。
+</span><span style="color:#75715e"></span>					<span style="color:#75715e"># 8254在被BIOS初始化后会每隔54.925 ms向这个引脚输出1个信号。
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">.set</span>	<span style="color:#66d9ef">INIT_HANDLER_BASE</span>, <span style="color:#ae81ff">0x07c0</span>	<span style="color:#75715e"># 表示中断处理程序所在的段地址。
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">.set</span>	<span style="color:#66d9ef">_8259A_MASTER</span>, <span style="color:#ae81ff">0x20</span>		<span style="color:#75715e"># 8259a的主片0x20端口。分配给8259a主片的端口是0x20、0x21，从片的端口是0xa0, 0xa1。
+</span><span style="color:#75715e"></span>					<span style="color:#75715e"># 这个示例中我们不对8259a进行编程，但是在中断处理完成之后需要通过0x20告诉主片这个中断已经处理完了。
+</span><span style="color:#75715e"></span>					<span style="color:#75715e"># 如果中断来自从片的话那就需要同时向主片，从片发送处理完成的信号。
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">.set</span>	<span style="color:#66d9ef">_8259A_SLAVE</span>, <span style="color:#ae81ff">0xa0</span>		<span style="color:#75715e"># 
+</span><span style="color:#75715e"></span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$0xb800</span>, %ax
+	<span style="color:#a6e22e">movw</span>	%ax, %es
+	
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$0x7c00</span>, %sp
+
+	<span style="color:#a6e22e">xorw</span>	%si, %si		<span style="color:#75715e"># 将si置0，我们打算每触发一次中断就在屏幕上打印一个字符，通过si控制打印位置。
+</span><span style="color:#75715e"></span>
+	<span style="color:#a6e22e">call</span>	<span style="color:#66d9ef">install_ivt</span>		<span style="color:#75715e"># 调用安装中断向量表的例程
+</span><span style="color:#75715e"></span>
+
+	<span style="color:#75715e"># 初始化 8259a
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">call</span> <span style="color:#66d9ef">init_8259a</span>
+
+
+sleep:
+	<span style="color:#a6e22e">hlt</span>				<span style="color:#75715e"># 通过hlt指令使处理器停止执行指令，并处于停机状态。停机状态可以被中断唤醒，继续执行。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">jmp</span>	<span style="color:#66d9ef">sleep</span>	
+
+<span style="color:#66d9ef">install_ivt</span>:
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$INIT_TYPE_CODE</span>, %bx
+	<span style="color:#a6e22e">shlw</span>	<span style="color:#66d9ef">$2</span>, %bx
+
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$handler</span>, (%bx)		<span style="color:#75715e"># 将中断处理程序的段内偏移写入中断向量对应的偏移地址的前两个字节
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">movw</span>	<span style="color:#66d9ef">$INIT_HANDLER_BASE</span>, <span style="color:#ae81ff">2</span>(%bx)	<span style="color:#75715e">#  将中断处理程序所在的段地址写入中断向量对应的偏移地址的后两个字节。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">ret</span>
+
+<span style="color:#75715e"># 开始的子例程用于初始化8259a
+</span><span style="color:#75715e"># 8259a的初始化方式是依次写入初始化命令字ICW1-4，这个顺序是固定的。其中ICW1通过0x20端口写入（从片通过0xa0），ICW2-4通过0x21端口写入（从片通过0xa1）。
+</span><span style="color:#75715e"></span>init_8259a:
+	<span style="color:#75715e"># ICW1
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0x11</span>, %al			<span style="color:#75715e"># 通过向主片、从片写入0x11来开始初始化的过程。
+</span><span style="color:#75715e"></span>					<span style="color:#75715e"># 基本上在IBM PC/AT机中是固定写入0x11的，表示中断请求是边沿触发、多片8259a级联并且需要发送 ICW4。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">outb</span> %al, <span style="color:#66d9ef">$_8259A_MASTER</span>
+	<span style="color:#a6e22e">outb</span> %al, <span style="color:#66d9ef">$_8259A_SLAVE</span>
+
+	<span style="color:#75715e"># ICW2
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0x20</span>, %al			<span style="color:#75715e"># 设置主片中断号从0x20(32)开始
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">outb</span> %al, <span style="color:#66d9ef">$_8259A_MASTER</span> <span style="color:#960050;background-color:#1e0010">+</span> <span style="color:#ae81ff">1</span>
+	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0x28</span>, %al			<span style="color:#75715e"># 设置从片中断号从0x28(40)开始。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">outb</span> %al, <span style="color:#66d9ef">$_8259A_SLAVE</span> <span style="color:#960050;background-color:#1e0010">+</span> <span style="color:#ae81ff">1</span>
+
+	<span style="color:#75715e"># ICW3
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0x04</span>, %al			<span style="color:#75715e"># 设置主片IR2引脚连接从片。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">outb</span> %al, <span style="color:#66d9ef">$_8259A_MASTER</span> <span style="color:#960050;background-color:#1e0010">+</span> <span style="color:#ae81ff">1</span>
+	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0x02</span>, %al			<span style="color:#75715e"># 告诉从片输出引脚和主片IR2号相连。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">outb</span> %al, <span style="color:#66d9ef">$_8259A_SLAVE</span> <span style="color:#960050;background-color:#1e0010">+</span> <span style="color:#ae81ff">1</span>
+
+	<span style="color:#75715e"># ICW4
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0x01</span>, %al			<span style="color:#75715e"># 设置主片和从片按照8086的方式工作。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">outb</span> %al, <span style="color:#66d9ef">$_8259A_MASTER</span> <span style="color:#960050;background-color:#1e0010">+</span> <span style="color:#ae81ff">1</span>
+	<span style="color:#a6e22e">outb</span> %al, <span style="color:#66d9ef">$_8259A_SLAVE</span> <span style="color:#960050;background-color:#1e0010">+</span> <span style="color:#ae81ff">1</span>
+
+	<span style="color:#75715e"># OCW1
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movb</span> <span style="color:#66d9ef">$0x0</span>, %al			<span style="color:#75715e"># 设置主从片允许中断。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">outb</span> %al, <span style="color:#66d9ef">$_8259A_MASTER</span> <span style="color:#960050;background-color:#1e0010">+</span> <span style="color:#ae81ff">1</span>
+	<span style="color:#a6e22e">outb</span> %al, <span style="color:#66d9ef">$_8259A_SLAVE</span> <span style="color:#960050;background-color:#1e0010">+</span> <span style="color:#ae81ff">1</span>
+
+	<span style="color:#a6e22e">ret</span>
+
+<span style="color:#75715e"># 断处理程序。只打印了一个字符，然后通过iret返回。
+</span><span style="color:#75715e"></span>handler:
+	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">C</span><span style="color:#960050;background-color:#1e0010">&#39;</span> <span style="color:#960050;background-color:#1e0010">|</span> <span style="color:#ae81ff">0x0a00</span>, %es:(%si)
+	<span style="color:#a6e22e">addw</span>	<span style="color:#66d9ef">$2</span>, %si			<span style="color:#75715e"># 将索引移动到下一个位置。
+</span><span style="color:#75715e"></span>
+	<span style="color:#75715e"># OCW2
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x20</span>, %al 		<span style="color:#75715e"># send eoi
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">outb</span>	%al, <span style="color:#66d9ef">$_8259A_MASTER</span>	<span style="color:#75715e"># 向8259a主片发送中断结束命令0x20，使8259a可以继续接收中断信号
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">iret</span>
+
+	<span style="color:#a6e22e">.org</span>	<span style="color:#ae81ff">510</span>
+	<span style="color:#a6e22e">.word</span>	<span style="color:#ae81ff">0xAA55</span>
+</code></pre></div><h4 id="运行-2">运行</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ as --32 boot.s -o boot.o
+$ objcopy -O binary -j .text boot.o boot.bin
+$ qemu-system-i386 boot.bin
+</code></pre></div><p><img src="./interrupt-3.png" alt=""></p>
+<p>运行结果和上一个示例类似。</p>
+<h2 id="参考文章">参考文章</h2>
+<ul>
+<li><a href="https://kviccn.github.io/posts/2020/03/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E4%B8%80%E5%8F%91%E5%85%A5%E9%AD%82-0x09-%E4%B8%AD%E6%96%AD/">汇编语言一发入魂 0x09 - 中断</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2021-02-26</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/posts/008-interrupt/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/posts/009-protect-mode/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">009-进入保护模式</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/posts/007-function-call/">
+            <span class="next-text nav-default">007-过程调用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2021
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

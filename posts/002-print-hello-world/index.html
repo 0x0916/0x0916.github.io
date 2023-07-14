@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>002-在屏幕上打印Hello，World！ - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" />
+  <meta name="description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
+经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。
+" />
+
+  <meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.80.0" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/posts/002-print-hello-world/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="002-在屏幕上打印Hello，World！" />
+<meta property="og:description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
+经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/002-print-hello-world/" />
+<meta property="article:published_time" content="2021-02-22T23:19:30+08:00" />
+<meta property="article:modified_time" content="2021-02-22T23:19:30+08:00" />
+<meta itemprop="name" content="002-在屏幕上打印Hello，World！">
+<meta itemprop="description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
+经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。">
+<meta itemprop="datePublished" content="2021-02-22T23:19:30+08:00" />
+<meta itemprop="dateModified" content="2021-02-22T23:19:30+08:00" />
+<meta itemprop="wordCount" content="5677">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="002-在屏幕上打印Hello，World！"/>
+<meta name="twitter:description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
+经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">002-在屏幕上打印Hello，World！</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2021-02-22 </span>
+        
+        <span class="more-meta"> 5677 words </span>
+        <span class="more-meta"> 12 mins read </span>
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#基础知识">基础知识</a></li>
+        <li><a href="#在屏幕上打印字符h">在屏幕上打印字符H</a></li>
+        <li><a href="#在屏幕上打印字符串hello-world">在屏幕上打印字符串Hello World！</a></li>
+        <li><a href="#使用串操作指令打印hello-world">使用串操作指令打印Hello World!</a></li>
+        <li><a href="#总结">总结</a></li>
+        <li><a href="#参考文档">参考文档</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印<code>Hello World</code>。</p>
+<p>经过学习，我们可以到一些基本的<code>GNU</code>汇编语言的用法，同时也会了解在屏幕上打印字符的原理。</p>
+<h3 id="基础知识">基础知识</h3>
+<p>要在屏幕上打印字符就需要对显存进行操作。那么如何操作显存呢？对于汇编语言来说，这个问题的答案是很简单的。如上一篇文章所讲，在计算机启动时，显卡被初始化为<strong>文本模式</strong>，对应的显存也已经映射到了<code>0xb8000</code>到<code>0xbffff</code>这段物理地址空间。所以直接向这段内存写入数据，屏幕上就能够打印出对应的字符了。</p>
+<p>文本模式默认是80行、25列，可以显示2000个字符。在该模式下，每个字符的显示占据<strong>两个字节</strong>的空间，低字节保存字符的<code>ASCII</code>码，高字节保存字符的显示属性。</p>
+<p>字符可以使用一个字节的数字来表示，那字符的显示属性又是如何表示的呢？</p>
+<p>用于控制字符显示属性的字节中的每一位含义如下，其中<code>RGB</code>代表红绿蓝，<code>K</code>代表是否闪烁、<code>I</code>代表是否高亮。</p>
+<p><img src="./char_attribute.png" alt=""></p>
+<p>例如：<code>0x0a</code>二进制为<code>00001010</code>，我们翻译翻译，就是黑色背景，不闪烁，绿色前景，高亮显示，高亮的效果是最终显示的是浅绿色。</p>
+<p>有了上面的这些基础知识，那在屏幕上打印字符就非常简单了。具体来说，就是把字符的<code>ASCII</code>码和字符的属性依次送入显存对应的内存即可。</p>
+<h3 id="在屏幕上打印字符h">在屏幕上打印字符H</h3>
+<p>如下汇编代码，会在屏幕上打印一个字符H：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-as" data-lang="as">.<span style="color:#a6e22e">code16</span>
+
+	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0xb800</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span>
+
+	<span style="color:#a6e22e">movb</span>	<span style="color:#a6e22e">$</span><span style="color:#e6db74">&#39;H&#39;</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0</span>
+	<span style="color:#a6e22e">movb</span>	<span style="color:#a6e22e">$0xa</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span><span style="color:#f92672">:</span><span style="color:#ae81ff">1</span>
+
+	<span style="color:#a6e22e">jmp</span>	.
+
+	.<span style="color:#a6e22e">org</span>	<span style="color:#ae81ff">510</span>
+	.<span style="color:#a6e22e">word</span>	<span style="color:#ae81ff">0xaa55</span>
+</code></pre></div><ul>
+<li>第<code>1</code>行告诉编译器以<code>16</code>位模式编译，因为<code>BIOS</code>在加载并运行我们的代码时是处于<code>16</code>位实地址模式的。</li>
+<li>第<code>3</code>、<code>4</code>行将附加数据段寄存器<code>es</code>的内容设置为<code>0xb800</code>。<code>mov</code>是数据转移指令，<code>mov</code>后面的<code>w</code>表示操作数的宽度为一个<code>word</code>，即<code>16</code>位的数据。<code>movw $0xb800</code>, <code>%ax</code>表示把立即数<code>0xb800</code>转移到寄存器<code>ax</code>中。其中<code>0xb800</code>是源操作数，<code>ax</code>是目的操作数。根据<code>at&amp;t</code>的规范，立即数前需要加<code>$</code>符，用来和内存地址区分。寄存器前需要加<code>%</code>。这条指令执行完成之后<code>ax</code>寄存器的内容为<code>0xb800</code>，下一条指令又把<code>ax</code>寄存器中的数据转移到<code>es</code>中，完成段寄存器的设置。为啥不直接把<code>0xb800</code>放到<code>es</code>里？答案是段寄存器在程序运行中的职责比较重要，所以<code>Intel</code>没有提供直接把立即数转移到段寄存器的指令。通过强制多加一个步骤，可以使操作者明白自己到底在做什么，是否真的需要修改段寄存器的值。</li>
+<li>第<code>6</code>行我们先来分析一下目的操作数<code>%es:0</code>，根据之前的内容我们知道这是以<strong>段基址:段内偏移</strong>的形式来给出内存地址。此时<code>es</code>的内容为<code>0xb800</code>，左移<code>4</code>位再加上偏移地址<code>0</code>，得到的物理地址为<code>0xb8000</code>。再来看看源操作数<code>'H'</code>，为啥这样写呢？得益于<code>GNU as</code>编译器的支持，我们能够以这种方式表示一个<code>ASCII</code>字符，编译器会帮我们把<code>'H'</code>转换为<code>0x48</code>。接下来看看<code>mov</code>后面的<code>b</code>，<code>b</code>表示<code>byte</code>，因为这次我们只操作一个字节的数据。</li>
+<li>第<code>7</code>行和第<code>6</code>行基本一致，只不过偏移地址为<code>1</code>，最终的物理地址为<code>0xb8001</code>，<code>0x0a</code>表示浅绿色。</li>
+<li>第<code>9</code>行是一条跳转指令，<code>.</code>单独使用时是一个特殊的符号，作为位置计数器，表示当前所在行的位置。那么这条指令就表示跳转到当前位置，实现的效果就是死循环。</li>
+<li>第<code>11</code>、<code>12</code>行用了两条伪指令，伪指令是给编译器看的，并不是处理器最终会执行的指令。<code>.org</code>伪指令指示编译器把位置计数器移动到操作数所指定的位置，这里是将位置计数器移动到<code>510</code>处。<code>.word</code>伪指令指示编译器在当前位置写入一个字大小的数据，当然，操作数也可以用逗号隔开，表示写入一组一个字大小的数据。这里要写入的数据是<code>0xAA55</code>，何以是<code>0xAA55</code>？上次不是才说过第一个扇区的最后两个字节要是<code>0x55</code>、<code>0xAA</code>才能被引导吗？怎么反过来了？这是因为<code>Intel</code>处理器使用的是小端序，即数据的低字节存放在内存的低地址处，高字节存放在内存的高地址处。所以<code>0xAA55</code>在内存中仍然是按照<code>0x55</code>，<code>0xAA</code>的顺序存放的。</li>
+</ul>
+<p>编译：</p>
+<pre><code># as --32 boot.s -o boot.o
+</code></pre><p>我们先看看<code>boot.o</code>的大小，它是不是符合我们<code>512</code>字节的要求</p>
+<pre><code># ls -l boot.o
+-rw-r--r-- 1 root root 956 Feb 23 16:47 boot.o
+</code></pre><p><code>956</code>字节，显然胖了。出现这种结果的原因是<code>as</code>生成的目标文件默认是<code>elf</code>格式的，<code>elf</code>格式的文件中除了二进制代码，还会附加一些头信息、段信息、链接信息、调试信息等等。对于我们这个程序来说，是用不到这些信息的，甚至连链接都不需要，直接把目标文件中的二进制代码复制出来就行了。这个操作我们使用<code>objcopy</code>这个工具来完成。</p>
+<pre><code># objcopy -O binary -j .text boot.o boot.bin
+</code></pre><ul>
+<li><code>-O</code>: <code>binary</code>指定输出文件的格式为纯二进制格式，</li>
+<li><code>-j</code>: <code>.text</code>指定只复制<code>.text</code>段</li>
+</ul>
+<p>输出的文件名为<code>boot.bin</code>。我们再来看看<code>boot.bin</code>文件的大小。</p>
+<pre><code># ls -l boot.bin 
+-rw-r--r-- 1 root root 512 Feb 23 16:48 boot.bin
+</code></pre><p>刚刚好，<code>512</code>字节。再来看看其中的内容。</p>
+<pre><code>#  xxd -a boot.bin 
+00000000: b800 b88e c026 c606 0000 4826 c606 0100  .....&amp;....H&amp;....
+00000010: 0aeb fe00 0000 0000 0000 0000 0000 0000  ................
+00000020: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+*
+000001f0: 0000 0000 0000 0000 0000 0000 0000 55aa  ..............U.
+</code></pre><p>启动一下：</p>
+<pre><code>$ qemu-system-i386 boot.bin
+</code></pre><p><img src="./print_H.png" alt=""></p>
+<p><code>H</code>字符打印出来，下一步我们来打印完整的<code>Hello World</code>。</p>
+<h3 id="在屏幕上打印字符串hello-world">在屏幕上打印字符串Hello World！</h3>
+<p>本节我们用循环的方式让计算机把所有的字符都打印出来。代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-as" data-lang="as">.<span style="color:#a6e22e">code16</span>
+
+	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0x07c0</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>	
+	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ds</span>
+
+	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0xb800</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span>
+
+	<span style="color:#a6e22e">xorw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">si</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">message_length</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">cx</span>
+
+<span style="color:#a6e22e">print</span><span style="color:#f92672">:</span>
+	<span style="color:#a6e22e">movb</span>	<span style="color:#a6e22e">message</span>(<span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>)<span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">bl</span>
+	<span style="color:#a6e22e">movb</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">bl</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span><span style="color:#f92672">:</span>(<span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>)
+	<span style="color:#a6e22e">incw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>		
+	<span style="color:#a6e22e">loop</span>	<span style="color:#a6e22e">print</span>
+
+	<span style="color:#a6e22e">jmp</span>	.
+
+<span style="color:#a6e22e">message</span><span style="color:#f92672">:</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;H&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;e&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;o&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39; &#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;W&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;o&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;r&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;d&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+
+<span style="color:#a6e22e">message_length</span><span style="color:#f92672">:</span>
+	.<span style="color:#a6e22e">word</span>	. <span style="color:#f92672">-</span> <span style="color:#a6e22e">message</span>
+
+	.<span style="color:#a6e22e">org</span>	<span style="color:#ae81ff">510</span>
+	.<span style="color:#a6e22e">word</span>	<span style="color:#ae81ff">0xaa55</span>
+</code></pre></div><ul>
+<li>
+<p>第<code>3、4</code>行用于将数据段寄存器<code>ds</code>的值设置为<code>0x07c0</code>，这是为了访问数据的方便。这里的数据指的是<code>message</code>和<code>message_length</code>这两个符号所处位置的数据。为什么是<code>0x07c0</code>呢？还记得我们在前面的文章中说的吗。<code>BIOS</code>会把我们的程序，也就是磁盘<code>0</code>柱面<code>0</code>磁道的第<code>1</code>个扇区加载到内存<code>0x7c00</code>处执行。因为<code>ds</code>是段寄存器，所以在寻址的时候左移<code>4</code>位，<code>0x07c0</code>转换为<code>0x7c00</code>。</p>
+</li>
+<li>
+<p>第<code>6, 7</code>行，将<code>es</code>设置为显存映射的内存段，方便操控屏幕。</p>
+</li>
+<li>
+<p>第<code>9</code>行使用异或指令<code>xor</code>将源索引寄存器<code>si</code>内容清空，即设置为<code>0</code>。可以把源索引寄存器想象成数组的下标，结合<code>message</code>标号处的数据，大概就能明白我们要做什么了吧？我们要通过这个索引来访问<code>message</code>标号开始处的数据，<code>si</code>每次增加<code>1</code>，依次，我们就能通过循环的方式访问所有的数据。</p>
+</li>
+<li>
+<p>第<code>10</code>行将内存地址<code>message_length</code>处的数据转移到<code>cx</code>寄存器。我们先来分析一下<code>message_length</code>，<code>message_length</code>定义在第<code>33</code>行，后面跟了一个冒号，是一个标号(<code>label</code>)。标号代表的就是所处行的位置，这个在稍后我们反编译的时候可以看到。我们在这个位置定义了一个<code>word</code>的数据，数据的内容是<code>message</code>内容的长度。计算的方式是用当前位置（用位置计数器<code>.</code>表示）减去标号<code>message</code>所表示的位置，中间的这一段数据就是我们要打印的字符及其显示属性。<code>cx</code>是一个通用寄存器，但是通用寄存器也有特殊的用途。例如<code>cx</code>，在串操作指令和<code>loop</code>指令中作计数器用；在移位、循环移位指令中作移位次数计数器用。其中<code>c</code>就是<code>count</code>的意思。下面我们要用到<code>loop</code>指令来依次打印每一个字符，所以在这里设置<code>cx</code>。</p>
+</li>
+<li>
+<p>第<code>13</code>行采用了寄存器相对寻址的方式将<code>ds:(si + message)</code>处的一个字节的数据转移到<code>bx</code>寄存器的低字节处<code>bl</code>。这里先说明一下<code>bl</code>,<code>8086</code>中的<code>4</code>个<code>16</code>位数据寄存器<code>ax</code>、<code>bx</code>、<code>cx</code>、<code>dx</code>可以用来存放数据或地址，也可以将每个数据寄存器拆成两个独立的<code>8</code>位寄存器使用。高<code>8</code>位寄存器分别是<code>ah</code>、<code>bh</code>、<code>ch</code>、<code>dh</code>，低<code>8</code>位寄存器分别是<code>al</code>、<code>bl</code>、<code>cl</code>、<code>dl</code>。因为这里我们要移动一个字节的数据，所以拆了一个<code>8</code>位寄存器使用。</p>
+</li>
+<li>
+<p>第<code>14</code>行采用了寄存器间接寻址的方式将<code>bl</code>中的一字节数据转移到内存<code>es:si</code>处，这里我们显示的指明了要使用<code>es</code>作为段地址，因为在使用<code>si</code>、<code>di</code>、<code>bx</code>做偏移量时默认使用的是<code>ds</code>段寄存器。我们用<code>bl</code>做了一个中转，把<code>ds:(si + message)</code>处的一个字节的数据转移到了<code>es:si</code>处。为什么需要用寄存器做一次中转呢？答案是<code>8086</code>处理器不支持同时操作两个内存数。</p>
+</li>
+<li>
+<p>第<code>15</code>行使用了加一指令<code>inc</code>将<code>si</code>的值加一，相当于高级语言中常用的<code>i++</code>。</p>
+</li>
+<li>
+<p>第<code>16</code>行使用了<code>loop</code>指令来实现循环。<code>loop</code>指令的功能是重复执行一段相同的代码，处理器在执行它的时候会顺序做两件事：</p>
+<ul>
+<li>
+<ol>
+<li>将寄存器<code>cx</code>的内容减一；</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>如果<code>cx</code>的内容不为零，转移到指定的位置处执行，否则顺序执行后面的指令。</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>
+<p>第<code>20</code>行定义了标号<code>message</code>，标号实际上表示一个位置，它的一个功能就是方便我们引用数据。例如这里，如果我们手动去数<code>'H'</code>这个字符在内存中的第几个字节处，那这代码就没法写了，太痛苦了。但是当我们使用了标号时，编译器就会帮我们计算出<code>'H'</code>所在的位置，并在我们的代码中把使用了<code>message</code>的地方替换成实际的位置。</p>
+</li>
+<li>
+<p>第<code>21</code>到<code>31</code>行依次定义了每一个要显示的字符，每个数据的长度为一字节(<code>byte</code>)，每个字符由两个字节组成，<code>ASCII</code>码和显示属性<code>0xa</code>（浅绿色）。</p>
+</li>
+<li>
+<p>第<code>33</code>行定义了标号<code>message_length</code>，作为我们对要打印数据长度的引用。</p>
+</li>
+<li>
+<p>第<code>34</code>行定义了要打印的数据的长度，占用一个字(<code>word</code>)的存储空间，值为当前位置减去标号<code>message</code>所表示的位置，结果即<code>Hello World</code>及其显示属性所占据的内存空间的大小。</p>
+</li>
+</ul>
+<p>编译并运行</p>
+<pre><code># as --32 boot.s -o boot.o
+# objcopy -O binary -j .text boot.o boot.bin
+# qemu-system-i386 boot.bin
+</code></pre><p>运行结果如下：</p>
+<p><img src="./print_Hello_World.png" alt=""></p>
+<h3 id="使用串操作指令打印hello-world">使用串操作指令打印Hello World!</h3>
+<p>含义：<strong>通过执行一条字符串操作指令，对存储器中某一个连续的内存中存放的一串字或字节均进行同样的操作，称为串操作。字符串操作指令简称为串操作指令。</strong></p>
+<p>所有的基本串操作指令都用寄存器<code>si</code>间接寻址源操作数，且假定源操作数在当前的数据段中，即源操作数首地址的物理地址由<code>ds:si</code>提供；而用寄存器<code>di</code>间接寻址目的操作数，且假定目的操作数在当前的附加段中，即目的操作数首地址的物理地址由<code>es:di</code>提供。显然，串操作指令的源操作数和目的操作数都在存储器中。</p>
+<p>这两个地址的指针在每一个操作以后要自动修改，但按增量还是减量修改，取决于方向标志<code>DF</code>（位于标志寄存器内）：若<code>DF=0</code>，则在每次操作后<code>si</code>和<code>di</code>作增量操作：字节操作加<code>1</code>，字符操作加<code>2</code>；若<code>DF=1</code>，则在每次操作后<code>si</code>和<code>di</code>作减量操作：字节操作减<code>1</code>，字符操作减<code>2</code>。因此对于串操作，需要预先设置<code>DF</code>的值。可以用<code>std</code>或<code>cld</code>指令分别置<code>DF</code>为<code>1</code>或<code>0</code>。</p>
+<p>若源串和目的串在同一段中，可使<code>ds</code>和<code>es</code>指向相同数据段，即<code>ds=es</code>。</p>
+<p>还可以在任一串操作指令前加一个指令前缀，构成重复前级指令，通过此指令来控制串操作指令的重复执行操作。</p>
+<p>下面结合代码来看一下如何通过串操作指令打印<code>Hello World</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-as" data-lang="as">.<span style="color:#a6e22e">code16</span>
+
+	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0x07c0</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ds</span>
+
+	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0xb800</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>
+	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span>
+
+
+	<span style="color:#a6e22e">cld</span>			
+	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$message</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>	
+	<span style="color:#a6e22e">xorw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">di</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">di</span>	
+	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">message_length</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">cx</span>	
+	<span style="color:#a6e22e">rep</span>	<span style="color:#a6e22e">movsb</span>		
+
+	<span style="color:#a6e22e">jmp</span>	.
+
+<span style="color:#a6e22e">message</span><span style="color:#f92672">:</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;H&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;e&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;o&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39; &#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;W&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;o&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;r&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;d&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
+
+<span style="color:#a6e22e">message_length</span><span style="color:#f92672">:</span>
+	.<span style="color:#a6e22e">word</span>	. <span style="color:#f92672">-</span> <span style="color:#a6e22e">message</span>
+
+	.<span style="color:#a6e22e">org</span>	<span style="color:#ae81ff">510</span>
+	.<span style="color:#a6e22e">word</span>	<span style="color:#ae81ff">0xaa55</span>
+</code></pre></div><p>跟上一个打印<code>Hello World</code>的代码不同之处主要在<code>10</code>到<code>14</code>行。</p>
+<ul>
+<li>
+<p>第<code>10</code>行，使用<code>cld</code>指令将<code>DF</code>标志位置为<code>0</code>，表示每次操作后对<code>si</code>和<code>di</code>做增量操作。</p>
+</li>
+<li>
+<p>第<code>11</code>行，将<code>message</code>的地址赋值给<code>si</code>。此时引导扇区整体被<code>BIOS</code>加载到<code>0x7c00</code>处，并且我们已经将数据段设置成了<code>0x07c0</code>。<code>message</code>代表数据的偏移量，该指令执行后<code>ds:si</code>就指向了我们的数据首地址。</p>
+</li>
+<li>
+<p>第<code>12</code>行，将<code>di</code>置<code>0</code>。此时<code>es</code>内容为<code>0xb800</code>，<code>es:di</code>表示的物理地址为<code>0xb8000</code>，即显存映射在内存中的首地址。</p>
+</li>
+<li>
+<p>第<code>13</code>行，设置循环次数，循环的次数为数据串的长度。</p>
+</li>
+<li>
+<p>第<code>14</code>行使用串传送指令<code>movs</code>来完成数据传送的工作。该指令具体分为两条<code>movsb</code>和<code>movsw</code>，分别为把由<code>si</code>作为指针的源操作数串中的一个字节或字，传送至由<code>di</code>作为指针的目的操作数串中，且根据<code>DF</code>修改各自的指针，使其指向各串中的下一单元。这里是把<code>ds:si</code>处的一个字节传送到<code>es:di</code>，并且把<code>si</code>和<code>di</code>分别加一。指令前缀<code>rep</code>是重复前缀，其功能是重复执行<code>rep</code>后紧跟着的一个串操作指令，直到<code>cx</code>寄存器中的值为<code>0</code>。执行时先检查<code>cx</code>的值，若为<code>0</code>则退出重复操作，执行以下其他指令；若不为<code>0</code>，则将<code>cx</code>的值减一；然后执行<code>rep</code>右侧的串指令；重复上述操作。</p>
+</li>
+</ul>
+<p>通过组合<code>rep</code>和<code>movs</code>我们就可以批量的把数据从内存的一个区域转移到另一个区域。</p>
+<p>编译并运行</p>
+<pre><code># as --32 boot.s -o boot.o
+# objcopy -O binary -j .text boot.o boot.bin
+# qemu-system-i386 boot.bin
+</code></pre><p>运行结果如下：</p>
+<p><img src="./print_Hello_World.png" alt=""></p>
+<h3 id="总结">总结</h3>
+<p>最后我们来对学到的知识点做一个总结：</p>
+<ul>
+<li><code>8086</code>处理器采用分段的模型来操作内存，由** 段基址:段内偏移** 组合给出物理地址，计算方式为 <code>段基址</code> 左移<code> 4</code> 位，与 <code>段内偏移</code> 相加形成<code> 20</code> 位的物理地址。</li>
+<li>计算机启动后，显卡默认初始化为 <code>80 x 25</code> 的文本模式，显存映射到内存的 <code>0xb8000</code> 到 <code>0xbffff</code> 这段物理地址空间。
+文本模式下每个字符的显示由两个字节控制，低字节为该字符的<code> ASCII</code> 码，高字节控制字符显示的颜色。</li>
+<li><code>.code16</code> 告诉编译器将代码编译成符合 <code>16</code> 位处理器的格式。</li>
+<li><code>mov</code> 指令用于转移数据。</li>
+<li><code>jmp</code> 指令用于程序的跳转。</li>
+<li><code>.</code> 位置计数器，表示当前位置，当然也可以通过给它赋值来改变当前位置。</li>
+<li><code>.org</code> 伪指令，告诉编译器移动到操作数所指定的位置。</li>
+<li><code>.word</code> 伪指令，用于写入一个字的数据，也可以写入多个一个字长的数据，用逗号分隔。</li>
+<li><code>xor</code>，异或指令，对源操作数和目的操作数做按位异或操作，结果保存在目的操作数中。</li>
+<li><code>inc</code>，加一指令，对操作数加一。</li>
+<li><code>loop</code>，循环指令，其功能是重复执行一段相同的代码，处理器在执行它的时候会顺序做两件事：
+<ul>
+<li>将寄存器<code>cx</code>的内容减一。</li>
+<li>如果<code>cx</code>的内容不为零，转移到指定的位置处执行，否则顺序执行后面的指令。</li>
+</ul>
+</li>
+<li><code>label</code>，即标号，如<code>print</code>、<code>message</code>、<code>message_length</code>。它们表示当前所处行的位置，当编译完成之后，会被替换成实际的位置。</li>
+<li><code>.byte</code>，伪指令，用于定义一字节大小的数据，也可以同时指定一组一字节大小的数据，使用逗号分隔。</li>
+<li>剩下的就是我们用到的那些工具<code>as</code>、<code>objdump</code>、<code>objcopy</code>，回过头去结合工具执行后的结果，理解理解每一个参数的含义就ok了。</li>
+</ul>
+<h3 id="参考文档">参考文档</h3>
+<ul>
+<li><a href="https://kviccn.github.io/posts/2020/03/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E4%B8%80%E5%8F%91%E5%85%A5%E9%AD%82-0x01-hello-world/">汇编语言一发入魂-0x01-hello-world</a></li>
+<li><a href="https://kviccn.github.io/posts/2020/03/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E4%B8%80%E5%8F%91%E5%85%A5%E9%AD%82-0x02-%E6%8C%87%E4%BB%A4%E7%9A%84%E5%AF%BB%E5%9D%80%E6%96%B9%E5%BC%8F/">汇编语言一发入魂-0x02-指令的寻址方式</a></li>
+<li><a href="https://kviccn.github.io/posts/2020/03/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E4%B8%80%E5%8F%91%E5%85%A5%E9%AD%82-0x03-%E6%9B%B4%E5%A4%9A%E7%9A%84%E6%8C%87%E4%BB%A4/">汇编语言一发入魂-0x03-更多的指令</a></li>
+</ul>
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2021-02-22</span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/posts/002-print-hello-world/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/posts/003-debug-boot-sectors/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">003-调试引导扇区</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/posts/001-how-to-start/">
+            <span class="next-text nav-default">001-计算机是如何启动的</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2016 - 
+    2021
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">laoqinren</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
