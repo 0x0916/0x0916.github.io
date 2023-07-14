@@ -16,24 +16,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="什么是等待队列？ 在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。Linux中提供了等待队列的机制，该机制在内核中应用很广泛。
+<meta name="author" content="laoqinren" /><meta name="description" content="什么是等待队列？ 在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。Linux中提供了等待队列的机制，该机制在内核中应用很广泛。
 等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。
 在Linux内核中使用等待队列的过程很简单，首先定义一个wait_queue_head，然后如果一个task想等待某种事件，那么调用wait_event（等待队列，事件）就可以了。
-" />
-<meta name="keywords" content="等待队列" />
+" /><meta name="keywords" content="等待队列" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/wait-queue/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -42,14 +38,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="内核基础设施——wait queue" />
@@ -58,22 +48,17 @@
 等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。
 在Linux内核中使用等待队列的过程很简单，首先定义一个wait_queue_head，然后如果一个task想等待某种事件，那么调用wait_event（等待队列，事件）就可以了。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/wait-queue/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/wait-queue/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2018-05-07T18:27:48+08:00" />
 <meta property="article:modified_time" content="2019-02-21T18:27:48+08:00" />
 <meta itemprop="name" content="内核基础设施——wait queue">
 <meta itemprop="description" content="什么是等待队列？
 在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。Linux中提供了等待队列的机制，该机制在内核中应用很广泛。
 等待队列实现了在事件上的条件等待：希望等待特定事件的进程将自己放进合适的等待队列中，并放弃控制权。因此，等待队列表示一组睡眠的进程，当某一条件变为真时，由内核唤醒他们。
-在Linux内核中使用等待队列的过程很简单，首先定义一个wait_queue_head，然后如果一个task想等待某种事件，那么调用wait_event（等待队列，事件）就可以了。">
-<meta itemprop="datePublished" content="2018-05-07T18:27:48+08:00" />
+在Linux内核中使用等待队列的过程很简单，首先定义一个wait_queue_head，然后如果一个task想等待某种事件，那么调用wait_event（等待队列，事件）就可以了。"><meta itemprop="datePublished" content="2018-05-07T18:27:48+08:00" />
 <meta itemprop="dateModified" content="2019-02-21T18:27:48+08:00" />
-<meta itemprop="wordCount" content="2877">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,wait queue,内核基础设施," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="3085">
+<meta itemprop="keywords" content="kernel,linux,wait queue,内核基础设施," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核基础设施——wait queue"/>
 <meta name="twitter:description" content="什么是等待队列？
 在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。Linux中提供了等待队列的机制，该机制在内核中应用很广泛。
@@ -119,12 +104,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -145,6 +139,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -158,55 +153,50 @@
       <div class="post-meta">
         <span class="post-time"> 2018-05-07 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-          </div>
-        <span class="more-meta"> 2877 words </span>
-        <span class="more-meta"> 6 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content always-active">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#什么是等待队列">什么是等待队列？</a></li>
-    <li><a href="#系统环境">系统环境</a></li>
-    <li><a href="#初始化等待队列">初始化等待队列</a>
+    <li>
       <ul>
-        <li><a href="#静态初始化">静态初始化</a></li>
-        <li><a href="#动态初始化">动态初始化</a></li>
+        <li><a href="#什么是等待队列">什么是等待队列？</a></li>
+        <li><a href="#系统环境">系统环境</a></li>
+        <li><a href="#初始化等待队列">初始化等待队列</a>
+          <ul>
+            <li><a href="#静态初始化">静态初始化</a></li>
+            <li><a href="#动态初始化">动态初始化</a></li>
+          </ul>
+        </li>
+        <li><a href="#将进程加入等待队列">将进程加入等待队列</a></li>
+        <li><a href="#唤醒等待队列中的进程">唤醒等待队列中的进程</a></li>
+        <li><a href="#示例程序">示例程序</a></li>
+        <li><a href="#linux中等待队列的实现">Linux中等待队列的实现</a>
+          <ul>
+            <li><a href="#wait_queue_head_t">wait_queue_head_t</a></li>
+            <li><a href="#wait_queue_t">wait_queue_t</a></li>
+          </ul>
+        </li>
+        <li><a href="#api细节">API细节</a>
+          <ul>
+            <li><a href="#wait_event细节">wait_event细节</a></li>
+            <li><a href="#wake_up细节">wake_up细节</a></li>
+            <li><a href="#总结">总结</a></li>
+          </ul>
+        </li>
+        <li><a href="#参考文档">参考文档</a></li>
       </ul>
     </li>
-    <li><a href="#将进程加入等待队列">将进程加入等待队列</a></li>
-    <li><a href="#唤醒等待队列中的进程">唤醒等待队列中的进程</a></li>
-    <li><a href="#示例程序">示例程序</a></li>
-    <li><a href="#linux中等待队列的实现">Linux中等待队列的实现</a>
-      <ul>
-        <li><a href="#wait_queue_head_t">wait_queue_head_t</a></li>
-        <li><a href="#wait_queue_t">wait_queue_t</a></li>
-      </ul>
-    </li>
-    <li><a href="#api细节">API细节</a>
-      <ul>
-        <li><a href="#wait_event细节">wait_event细节</a></li>
-        <li><a href="#wake_up细节">wake_up细节</a></li>
-        <li><a href="#总结">总结</a></li>
-      </ul>
-    </li>
-    <li><a href="#参考文档">参考文档</a></li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <h2 id="什么是等待队列">什么是等待队列？</h2>
 <p>在软件开发中任务经常由于某种条件没有得到满足而不得不进入睡眠状态，然后等待条件得到满足的时候再继续运行，进入运行状态。这种需求需要等待队列机制的支持。<code>Linux</code>中提供了等待队列的机制，该机制在内核中应用很广泛。</p>
@@ -220,11 +210,26 @@
 </ul>
 <h2 id="初始化等待队列">初始化等待队列</h2>
 <h3 id="静态初始化">静态初始化</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">DECLARE_WAIT_QUEUE_HEAD(name)
-</code></pre></div><h3 id="动态初始化">动态初始化</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">wait_queue_head_t q;
-init_waitqueue_head(<span style="color:#f92672">&amp;</span>q);
-</code></pre></div><h2 id="将进程加入等待队列">将进程加入等待队列</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="nf">DECLARE_WAIT_QUEUE_HEAD</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="动态初始化">动态初始化</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">wait_queue_head_t</span> <span class="n">q</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nf">init_waitqueue_head</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="将进程加入等待队列">将进程加入等待队列</h2>
 <table>
 <thead>
 <tr>
@@ -315,232 +320,495 @@ init_waitqueue_head(<span style="color:#f92672">&amp;</span>q);
 </ul>
 <p>在模块初始化函数中，我们创建了一个内核线程（<code>MyWaitThread</code>）,该内核线程总是等待<code>wait_queue_flag</code>不为<code>0</code>，它一直睡眠，直到有人唤醒它。当唤醒后，它检查<code>wait_queue_flag</code>的值，如果是<code>1</code>，说明唤醒来自<code>read</code>函数，此时它打印<code>read count</code> 信息，并继续睡眠，如果<code>wait_queue_flag</code>的值是<code>2</code>，说明唤醒来自模块退出函数，此时给内核线程退出。</p>
 <p>代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/init.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/proc_fs.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/seq_file.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/wait.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kthread.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> read_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>wait_thread;
-<span style="color:#75715e">// Initializing waitqueue statically
-</span><span style="color:#75715e"></span>DECLARE_WAIT_QUEUE_HEAD(test_waitqueue);
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> wait_queue_flag <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">my_waitqueue_show</span>(<span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>m, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>v)
-{
-        printk(KERN_ALERT <span style="color:#e6db74">&#34;Read function</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-        seq_printf(m, <span style="color:#e6db74">&#34;read_count = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, read_count);
-        wait_queue_flag <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-        wake_up_interruptible(<span style="color:#f92672">&amp;</span>test_waitqueue); <span style="color:#75715e">// wake up only one process from wait queue
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">my_waitqueue_open</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>inode, <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>filp)
-{
-        <span style="color:#66d9ef">return</span> single_open(filp, my_waitqueue_show, NULL);
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> file_operations test_wait_queue_fops <span style="color:#f92672">=</span> {
-        .open           <span style="color:#f92672">=</span> my_waitqueue_open,
-        .read           <span style="color:#f92672">=</span> seq_read,
-        .llseek         <span style="color:#f92672">=</span> seq_lseek,
-        .release        <span style="color:#f92672">=</span> single_release,
-};
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">wait_function</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>unused)
-{
-        <span style="color:#66d9ef">while</span>(<span style="color:#ae81ff">1</span>) {
-                printk(KERN_ALERT <span style="color:#e6db74">&#34;Waiting For Event...</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-                <span style="color:#75715e">// sleep until wait_queue_flag != 0
-</span><span style="color:#75715e"></span>                wait_event_interruptible(test_waitqueue, wait_queue_flag <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>);
-                <span style="color:#66d9ef">if</span> (wait_queue_flag <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span>) {
-                        printk(KERN_ALERT <span style="color:#e6db74">&#34;Event Came From Exit Function</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-                        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-                }
-                printk(KERN_ALERT <span style="color:#e6db74">&#34;Event Came From Read Function - %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">++</span>read_count);
-                wait_queue_flag <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-        }
-
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">mywaitqueue_init</span>(<span style="color:#66d9ef">void</span>)
-{
-        <span style="color:#66d9ef">struct</span> proc_dir_entry <span style="color:#f92672">*</span>pe;
-
-        printk(KERN_ALERT <span style="color:#e6db74">&#34;[Hello] mywaitqueue </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-        pe <span style="color:#f92672">=</span> proc_create(<span style="color:#e6db74">&#34;test_wait_queue&#34;</span>, <span style="color:#ae81ff">0644</span>, NULL, <span style="color:#f92672">&amp;</span>test_wait_queue_fops);
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>pe)
-                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>ENOMEM;
-
-        <span style="color:#75715e">// Create the kernel thread with name &#34;MyWaitThread&#34;
-</span><span style="color:#75715e"></span>        wait_thread <span style="color:#f92672">=</span> kthread_create(wait_function, NULL, <span style="color:#e6db74">&#34;MyWaitThread&#34;</span>);
-        <span style="color:#66d9ef">if</span> (wait_thread) {
-                printk(KERN_ALERT <span style="color:#e6db74">&#34;Thread created successfully</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-                wake_up_process(wait_thread);
-        } <span style="color:#66d9ef">else</span> {
-                printk(KERN_ALERT <span style="color:#e6db74">&#34;Thread creation failed</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-        }
-
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">mywaitqueue_exit</span>(<span style="color:#66d9ef">void</span>)
-{
-        wait_queue_flag <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
-        wake_up_interruptible(<span style="color:#f92672">&amp;</span>test_waitqueue);
-        printk(KERN_ALERT <span style="color:#e6db74">&#34;[Goodbye] mywaitqueue</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-        remove_proc_entry(<span style="color:#e6db74">&#34;test_wait_queue&#34;</span>, NULL);
-}
-
-module_init(mywaitqueue_init);
-module_exit(mywaitqueue_exit);
-MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
-
-</code></pre></div><p>Makefile如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#960050;background-color:#1e0010">ifneq</span> <span style="color:#960050;background-color:#1e0010">(</span><span style="color:#66d9ef">$(</span>KERNELRELEASE<span style="color:#66d9ef">)</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#960050;background-color:#1e0010">)</span>
-obj-m <span style="color:#f92672">:=</span> mywaitqueue.o
-<span style="color:#960050;background-color:#1e0010">else</span>
-KERNELDIR <span style="color:#f92672">?=</span>/lib/modules/<span style="color:#66d9ef">$(</span>shell uname -r<span style="color:#66d9ef">)</span>/build
-PWD <span style="color:#f92672">:=</span> <span style="color:#66d9ef">$(</span>shell pwd<span style="color:#66d9ef">)</span>
-<span style="color:#a6e22e">all</span><span style="color:#f92672">:</span>
-        <span style="color:#66d9ef">$(</span>MAKE<span style="color:#66d9ef">)</span> -C <span style="color:#66d9ef">$(</span>KERNELDIR<span style="color:#66d9ef">)</span> M<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>PWD<span style="color:#66d9ef">)</span> modules
-<span style="color:#a6e22e">clean</span><span style="color:#f92672">:</span>
-        <span style="color:#66d9ef">$(</span>MAKE<span style="color:#66d9ef">)</span> -C <span style="color:#66d9ef">$(</span>KERNELDIR<span style="color:#66d9ef">)</span> M<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>PWD<span style="color:#66d9ef">)</span> clean 
-<span style="color:#960050;background-color:#1e0010">endif</span>
-</code></pre></div><p>编译成功后，插入模块：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># insmod mywaitqueue.ko</span>
-</code></pre></div><p>检查dmesg</p>
-<pre><code>[167034.774139] [Hello] mywaitqueue 
-[167034.774330] Thread created successfully
-[167034.774393] Waiting For Event...
-</code></pre><p>读两次</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> <span style="color:#75715e"># cat /proc/test_wait_queue </span>
-read_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
- <span style="color:#75715e"># cat /proc/test_wait_queue </span>
-read_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> 
-</code></pre></div><p>查看dmesg</p>
-<pre><code>[167047.972321] Read function
-[167047.972387] Event Came From Read Function - 1
-[167047.972390] Waiting For Event...
-[167049.779541] Read function
-[167049.779615] Event Came From Read Function - 2
-[167049.779618] Waiting For Event...
-</code></pre><p>卸载模块<code>rmmod mywaitqueue</code>,dmesg如下：</p>
-<pre><code>[167110.886314] [Goodbye] mywaitqueue
-[167110.886317] Event Came From Exit Function
-</code></pre><h2 id="linux中等待队列的实现">Linux中等待队列的实现</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span><span class="lnt">83
+</span><span class="lnt">84
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/module.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/kernel.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/init.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/proc_fs.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/seq_file.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/wait.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/kthread.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="n">read_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">wait_thread</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Initializing waitqueue statically
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">DECLARE_WAIT_QUEUE_HEAD</span><span class="p">(</span><span class="n">test_waitqueue</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="n">wait_queue_flag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">my_waitqueue_show</span><span class="p">(</span><span class="k">struct</span> <span class="n">seq_file</span> <span class="o">*</span><span class="n">m</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">v</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;Read function</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">seq_printf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&#34;read_count = %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">read_count</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">wait_queue_flag</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">wake_up_interruptible</span><span class="p">(</span><span class="o">&amp;</span><span class="n">test_waitqueue</span><span class="p">);</span> <span class="c1">// wake up only one process from wait queue
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">my_waitqueue_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">single_open</span><span class="p">(</span><span class="n">filp</span><span class="p">,</span> <span class="n">my_waitqueue_show</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">test_wait_queue_fops</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">open</span>           <span class="o">=</span> <span class="n">my_waitqueue_open</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">read</span>           <span class="o">=</span> <span class="n">seq_read</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">llseek</span>         <span class="o">=</span> <span class="n">seq_lseek</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">release</span>        <span class="o">=</span> <span class="n">single_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">wait_function</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">unused</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;Waiting For Event...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// sleep until wait_queue_flag != 0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                <span class="nf">wait_event_interruptible</span><span class="p">(</span><span class="n">test_waitqueue</span><span class="p">,</span> <span class="n">wait_queue_flag</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="n">wait_queue_flag</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                        <span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;Event Came From Exit Function</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="p">}</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;Event Came From Read Function - %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="o">++</span><span class="n">read_count</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="n">wait_queue_flag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">mywaitqueue_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">proc_dir_entry</span> <span class="o">*</span><span class="n">pe</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;[Hello] mywaitqueue </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">pe</span> <span class="o">=</span> <span class="nf">proc_create</span><span class="p">(</span><span class="s">&#34;test_wait_queue&#34;</span><span class="p">,</span> <span class="mo">0644</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">test_wait_queue_fops</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">pe</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="o">-</span><span class="n">ENOMEM</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// Create the kernel thread with name &#34;MyWaitThread&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">wait_thread</span> <span class="o">=</span> <span class="nf">kthread_create</span><span class="p">(</span><span class="n">wait_function</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="s">&#34;MyWaitThread&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">wait_thread</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;Thread created successfully</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">wake_up_process</span><span class="p">(</span><span class="n">wait_thread</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;Thread creation failed</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="n">__exit</span> <span class="nf">mywaitqueue_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">wait_queue_flag</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">wake_up_interruptible</span><span class="p">(</span><span class="o">&amp;</span><span class="n">test_waitqueue</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;[Goodbye] mywaitqueue</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">remove_proc_entry</span><span class="p">(</span><span class="s">&#34;test_wait_queue&#34;</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">module_init</span><span class="p">(</span><span class="n">mywaitqueue_init</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">module_exit</span><span class="p">(</span><span class="n">mywaitqueue_exit</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">MODULE_LICENSE</span><span class="p">(</span><span class="s">&#34;GPL&#34;</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Makefile如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-makefile" data-lang="makefile"><span class="line"><span class="cl"><span class="err">ifneq</span> <span class="err">(</span><span class="k">$(</span><span class="nv">KERNELRELEASE</span><span class="k">)</span><span class="err">,</span> <span class="err">)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">obj-m</span> <span class="o">:=</span> mywaitqueue.o
+</span></span><span class="line"><span class="cl"><span class="err">else</span>
+</span></span><span class="line"><span class="cl"><span class="nv">KERNELDIR</span> <span class="o">?=</span>/lib/modules/<span class="k">$(</span>shell uname -r<span class="k">)</span>/build
+</span></span><span class="line"><span class="cl"><span class="nv">PWD</span> <span class="o">:=</span> <span class="k">$(</span>shell <span class="nb">pwd</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nf">all</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">$(</span>MAKE<span class="k">)</span> -C <span class="k">$(</span>KERNELDIR<span class="k">)</span> <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> modules
+</span></span><span class="line"><span class="cl"><span class="nf">clean</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">$(</span>MAKE<span class="k">)</span> -C <span class="k">$(</span>KERNELDIR<span class="k">)</span> <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> clean 
+</span></span><span class="line"><span class="cl"><span class="err">endif</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>编译成功后，插入模块：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># insmod mywaitqueue.ko</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>检查dmesg</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[167034.774139] [Hello] mywaitqueue 
+</span></span><span class="line"><span class="cl">[167034.774330] Thread created successfully
+</span></span><span class="line"><span class="cl">[167034.774393] Waiting For Event...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>读两次</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"> <span class="c1"># cat /proc/test_wait_queue </span>
+</span></span><span class="line"><span class="cl"><span class="nv">read_count</span> <span class="o">=</span> <span class="m">0</span>
+</span></span><span class="line"><span class="cl"> <span class="c1"># cat /proc/test_wait_queue </span>
+</span></span><span class="line"><span class="cl"><span class="nv">read_count</span> <span class="o">=</span> <span class="m">1</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>查看dmesg</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[167047.972321] Read function
+</span></span><span class="line"><span class="cl">[167047.972387] Event Came From Read Function - 1
+</span></span><span class="line"><span class="cl">[167047.972390] Waiting For Event...
+</span></span><span class="line"><span class="cl">[167049.779541] Read function
+</span></span><span class="line"><span class="cl">[167049.779615] Event Came From Read Function - 2
+</span></span><span class="line"><span class="cl">[167049.779618] Waiting For Event...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>卸载模块<code>rmmod mywaitqueue</code>,dmesg如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[167110.886314] [Goodbye] mywaitqueue
+</span></span><span class="line"><span class="cl">[167110.886317] Event Came From Exit Function
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="linux中等待队列的实现">Linux中等待队列的实现</h2>
 <p>等待队列应用广泛，但是内核实现却十分简单。其涉及到两个比较重要的数据结构：</p>
 <h3 id="wait_queue_head_t">wait_queue_head_t</h3>
 <p>该结构描述了等待队列的链头，其包含一个链表和一个原子锁，结构定义如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> __wait_queue_head {
-        spinlock_t lock;     
-        <span style="color:#66d9ef">struct</span> list_head task_list; 
-};
-<span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> __wait_queue_head wait_queue_head_t;
-</code></pre></div><h3 id="wait_queue_t">wait_queue_t</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">__wait_queue_head</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">spinlock_t</span> <span class="n">lock</span><span class="p">;</span>     
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">list_head</span> <span class="n">task_list</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">__wait_queue_head</span> <span class="kt">wait_queue_head_t</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="wait_queue_t">wait_queue_t</h3>
 <p>该结构是对一个等待任务的抽象。每个等待任务都会抽象成一个<code>wait_queue_t</code>，并且挂载到<code>wait_queue_head_t</code>上。该结构定义如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> __wait_queue wait_queue_t;
-
-<span style="color:#66d9ef">struct</span> __wait_queue {
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> flags;
-        <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>private;
-        wait_queue_func_t func;
-        <span style="color:#66d9ef">struct</span> list_head task_list;
-};
-</code></pre></div><p><code>wait_event</code>用于将当前进程加入某一等待队列中，同时将该进程的状态修改为等待状态。而<code>wake_up</code>则用于将某一个等待队列上面所有的等待进程唤醒，也就是将其从等待队列上面删掉，同时将其的进程状态置为可运行状态。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">__wait_queue</span> <span class="kt">wait_queue_t</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">__wait_queue</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">void</span> <span class="o">*</span><span class="n">private</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">wait_queue_func_t</span> <span class="n">func</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">list_head</span> <span class="n">task_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>wait_event</code>用于将当前进程加入某一等待队列中，同时将该进程的状态修改为等待状态。而<code>wake_up</code>则用于将某一个等待队列上面所有的等待进程唤醒，也就是将其从等待队列上面删掉，同时将其的进程状态置为可运行状态。</p>
 <p>等待队列的结构如下图所示:</p>
 <p><img src="./wait_queue.png" alt="enter description here" title="wait_queue"></p>
 <h2 id="api细节">API细节</h2>
 <p>上节介绍的<code>API</code>可以直接使用，但是内核系统比较复杂，有些情况不是简单的等待某个变量条件为真，所以，当我们了解了<code>wait_event</code>和<code>wake_up</code>的细节，我们编写起内核代码才能游刃有余。</p>
 <h3 id="wait_event细节">wait_event细节</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define __wait_event(wq, condition)                                     \
-</span><span style="color:#75715e">do {                                                                    \
-</span><span style="color:#75715e">        DEFINE_WAIT(__wait);                                            \
-</span><span style="color:#75715e">                                                                        \
-</span><span style="color:#75715e">        for (;;) {                                                      \
-</span><span style="color:#75715e">                prepare_to_wait(&amp;wq, &amp;__wait, TASK_UNINTERRUPTIBLE);    \
-</span><span style="color:#75715e">                if (condition)                                          \
-</span><span style="color:#75715e">                        break;                                          \
-</span><span style="color:#75715e">                schedule();                                             \
-</span><span style="color:#75715e">        }                                                               \
-</span><span style="color:#75715e">        finish_wait(&amp;wq, &amp;__wait);                                      \
-</span><span style="color:#75715e">} while (0)
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">/**
-</span><span style="color:#75715e"> * wait_event - sleep until a condition gets true
-</span><span style="color:#75715e"> * @wq: the waitqueue to wait on
-</span><span style="color:#75715e"> * @condition: a C expression for the event to wait for
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
-</span><span style="color:#75715e"> * @condition evaluates to true. The @condition is checked each time
-</span><span style="color:#75715e"> * the waitqueue @wq is woken up.
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * wake_up() has to be called after changing any variable that could
-</span><span style="color:#75715e"> * change the result of the wait condition.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#75715e">#define wait_event(wq, condition)                                       \
-</span><span style="color:#75715e">do {                                                                    \
-</span><span style="color:#75715e">        if (condition)                                                  \
-</span><span style="color:#75715e">                break;                                                  \
-</span><span style="color:#75715e">        __wait_event(wq, condition);                                    \
-</span><span style="color:#75715e">} while (0)
-</span><span style="color:#75715e"></span>
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define __wait_event(wq, condition)                                     \
+</span></span></span><span class="line"><span class="cl"><span class="cp">do {                                                                    \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        DEFINE_WAIT(__wait);                                            \
+</span></span></span><span class="line"><span class="cl"><span class="cp">                                                                        \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        for (;;) {                                                      \
+</span></span></span><span class="line"><span class="cl"><span class="cp">                prepare_to_wait(&amp;wq, &amp;__wait, TASK_UNINTERRUPTIBLE);    \
+</span></span></span><span class="line"><span class="cl"><span class="cp">                if (condition)                                          \
+</span></span></span><span class="line"><span class="cl"><span class="cp">                        break;                                          \
+</span></span></span><span class="line"><span class="cl"><span class="cp">                schedule();                                             \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        }                                                               \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        finish_wait(&amp;wq, &amp;__wait);                                      \
+</span></span></span><span class="line"><span class="cl"><span class="cp">} while (0)
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * wait_event - sleep until a condition gets true
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @wq: the waitqueue to wait on
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @condition: a C expression for the event to wait for
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @condition evaluates to true. The @condition is checked each time
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * the waitqueue @wq is woken up.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * wake_up() has to be called after changing any variable that could
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * change the result of the wait condition.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define wait_event(wq, condition)                                       \
+</span></span></span><span class="line"><span class="cl"><span class="cp">do {                                                                    \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        if (condition)                                                  \
+</span></span></span><span class="line"><span class="cl"><span class="cp">                break;                                                  \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        __wait_event(wq, condition);                                    \
+</span></span></span><span class="line"><span class="cl"><span class="cp">} while (0)
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>第<code>28</code>行代码说明如果条件为真，则直接返回，否则调用<code>__wait_event</code></li>
 <li>第<code>3</code>定义了一个<code>wait_queue_t</code>成员</li>
 <li>第<code>6</code>到<code>10</code>行代码将当前进程添加到等待队列中，此时如果条件为真，则直接调用<code>finish_wait</code>退出等待，否则，调用<code>schedule()</code>进行睡眠，等待<code>wake_up</code>唤醒它</li>
 </ul>
 <h3 id="wake_up细节">wake_up细节</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * The core wakeup function. Non-exclusive wakeups (nr_exclusive == 0) just
-</span><span style="color:#75715e"> * wake everything up. If it&#39;s an exclusive wakeup (nr_exclusive == small +ve
-</span><span style="color:#75715e"> * number) then we wake all the non-exclusive tasks and one exclusive task.
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * There are circumstances in which we can try to wake a task which has already
-</span><span style="color:#75715e"> * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
-</span><span style="color:#75715e"> * zero in this (rare) case, and we handle it by continuing to scan the queue.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__wake_up_common</span>(wait_queue_head_t <span style="color:#f92672">*</span>q, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> mode,
-                        <span style="color:#66d9ef">int</span> nr_exclusive, <span style="color:#66d9ef">int</span> wake_flags, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>key)
-{
-        wait_queue_t <span style="color:#f92672">*</span>curr, <span style="color:#f92672">*</span>next;
-
-        list_for_each_entry_safe(curr, next, <span style="color:#f92672">&amp;</span>q<span style="color:#f92672">-&gt;</span>task_list, task_list) {
-                <span style="color:#66d9ef">unsigned</span> flags <span style="color:#f92672">=</span> curr<span style="color:#f92672">-&gt;</span>flags;
-
-                <span style="color:#66d9ef">if</span> (curr<span style="color:#f92672">-&gt;</span>func(curr, mode, wake_flags, key) <span style="color:#f92672">&amp;&amp;</span>
-                                (flags <span style="color:#f92672">&amp;</span> WQ_FLAG_EXCLUSIVE) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!--</span>nr_exclusive)
-                        <span style="color:#66d9ef">break</span>;
-        }
-}
-
-<span style="color:#75715e">/**
-</span><span style="color:#75715e"> * __wake_up - wake up threads blocked on a waitqueue.
-</span><span style="color:#75715e"> * @q: the waitqueue
-</span><span style="color:#75715e"> * @mode: which threads
-</span><span style="color:#75715e"> * @nr_exclusive: how many wake-one or wake-many threads to wake up
-</span><span style="color:#75715e"> * @key: is directly passed to the wakeup function
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * It may be assumed that this function implies a write memory barrier before
-</span><span style="color:#75715e"> * changing the task state if and only if any tasks are woken up.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__wake_up</span>(wait_queue_head_t <span style="color:#f92672">*</span>q, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> mode,
-                        <span style="color:#66d9ef">int</span> nr_exclusive, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>key)
-{
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> flags;
-
-        spin_lock_irqsave(<span style="color:#f92672">&amp;</span>q<span style="color:#f92672">-&gt;</span>lock, flags);
-        __wake_up_common(q, mode, nr_exclusive, <span style="color:#ae81ff">0</span>, key);
-        spin_unlock_irqrestore(<span style="color:#f92672">&amp;</span>q<span style="color:#f92672">-&gt;</span>lock, flags);
-}
-EXPORT_SYMBOL(__wake_up); 
-
-<span style="color:#75715e">#define wake_up(x)                      __wake_up(x, TASK_NORMAL, 1, NULL)
-</span></code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * The core wakeup function. Non-exclusive wakeups (nr_exclusive == 0) just
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * wake everything up. If it&#39;s an exclusive wakeup (nr_exclusive == small +ve
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * number) then we wake all the non-exclusive tasks and one exclusive task.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * There are circumstances in which we can try to wake a task which has already
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * zero in this (rare) case, and we handle it by continuing to scan the queue.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="nf">__wake_up_common</span><span class="p">(</span><span class="kt">wait_queue_head_t</span> <span class="o">*</span><span class="n">q</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">mode</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="kt">int</span> <span class="n">nr_exclusive</span><span class="p">,</span> <span class="kt">int</span> <span class="n">wake_flags</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">wait_queue_t</span> <span class="o">*</span><span class="n">curr</span><span class="p">,</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">list_for_each_entry_safe</span><span class="p">(</span><span class="n">curr</span><span class="p">,</span> <span class="n">next</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">q</span><span class="o">-&gt;</span><span class="n">task_list</span><span class="p">,</span> <span class="n">task_list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">unsigned</span> <span class="n">flags</span> <span class="o">=</span> <span class="n">curr</span><span class="o">-&gt;</span><span class="n">flags</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="n">curr</span><span class="o">-&gt;</span><span class="nf">func</span><span class="p">(</span><span class="n">curr</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">wake_flags</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+</span></span><span class="line"><span class="cl">                                <span class="p">(</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">WQ_FLAG_EXCLUSIVE</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!--</span><span class="n">nr_exclusive</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * __wake_up - wake up threads blocked on a waitqueue.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @q: the waitqueue
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @mode: which threads
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @nr_exclusive: how many wake-one or wake-many threads to wake up
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @key: is directly passed to the wakeup function
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * It may be assumed that this function implies a write memory barrier before
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * changing the task state if and only if any tasks are woken up.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">__wake_up</span><span class="p">(</span><span class="kt">wait_queue_head_t</span> <span class="o">*</span><span class="n">q</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">mode</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="kt">int</span> <span class="n">nr_exclusive</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">flags</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">spin_lock_irqsave</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="o">-&gt;</span><span class="n">lock</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">__wake_up_common</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">nr_exclusive</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">spin_unlock_irqrestore</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="o">-&gt;</span><span class="n">lock</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nf">EXPORT_SYMBOL</span><span class="p">(</span><span class="n">__wake_up</span><span class="p">);</span> 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#define wake_up(x)                      __wake_up(x, TASK_NORMAL, 1, NULL)
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>最主要的函数为<code>__wake_up_common</code>，其遍历等待队列的<code>task_list</code>链表，然后调用等待实体的<code>func</code>函数。</li>
 <li>第<code>19</code>行通过<code>flag</code>和<code>nr_exclusive</code>来决定是唤醒<code>1</code>个等待的进程还是全部等待的进程。</li>
 </ul>
@@ -560,7 +828,6 @@ EXPORT_SYMBOL(__wake_up);
 <p><a href="https://embetronicx.com/tutorials/linux/device-drivers/waitqueue-in-linux-device-driver-tutorial/">https://embetronicx.com/tutorials/linux/device-drivers/waitqueue-in-linux-device-driver-tutorial/</a></p>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -568,7 +835,10 @@ EXPORT_SYMBOL(__wake_up);
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2019-02-21</span>
+    <span class="item-content">
+        2019-02-21
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -576,43 +846,29 @@ EXPORT_SYMBOL(__wake_up);
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/wait-queue/">wait queue</a>
-          
           <a href="/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">内核基础设施</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/cgroup-cpuacct/">
+        <a class="prev" href="/kernel/cgroup-cpuacct/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">Cgroup之cpuacct子系统</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/reading-linux-physical-memory/">
+        <a class="next" href="/kernel/reading-linux-physical-memory/">
             <span class="next-text nav-default">Linux用户程序如何访问物理内存</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -626,6 +882,11 @@ EXPORT_SYMBOL(__wake_up);
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -650,26 +911,24 @@ EXPORT_SYMBOL(__wake_up);
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

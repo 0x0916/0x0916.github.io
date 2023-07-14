@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+<meta name="author" content="laoqinren" /><meta name="description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/passing-file-descriptors/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,32 +36,21 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="传递文件描述符" />
 <meta property="og:description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/linux/passing-file-descriptors/" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/passing-file-descriptors/" /><meta property="article:section" content="linux" />
 <meta property="article:published_time" content="2018-09-16T18:06:34+08:00" />
 <meta property="article:modified_time" content="2018-09-16T18:06:34+08:00" />
 <meta itemprop="name" content="传递文件描述符">
-<meta itemprop="description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。">
-<meta itemprop="datePublished" content="2018-09-16T18:06:34+08:00" />
+<meta itemprop="description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。"><meta itemprop="datePublished" content="2018-09-16T18:06:34+08:00" />
 <meta itemprop="dateModified" content="2018-09-16T18:06:34+08:00" />
-<meta itemprop="wordCount" content="1099">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,socket," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="1301">
+<meta itemprop="keywords" content="kernel,linux,socket," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="传递文件描述符"/>
 <meta name="twitter:description" content="Unix domain socket具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。"/>
 
@@ -108,12 +93,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -134,6 +128,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -147,251 +142,456 @@
       <div class="post-meta">
         <span class="post-time"> 2018-09-16 </span>
         <div class="post-category">
-            
-              <a href="/categories/linux/"> linux </a>
-            
-              <a href="/categories/socket/"> socket </a>
-            
-          </div>
-        <span class="more-meta"> 1099 words </span>
-        <span class="more-meta"> 3 mins read </span>
+            <a href="/categories/linux/"> linux </a>
+            <a href="/categories/socket/"> socket </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#api">API</a></li>
-        <li><a href="#示例程序">示例程序</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#api">API</a></li>
+            <li><a href="#示例程序">示例程序</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p><code>Unix domain socket</code>具有一个特别的能力——传递文件描述符。其他的IPC机制都不支持传递文件描述符。它允许进程打开一个文件，然后将文件描述符发送给另外一个进程（很可能不相关的进程）。</p>
 <h3 id="api">API</h3>
 <p>文件描述符使用如下的函数进行发送和接收：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/types.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/socket.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-ssize_t <span style="color:#a6e22e">sendmsg</span>(<span style="color:#66d9ef">int</span> sockfd, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> msghdr <span style="color:#f92672">*</span>msg, <span style="color:#66d9ef">int</span> flags);
-ssize_t <span style="color:#a6e22e">recvmsg</span>(<span style="color:#66d9ef">int</span> sockfd, <span style="color:#66d9ef">struct</span> msghdr <span style="color:#f92672">*</span>msg, <span style="color:#66d9ef">int</span> flags);
-</code></pre></div><h3 id="示例程序">示例程序</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/types.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/socket.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">ssize_t</span> <span class="nf">sendmsg</span><span class="p">(</span><span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">msghdr</span> <span class="o">*</span><span class="n">msg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kt">ssize_t</span> <span class="nf">recvmsg</span><span class="p">(</span><span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span> <span class="k">struct</span> <span class="n">msghdr</span> <span class="o">*</span><span class="n">msg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="示例程序">示例程序</h3>
 <p>为了演示传递文件描述符的方法，我们编写了一个示例程序（奇怪的cat），它实现了cat程序一样的功能，它接收一个文件名成作为其参数，在子进程中打开该文件，然后将文件描述符传递给父进程，父进程输入文件的内容到标准输出设备上。</p>
 <p>关于<code>CMSG</code>的用法，请参考：http://www.man7.org/linux/man-pages/man3/cmsg.3.html</p>
 <p>PS： 该示例参考自《Linux Application Development》second edition, Page 426-429</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/types.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/socket.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/wait.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">child_process</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>filename, <span style="color:#66d9ef">int</span> sock);
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">parent_process</span>(<span style="color:#66d9ef">int</span> sock);
-<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">copy_data</span>(<span style="color:#66d9ef">int</span> form, <span style="color:#66d9ef">int</span> to);
-
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv) {
-        <span style="color:#66d9ef">int</span> socket[<span style="color:#ae81ff">2</span>];
-        <span style="color:#66d9ef">int</span> status;
-
-        <span style="color:#66d9ef">if</span> (argc <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span>) {
-                printf(<span style="color:#e6db74">&#34;Usage: %s filename</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">0</span>]);
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-        }
-
-        <span style="color:#75715e">// 创建一对匿名的已经连接的socket
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">// socket[0] 用于父进程
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">// socket[1] 用于子进程
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> (socketpair(PF_UNIX, SOCK_STREAM, <span style="color:#ae81ff">0</span>, socket)) {
-                perror(<span style="color:#e6db74">&#34;sockerpair error&#34;</span>);
-                exit(<span style="color:#ae81ff">1</span>);
-        }
-
-
-        <span style="color:#75715e">// 创建子进程
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fork()) {
-                <span style="color:#75715e">// Child Process
-</span><span style="color:#75715e"></span>                close(socket[<span style="color:#ae81ff">0</span>]);
-                <span style="color:#66d9ef">return</span> child_process(argv[<span style="color:#ae81ff">1</span>], socket[<span style="color:#ae81ff">1</span>]);
-        }
-
-        <span style="color:#75715e">// Parent Process
-</span><span style="color:#75715e"></span>        close(socket[<span style="color:#ae81ff">1</span>]);
-        parent_process(socket[<span style="color:#ae81ff">0</span>]);
-
-        <span style="color:#75715e">// 回收子进程
-</span><span style="color:#75715e"></span>        wait(<span style="color:#f92672">&amp;</span>status);
-
-        <span style="color:#66d9ef">if</span> (WEXITSTATUS(status))
-                fprintf(stderr, <span style="color:#e6db74">&#34;child failed</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#75715e">// 子进程：发送文件描述符
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">child_process</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>filename, <span style="color:#66d9ef">int</span> sock) {
-        <span style="color:#66d9ef">int</span> fd;
-        <span style="color:#66d9ef">struct</span> iovec    iov[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">0</span>};
-        <span style="color:#66d9ef">struct</span> msghdr   msg <span style="color:#f92672">=</span> {<span style="color:#ae81ff">0</span>};
-        <span style="color:#66d9ef">struct</span> cmsghdr  <span style="color:#f92672">*</span>cmsg;
-        <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>fdptr;
-
-        <span style="color:#66d9ef">union</span> {
-                <span style="color:#66d9ef">char</span> buf[CMSG_SPACE(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>))];
-                <span style="color:#66d9ef">struct</span> cmsghdr  align;
-        } u;
-
-        <span style="color:#75715e">// 打开文件
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> ((fd <span style="color:#f92672">=</span> open(filename, O_RDONLY)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-                perror(<span style="color:#e6db74">&#34;open&#34;</span>);
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-        }
-
-        <span style="color:#75715e">// 在使用SOCK_STREAM传递文件描述符时，必须发送或者接收至少一个字节的nonancillary数据。
-</span><span style="color:#75715e"></span>        iov[<span style="color:#ae81ff">0</span>].iov_base <span style="color:#f92672">=</span> filename;
-        iov[<span style="color:#ae81ff">0</span>].iov_len <span style="color:#f92672">=</span> strlen(filename) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
-
-        <span style="color:#75715e">// 通过SOCK_STREAM发送信息时，msg_name必须为NULL，msg_namelen必须为
-</span><span style="color:#75715e"></span>        msg.msg_name <span style="color:#f92672">=</span> NULL;
-        msg.msg_namelen <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-        msg.msg_iov <span style="color:#f92672">=</span> iov;
-        msg.msg_iovlen <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-        msg.msg_control <span style="color:#f92672">=</span> u.buf;
-        msg.msg_controllen <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(u.buf);
-
-        cmsg <span style="color:#f92672">=</span> CMSG_FIRSTHDR(<span style="color:#f92672">&amp;</span>msg);
-        cmsg<span style="color:#f92672">-&gt;</span>cmsg_level <span style="color:#f92672">=</span> SOL_SOCKET;
-        cmsg<span style="color:#f92672">-&gt;</span>cmsg_type <span style="color:#f92672">=</span> SCM_RIGHTS;
-        cmsg<span style="color:#f92672">-&gt;</span>cmsg_len <span style="color:#f92672">=</span> CMSG_LEN(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>));
-
-        <span style="color:#75715e">// 初始化要发送的数据域,即将文件描述符拷贝到控制信息的末尾
-</span><span style="color:#75715e"></span>        fdptr <span style="color:#f92672">=</span> (<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>) CMSG_DATA(cmsg);
-        memcpy(fdptr, <span style="color:#f92672">&amp;</span>fd, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>));
-
-        <span style="color:#66d9ef">if</span> (sendmsg(sock, <span style="color:#f92672">&amp;</span>msg, <span style="color:#ae81ff">0</span>) <span style="color:#f92672">!=</span> iov[<span style="color:#ae81ff">0</span>].iov_len) {
-                perror(<span style="color:#e6db74">&#34;sendmsg&#34;</span>);
-                exit(<span style="color:#ae81ff">1</span>);
-        }
-
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#75715e">// 父进程：接收文件描述符
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">parent_process</span>(<span style="color:#66d9ef">int</span> sock) {
-        <span style="color:#66d9ef">struct</span> msghdr   msg <span style="color:#f92672">=</span> {<span style="color:#ae81ff">0</span>};
-        <span style="color:#66d9ef">struct</span> iovec    iov[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">0</span>};
-        <span style="color:#66d9ef">struct</span> cmsghdr  <span style="color:#f92672">*</span>cmsg;
-        <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>fdptr;
-        <span style="color:#66d9ef">int</span> fd;
-        <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">80</span>];
-
-        <span style="color:#66d9ef">union</span> {
-                <span style="color:#66d9ef">char</span> buf[CMSG_SPACE(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>))];
-                <span style="color:#66d9ef">struct</span> cmsghdr align;
-        } u;
-
-        <span style="color:#75715e">// 为了接收文件名做准备
-</span><span style="color:#75715e"></span>        iov[<span style="color:#ae81ff">0</span>].iov_base <span style="color:#f92672">=</span> buf;
-        iov[<span style="color:#ae81ff">0</span>].iov_len <span style="color:#f92672">=</span> <span style="color:#ae81ff">80</span>;
-
-        <span style="color:#75715e">// 通过SOCK_STREAM接收信息时，msg_name必须为NULL，msg_namelen必须为
-</span><span style="color:#75715e"></span>        msg.msg_name <span style="color:#f92672">=</span> NULL;
-        msg.msg_namelen <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-        msg.msg_iov <span style="color:#f92672">=</span> iov;
-        msg.msg_iovlen <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-        msg.msg_control <span style="color:#f92672">=</span> u.buf;
-        msg.msg_controllen <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(u.buf);
-
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>recvmsg(sock, <span style="color:#f92672">&amp;</span>msg, <span style="color:#ae81ff">0</span>)) {
-                perror(<span style="color:#e6db74">&#34;recvmsg&#34;</span>);
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-        }
-
-        cmsg <span style="color:#f92672">=</span> CMSG_FIRSTHDR(<span style="color:#f92672">&amp;</span>msg);
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>cmsg) {
-                perror(<span style="color:#e6db74">&#34;got NULL from CMSG_FIRSTHDR&#34;</span>);
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-        }
-        <span style="color:#66d9ef">if</span> (cmsg<span style="color:#f92672">-&gt;</span>cmsg_level <span style="color:#f92672">!=</span> SOL_SOCKET) {
-                fprintf(stderr, <span style="color:#e6db74">&#34;expected SOL_SOCKET in cmsg: %d&#34;</span>, cmsg<span style="color:#f92672">-&gt;</span>cmsg_level);
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-        }
-        <span style="color:#66d9ef">if</span> (cmsg<span style="color:#f92672">-&gt;</span>cmsg_type <span style="color:#f92672">!=</span> SCM_RIGHTS) {
-                fprintf(stderr, <span style="color:#e6db74">&#34;expected SCM_RIGHTS in cmsg: %d&#34;</span>, cmsg<span style="color:#f92672">-&gt;</span>cmsg_type);
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-        }
-        <span style="color:#66d9ef">if</span> (cmsg<span style="color:#f92672">-&gt;</span>cmsg_len <span style="color:#f92672">!=</span> CMSG_LEN(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>))) {
-                fprintf(stderr, <span style="color:#e6db74">&#34;expected correct CMSG_LENin cmsg: %lu&#34;</span>, cmsg<span style="color:#f92672">-&gt;</span>cmsg_len);
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-        }
-
-        fdptr <span style="color:#f92672">=</span> (<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>)CMSG_DATA(cmsg);
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fdptr <span style="color:#f92672">||</span> <span style="color:#f92672">*</span>fdptr <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-                fprintf(stderr, <span style="color:#e6db74">&#34;recieved invalid pointer or file descriptor&#34;</span>);
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-        }
-
-        fd <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>fdptr;
-        printf(<span style="color:#e6db74">&#34;Got file descriptor for &#39;%s&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)iov[<span style="color:#ae81ff">0</span>].iov_base);
-        printf(<span style="color:#e6db74">&#34;The file descriptor is %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, fd);
-
-        copy_data(fd, <span style="color:#ae81ff">1</span>);
-
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#75715e">// 将数据从文件描述符`from`中拷贝到`to`中，如果发送错误，则退出
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">copy_data</span>(<span style="color:#66d9ef">int</span> from, <span style="color:#66d9ef">int</span> to) {
-        <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">1024</span>];
-        <span style="color:#66d9ef">int</span> amount;
-
-        <span style="color:#66d9ef">while</span> ((amount <span style="color:#f92672">=</span> read(from, buf, <span style="color:#66d9ef">sizeof</span>(buf))) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
-                <span style="color:#66d9ef">if</span> (write(to, buf, amount) <span style="color:#f92672">!=</span> amount) {
-                        perror(<span style="color:#e6db74">&#34;write&#34;</span>);
-                        exit(<span style="color:#ae81ff">1</span>);
-                }
-        }
-
-        <span style="color:#66d9ef">if</span> (amount <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-                perror(<span style="color:#e6db74">&#34;read&#34;</span>);
-                exit(<span style="color:#ae81ff">1</span>);
-        }
-}
-
-</code></pre></div><p>运行结果：</p>
-<pre><code># 编译程序
-$ gcc -o passing-file-descriptors passing-file-descriptors.c 
-
-# 准备文件`passfd.txt`
-$ echo &quot;Hello, passing file descriptor&quot; &gt; passfd.txt
-$ ./passing-file-descriptors passfd.txt 
-Got file descriptor for 'passfd.txt'
-The file descriptor is 4
-Hello, passing file descriptor
-</code></pre><h3 id="参考文章">参考文章</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span><span class="lnt">155
+</span><span class="lnt">156
+</span><span class="lnt">157
+</span><span class="lnt">158
+</span><span class="lnt">159
+</span><span class="lnt">160
+</span><span class="lnt">161
+</span><span class="lnt">162
+</span><span class="lnt">163
+</span><span class="lnt">164
+</span><span class="lnt">165
+</span><span class="lnt">166
+</span><span class="lnt">167
+</span><span class="lnt">168
+</span><span class="lnt">169
+</span><span class="lnt">170
+</span><span class="lnt">171
+</span><span class="lnt">172
+</span><span class="lnt">173
+</span><span class="lnt">174
+</span><span class="lnt">175
+</span><span class="lnt">176
+</span><span class="lnt">177
+</span><span class="lnt">178
+</span><span class="lnt">179
+</span><span class="lnt">180
+</span><span class="lnt">181
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/types.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/socket.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/wait.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">child_process</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">filename</span><span class="p">,</span> <span class="kt">int</span> <span class="n">sock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">parent_process</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">copy_data</span><span class="p">(</span><span class="kt">int</span> <span class="n">form</span><span class="p">,</span> <span class="kt">int</span> <span class="n">to</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">socket</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">status</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Usage: %s filename</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 创建一对匿名的已经连接的socket
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// socket[0] 用于父进程
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// socket[1] 用于子进程
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="p">(</span><span class="nf">socketpair</span><span class="p">(</span><span class="n">PF_UNIX</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">socket</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;sockerpair error&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 创建子进程
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">fork</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// Child Process
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                <span class="nf">close</span><span class="p">(</span><span class="n">socket</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="nf">child_process</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">socket</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// Parent Process
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nf">close</span><span class="p">(</span><span class="n">socket</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">parent_process</span><span class="p">(</span><span class="n">socket</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 回收子进程
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nf">wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="nf">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;child failed</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 子进程：发送文件描述符
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">int</span> <span class="nf">child_process</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">filename</span><span class="p">,</span> <span class="kt">int</span> <span class="n">sock</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">iovec</span>    <span class="n">iov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">msghdr</span>   <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">cmsghdr</span>  <span class="o">*</span><span class="n">cmsg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="o">*</span><span class="n">fdptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">union</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="nf">CMSG_SPACE</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">))];</span>
+</span></span><span class="line"><span class="cl">                <span class="k">struct</span> <span class="n">cmsghdr</span>  <span class="n">align</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span> <span class="n">u</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 打开文件
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="p">((</span><span class="n">fd</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;open&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 在使用SOCK_STREAM传递文件描述符时，必须发送或者接收至少一个字节的nonancillary数据。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">iov</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">iov_base</span> <span class="o">=</span> <span class="n">filename</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">iov</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">iov_len</span> <span class="o">=</span> <span class="nf">strlen</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 通过SOCK_STREAM发送信息时，msg_name必须为NULL，msg_namelen必须为
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">msg</span><span class="p">.</span><span class="n">msg_name</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_namelen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_iov</span> <span class="o">=</span> <span class="n">iov</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_iovlen</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_control</span> <span class="o">=</span> <span class="n">u</span><span class="p">.</span><span class="n">buf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_controllen</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">u</span><span class="p">.</span><span class="n">buf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">cmsg</span> <span class="o">=</span> <span class="nf">CMSG_FIRSTHDR</span><span class="p">(</span><span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_level</span> <span class="o">=</span> <span class="n">SOL_SOCKET</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_type</span> <span class="o">=</span> <span class="n">SCM_RIGHTS</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_len</span> <span class="o">=</span> <span class="nf">CMSG_LEN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 初始化要发送的数据域,即将文件描述符拷贝到控制信息的末尾
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">fdptr</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span> <span class="nf">CMSG_DATA</span><span class="p">(</span><span class="n">cmsg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">memcpy</span><span class="p">(</span><span class="n">fdptr</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">fd</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="nf">sendmsg</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="n">iov</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">iov_len</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;sendmsg&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 父进程：接收文件描述符
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">int</span> <span class="nf">parent_process</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">msghdr</span>   <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">iovec</span>    <span class="n">iov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">cmsghdr</span>  <span class="o">*</span><span class="n">cmsg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="o">*</span><span class="n">fdptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">80</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">union</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="nf">CMSG_SPACE</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">))];</span>
+</span></span><span class="line"><span class="cl">                <span class="k">struct</span> <span class="n">cmsghdr</span> <span class="n">align</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span> <span class="n">u</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 为了接收文件名做准备
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">iov</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">iov_base</span> <span class="o">=</span> <span class="n">buf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">iov</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">iov_len</span> <span class="o">=</span> <span class="mi">80</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 通过SOCK_STREAM接收信息时，msg_name必须为NULL，msg_namelen必须为
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">msg</span><span class="p">.</span><span class="n">msg_name</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_namelen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_iov</span> <span class="o">=</span> <span class="n">iov</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_iovlen</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_control</span> <span class="o">=</span> <span class="n">u</span><span class="p">.</span><span class="n">buf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">msg</span><span class="p">.</span><span class="n">msg_controllen</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">u</span><span class="p">.</span><span class="n">buf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">recvmsg</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;recvmsg&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">cmsg</span> <span class="o">=</span> <span class="nf">CMSG_FIRSTHDR</span><span class="p">(</span><span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">cmsg</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;got NULL from CMSG_FIRSTHDR&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_level</span> <span class="o">!=</span> <span class="n">SOL_SOCKET</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;expected SOL_SOCKET in cmsg: %d&#34;</span><span class="p">,</span> <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_level</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_type</span> <span class="o">!=</span> <span class="n">SCM_RIGHTS</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;expected SCM_RIGHTS in cmsg: %d&#34;</span><span class="p">,</span> <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_type</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_len</span> <span class="o">!=</span> <span class="nf">CMSG_LEN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;expected correct CMSG_LENin cmsg: %lu&#34;</span><span class="p">,</span> <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_len</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">fdptr</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span><span class="nf">CMSG_DATA</span><span class="p">(</span><span class="n">cmsg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fdptr</span> <span class="o">||</span> <span class="o">*</span><span class="n">fdptr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;recieved invalid pointer or file descriptor&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">fd</span> <span class="o">=</span> <span class="o">*</span><span class="n">fdptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Got file descriptor for &#39;%s&#39;</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">iov</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">iov_base</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;The file descriptor is %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">copy_data</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 将数据从文件描述符`from`中拷贝到`to`中，如果发送错误，则退出
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">void</span> <span class="nf">copy_data</span><span class="p">(</span><span class="kt">int</span> <span class="n">from</span><span class="p">,</span> <span class="kt">int</span> <span class="n">to</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">amount</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">while</span> <span class="p">((</span><span class="n">amount</span> <span class="o">=</span> <span class="nf">read</span><span class="p">(</span><span class="n">from</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="nf">write</span><span class="p">(</span><span class="n">to</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">amount</span><span class="p">)</span> <span class="o">!=</span> <span class="n">amount</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                        <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;write&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                        <span class="nf">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">amount</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;read&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>运行结果：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># 编译程序
+</span></span><span class="line"><span class="cl">$ gcc -o passing-file-descriptors passing-file-descriptors.c 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"># 准备文件`passfd.txt`
+</span></span><span class="line"><span class="cl">$ echo &#34;Hello, passing file descriptor&#34; &gt; passfd.txt
+</span></span><span class="line"><span class="cl">$ ./passing-file-descriptors passfd.txt 
+</span></span><span class="line"><span class="cl">Got file descriptor for &#39;passfd.txt&#39;
+</span></span><span class="line"><span class="cl">The file descriptor is 4
+</span></span><span class="line"><span class="cl">Hello, passing file descriptor
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="http://www.man7.org/linux/man-pages/man3/cmsg.3.html">http://www.man7.org/linux/man-pages/man3/cmsg.3.html</a></li>
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -399,7 +599,10 @@ Hello, passing file descriptor
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-09-16</span>
+    <span class="item-content">
+        2018-09-16
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -407,41 +610,28 @@ Hello, passing file descriptor
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/socket/">socket</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/linux/get-init-pid-for-any-task/">
+        <a class="prev" href="/linux/get-init-pid-for-any-task/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">获取容器中init进程的pid</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/linux/fuse/">
+        <a class="next" href="/linux/fuse/">
             <span class="next-text nav-default">FUSE介绍</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -455,6 +645,11 @@ Hello, passing file descriptor
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -479,26 +674,24 @@ Hello, passing file descriptor
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

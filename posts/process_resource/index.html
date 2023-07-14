@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。
-" />
-<meta name="keywords" content="getrlimit, setrlimit, getrusage, prlimit" />
+<meta name="author" content="laoqinren" /><meta name="description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。
+" /><meta name="keywords" content="getrlimit, setrlimit, getrusage, prlimit" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/process_resource/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,32 +36,21 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="Process Resource" />
 <meta property="og:description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/process_resource/" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/process_resource/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2018-07-30T19:02:06+08:00" />
 <meta property="article:modified_time" content="2018-07-30T19:02:06+08:00" />
 <meta itemprop="name" content="Process Resource">
-<meta itemprop="description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。">
-<meta itemprop="datePublished" content="2018-07-30T19:02:06+08:00" />
+<meta itemprop="description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。"><meta itemprop="datePublished" content="2018-07-30T19:02:06+08:00" />
 <meta itemprop="dateModified" content="2018-07-30T19:02:06+08:00" />
-<meta itemprop="wordCount" content="1811">
-
-
-
-<meta itemprop="keywords" content="ulimit,getrusage,prlimit," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="1957">
+<meta itemprop="keywords" content="ulimit,getrusage,prlimit," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Process Resource"/>
 <meta name="twitter:description" content="每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。"/>
 
@@ -108,12 +93,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -134,6 +128,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -147,227 +142,424 @@
       <div class="post-meta">
         <span class="post-time"> 2018-07-30 </span>
         <div class="post-category">
-            
-              <a href="/categories/linux/"> linux </a>
-            
-          </div>
-        <span class="more-meta"> 1811 words </span>
-        <span class="more-meta"> 4 mins read </span>
+            <a href="/categories/linux/"> linux </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#进程资源使用情况">进程资源使用情况</a></li>
-    <li><a href="#进程资源限制">进程资源限制</a>
+    <li>
       <ul>
-        <li><a href="#注意注意">注意注意</a></li>
+        <li><a href="#进程资源使用情况">进程资源使用情况</a></li>
+        <li><a href="#进程资源限制">进程资源限制</a>
+          <ul>
+            <li><a href="#注意注意">注意注意</a></li>
+          </ul>
+        </li>
+        <li><a href="#rlimit_nproc-示例">RLIMIT_NPROC 示例</a>
+          <ul>
+            <li><a href="#注意">注意</a></li>
+          </ul>
+        </li>
+        <li><a href="#docker中对进程资源限制的支持">docker中对进程资源限制的支持</a></li>
       </ul>
     </li>
-    <li><a href="#rlimit_nproc-示例">RLIMIT_NPROC 示例</a>
-      <ul>
-        <li><a href="#注意">注意</a></li>
-      </ul>
-    </li>
-    <li><a href="#docker中对进程资源限制的支持">docker中对进程资源限制的支持</a></li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>每一个进程都消耗系统上的cpu和内存资源，本文将详细介绍这些资源相关的系统调用。并且结合docker，简要介绍docker中对进程资源限制的支持。</p>
 <h2 id="进程资源使用情况">进程资源使用情况</h2>
 <p>系统调用<code>getrusage()</code>用于获取进程当前消耗各种系统资源的统计信息。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">
-<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/time.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/resource.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getrusage</span>(<span style="color:#66d9ef">int</span> who, <span style="color:#66d9ef">struct</span> rusage <span style="color:#f92672">*</span>usage);
-</code></pre></div><p><code>who</code>有三种取值：<code>RUSAGE_SELF</code>、<code>RUSAGE_CHILDREN</code>、<code>RUSAGE_THREAD</code>;</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/time.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/resource.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">getrusage</span><span class="p">(</span><span class="kt">int</span> <span class="n">who</span><span class="p">,</span> <span class="k">struct</span> <span class="n">rusage</span> <span class="o">*</span><span class="n">usage</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>who</code>有三种取值：<code>RUSAGE_SELF</code>、<code>RUSAGE_CHILDREN</code>、<code>RUSAGE_THREAD</code>;</p>
 <ul>
 <li><code>RUSAGE_SELF</code>代表获取当前调用进程的资源信息</li>
 <li><code>RUSAGE_CHILDREN</code>代表获取当前调用进程的所有子进程的资源信息</li>
 <li><code>RUSAGE_THREAD</code>代表获取当前调用线程的资源信息</li>
 </ul>
 <p><code>usage</code>的数据结构定义如下，它用来保存返回的资源信息：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> rusage {
-    <span style="color:#66d9ef">struct</span> timeval ru_utime; <span style="color:#75715e">/* user CPU time used */</span>
-    <span style="color:#66d9ef">struct</span> timeval ru_stime; <span style="color:#75715e">/* system CPU time used */</span>
-    <span style="color:#66d9ef">long</span>   ru_maxrss;        <span style="color:#75715e">/* maximum resident set size */</span>
-    <span style="color:#66d9ef">long</span>   ru_ixrss;         <span style="color:#75715e">/* integral shared memory size */</span>
-    <span style="color:#66d9ef">long</span>   ru_idrss;         <span style="color:#75715e">/* integral unshared data size */</span>
-    <span style="color:#66d9ef">long</span>   ru_isrss;         <span style="color:#75715e">/* integral unshared stack size */</span>
-    <span style="color:#66d9ef">long</span>   ru_minflt;        <span style="color:#75715e">/* page reclaims (soft page faults) */</span>
-    <span style="color:#66d9ef">long</span>   ru_majflt;        <span style="color:#75715e">/* page faults (hard page faults) */</span>
-    <span style="color:#66d9ef">long</span>   ru_nswap;         <span style="color:#75715e">/* swaps */</span>
-    <span style="color:#66d9ef">long</span>   ru_inblock;       <span style="color:#75715e">/* block input operations */</span>
-    <span style="color:#66d9ef">long</span>   ru_oublock;       <span style="color:#75715e">/* block output operations */</span>
-    <span style="color:#66d9ef">long</span>   ru_msgsnd;        <span style="color:#75715e">/* IPC messages sent */</span>
-    <span style="color:#66d9ef">long</span>   ru_msgrcv;        <span style="color:#75715e">/* IPC messages received */</span>
-    <span style="color:#66d9ef">long</span>   ru_nsignals;      <span style="color:#75715e">/* signals received */</span>
-    <span style="color:#66d9ef">long</span>   ru_nvcsw;         <span style="color:#75715e">/* voluntary context switches */</span>
-    <span style="color:#66d9ef">long</span>   ru_nivcsw;        <span style="color:#75715e">/* involuntary context switches */</span>
-};
-</code></pre></div><p>更多信息请参考：http://man7.org/linux/man-pages/man2/getrusage.2.html</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">rusage</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">timeval</span> <span class="n">ru_utime</span><span class="p">;</span> <span class="cm">/* user CPU time used */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">timeval</span> <span class="n">ru_stime</span><span class="p">;</span> <span class="cm">/* system CPU time used */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_maxrss</span><span class="p">;</span>        <span class="cm">/* maximum resident set size */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_ixrss</span><span class="p">;</span>         <span class="cm">/* integral shared memory size */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_idrss</span><span class="p">;</span>         <span class="cm">/* integral unshared data size */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_isrss</span><span class="p">;</span>         <span class="cm">/* integral unshared stack size */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_minflt</span><span class="p">;</span>        <span class="cm">/* page reclaims (soft page faults) */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_majflt</span><span class="p">;</span>        <span class="cm">/* page faults (hard page faults) */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_nswap</span><span class="p">;</span>         <span class="cm">/* swaps */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_inblock</span><span class="p">;</span>       <span class="cm">/* block input operations */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_oublock</span><span class="p">;</span>       <span class="cm">/* block output operations */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_msgsnd</span><span class="p">;</span>        <span class="cm">/* IPC messages sent */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_msgrcv</span><span class="p">;</span>        <span class="cm">/* IPC messages received */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_nsignals</span><span class="p">;</span>      <span class="cm">/* signals received */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_nvcsw</span><span class="p">;</span>         <span class="cm">/* voluntary context switches */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span>   <span class="n">ru_nivcsw</span><span class="p">;</span>        <span class="cm">/* involuntary context switches */</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>更多信息请参考：http://man7.org/linux/man-pages/man2/getrusage.2.html</p>
 <h2 id="进程资源限制">进程资源限制</h2>
 <p>每一个进程都有一组资源限制，用于限制其所能使用的资源量。例如，我们可以在执行程序之前，通过ulimit这个内建的bash命令设置其资源使用限制。</p>
 <blockquote>
 <p>注意：linux系统上，<code>/proc/PID/limits</code>可以查看当前指定进程的资源限制情况。</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/time.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/resource.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getrlimit</span>(<span style="color:#66d9ef">int</span> resource, <span style="color:#66d9ef">struct</span> rlimit <span style="color:#f92672">*</span>rlim);
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">setrlimit</span>(<span style="color:#66d9ef">int</span> resource, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> rlimit <span style="color:#f92672">*</span>rlim);
-
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">prlimit</span>(pid_t pid, <span style="color:#66d9ef">int</span> resource, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> rlimit <span style="color:#f92672">*</span>new_limit,
-                   <span style="color:#66d9ef">struct</span> rlimit <span style="color:#f92672">*</span>old_limit);
-</code></pre></div><p><code>getrlimit</code>用于获取进程当前的资源限制情况，<code>setrlimit</code>用于设置进程的资源限制。<code>prlimit</code>是linux上的系统调用，它结合了<code>getrlimit</code>和<code>setrlimit</code>的功能，并进行了扩展（可以设定指定进程的资源限制）。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/time.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/resource.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">getrlimit</span><span class="p">(</span><span class="kt">int</span> <span class="n">resource</span><span class="p">,</span> <span class="k">struct</span> <span class="n">rlimit</span> <span class="o">*</span><span class="n">rlim</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">setrlimit</span><span class="p">(</span><span class="kt">int</span> <span class="n">resource</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">rlimit</span> <span class="o">*</span><span class="n">rlim</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">prlimit</span><span class="p">(</span><span class="kt">pid_t</span> <span class="n">pid</span><span class="p">,</span> <span class="kt">int</span> <span class="n">resource</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">rlimit</span> <span class="o">*</span><span class="n">new_limit</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                   <span class="k">struct</span> <span class="n">rlimit</span> <span class="o">*</span><span class="n">old_limit</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>getrlimit</code>用于获取进程当前的资源限制情况，<code>setrlimit</code>用于设置进程的资源限制。<code>prlimit</code>是linux上的系统调用，它结合了<code>getrlimit</code>和<code>setrlimit</code>的功能，并进行了扩展（可以设定指定进程的资源限制）。</p>
 <p><code>resource</code> 参数的可选值如下：</p>
 <p><img src="./process-resource.png" alt="enter description here" title="process_resource"></p>
 <p><code>struct rlimit</code>的定义如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> rlimit {
-        rlim_t rlim_cur;  <span style="color:#75715e">/* Soft limit */</span>
-        rlim_t rlim_max;  <span style="color:#75715e">/* Hard limit (ceiling for rlim_cur) */</span>
-};
-</code></pre></div><p><code>软限制</code>：使用资源时，用于进行是否超过限制的判断，其值可以在0和<code>硬限制</code>之间调整。
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">rlimit</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">rlim_t</span> <span class="n">rlim_cur</span><span class="p">;</span>  <span class="cm">/* Soft limit */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">rlim_t</span> <span class="n">rlim_max</span><span class="p">;</span>  <span class="cm">/* Hard limit (ceiling for rlim_cur) */</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>软限制</code>：使用资源时，用于进行是否超过限制的判断，其值可以在0和<code>硬限制</code>之间调整。
 <code>硬限制</code>:  用于提供<code>软限制</code>的上限。</p>
 <h3 id="注意注意">注意注意</h3>
 <p>尽管资源限制是针对进程的，但是有些资源不能以进程的角度衡量，一般是以用户的角度去衡量的。比如：<code>RLIMIT_NPROC</code>,它代表了一个用户所能运行的进程数量。</p>
 <p>具体各种资源的详细描述，请参考：http://man7.org/linux/man-pages/man2/getrlimit.2.html</p>
 <h2 id="rlimit_nproc-示例">RLIMIT_NPROC 示例</h2>
 <p>该示例程序展示了<code>RLIMIT_NPROC</code>对用户进程个数的限制。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./rlimit_nproc <span style="color:#ae81ff">6</span> <span style="color:#ae81ff">10</span>
-Initial maximum process limits:  soft<span style="color:#f92672">=</span>4096; hard<span style="color:#f92672">=</span><span style="color:#ae81ff">10450</span>
-New maximum process limits:  soft<span style="color:#f92672">=</span>6; hard<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>
-Child <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>PID <span style="color:#f92672">=</span> 23132<span style="color:#f92672">)</span> started
-Child <span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>PID <span style="color:#f92672">=</span> 23133<span style="color:#f92672">)</span> started
-Child <span style="color:#ae81ff">3</span> <span style="color:#f92672">(</span>PID <span style="color:#f92672">=</span> 23134<span style="color:#f92672">)</span> started
-Child <span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>PID <span style="color:#f92672">=</span> 23135<span style="color:#f92672">)</span> started
-error fork: Resource temporarily unavailable
-</code></pre></div><p>执行效果如上：我们仅创建了4个进程，因为该用户已经启动了2个进程。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ ./rlimit_nproc <span class="m">6</span> <span class="m">10</span>
+</span></span><span class="line"><span class="cl">Initial maximum process limits:  <span class="nv">soft</span><span class="o">=</span>4096<span class="p">;</span> <span class="nv">hard</span><span class="o">=</span><span class="m">10450</span>
+</span></span><span class="line"><span class="cl">New maximum process limits:  <span class="nv">soft</span><span class="o">=</span>6<span class="p">;</span> <span class="nv">hard</span><span class="o">=</span><span class="m">10</span>
+</span></span><span class="line"><span class="cl">Child <span class="m">1</span> <span class="o">(</span><span class="nv">PID</span> <span class="o">=</span> 23132<span class="o">)</span> started
+</span></span><span class="line"><span class="cl">Child <span class="m">2</span> <span class="o">(</span><span class="nv">PID</span> <span class="o">=</span> 23133<span class="o">)</span> started
+</span></span><span class="line"><span class="cl">Child <span class="m">3</span> <span class="o">(</span><span class="nv">PID</span> <span class="o">=</span> 23134<span class="o">)</span> started
+</span></span><span class="line"><span class="cl">Child <span class="m">4</span> <span class="o">(</span><span class="nv">PID</span> <span class="o">=</span> 23135<span class="o">)</span> started
+</span></span><span class="line"><span class="cl">error fork: Resource temporarily unavailable
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>执行效果如上：我们仅创建了4个进程，因为该用户已经启动了2个进程。</p>
 <p>源代码如下：</p>
 <p><code>print_rlimit.h</code> 文件：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">print_rlimit</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>msg, <span style="color:#66d9ef">int</span> resource);
-</code></pre></div><p><code>print_rlimit.c</code> 文件：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/resource.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;print_rlimit.h&#34;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">print_rlimit</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>msg, <span style="color:#66d9ef">int</span> resource) {
-	<span style="color:#66d9ef">struct</span> rlimit rlim;
-
-	<span style="color:#66d9ef">if</span> (getrlimit(resource, <span style="color:#f92672">&amp;</span>rlim) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-
-	printf(<span style="color:#e6db74">&#34;%s soft=&#34;</span>, msg);
-	<span style="color:#66d9ef">if</span> (rlim.rlim_cur <span style="color:#f92672">==</span> RLIM_INFINITY)
-		printf(<span style="color:#e6db74">&#34;infinite&#34;</span>);
-<span style="color:#75715e">#ifdef RLIM_SAVED_CUR
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (rlim.rlim_cur <span style="color:#f92672">==</span> RLIM_SAVED_CUR)
-		printf(<span style="color:#e6db74">&#34;unrepresentable&#34;</span>);
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">else</span>
-		printf(<span style="color:#e6db74">&#34;%lld&#34;</span>, (<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)rlim.rlim_cur);
-
-	printf(<span style="color:#e6db74">&#34;; hard=&#34;</span>);
-	<span style="color:#66d9ef">if</span> (rlim.rlim_max <span style="color:#f92672">==</span> RLIM_INFINITY)
-		printf(<span style="color:#e6db74">&#34;infinite&#34;</span>);
-<span style="color:#75715e">#ifdef RLIM_SAVED_MAX
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (rlim.rlim_max <span style="color:#f92672">==</span> RLIM_SAVED_MAX)
-		printf(<span style="color:#e6db74">&#34;unrepresentable&#34;</span>);
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">else</span>
-		printf(<span style="color:#e6db74">&#34;%lld</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, (<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)rlim.rlim_max);
-
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-</code></pre></div><p><code>rlimit_nproc.c</code>文件：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/resource.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;errno.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;print_rlimit.h&#34;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">get_int</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>arg) {
-	<span style="color:#66d9ef">long</span> res;
-	<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>endptr;
-	res <span style="color:#f92672">=</span> strtol(arg, <span style="color:#f92672">&amp;</span>endptr, <span style="color:#ae81ff">10</span>);
-	<span style="color:#66d9ef">return</span> res;
-}
-
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv) {
-	<span style="color:#66d9ef">struct</span> rlimit rl;
-	<span style="color:#66d9ef">int</span> j;
-	pid_t child_pid;
-
-	<span style="color:#66d9ef">if</span> (argc <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">||</span> argc <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">||</span> strcmp(argv[<span style="color:#ae81ff">1</span>], <span style="color:#e6db74">&#34;--help&#34;</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
-		printf(<span style="color:#e6db74">&#34;%s soft-limit [hard-limit]</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">0</span>]);
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-	}
-
-	print_rlimit(<span style="color:#e6db74">&#34;Initial maximum process limits: &#34;</span>, RLIMIT_NPROC);
-
-	<span style="color:#75715e">// set new process limits(hard == soft if not specified)
-</span><span style="color:#75715e"></span>	rl.rlim_cur <span style="color:#f92672">=</span> (argv[<span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;i&#39;</span>) <span style="color:#f92672">?</span> RLIM_INFINITY : get_int(argv[<span style="color:#ae81ff">1</span>]);
-	rl.rlim_max <span style="color:#f92672">=</span> (argc <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">?</span> rl.rlim_cur :
-			(argv[<span style="color:#ae81ff">2</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;i&#39;</span>) <span style="color:#f92672">?</span> RLIM_INFINITY : get_int(argv[<span style="color:#ae81ff">2</span>]);
-
-	<span style="color:#66d9ef">if</span> (setrlimit(RLIMIT_NPROC, <span style="color:#f92672">&amp;</span>rl) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
-		printf(<span style="color:#e6db74">&#34;setrlimit error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-	}
-
-	print_rlimit(<span style="color:#e6db74">&#34;New maximum process limits: &#34;</span>, RLIMIT_NPROC);
-
-	<span style="color:#75715e">// create as many children as possible
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> (j <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; ; j<span style="color:#f92672">++</span>) {
-		<span style="color:#66d9ef">switch</span>(child_pid <span style="color:#f92672">=</span> fork()) {
-		<span style="color:#66d9ef">case</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span><span style="color:#f92672">:</span>
-			printf(<span style="color:#e6db74">&#34;error fork: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
-			exit(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
-		<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">:</span>				<span style="color:#75715e">// child
-</span><span style="color:#75715e"></span>			_exit(EXIT_SUCCESS);
-		<span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>			<span style="color:#75715e">// parent
-</span><span style="color:#75715e"></span>			printf(<span style="color:#e6db74">&#34;Child %d (PID = %ld) started</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, j, (<span style="color:#66d9ef">long</span>) child_pid);
-			<span style="color:#66d9ef">break</span>;
-		}
-	}
-}
-</code></pre></div><p>编译方法：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># gcc -o rlimit_nproc rlimit_nproc.c print_rlimit.c</span>
-</code></pre></div><h3 id="注意">注意</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">print_rlimit</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">msg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">resource</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>print_rlimit.c</code> 文件：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/resource.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&#34;print_rlimit.h&#34;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">print_rlimit</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">msg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">resource</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">rlimit</span> <span class="n">rlim</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">getrlimit</span><span class="p">(</span><span class="n">resource</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rlim</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%s soft=&#34;</span><span class="p">,</span> <span class="n">msg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">rlim</span><span class="p">.</span><span class="n">rlim_cur</span> <span class="o">==</span> <span class="n">RLIM_INFINITY</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;infinite&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef RLIM_SAVED_CUR
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>	<span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">rlim</span><span class="p">.</span><span class="n">rlim_cur</span> <span class="o">==</span> <span class="n">RLIM_SAVED_CUR</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;unrepresentable&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>	<span class="k">else</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%lld&#34;</span><span class="p">,</span> <span class="p">(</span><span class="kt">long</span> <span class="kt">long</span><span class="p">)</span><span class="n">rlim</span><span class="p">.</span><span class="n">rlim_cur</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;; hard=&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">rlim</span><span class="p">.</span><span class="n">rlim_max</span> <span class="o">==</span> <span class="n">RLIM_INFINITY</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;infinite&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef RLIM_SAVED_MAX
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>	<span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">rlim</span><span class="p">.</span><span class="n">rlim_max</span> <span class="o">==</span> <span class="n">RLIM_SAVED_MAX</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;unrepresentable&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>	<span class="k">else</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%lld</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="p">(</span><span class="kt">long</span> <span class="kt">long</span><span class="p">)</span><span class="n">rlim</span><span class="p">.</span><span class="n">rlim_max</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>rlimit_nproc.c</code>文件：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/resource.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;errno.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&#34;print_rlimit.h&#34;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">get_int</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">res</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">char</span> <span class="o">*</span><span class="n">endptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">res</span> <span class="o">=</span> <span class="nf">strtol</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">endptr</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">res</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">rlimit</span> <span class="n">rl</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">j</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">pid_t</span> <span class="n">child_pid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">||</span> <span class="n">argc</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">||</span> <span class="nf">strcmp</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#34;--help&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%s soft-limit [hard-limit]</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">print_rlimit</span><span class="p">(</span><span class="s">&#34;Initial maximum process limits: &#34;</span><span class="p">,</span> <span class="n">RLIMIT_NPROC</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// set new process limits(hard == soft if not specified)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">rl</span><span class="p">.</span><span class="n">rlim_cur</span> <span class="o">=</span> <span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;i&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nl">RLIM_INFINITY</span> <span class="p">:</span> <span class="nf">get_int</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">rl</span><span class="p">.</span><span class="n">rlim_max</span> <span class="o">=</span> <span class="p">(</span><span class="n">argc</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="o">?</span> <span class="n">rl</span><span class="p">.</span><span class="nl">rlim_cur</span> <span class="p">:</span>
+</span></span><span class="line"><span class="cl">			<span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;i&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nl">RLIM_INFINITY</span> <span class="p">:</span> <span class="nf">get_int</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">setrlimit</span><span class="p">(</span><span class="n">RLIMIT_NPROC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rl</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;setrlimit error</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">print_rlimit</span><span class="p">(</span><span class="s">&#34;New maximum process limits: &#34;</span><span class="p">,</span> <span class="n">RLIMIT_NPROC</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// create as many children as possible
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">switch</span><span class="p">(</span><span class="n">child_pid</span> <span class="o">=</span> <span class="nf">fork</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">case</span> <span class="o">-</span><span class="mi">1</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;error fork: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">case</span> <span class="mi">0</span><span class="o">:</span>				<span class="c1">// child
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="nf">_exit</span><span class="p">(</span><span class="n">EXIT_SUCCESS</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">default</span><span class="o">:</span>			<span class="c1">// parent
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Child %d (PID = %ld) started</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="kt">long</span><span class="p">)</span> <span class="n">child_pid</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>编译方法：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># gcc -o rlimit_nproc rlimit_nproc.c print_rlimit.c</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="注意">注意</h3>
 <p><code>root</code>用户对<code>RLIMIT_NPROC</code>没有效果，即<code>RLIMIT_NPROC</code>不能限制<code>root</code>用户可以运行的进程数。</p>
 <p>具体内核代码可以参考：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v4.17/kernel/sys.c#L449#L476"> kernel/sys.c(line 449-476) </a></p>
 <h2 id="docker中对进程资源限制的支持">docker中对进程资源限制的支持</h2>
 <p>目前，docker中也提供了对进程资源限制的支持，我们可以使用<code>--ulimit</code>参数来进行资源限制的设置。其值的形式为：<code>&lt;type&gt;=&lt;soft limit&gt;[:&lt;hard limit&gt;]</code>，例如：</p>
-<pre><code># docker run --ulimit nofile=1024:1024 --rm debian sh -c &quot;ulimit -n&quot;
-1024
-</code></pre><blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># docker run --ulimit nofile=1024:1024 --rm debian sh -c &#34;ulimit -n&#34;
+</span></span><span class="line"><span class="cl">1024
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
 <p>注意：目前不支持as这个资源。</p>
 </blockquote>
 <p>另外注意<code>nproc</code>这个资源限制，它代表了一个用户所能运行的进程总数，比如以daemon用于启动几个容器：</p>
-<pre><code>$ docker run -d -u daemon --ulimit nproc=3 busybox top
-$ docker run -d -u daemon --ulimit nproc=3 busybox top
-$ docker run -d -u daemon --ulimit nproc=3 busybox top
-$ docker run -d -u daemon --ulimit nproc=3 busybox top
-</code></pre><p>第四个容器会启动失败，因为我们设置了<code>nproc=3</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ docker run -d -u daemon --ulimit nproc=3 busybox top
+</span></span><span class="line"><span class="cl">$ docker run -d -u daemon --ulimit nproc=3 busybox top
+</span></span><span class="line"><span class="cl">$ docker run -d -u daemon --ulimit nproc=3 busybox top
+</span></span><span class="line"><span class="cl">$ docker run -d -u daemon --ulimit nproc=3 busybox top
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>第四个容器会启动失败，因为我们设置了<code>nproc=3</code>。</p>
 <p>参考：https://docs.docker.com/v1.13/engine/reference/commandline/run/#/set-ulimits-in-container-ulimit</p>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -375,7 +567,10 @@ $ docker run -d -u daemon --ulimit nproc=3 busybox top
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-07-30</span>
+    <span class="item-content">
+        2018-07-30
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -383,41 +578,28 @@ $ docker run -d -u daemon --ulimit nproc=3 busybox top
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/ulimit/">ulimit</a>
-          
           <a href="/tags/getrusage/">getrusage</a>
-          
           <a href="/tags/prlimit/">prlimit</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/posts/rbtree-linux-kernel/">
+        <a class="prev" href="/posts/rbtree-linux-kernel/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">红黑树(二)——linux 内核的设计实现</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/posts/rbtree/">
+        <a class="next" href="/posts/rbtree/">
             <span class="next-text nav-default">红黑树(一) ——原理</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -431,6 +613,11 @@ $ docker run -d -u daemon --ulimit nproc=3 busybox top
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -455,26 +642,24 @@ $ docker run -d -u daemon --ulimit nproc=3 busybox top
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

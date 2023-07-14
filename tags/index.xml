@@ -1,34 +1,271 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Notes about linux and my work</title>
+    <title>Tags on Notes about linux and my work</title>
     <link>http://linux.laoqinren.net/tags/</link>
-    <description>Recent content on Notes about linux and my work</description>
+    <description>Recent content in Tags on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 28 Apr 2018 15:06:33 +0800</lastBuildDate>
-    
-	<atom:link href="http://linux.laoqinren.net/tags/index.xml" rel="self" type="application/rss+xml" />
-    
+    <lastBuildDate>Sun, 30 Aug 2020 10:08:20 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>kernel</title>
+      <link>http://linux.laoqinren.net/tags/kernel/</link>
+      <pubDate>Sun, 30 Aug 2020 10:08:20 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/kernel/</guid>
+      <description></description>
+    </item>
     
     <item>
-      <title>Linux用户程序如何访问物理内存</title>
-      <link>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</link>
-      <pubDate>Sat, 28 Apr 2018 15:06:33 +0800</pubDate>
+      <title>linux</title>
+      <link>http://linux.laoqinren.net/tags/linux/</link>
+      <pubDate>Sun, 30 Aug 2020 10:08:20 +0800</pubDate>
       
-      <guid>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</guid>
-      <description>&lt;p&gt;本文转载于：&lt;a href=&#34;http://ilinuxkernel.com/?p=1248&#34;&gt;http://ilinuxkernel.com/?p=1248&lt;/a&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。
-本文中使用的内核版本为：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.21.1.el7.src.rpm&#34;&gt;3.10.0-693.21.1&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。&lt;/p&gt;
-
-&lt;p&gt;通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在&lt;code&gt;Linux&lt;/code&gt;中用户态程序访问所有物理内存。&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://linux.laoqinren.net/tags/linux/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>debug</title>
+      <link>http://linux.laoqinren.net/tags/debug/</link>
+      <pubDate>Wed, 13 Mar 2019 22:30:09 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/debug/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>dyndbg</title>
+      <link>http://linux.laoqinren.net/tags/dyndbg/</link>
+      <pubDate>Wed, 13 Mar 2019 22:30:09 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/dyndbg/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rw_semaphore</title>
+      <link>http://linux.laoqinren.net/tags/rw_semaphore/</link>
+      <pubDate>Sat, 02 Mar 2019 14:10:37 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/rw_semaphore/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>内核基础设施</title>
+      <link>http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/</link>
+      <pubDate>Sat, 02 Mar 2019 14:10:37 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>memory</title>
+      <link>http://linux.laoqinren.net/tags/memory/</link>
+      <pubDate>Sun, 30 Dec 2018 17:37:29 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/memory/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>socket</title>
+      <link>http://linux.laoqinren.net/tags/socket/</link>
+      <pubDate>Sun, 16 Sep 2018 18:06:34 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/socket/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>libfuse</title>
+      <link>http://linux.laoqinren.net/tags/libfuse/</link>
+      <pubDate>Sat, 15 Sep 2018 20:10:34 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/libfuse/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>radix-tree</title>
+      <link>http://linux.laoqinren.net/tags/radix-tree/</link>
+      <pubDate>Sun, 09 Sep 2018 13:36:38 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/radix-tree/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>cgroup</title>
+      <link>http://linux.laoqinren.net/tags/cgroup/</link>
+      <pubDate>Sun, 26 Aug 2018 10:09:56 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/cgroup/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>getrusage</title>
+      <link>http://linux.laoqinren.net/tags/getrusage/</link>
+      <pubDate>Mon, 30 Jul 2018 19:02:06 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/getrusage/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>prlimit</title>
+      <link>http://linux.laoqinren.net/tags/prlimit/</link>
+      <pubDate>Mon, 30 Jul 2018 19:02:06 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/prlimit/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ulimit</title>
+      <link>http://linux.laoqinren.net/tags/ulimit/</link>
+      <pubDate>Mon, 30 Jul 2018 19:02:06 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/ulimit/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>gcc</title>
+      <link>http://linux.laoqinren.net/tags/gcc/</link>
+      <pubDate>Wed, 27 Jun 2018 21:18:15 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/gcc/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>list_head</title>
+      <link>http://linux.laoqinren.net/tags/list_head/</link>
+      <pubDate>Sat, 23 Jun 2018 17:38:10 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/list_head/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>hlist_head</title>
+      <link>http://linux.laoqinren.net/tags/hlist_head/</link>
+      <pubDate>Wed, 20 Jun 2018 23:08:40 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/hlist_head/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>hlist_node</title>
+      <link>http://linux.laoqinren.net/tags/hlist_node/</link>
+      <pubDate>Wed, 20 Jun 2018 23:08:40 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/hlist_node/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>cpuacct</title>
+      <link>http://linux.laoqinren.net/tags/cpuacct/</link>
+      <pubDate>Sun, 20 May 2018 20:57:16 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/cpuacct/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>cpuset</title>
+      <link>http://linux.laoqinren.net/tags/cpuset/</link>
+      <pubDate>Thu, 10 May 2018 18:26:35 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/cpuset/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>wait queue</title>
+      <link>http://linux.laoqinren.net/tags/wait-queue/</link>
+      <pubDate>Mon, 07 May 2018 18:27:48 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/wait-queue/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>swap</title>
+      <link>http://linux.laoqinren.net/tags/swap/</link>
+      <pubDate>Fri, 04 May 2018 21:07:38 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/swap/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>environment</title>
+      <link>http://linux.laoqinren.net/tags/environment/</link>
+      <pubDate>Thu, 19 Apr 2018 20:49:45 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/environment/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>flex_proporitions</title>
+      <link>http://linux.laoqinren.net/tags/flex_proporitions/</link>
+      <pubDate>Tue, 17 Apr 2018 12:50:56 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/flex_proporitions/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>hungtask</title>
+      <link>http://linux.laoqinren.net/tags/hungtask/</link>
+      <pubDate>Mon, 16 Apr 2018 12:14:18 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/hungtask/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>percpu_counter</title>
+      <link>http://linux.laoqinren.net/tags/percpu_counter/</link>
+      <pubDate>Fri, 13 Apr 2018 20:50:15 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/percpu_counter/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>oom</title>
+      <link>http://linux.laoqinren.net/tags/oom/</link>
+      <pubDate>Wed, 11 Apr 2018 12:24:17 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/oom/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>others</title>
+      <link>http://linux.laoqinren.net/tags/others/</link>
+      <pubDate>Wed, 01 Feb 2017 19:20:04 -0700</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/others/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>terminal</title>
+      <link>http://linux.laoqinren.net/tags/terminal/</link>
+      <pubDate>Wed, 01 Feb 2017 19:20:04 -0700</pubDate>
+      
+      <guid>http://linux.laoqinren.net/tags/terminal/</guid>
+      <description></description>
     </item>
     
   </channel>

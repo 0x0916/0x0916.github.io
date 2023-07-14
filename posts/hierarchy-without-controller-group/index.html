@@ -16,24 +16,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本文将创建并挂载一颗不和任何subsystem系统绑定的cgroup树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个cgroup中默认都有的几个文件的含义。
+<meta name="author" content="laoqinren" /><meta name="description" content="本文将创建并挂载一颗不和任何subsystem系统绑定的cgroup树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个cgroup中默认都有的几个文件的含义。
 最后，介绍了这样使用cgroup的一个用户。
- 本文所有例子在centos 7.5 下执行通过
-" />
-<meta name="keywords" content="cgroup" />
+本文所有例子在centos 7.5 下执行通过
+" /><meta name="keywords" content="cgroup" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/hierarchy-without-controller-group/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -42,14 +38,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="Cgroup之不绑定任何subsystem" />
@@ -59,7 +49,7 @@
 本文所有例子在centos 7.5 下执行通过
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/hierarchy-without-controller-group/" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/hierarchy-without-controller-group/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2018-08-14T19:59:57+08:00" />
 <meta property="article:modified_time" content="2018-08-14T19:59:57+08:00" />
 <meta itemprop="name" content="Cgroup之不绑定任何subsystem">
@@ -67,15 +57,10 @@
 最后，介绍了这样使用cgroup的一个用户。
 
 本文所有例子在centos 7.5 下执行通过
-">
-<meta itemprop="datePublished" content="2018-08-14T19:59:57+08:00" />
+"><meta itemprop="datePublished" content="2018-08-14T19:59:57+08:00" />
 <meta itemprop="dateModified" content="2018-08-14T19:59:57+08:00" />
-<meta itemprop="wordCount" content="3734">
-
-
-
-<meta itemprop="keywords" content="cgroup," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="3964">
+<meta itemprop="keywords" content="cgroup," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Cgroup之不绑定任何subsystem"/>
 <meta name="twitter:description" content="本文将创建并挂载一颗不和任何subsystem系统绑定的cgroup树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个cgroup中默认都有的几个文件的含义。
 最后，介绍了这样使用cgroup的一个用户。
@@ -122,12 +107,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -148,6 +142,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -161,41 +156,36 @@
       <div class="post-meta">
         <span class="post-time"> 2018-08-14 </span>
         <div class="post-category">
-            
-              <a href="/categories/cgroup/"> cgroup </a>
-            
-          </div>
-        <span class="more-meta"> 3734 words </span>
-        <span class="more-meta"> 8 mins read </span>
+            <a href="/categories/cgroup/"> cgroup </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#挂载cgroup树">挂载cgroup树</a></li>
-        <li><a href="#创建和删除cgroup">创建和删除cgroup</a></li>
-        <li><a href="#添加进程到cgroup">添加进程到cgroup</a></li>
-        <li><a href="#procs-和tasks-的区别">procs 和tasks 的区别</a></li>
-        <li><a href="#release_agent">release_agent</a></li>
-        <li><a href="#cgroup在systemd-中的应用">cgroup在systemd 中的应用</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#挂载cgroup树">挂载cgroup树</a></li>
+            <li><a href="#创建和删除cgroup">创建和删除cgroup</a></li>
+            <li><a href="#添加进程到cgroup">添加进程到cgroup</a></li>
+            <li><a href="#procs-和tasks-的区别">procs 和tasks 的区别</a></li>
+            <li><a href="#release_agent">release_agent</a></li>
+            <li><a href="#cgroup在systemd-中的应用">cgroup在systemd 中的应用</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本文将创建并挂载一颗不和任何<code>subsystem</code>系统绑定的<code>cgroup</code>树。用来演示怎么创建、删除子cgroup，以及如何往cgroup中添加和删除进程，并详细介绍了每个<code>cgroup</code>中默认都有的几个文件的含义。</p>
 <p>最后，介绍了这样使用<code>cgroup</code>的一个用户。</p>
@@ -204,18 +194,35 @@
 </blockquote>
 <h3 id="挂载cgroup树">挂载cgroup树</h3>
 <p>开始使用<code>cgroup</code>前需要先挂载<code>cgroup</code>树，下面先看看如何挂载一颗<code>cgroup</code>树，然后再查看其根目录下生成的文件</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 准备需要的目录</span>
-~  <span style="color:#75715e"># mkdir cgroup &amp;&amp; cd cgroup</span>
-~/cgroup  <span style="color:#75715e"># mkdir demo</span>
-<span style="color:#75715e"># 由于name=demo的cgroup树不存在，所以系统会创建一颗新的cgroup树，然后挂载到demo目录</span>
-~/cgroup  <span style="color:#75715e"># mount -t cgroup -o none,name=demo demo ./demo</span>
-<span style="color:#75715e"># 挂载点所在目录就是这颗cgroup树的root cgroup，在root cgroup下面，系统生成了一些默认文件</span>
-~/cgroup  <span style="color:#75715e"># ls ./demo/</span>
-cgroup.clone_children  cgroup.event_control  cgroup.procs  cgroup.sane_behavior  notify_on_release  release_agent  tasks
-<span style="color:#75715e"># cgroup.procs里包含系统中的所有进程</span>
-~/cgroup  <span style="color:#75715e"># wc -l ./demo/cgroup.procs </span>
-<span style="color:#ae81ff">182</span> ./demo/cgroup.procs
-</code></pre></div><p>这些默认的文件的含义如下:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 准备需要的目录</span>
+</span></span><span class="line"><span class="cl">~  <span class="c1"># mkdir cgroup &amp;&amp; cd cgroup</span>
+</span></span><span class="line"><span class="cl">~/cgroup  <span class="c1"># mkdir demo</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 由于name=demo的cgroup树不存在，所以系统会创建一颗新的cgroup树，然后挂载到demo目录</span>
+</span></span><span class="line"><span class="cl">~/cgroup  <span class="c1"># mount -t cgroup -o none,name=demo demo ./demo</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 挂载点所在目录就是这颗cgroup树的root cgroup，在root cgroup下面，系统生成了一些默认文件</span>
+</span></span><span class="line"><span class="cl">~/cgroup  <span class="c1"># ls ./demo/</span>
+</span></span><span class="line"><span class="cl">cgroup.clone_children  cgroup.event_control  cgroup.procs  cgroup.sane_behavior  notify_on_release  release_agent  tasks
+</span></span><span class="line"><span class="cl"><span class="c1"># cgroup.procs里包含系统中的所有进程</span>
+</span></span><span class="line"><span class="cl">~/cgroup  <span class="c1"># wc -l ./demo/cgroup.procs </span>
+</span></span><span class="line"><span class="cl"><span class="m">182</span> ./demo/cgroup.procs
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这些默认的文件的含义如下:</p>
 <table>
 <thead>
 <tr>
@@ -256,26 +263,51 @@ cgroup.clone_children  cgroup.event_control  cgroup.procs  cgroup.sane_behavior 
 </table>
 <h3 id="创建和删除cgroup">创建和删除cgroup</h3>
 <p>挂载好cgroup树之后，就可以在里面新建cgroup了，其实新建cgroup很简单，就是创建目录就可以了。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~/cgroup  <span style="color:#75715e"># # 创建子cgroup很简单，新建一个目录就可以了</span>
-~/cgroup  <span style="color:#75715e"># cd demo/</span>
-~/cgroup/demo  <span style="color:#75715e"># mkdir cgroup1</span>
-~/cgroup/demo  <span style="color:#75715e"># # 在新建的子cgroup中，系统默认也创建了一些文件，这些文件的意义和root cgroup中的一样</span>
-~/cgroup/demo  <span style="color:#75715e"># ls cgroup1/</span>
-cgroup.clone_children  cgroup.event_control  cgroup.procs  notify_on_release  tasks
-~/cgroup/demo  <span style="color:#75715e"># # 新创建的cgroup中没有任何进程</span>
-~/cgroup/demo  <span style="color:#75715e"># wc -l cgroup1/cgroup.procs </span>
-<span style="color:#ae81ff">0</span> cgroup1/cgroup.procs
-~/cgroup/demo  <span style="color:#75715e"># wc -l cgroup1/tasks </span>
-<span style="color:#ae81ff">0</span> cgroup1/tasks
-~/cgroup/demo  <span style="color:#75715e"># # 每个cgroup都可以创建自己的子cgroup</span>
-~/cgroup/demo  <span style="color:#75715e"># mkdir cgroup1/cgroup11</span>
-~/cgroup/demo  <span style="color:#75715e"># ls cgroup1/cgroup11/</span>
-cgroup.clone_children  cgroup.event_control  cgroup.procs  notify_on_release  tasks
-~/cgroup/demo  <span style="color:#75715e"># # 删除cgroup也很简单，直接删除相应的目录就可以了</span>
-~/cgroup/demo  <span style="color:#75715e"># # 先删除cgroup11，再删除cgroup1</span>
-~/cgroup/demo  <span style="color:#75715e"># rmdir cgroup1/cgroup11</span>
-~/cgroup/demo  <span style="color:#75715e"># rmdir cgroup1</span>
-</code></pre></div><h3 id="添加进程到cgroup">添加进程到cgroup</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~/cgroup  <span class="c1"># # 创建子cgroup很简单，新建一个目录就可以了</span>
+</span></span><span class="line"><span class="cl">~/cgroup  <span class="c1"># cd demo/</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># mkdir cgroup1</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 在新建的子cgroup中，系统默认也创建了一些文件，这些文件的意义和root cgroup中的一样</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># ls cgroup1/</span>
+</span></span><span class="line"><span class="cl">cgroup.clone_children  cgroup.event_control  cgroup.procs  notify_on_release  tasks
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 新创建的cgroup中没有任何进程</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># wc -l cgroup1/cgroup.procs </span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span> cgroup1/cgroup.procs
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># wc -l cgroup1/tasks </span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span> cgroup1/tasks
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 每个cgroup都可以创建自己的子cgroup</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># mkdir cgroup1/cgroup11</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># ls cgroup1/cgroup11/</span>
+</span></span><span class="line"><span class="cl">cgroup.clone_children  cgroup.event_control  cgroup.procs  notify_on_release  tasks
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 删除cgroup也很简单，直接删除相应的目录就可以了</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 先删除cgroup11，再删除cgroup1</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># rmdir cgroup1/cgroup11</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># rmdir cgroup1</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="添加进程到cgroup">添加进程到cgroup</h3>
 <p>创建新的cgroup后，就可以往里面添加进程了。注意以下几点：</p>
 <ul>
 <li>再一颗cgroup树里面，一个进程必须且只能属于一个cgroup。</li>
@@ -283,231 +315,470 @@ cgroup.clone_children  cgroup.event_control  cgroup.procs  notify_on_release  ta
 <li>从一个cgroup移动一个进程到另外一个cgroup中，只要有目的cgroup的写入权限就可以了，系统不会检查源cgroup里的权限。</li>
 <li>用户只能操作属于自己的进程，不能操作其他用户的进程，root账号除外。</li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 第一个shell窗口</span>
-~/cgroup/demo  <span style="color:#75715e"># mkdir test</span>
-~/cgroup/demo  <span style="color:#75715e"># cd test/</span>
-~/cgroup/demo/test  <span style="color:#75715e"># # 将当前bash加入到上面新创建的cgroup中</span>
-~/cgroup/demo/test  <span style="color:#75715e"># echo $$ </span>
-<span style="color:#ae81ff">13945</span>
-~/cgroup/demo/test  <span style="color:#75715e"># echo $$ &gt; cgroup.procs </span>
-~/cgroup/demo/test  <span style="color:#75715e"># # 注意：一次只能往这个文件中写一个进程ID，如果需要写多个的话，需要多次调用这个命令</span>
-
-
-<span style="color:#75715e"># 第二个shell窗口</span>
-~/cgroup/demo/test  <span style="color:#75715e"># # 这时可以看到cgroup.procs里面包含了上面的第一个shell进程</span>
-~/cgroup/demo/test  <span style="color:#75715e"># cat cgroup.procs </span>
-<span style="color:#ae81ff">13945</span>
-
-
-<span style="color:#75715e"># 第一个shell窗口</span>
-~/cgroup/demo/test <span style="color:#75715e"># # 回到第一个窗口，运行top命令</span>
-~/cgroup/demo/test <span style="color:#75715e"># top </span>
-<span style="color:#75715e"># 省略输出内容</span>
-
-
-
-<span style="color:#75715e"># 第二个shell窗口</span>
-~/cgroup/demo/test  <span style="color:#75715e"># # 这时再在第二个窗口查看，发现top进程自动和它的父进程（13945）属于同一个cgroup</span>
-~/cgroup/demo/test  <span style="color:#75715e"># cat cgroup.procs </span>
-<span style="color:#ae81ff">13945</span>
-<span style="color:#ae81ff">18314</span>
-~/cgroup/demo/test  <span style="color:#75715e"># ps -ef|grep top</span>
-root     <span style="color:#ae81ff">18314</span> <span style="color:#ae81ff">13945</span>  <span style="color:#ae81ff">0</span> 22:30 pts/2    00:00:00 top
-root     <span style="color:#ae81ff">18389</span> <span style="color:#ae81ff">17939</span>  <span style="color:#ae81ff">0</span> 22:31 pts/3    00:00:00 grep --color<span style="color:#f92672">=</span>auto top
-~/cgroup/demo/test  <span style="color:#75715e"># # 在一颗cgroup树里面，一个进程必须要属于一个cgroup，</span>
-~/cgroup/demo/test  <span style="color:#75715e"># # 所以我们不能凭空从一个cgroup里面删除一个进程，只能将一个进程从一个cgroup移到另一个cgroup</span>
-~/cgroup/demo/test  <span style="color:#75715e"># # 这里我们将13945移动到root cgroup</span>
-~/cgroup/demo/test  <span style="color:#75715e"># echo 13945 &gt; ../cgroup.procs </span>
-~/cgroup/demo/test  <span style="color:#75715e"># cat cgroup.procs </span>
-<span style="color:#ae81ff">18314</span>
-~/cgroup/demo/test  <span style="color:#75715e"># # 移动13945到另外一个cgroup后，它的子进程不会随着移动</span>
-
-
-<span style="color:#75715e"># 第一个shell窗口</span>
-~/cgroup/demo/test  <span style="color:#75715e"># #回到第一个shell窗口，进行清理工作</span>
-~/cgroup/demo/test  <span style="color:#75715e"># # 先用ctrl+c退出top命令</span>
-~/cgroup/demo/test  <span style="color:#75715e"># cd ..</span>
-~/cgroup/demo  <span style="color:#75715e"># # 然后删除创建的cgroup</span>
-~/cgroup/demo  <span style="color:#75715e"># rmdir test</span>
-
-</code></pre></div><h3 id="procs-和tasks-的区别">procs 和tasks 的区别</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 第一个shell窗口</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># mkdir test</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cd test/</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 将当前bash加入到上面新创建的cgroup中</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># echo $$ </span>
+</span></span><span class="line"><span class="cl"><span class="m">13945</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># echo $$ &gt; cgroup.procs </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 注意：一次只能往这个文件中写一个进程ID，如果需要写多个的话，需要多次调用这个命令</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 第二个shell窗口</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 这时可以看到cgroup.procs里面包含了上面的第一个shell进程</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># cat cgroup.procs </span>
+</span></span><span class="line"><span class="cl"><span class="m">13945</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 第一个shell窗口</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test <span class="c1"># # 回到第一个窗口，运行top命令</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test <span class="c1"># top </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 省略输出内容</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 第二个shell窗口</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 这时再在第二个窗口查看，发现top进程自动和它的父进程（13945）属于同一个cgroup</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># cat cgroup.procs </span>
+</span></span><span class="line"><span class="cl"><span class="m">13945</span>
+</span></span><span class="line"><span class="cl"><span class="m">18314</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># ps -ef|grep top</span>
+</span></span><span class="line"><span class="cl">root     <span class="m">18314</span> <span class="m">13945</span>  <span class="m">0</span> 22:30 pts/2    00:00:00 top
+</span></span><span class="line"><span class="cl">root     <span class="m">18389</span> <span class="m">17939</span>  <span class="m">0</span> 22:31 pts/3    00:00:00 grep --color<span class="o">=</span>auto top
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 在一颗cgroup树里面，一个进程必须要属于一个cgroup，</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 所以我们不能凭空从一个cgroup里面删除一个进程，只能将一个进程从一个cgroup移到另一个cgroup</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 这里我们将13945移动到root cgroup</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># echo 13945 &gt; ../cgroup.procs </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># cat cgroup.procs </span>
+</span></span><span class="line"><span class="cl"><span class="m">18314</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 移动13945到另外一个cgroup后，它的子进程不会随着移动</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 第一个shell窗口</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># #回到第一个shell窗口，进行清理工作</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># # 先用ctrl+c退出top命令</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo/test  <span class="c1"># cd ..</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 然后删除创建的cgroup</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># rmdir test</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="procs-和tasks-的区别">procs 和tasks 的区别</h3>
 <p>上面提到cgroup.procs包含的是进程ID， 而tasks里面包含的是线程ID，那么他们有什么区别呢？</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~/cgroup/demo  <span style="color:#75715e"># # 创建两个新的cgroup用于演示</span>
-~/cgroup/demo  <span style="color:#75715e"># mkdir c1 c2</span>
-~/cgroup/demo  <span style="color:#75715e"># # 系统中找一个有多个线程的进程</span>
-~/cgroup/demo  <span style="color:#75715e"># ps -efL | grep NetworkManager                                                                                                                </span>
-root       <span style="color:#ae81ff">859</span>     <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">859</span>  <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">3</span> Aug12 ?        00:00:01 /usr/sbin/NetworkManager --no-daemon
-root       <span style="color:#ae81ff">859</span>     <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">868</span>  <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">3</span> Aug12 ?        00:00:00 /usr/sbin/NetworkManager --no-daemon
-root       <span style="color:#ae81ff">859</span>     <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">872</span>  <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">3</span> Aug12 ?        00:00:00 /usr/sbin/NetworkManager --no-daemon
-root     <span style="color:#ae81ff">15850</span>   <span style="color:#ae81ff">859</span> <span style="color:#ae81ff">15850</span>  <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">1</span> 21:59 ?        00:00:00 /sbin/dhclient -d -q -sf /usr/libexec/nm-dhcp-helper -pf /var/run/dhclient-enp0s3.pid -lf /var/lib/NetworkManager/dhclient-302ccf17-6708-45d0-ae97-afb55838c34b-enp0s3.lease -cf /var/lib/NetworkManager/dhclient-enp0s3.conf enp0s3
-root     <span style="color:#ae81ff">19169</span> <span style="color:#ae81ff">13945</span> <span style="color:#ae81ff">19169</span>  <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">1</span> 22:41 pts/2    00:00:00 grep --color<span style="color:#f92672">=</span>auto NetworkManager
-~/cgroup/demo  <span style="color:#75715e"># # 进程859 有三个线程，分别为859 868 872</span>
-~/cgroup/demo  <span style="color:#75715e"># </span>
-~/cgroup/demo  <span style="color:#75715e"># # 将868 加入到c1/cgroup.procs</span>
-~/cgroup/demo  <span style="color:#75715e"># echo 868 &gt; c1/cgroup.procs </span>
-~/cgroup/demo  <span style="color:#75715e"># # 由于cgroup.procs存放的是进程ID，所以这里看到的是868所属的进程ID（859）                                                                     </span>
-~/cgroup/demo  <span style="color:#75715e"># cat c1/cgroup.procs </span>
-<span style="color:#ae81ff">859</span>
-~/cgroup/demo  <span style="color:#75715e"># # #从tasks中的内容可以看出，虽然只往cgroup.procs中加了线程868</span>
-~/cgroup/demo  <span style="color:#75715e"># # 但系统已经将这个线程所属的进程的所有线程都加入到了tasks中，</span>
-~/cgroup/demo  <span style="color:#75715e"># # 说明现在整个进程的所有线程已经处于c1中了</span>
-~/cgroup/demo  <span style="color:#75715e"># cat c1/tasks </span>
-<span style="color:#ae81ff">859</span>
-<span style="color:#ae81ff">868</span>
-<span style="color:#ae81ff">872</span>
-~/cgroup/demo  <span style="color:#75715e"># # 将868 加入到c2/tasks中                                                                                                                     </span>
-~/cgroup/demo  <span style="color:#75715e"># echo 868 &gt; c2/tasks </span>
-~/cgroup/demo  <span style="color:#75715e"># # 这时我们看到虽然在c1/cgroup.procs和c2/cgroup.procs里面都有859</span>
-~/cgroup/demo  <span style="color:#75715e"># cat c1/cgroup.procs </span>
-<span style="color:#ae81ff">859</span>
-~/cgroup/demo  <span style="color:#75715e"># cat c2/cgroup.procs </span>
-<span style="color:#ae81ff">859</span>
-~/cgroup/demo  <span style="color:#75715e"># # 但c1/tasks和c2/tasks中包含了不同的线程，说明这个进程的两个线程分别属于不同的cgroup</span>
-~/cgroup/demo  <span style="color:#75715e"># cat c1/tasks </span>
-<span style="color:#ae81ff">859</span>
-<span style="color:#ae81ff">872</span>
-~/cgroup/demo  <span style="color:#75715e"># cat c2/tasks </span>
-<span style="color:#ae81ff">868</span>
-~/cgroup/demo  <span style="color:#75715e"># # 通过tasks，我们可以实现线程级别的管理，但通常情况下不会这么用</span>
-~/cgroup/demo  <span style="color:#75715e"># # 并且在cgroup V2以后，将不再支持该功能，只能以进程为单位来配置cgroup</span>
-~/cgroup/demo  <span style="color:#75715e"># # 清理</span>
-~/cgroup/demo  <span style="color:#75715e"># echo 859 &gt; ./cgroup.procs </span>
-~/cgroup/demo  <span style="color:#75715e"># rmdir c1</span>
-~/cgroup/demo  <span style="color:#75715e"># rmdir c2</span>
-</code></pre></div><h3 id="release_agent">release_agent</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 创建两个新的cgroup用于演示</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># mkdir c1 c2</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 系统中找一个有多个线程的进程</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># ps -efL | grep NetworkManager                                                                                                                </span>
+</span></span><span class="line"><span class="cl">root       <span class="m">859</span>     <span class="m">1</span>   <span class="m">859</span>  <span class="m">0</span>    <span class="m">3</span> Aug12 ?        00:00:01 /usr/sbin/NetworkManager --no-daemon
+</span></span><span class="line"><span class="cl">root       <span class="m">859</span>     <span class="m">1</span>   <span class="m">868</span>  <span class="m">0</span>    <span class="m">3</span> Aug12 ?        00:00:00 /usr/sbin/NetworkManager --no-daemon
+</span></span><span class="line"><span class="cl">root       <span class="m">859</span>     <span class="m">1</span>   <span class="m">872</span>  <span class="m">0</span>    <span class="m">3</span> Aug12 ?        00:00:00 /usr/sbin/NetworkManager --no-daemon
+</span></span><span class="line"><span class="cl">root     <span class="m">15850</span>   <span class="m">859</span> <span class="m">15850</span>  <span class="m">0</span>    <span class="m">1</span> 21:59 ?        00:00:00 /sbin/dhclient -d -q -sf /usr/libexec/nm-dhcp-helper -pf /var/run/dhclient-enp0s3.pid -lf /var/lib/NetworkManager/dhclient-302ccf17-6708-45d0-ae97-afb55838c34b-enp0s3.lease -cf /var/lib/NetworkManager/dhclient-enp0s3.conf enp0s3
+</span></span><span class="line"><span class="cl">root     <span class="m">19169</span> <span class="m">13945</span> <span class="m">19169</span>  <span class="m">0</span>    <span class="m">1</span> 22:41 pts/2    00:00:00 grep --color<span class="o">=</span>auto NetworkManager
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 进程859 有三个线程，分别为859 868 872</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 将868 加入到c1/cgroup.procs</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># echo 868 &gt; c1/cgroup.procs </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 由于cgroup.procs存放的是进程ID，所以这里看到的是868所属的进程ID（859）                                                                     </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat c1/cgroup.procs </span>
+</span></span><span class="line"><span class="cl"><span class="m">859</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # #从tasks中的内容可以看出，虽然只往cgroup.procs中加了线程868</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 但系统已经将这个线程所属的进程的所有线程都加入到了tasks中，</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 说明现在整个进程的所有线程已经处于c1中了</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat c1/tasks </span>
+</span></span><span class="line"><span class="cl"><span class="m">859</span>
+</span></span><span class="line"><span class="cl"><span class="m">868</span>
+</span></span><span class="line"><span class="cl"><span class="m">872</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 将868 加入到c2/tasks中                                                                                                                     </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># echo 868 &gt; c2/tasks </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 这时我们看到虽然在c1/cgroup.procs和c2/cgroup.procs里面都有859</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat c1/cgroup.procs </span>
+</span></span><span class="line"><span class="cl"><span class="m">859</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat c2/cgroup.procs </span>
+</span></span><span class="line"><span class="cl"><span class="m">859</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 但c1/tasks和c2/tasks中包含了不同的线程，说明这个进程的两个线程分别属于不同的cgroup</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat c1/tasks </span>
+</span></span><span class="line"><span class="cl"><span class="m">859</span>
+</span></span><span class="line"><span class="cl"><span class="m">872</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat c2/tasks </span>
+</span></span><span class="line"><span class="cl"><span class="m">868</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 通过tasks，我们可以实现线程级别的管理，但通常情况下不会这么用</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 并且在cgroup V2以后，将不再支持该功能，只能以进程为单位来配置cgroup</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 清理</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># echo 859 &gt; ./cgroup.procs </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># rmdir c1</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># rmdir c2</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="release_agent">release_agent</h3>
 <p>当一个cgroup里没有进程也没有子cgroup时，release_agent将被调用来执行cgroup的清理工作。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~/cgroup/demo  <span style="color:#75715e"># # 创建新的cgroup用于演示</span>
-~/cgroup/demo  <span style="color:#75715e"># mkdir test</span>
-~/cgroup/demo  <span style="color:#75715e"># # 先enable release_agent</span>
-~/cgroup/demo  <span style="color:#75715e"># echo 1 &gt; ./test/notify_on_release </span>
-~/cgroup/demo  <span style="color:#75715e"># </span>
-~/cgroup/demo  <span style="color:#75715e"># # 创建一个脚本 ~/release_demo.sh</span>
-~/cgroup/demo  <span style="color:#75715e"># cat &gt; ~/release_demo.sh &lt;&lt;EOF</span>
-&gt; <span style="color:#75715e">#!/bin/bash</span>
-&gt; echo <span style="color:#ae81ff">\$</span>0:<span style="color:#ae81ff">\$</span><span style="color:#ae81ff">1</span> &gt;&gt; ~/release_demo.log
-&gt; EOF
-~/cgroup/demo  <span style="color:#75715e"># # 一般情况下都会利用这个脚本执行一些cgroup的清理工作，但我们这里为了演示简单，仅仅只写了一条日志到指定文件</span>
-~/cgroup/demo  <span style="color:#75715e"># </span>
-~/cgroup/demo  <span style="color:#75715e"># # 添加可执行权限</span>
-~/cgroup/demo  <span style="color:#75715e"># chmod a+x ~/release_demo.sh </span>
-~/cgroup/demo  <span style="color:#75715e"># # 将该脚本设置进文件release_agent</span>
-~/cgroup/demo  <span style="color:#75715e"># echo /root/release_demo.sh &gt; ./release_agent </span>
-~/cgroup/demo  <span style="color:#75715e"># cat release_agent </span>
-/root/release_demo.sh
-~/cgroup/demo  <span style="color:#75715e"># # 往test里面添加一个进程，然后再移除，这样就会触发release_demo.sh</span>
-~/cgroup/demo  <span style="color:#75715e"># echo $$</span>
-<span style="color:#ae81ff">13945</span>
-~/cgroup/demo  <span style="color:#75715e"># echo $$ &gt; ./test/cgroup.procs </span>
-~/cgroup/demo  <span style="color:#75715e"># echo $$ &gt; ./cgroup.procs </span>
-~/cgroup/demo  <span style="color:#75715e"># # 从日志可以看出，release_agent被触发了，/test是cgroup的相对路径</span>
-~/cgroup/demo  <span style="color:#75715e"># cat /release_demo.log </span>
-/root/release_demo.sh:/test
-<span style="color:#75715e">#  结合log中的信息和文件的路径，我们发现内核执行release_agent时，其HOME目录为/</span>
-
-</code></pre></div><h3 id="cgroup在systemd-中的应用">cgroup在systemd 中的应用</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 创建新的cgroup用于演示</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># mkdir test</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 先enable release_agent</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># echo 1 &gt; ./test/notify_on_release </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 创建一个脚本 ~/release_demo.sh</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat &gt; ~/release_demo.sh &lt;&lt;EOF</span>
+</span></span><span class="line"><span class="cl">&gt; <span class="c1">#!/bin/bash</span>
+</span></span><span class="line"><span class="cl">&gt; <span class="nb">echo</span> <span class="se">\$</span>0:<span class="se">\$</span><span class="m">1</span> &gt;&gt; ~/release_demo.log
+</span></span><span class="line"><span class="cl">&gt; EOF
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 一般情况下都会利用这个脚本执行一些cgroup的清理工作，但我们这里为了演示简单，仅仅只写了一条日志到指定文件</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 添加可执行权限</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># chmod a+x ~/release_demo.sh </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 将该脚本设置进文件release_agent</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># echo /root/release_demo.sh &gt; ./release_agent </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat release_agent </span>
+</span></span><span class="line"><span class="cl">/root/release_demo.sh
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 往test里面添加一个进程，然后再移除，这样就会触发release_demo.sh</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># echo $$</span>
+</span></span><span class="line"><span class="cl"><span class="m">13945</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># echo $$ &gt; ./test/cgroup.procs </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># echo $$ &gt; ./cgroup.procs </span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># # 从日志可以看出，release_agent被触发了，/test是cgroup的相对路径</span>
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># cat /release_demo.log </span>
+</span></span><span class="line"><span class="cl">/root/release_demo.sh:/test
+</span></span><span class="line"><span class="cl"><span class="c1">#  结合log中的信息和文件的路径，我们发现内核执行release_agent时，其HOME目录为/</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="cgroup在systemd-中的应用">cgroup在systemd 中的应用</h3>
 <p>一般情况下，对于没有和任何subsystem关联的cgroup，在上面的所有操作没有实际意义，但是systemd软件的确使用了cgroup的这种用法。</p>
 <p>在使用systemd的发行版上，一般都会有如下目录<code>/sys/fs/cgroup/systemd/</code>：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~/cgroup/demo  <span style="color:#75715e"># ls -l /sys/fs/cgroup/systemd/</span>
-total <span style="color:#ae81ff">0</span>
--rw-r--r--   <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Aug  <span style="color:#ae81ff">8</span> 02:36 cgroup.clone_children
---w--w--w-   <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Aug  <span style="color:#ae81ff">8</span> 02:36 cgroup.event_control
--rw-r--r--   <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Aug  <span style="color:#ae81ff">8</span> 02:36 cgroup.procs
--r--r--r--   <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Aug  <span style="color:#ae81ff">8</span> 02:36 cgroup.sane_behavior
--rw-r--r--   <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Aug  <span style="color:#ae81ff">8</span> 02:36 notify_on_release
--rw-r--r--   <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Aug  <span style="color:#ae81ff">8</span> 02:36 release_agent
-drwxr-xr-x <span style="color:#ae81ff">109</span> root root <span style="color:#ae81ff">0</span> Aug <span style="color:#ae81ff">14</span> 22:05 system.slice
--rw-r--r--   <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Aug  <span style="color:#ae81ff">8</span> 02:36 tasks
-drwxr-xr-x   <span style="color:#ae81ff">4</span> root root <span style="color:#ae81ff">0</span> Aug  <span style="color:#ae81ff">8</span> 02:36 user.slice
-~/cgroup/demo  <span style="color:#75715e"># mount | grep systemd</span>
-cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span style="color:#f92672">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span style="color:#f92672">=</span>systemd<span style="color:#f92672">)</span>
-</code></pre></div><p><code>/sys/fs/cgroup/systemd/</code>目录其实就是一个没有和任何subsystem关联的cgroup，那systemd用它来做什么呢？我猜是用来追踪每个服务的进程的pid号的(由于没有找打相关文档)。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># ls -l /sys/fs/cgroup/systemd/</span>
+</span></span><span class="line"><span class="cl">total <span class="m">0</span>
+</span></span><span class="line"><span class="cl">-rw-r--r--   <span class="m">1</span> root root <span class="m">0</span> Aug  <span class="m">8</span> 02:36 cgroup.clone_children
+</span></span><span class="line"><span class="cl">--w--w--w-   <span class="m">1</span> root root <span class="m">0</span> Aug  <span class="m">8</span> 02:36 cgroup.event_control
+</span></span><span class="line"><span class="cl">-rw-r--r--   <span class="m">1</span> root root <span class="m">0</span> Aug  <span class="m">8</span> 02:36 cgroup.procs
+</span></span><span class="line"><span class="cl">-r--r--r--   <span class="m">1</span> root root <span class="m">0</span> Aug  <span class="m">8</span> 02:36 cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">-rw-r--r--   <span class="m">1</span> root root <span class="m">0</span> Aug  <span class="m">8</span> 02:36 notify_on_release
+</span></span><span class="line"><span class="cl">-rw-r--r--   <span class="m">1</span> root root <span class="m">0</span> Aug  <span class="m">8</span> 02:36 release_agent
+</span></span><span class="line"><span class="cl">drwxr-xr-x <span class="m">109</span> root root <span class="m">0</span> Aug <span class="m">14</span> 22:05 system.slice
+</span></span><span class="line"><span class="cl">-rw-r--r--   <span class="m">1</span> root root <span class="m">0</span> Aug  <span class="m">8</span> 02:36 tasks
+</span></span><span class="line"><span class="cl">drwxr-xr-x   <span class="m">4</span> root root <span class="m">0</span> Aug  <span class="m">8</span> 02:36 user.slice
+</span></span><span class="line"><span class="cl">~/cgroup/demo  <span class="c1"># mount | grep systemd</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/systemd <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span class="o">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span class="o">=</span>systemd<span class="o">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>/sys/fs/cgroup/systemd/</code>目录其实就是一个没有和任何subsystem关联的cgroup，那systemd用它来做什么呢？我猜是用来追踪每个服务的进程的pid号的(由于没有找打相关文档)。</p>
 <p>这里先将猜测记录如下，后续会进行验证。</p>
 <p>一般使用systemctl去管理系统服务时，当我们要reload这个服务时，一般的service描述文件中记录的要执行的命令如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/usr/lib/systemd/system/NetworkManager.service:12:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/virtlockd.service:11:ExecReload<span style="color:#f92672">=</span>/bin/kill -USR1 $MAINPID
-/usr/lib/systemd/system/crond.service:8:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/libvirtd.service:24:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/virtlogd.service:11:ExecReload<span style="color:#f92672">=</span>/bin/kill -USR1 $MAINPID
-/usr/lib/systemd/system/lldpad.service:8:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/libstoragemgmt.service:7:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/auditd.service:23:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/firewalld.service:13:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/httpd.service:12:ExecStop<span style="color:#f92672">=</span>/bin/kill -WINCH <span style="color:#e6db74">${</span>MAINPID<span style="color:#e6db74">}</span>
-/usr/lib/systemd/system/smartd.service:8:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/docker.service:32:ExecReload<span style="color:#f92672">=</span>/bin/kill -s HUP $MAINPID
-/usr/lib/systemd/system/ksmtuned.service:8:ExecReload<span style="color:#f92672">=</span>/bin/kill -USR1 $MAINPID
-/usr/lib/systemd/system/sshd.service:11:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-/usr/lib/systemd/system/anaconda-sshd.service:17:ExecReload<span style="color:#f92672">=</span>/bin/kill -HUP $MAINPID
-</code></pre></div><p>那我们如何知道<code>$MAINPID</code>的值是多少呢？我猜这里就使用了该服务对应的cgroup中的cgroup.procs的输出结果。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">/usr/lib/systemd/system/NetworkManager.service:12:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/virtlockd.service:11:ExecReload<span class="o">=</span>/bin/kill -USR1 <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/crond.service:8:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/libvirtd.service:24:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/virtlogd.service:11:ExecReload<span class="o">=</span>/bin/kill -USR1 <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/lldpad.service:8:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/libstoragemgmt.service:7:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/auditd.service:23:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/firewalld.service:13:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/httpd.service:12:ExecStop<span class="o">=</span>/bin/kill -WINCH <span class="si">${</span><span class="nv">MAINPID</span><span class="si">}</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/smartd.service:8:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/docker.service:32:ExecReload<span class="o">=</span>/bin/kill -s HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/ksmtuned.service:8:ExecReload<span class="o">=</span>/bin/kill -USR1 <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/sshd.service:11:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span><span class="line"><span class="cl">/usr/lib/systemd/system/anaconda-sshd.service:17:ExecReload<span class="o">=</span>/bin/kill -HUP <span class="nv">$MAINPID</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>那我们如何知道<code>$MAINPID</code>的值是多少呢？我猜这里就使用了该服务对应的cgroup中的cgroup.procs的输出结果。</p>
 <p>下面通过代码来验证上面的猜测，如下引用的代码来自于：<a href="https://github.com/systemd/systemd/tree/v219">https://github.com/systemd/systemd/tree/v219</a></p>
 <p><code>systemd</code>有方法<code>service_search_main_pid</code>来获取<code>MAINPID</code>,其又调用了方法<code>unit_search_main_pid</code>。</p>
 <p><code>unit_search_main_pid</code> 代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">pid_t <span style="color:#a6e22e">unit_search_main_pid</span>(Unit <span style="color:#f92672">*</span>u) {
-        _cleanup_fclose_ FILE <span style="color:#f92672">*</span>f <span style="color:#f92672">=</span> NULL;
-        pid_t pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, npid, mypid;
-
-        assert(u);
-
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>u<span style="color:#f92672">-&gt;</span>cgroup_path)
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-
-        <span style="color:#66d9ef">if</span> (cg_enumerate_processes(SYSTEMD_CGROUP_CONTROLLER, u<span style="color:#f92672">-&gt;</span>cgroup_path, <span style="color:#f92672">&amp;</span>f) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-
-        mypid <span style="color:#f92672">=</span> getpid();
-        <span style="color:#66d9ef">while</span> (cg_read_pid(f, <span style="color:#f92672">&amp;</span>npid) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>)  {
-                pid_t ppid;
-
-                <span style="color:#66d9ef">if</span> (npid <span style="color:#f92672">==</span> pid)
-                        <span style="color:#66d9ef">continue</span>;
-
-                <span style="color:#75715e">/* Ignore processes that aren&#39;t our kids */</span>
-                <span style="color:#66d9ef">if</span> (get_parent_of_pid(npid, <span style="color:#f92672">&amp;</span>ppid) <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> ppid <span style="color:#f92672">!=</span> mypid)
-                        <span style="color:#66d9ef">continue</span>;
-
-                <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
-                        <span style="color:#75715e">/* Dang, there&#39;s more than one daemonized PID
-</span><span style="color:#75715e">                        in this group, so we don&#39;t know what process
-</span><span style="color:#75715e">                        is the main process. */</span>
-                        pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-                        <span style="color:#66d9ef">break</span>;
-                }
-
-                pid <span style="color:#f92672">=</span> npid;
-        }
-
-        <span style="color:#66d9ef">return</span> pid;
-}
-</code></pre></div><p>这个函数就非常简单了，第10行用于获取<code>cgroup.procs</code>的文件描述符，14行循环读取该文件中的<code>pid</code>。一些关键的宏和函数定义如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define SYSTEMD_CGROUP_CONTROLLER &#34;name=systemd&#34;
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">// 打开文件的函数
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cg_enumerate_processes</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>controller, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path, FILE <span style="color:#f92672">**</span>_f) {
-        _cleanup_free_ <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>fs <span style="color:#f92672">=</span> NULL;
-        FILE <span style="color:#f92672">*</span>f;
-        <span style="color:#66d9ef">int</span> r;
-
-        assert(_f);
-
-        r <span style="color:#f92672">=</span> cg_get_path(controller, path, <span style="color:#e6db74">&#34;cgroup.procs&#34;</span>, <span style="color:#f92672">&amp;</span>fs);
-        <span style="color:#66d9ef">if</span> (r <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) 
-                <span style="color:#66d9ef">return</span> r;
-
-        f <span style="color:#f92672">=</span> fopen(fs, <span style="color:#e6db74">&#34;re&#34;</span>);
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>f) 
-                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>errno;
-
-        <span style="color:#f92672">*</span>_f <span style="color:#f92672">=</span> f; 
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-</code></pre></div><h3 id="参考文章">参考文章</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">pid_t</span> <span class="nf">unit_search_main_pid</span><span class="p">(</span><span class="n">Unit</span> <span class="o">*</span><span class="n">u</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">_cleanup_fclose_</span> <span class="n">FILE</span> <span class="o">*</span><span class="n">f</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">pid_t</span> <span class="n">pid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">npid</span><span class="p">,</span> <span class="n">mypid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">assert</span><span class="p">(</span><span class="n">u</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">u</span><span class="o">-&gt;</span><span class="n">cgroup_path</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="nf">cg_enumerate_processes</span><span class="p">(</span><span class="n">SYSTEMD_CGROUP_CONTROLLER</span><span class="p">,</span> <span class="n">u</span><span class="o">-&gt;</span><span class="n">cgroup_path</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">f</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">mypid</span> <span class="o">=</span> <span class="nf">getpid</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="k">while</span> <span class="p">(</span><span class="nf">cg_read_pid</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">npid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>  <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">pid_t</span> <span class="n">ppid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="n">npid</span> <span class="o">==</span> <span class="n">pid</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">continue</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="cm">/* Ignore processes that aren&#39;t our kids */</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="nf">get_parent_of_pid</span><span class="p">(</span><span class="n">npid</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ppid</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">ppid</span> <span class="o">!=</span> <span class="n">mypid</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">continue</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                        <span class="cm">/* Dang, there&#39;s more than one daemonized PID
+</span></span></span><span class="line"><span class="cl"><span class="cm">                        in this group, so we don&#39;t know what process
+</span></span></span><span class="line"><span class="cl"><span class="cm">                        is the main process. */</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">pid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="n">pid</span> <span class="o">=</span> <span class="n">npid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">pid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个函数就非常简单了，第10行用于获取<code>cgroup.procs</code>的文件描述符，14行循环读取该文件中的<code>pid</code>。一些关键的宏和函数定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define SYSTEMD_CGROUP_CONTROLLER &#34;name=systemd&#34;
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 打开文件的函数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">int</span> <span class="nf">cg_enumerate_processes</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">controller</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">FILE</span> <span class="o">**</span><span class="n">_f</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">_cleanup_free_</span> <span class="kt">char</span> <span class="o">*</span><span class="n">fs</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">FILE</span> <span class="o">*</span><span class="n">f</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">r</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">assert</span><span class="p">(</span><span class="n">_f</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">r</span> <span class="o">=</span> <span class="nf">cg_get_path</span><span class="p">(</span><span class="n">controller</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="s">&#34;cgroup.procs&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">fs</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">r</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> 
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="n">r</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">f</span> <span class="o">=</span> <span class="nf">fopen</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="s">&#34;re&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">f</span><span class="p">)</span> 
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="o">-</span><span class="n">errno</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="o">*</span><span class="n">_f</span> <span class="o">=</span> <span class="n">f</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="https://segmentfault.com/a/1190000007241437">https://segmentfault.com/a/1190000007241437</a></li>
 <li><a href="https://github.com/systemd/systemd/tree/v219">https://github.com/systemd/systemd/tree/v219</a></li>
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -515,7 +786,10 @@ cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-08-14</span>
+    <span class="item-content">
+        2018-08-14
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -523,37 +797,26 @@ cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/cgroup/">cgroup</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/posts/x86-64-stack-layout-and-call-conventions/">
+        <a class="prev" href="/posts/x86-64-stack-layout-and-call-conventions/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">关于x86-64的栈布局和函数调用约定</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/posts/reuse-linux-kernel-rbtree/">
+        <a class="next" href="/posts/reuse-linux-kernel-rbtree/">
             <span class="next-text nav-default">红黑树(三)—— 在应用中复用linux的代码实现</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -567,6 +830,11 @@ cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -591,26 +859,24 @@ cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本文首先介绍了读写信号量，然后介绍了其API，接着以一个实验的形式，给大家展示了读写信号量内部的count值的含义。只有明白了count的含义，我们在分析问题时才能得心应手。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+<meta name="author" content="laoqinren" /><meta name="description" content="本文首先介绍了读写信号量，然后介绍了其API，接着以一个实验的形式，给大家展示了读写信号量内部的count值的含义。只有明白了count的含义，我们在分析问题时才能得心应手。
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/rw-semaphore/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,32 +36,21 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="内核基础设施——读写信号量" />
 <meta property="og:description" content="本文首先介绍了读写信号量，然后介绍了其API，接着以一个实验的形式，给大家展示了读写信号量内部的count值的含义。只有明白了count的含义，我们在分析问题时才能得心应手。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/rw-semaphore/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/rw-semaphore/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2019-03-02T14:10:37+08:00" />
 <meta property="article:modified_time" content="2019-03-02T14:10:37+08:00" />
 <meta itemprop="name" content="内核基础设施——读写信号量">
-<meta itemprop="description" content="本文首先介绍了读写信号量，然后介绍了其API，接着以一个实验的形式，给大家展示了读写信号量内部的count值的含义。只有明白了count的含义，我们在分析问题时才能得心应手。">
-<meta itemprop="datePublished" content="2019-03-02T14:10:37+08:00" />
+<meta itemprop="description" content="本文首先介绍了读写信号量，然后介绍了其API，接着以一个实验的形式，给大家展示了读写信号量内部的count值的含义。只有明白了count的含义，我们在分析问题时才能得心应手。"><meta itemprop="datePublished" content="2019-03-02T14:10:37+08:00" />
 <meta itemprop="dateModified" content="2019-03-02T14:10:37+08:00" />
-<meta itemprop="wordCount" content="4815">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,内核基础设施,rw_semaphore," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="4961">
+<meta itemprop="keywords" content="kernel,linux,内核基础设施,rw_semaphore," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核基础设施——读写信号量"/>
 <meta name="twitter:description" content="本文首先介绍了读写信号量，然后介绍了其API，接着以一个实验的形式，给大家展示了读写信号量内部的count值的含义。只有明白了count的含义，我们在分析问题时才能得心应手。"/>
 
@@ -108,12 +93,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -134,6 +128,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -147,40 +142,35 @@
       <div class="post-meta">
         <span class="post-time"> 2019-03-02 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-          </div>
-        <span class="more-meta"> 4815 words </span>
-        <span class="more-meta"> 10 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#系统环境">系统环境</a></li>
-        <li><a href="#读写信号量介绍">读写信号量介绍</a></li>
-        <li><a href="#读写信号量的相关api">读写信号量的相关<code>API</code>：</a></li>
-        <li><a href="#kernel中的定义"><code>kernel</code>中的定义</a></li>
-        <li><a href="#count值分析"><code>count</code>值分析</a></li>
-        <li><a href="#x86实现细节分析"><code>x86</code>实现细节分析</a></li>
+        <li>
+          <ul>
+            <li><a href="#系统环境">系统环境</a></li>
+            <li><a href="#读写信号量介绍">读写信号量介绍</a></li>
+            <li><a href="#读写信号量的相关api">读写信号量的相关<code>API</code>：</a></li>
+            <li><a href="#kernel中的定义"><code>kernel</code>中的定义</a></li>
+            <li><a href="#count值分析"><code>count</code>值分析</a></li>
+            <li><a href="#x86实现细节分析"><code>x86</code>实现细节分析</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本文首先介绍了读写信号量，然后介绍了其<code>API</code>，接着以一个实验的形式，给大家展示了读写信号量内部的<code>count</code>值的含义。只有明白了<code>count</code>的含义，我们在分析问题时才能得心应手。</p>
 <p><img src="./pic.jpg" alt="" title=""></p>
@@ -260,20 +250,39 @@
 <p>当进程动态地分配或释放内存时，需要修改<code>mmap</code>来反映分配或释放后的内存映像，因此动态内存分配或释放操作需要以写者身份获得读写信号量<code>mmap_sem</code>来对<code>mmap</code>进行更新。系统调用<code>brk</code>和<code>munmap</code>就使用了<code>down_write</code>和<code>up_write</code>来保护对<code>mmap</code>的访问。</p>
 <h3 id="kernel中的定义"><code>kernel</code>中的定义</h3>
 <p>在<code>kernel</code>中，读写信号量的定义如下：</p>
-<pre><code class="language-c?linenums" data-lang="c?linenums">/* All arch specific implementations share the same struct */
-struct rw_semaphore {
-        RH_KABI_REPLACE(long            count,
-                        atomic_long_t   count)
-        raw_spinlock_t  wait_lock;
-        struct optimistic_spin_queue osq; /* spinner MCS lock */
-        struct slist_head       wait_list;
-        /*
-         * Write owner. Used as a speculative check to see
-         * if the owner is running on the cpu.
-         */
-        struct task_struct      *owner;
-};
-</code></pre><p><code>wait_lock</code>用来保护链表<code>wait_list</code>，<code>wait_list</code>是一个链表，存放了所有的等待信号的进程，信号量的状态由<code>count</code>表示。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/* All arch specific implementations share the same struct */
+</span></span><span class="line"><span class="cl">struct rw_semaphore {
+</span></span><span class="line"><span class="cl">        RH_KABI_REPLACE(long            count,
+</span></span><span class="line"><span class="cl">                        atomic_long_t   count)
+</span></span><span class="line"><span class="cl">        raw_spinlock_t  wait_lock;
+</span></span><span class="line"><span class="cl">        struct optimistic_spin_queue osq; /* spinner MCS lock */
+</span></span><span class="line"><span class="cl">        struct slist_head       wait_list;
+</span></span><span class="line"><span class="cl">        /*
+</span></span><span class="line"><span class="cl">         * Write owner. Used as a speculative check to see
+</span></span><span class="line"><span class="cl">         * if the owner is running on the cpu.
+</span></span><span class="line"><span class="cl">         */
+</span></span><span class="line"><span class="cl">        struct task_struct      *owner;
+</span></span><span class="line"><span class="cl">};
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>wait_lock</code>用来保护链表<code>wait_list</code>，<code>wait_list</code>是一个链表，存放了所有的等待信号的进程，信号量的状态由<code>count</code>表示。</p>
 <h3 id="count值分析"><code>count</code>值分析</h3>
 <p>以下通过编写内核模块来演示<code>count</code>的值的变化情况，模块代码请移步<a href="https://github.com/datawolf/dive-in-kernel/tree/master/h020_rw_semaphore">这里</a> ，该代码在<a href="http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.14.4.el7.src.rpm">3.10.0-862.14.4.el7.x86_64</a>上编译通过。</p>
 <h4 id="初始化">初始化</h4>
@@ -285,138 +294,301 @@ struct rw_semaphore {
 <li>当有<code>n</code>个<code>reader</code>持有时，其值为<code>0x000000000000000n</code>。</li>
 <li>读写锁同时可以有多个<code>reader</code></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cat /proc/rwsem_test </span>
-semaphore.count: 0x0000000000000000
-<span style="color:#75715e"># echo &#34;down_read A&#34; &gt; /proc/rwsem_test </span>
-<span style="color:#75715e"># cat /proc/rwsem_test                           </span>
-semaphore.count: 0x0000000000000001
-<span style="color:#75715e"># echo &#34;down_read B&#34; &gt; /proc/rwsem_test</span>
-<span style="color:#75715e"># cat /proc/rwsem_test</span>
-semaphore.count: 0x0000000000000002
-<span style="color:#75715e"># echo &#34;down_read C&#34; &gt; /proc/rwsem_test</span>
-<span style="color:#75715e"># cat /proc/rwsem_test </span>
-semaphore.count: 0x0000000000000003
-<span style="color:#75715e"># echo &#34;up_read C&#34; &gt; /proc/rwsem_test</span>
-<span style="color:#75715e"># cat /proc/rwsem_test </span>
-semaphore.count: 0x0000000000000002
-<span style="color:#75715e"># echo &#34;up_read A&#34; &gt; /proc/rwsem_test</span>
-<span style="color:#75715e"># cat /proc/rwsem_test</span>
-semaphore.count: 0x0000000000000001
-<span style="color:#75715e"># echo &#34;up_read B&#34; &gt; /proc/rwsem_test</span>
-<span style="color:#75715e"># cat /proc/rwsem_test</span>
-semaphore.count: 0x0000000000000000
-
-</code></pre></div><h4 id="down_write-和--up_write"><code>down_write</code> 和  <code>up_write</code></h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000000
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;down_read A&#34; &gt; /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test                           </span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000001
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;down_read B&#34; &gt; /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000002
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;down_read C&#34; &gt; /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000003
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;up_read C&#34; &gt; /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000002
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;up_read A&#34; &gt; /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000001
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;up_read B&#34; &gt; /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000000
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="down_write-和--up_write"><code>down_write</code> 和  <code>up_write</code></h4>
 <ul>
 <li>当有<code>writer</code>持有时，且等待<code>wait_list</code>为空，其值为<code>0xffffffff00000001</code>；</li>
 <li>当有<code>writer</code>持有时，且等待<code>wait_list</code>不为空，其值为<code>0xfffffffe00000001</code></li>
 <li>读写信号量同时只能有一个<code>writer</code>持有</li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cat /proc/rwsem_test </span>
-semaphore.count: 0x0000000000000000
-<span style="color:#75715e"># echo &#34;down_write A&#34; &gt; /proc/rwsem_test </span>
-<span style="color:#75715e"># cat /proc/rwsem_test</span>
-semaphore.count: 0xffffffff00000001
-<span style="color:#75715e"># echo &#34;down_write B&#34; &gt; /proc/rwsem_test</span>
-<span style="color:#75715e"># cat /proc/rwsem_test</span>
-semaphore.count: 0xfffffffe00000001
-        wait list: comm <span style="color:#f92672">=</span> B, type <span style="color:#f92672">=</span> RWSEM_WAITING_FOR_WRITE
-<span style="color:#75715e"># echo &#34;down_write C&#34; &gt; /proc/rwsem_test</span>
-<span style="color:#75715e"># cat /proc/rwsem_test</span>
-semaphore.count: 0xfffffffe00000001
-        wait list: comm <span style="color:#f92672">=</span> B, type <span style="color:#f92672">=</span> RWSEM_WAITING_FOR_WRITE
-        wait list: comm <span style="color:#f92672">=</span> C, type <span style="color:#f92672">=</span> RWSEM_WAITING_FOR_WRITE
-<span style="color:#75715e"># echo &#34;up_write A&#34; &gt; /proc/rwsem_test</span>
-<span style="color:#75715e"># cat /proc/rwsem_test</span>
-semaphore.count: 0xfffffffe00000001
-        wait list: comm <span style="color:#f92672">=</span> C, type <span style="color:#f92672">=</span> RWSEM_WAITING_FOR_WRITE
-<span style="color:#75715e"># echo &#34;up_write B&#34; &gt; /proc/rwsem_test </span>
-<span style="color:#75715e"># cat /proc/rwsem_test </span>
-semaphore.count: 0xffffffff00000001
-<span style="color:#75715e"># echo &#34;up_write C&#34; &gt; /proc/rwsem_test </span>
-<span style="color:#75715e"># cat /proc/rwsem_test </span>
-semaphore.count: 0x0000000000000000
-
-</code></pre></div><h4 id="其他情况下count的值">其他情况下<code>count</code>的值</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000000
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;down_write A&#34; &gt; /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0xffffffff00000001
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;down_write B&#34; &gt; /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0xfffffffe00000001
+</span></span><span class="line"><span class="cl">        <span class="nb">wait</span> list: <span class="nv">comm</span> <span class="o">=</span> B, <span class="nb">type</span> <span class="o">=</span> RWSEM_WAITING_FOR_WRITE
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;down_write C&#34; &gt; /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0xfffffffe00000001
+</span></span><span class="line"><span class="cl">        <span class="nb">wait</span> list: <span class="nv">comm</span> <span class="o">=</span> B, <span class="nb">type</span> <span class="o">=</span> RWSEM_WAITING_FOR_WRITE
+</span></span><span class="line"><span class="cl">        <span class="nb">wait</span> list: <span class="nv">comm</span> <span class="o">=</span> C, <span class="nb">type</span> <span class="o">=</span> RWSEM_WAITING_FOR_WRITE
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;up_write A&#34; &gt; /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test</span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0xfffffffe00000001
+</span></span><span class="line"><span class="cl">        <span class="nb">wait</span> list: <span class="nv">comm</span> <span class="o">=</span> C, <span class="nb">type</span> <span class="o">=</span> RWSEM_WAITING_FOR_WRITE
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;up_write B&#34; &gt; /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0xffffffff00000001
+</span></span><span class="line"><span class="cl"><span class="c1"># echo &#34;up_write C&#34; &gt; /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># cat /proc/rwsem_test </span>
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000000
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="其他情况下count的值">其他情况下<code>count</code>的值</h4>
 <p>通过以下场景，我们理解一下<code>count</code>的值变化规律。其中<code>ABC</code>为读者，<code>DEF</code>为写者。</p>
 <ul>
 <li>初始化时，<code>count</code>的值为<code>0x0000000000000000</code>,<code>wait_list</code>为空；</li>
 </ul>
-<pre><code># cat /proc/rwsem_test 
-semaphore.count: 0x0000000000000000
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000000
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>当<code>A</code>读者获取信号量后，<code>count</code>的值为：<code>0x0000000000000001</code>，<code>wait_list</code>为空；</li>
 </ul>
-<pre><code># echo &quot;down_read A&quot; &gt; /proc/rwsem_test 
-# cat /proc/rwsem_test 
-semaphore.count: 0x0000000000000001
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;down_read A&#34; &gt; /proc/rwsem_test 
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000001
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>当<code>B</code>读者获取信号量后，<code>count</code>的值为：<code>0x0000000000000002</code>，<code>wait_list</code>为空；</li>
 </ul>
-<pre><code># echo &quot;down_read B&quot; &gt; /proc/rwsem_test                                             # cat /proc/rwsem_test 
-semaphore.count: 0x0000000000000002
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;down_read B&#34; &gt; /proc/rwsem_test                                             # cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000002
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>当<code>D</code>写者尝试获取信号量时，由于读者没有释放，此时<code>count</code>的值为：<code>0xffffffff00000002</code>,<code>wait_list</code>为<code>D</code>写者；</li>
 </ul>
-<pre><code># echo &quot;down_write D&quot; &gt; /proc/rwsem_test 
-# cat /proc/rwsem_test 
-semaphore.count: 0xffffffff00000002
-        wait list: comm = D, type = RWSEM_WAITING_FOR_WRITE
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;down_write D&#34; &gt; /proc/rwsem_test 
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0xffffffff00000002
+</span></span><span class="line"><span class="cl">        wait list: comm = D, type = RWSEM_WAITING_FOR_WRITE
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>当<code>C</code>读者尝试获取信号量时，由于<code>AB</code>读者没有释放，此时<code>count</code>的值为：<code>0xffffffff00000002</code>,<code>wait_list</code>为<code>D</code>写者，<code>C</code>读者；</li>
 </ul>
-<pre><code># echo &quot;down_read C&quot; &gt; /proc/rwsem_test 
-# cat /proc/rwsem_test 
-semaphore.count: 0xffffffff00000002
-        wait list: comm = D, type = RWSEM_WAITING_FOR_WRITE
-        wait list: comm = C, type = RWSEM_WAITING_FOR_READ
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;down_read C&#34; &gt; /proc/rwsem_test 
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0xffffffff00000002
+</span></span><span class="line"><span class="cl">        wait list: comm = D, type = RWSEM_WAITING_FOR_WRITE
+</span></span><span class="line"><span class="cl">        wait list: comm = C, type = RWSEM_WAITING_FOR_READ
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>当<code>E</code>写者尝试获取信号量时，由于<code>AB</code>读者没有释放，此时<code>count</code>的值为：<code>0xffffffff00000002</code>,<code>wait_list</code>为<code>D</code>写者，<code>C</code>读者，<code>E</code>写者；</li>
 </ul>
-<pre><code># echo &quot;down_write E&quot; &gt; /proc/rwsem_test 
-# cat /proc/rwsem_test 
-semaphore.count: 0xffffffff00000002
-        wait list: comm = D, type = RWSEM_WAITING_FOR_WRITE
-        wait list: comm = C, type = RWSEM_WAITING_FOR_READ
-        wait list: comm = E, type = RWSEM_WAITING_FOR_WRITE
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;down_write E&#34; &gt; /proc/rwsem_test 
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0xffffffff00000002
+</span></span><span class="line"><span class="cl">        wait list: comm = D, type = RWSEM_WAITING_FOR_WRITE
+</span></span><span class="line"><span class="cl">        wait list: comm = C, type = RWSEM_WAITING_FOR_READ
+</span></span><span class="line"><span class="cl">        wait list: comm = E, type = RWSEM_WAITING_FOR_WRITE
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>A</code>读者释放信号量，由于<code>B</code>读者没有释放，<code>count</code>的值为：<code>0xffffffff00000001</code>，<code>wait_list</code>为<code>D</code>写者，<code>C</code>读者，<code>E</code>写者；</li>
 </ul>
-<pre><code># echo &quot;up_read A&quot; &gt; /proc/rwsem_test   
-# cat /proc/rwsem_test 
-semaphore.count: 0xffffffff00000001
-        wait list: comm = D, type = RWSEM_WAITING_FOR_WRITE
-        wait list: comm = C, type = RWSEM_WAITING_FOR_READ
-        wait list: comm = E, type = RWSEM_WAITING_FOR_WRITE
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;up_read A&#34; &gt; /proc/rwsem_test   
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0xffffffff00000001
+</span></span><span class="line"><span class="cl">        wait list: comm = D, type = RWSEM_WAITING_FOR_WRITE
+</span></span><span class="line"><span class="cl">        wait list: comm = C, type = RWSEM_WAITING_FOR_READ
+</span></span><span class="line"><span class="cl">        wait list: comm = E, type = RWSEM_WAITING_FOR_WRITE
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>B</code>读者释放信号量（<code>count</code>值为<code>0xffffffff00000000</code>），此时<code>D</code>写者获取到信号量，<code>count</code>的值为：<code>0xfffffffe00000001</code>，<code>wait_list</code>为<code>C</code>读者，<code>E</code>写者；</li>
 </ul>
-<pre><code># echo &quot;up_read B&quot; &gt; /proc/rwsem_test   
-# cat /proc/rwsem_test 
-semaphore.count: 0xfffffffe00000001
-        wait list: comm = C, type = RWSEM_WAITING_FOR_READ
-        wait list: comm = E, type = RWSEM_WAITING_FOR_WRITE
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;up_read B&#34; &gt; /proc/rwsem_test   
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0xfffffffe00000001
+</span></span><span class="line"><span class="cl">        wait list: comm = C, type = RWSEM_WAITING_FOR_READ
+</span></span><span class="line"><span class="cl">        wait list: comm = E, type = RWSEM_WAITING_FOR_WRITE
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>D </code>写着释放信号量（<code>count</code>值为<code>0xffffffff00000000</code>），此时<code>C</code>读者获取到信号量，<code>count</code>的值为：<code>0xffffffff00000001</code>,
 <code>wait_list</code>为<code>E</code>写者；</li>
 </ul>
-<pre><code># echo &quot;up_write D&quot; &gt; /proc/rwsem_test
-# cat /proc/rwsem_test 
-semaphore.count: 0xffffffff00000001
-        wait list: comm = E, type = RWSEM_WAITING_FOR_WRITE
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;up_write D&#34; &gt; /proc/rwsem_test
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0xffffffff00000001
+</span></span><span class="line"><span class="cl">        wait list: comm = E, type = RWSEM_WAITING_FOR_WRITE
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>C</code>读者释放信号量（<code>count</code>值为<code>0xffffffff00000000</code>），此时<code>E</code>写者获取到信号量，<code>count</code>的值为: <code>0xffffffff00000001</code>,<code>wait_list</code>为空</li>
 </ul>
-<pre><code># echo &quot;up_read C&quot; &gt; /proc/rwsem_test 
-# cat /proc/rwsem_test 
-semaphore.count: 0xffffffff00000001
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;up_read C&#34; &gt; /proc/rwsem_test 
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0xffffffff00000001
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>E</code>释放信号量，此时<code>count</code>的值为: <code>0x0000000000000000</code>,<code>wait_list</code>为空</li>
 </ul>
-<pre><code># echo &quot;up_write E&quot; &gt; /proc/rwsem_test      
-# cat /proc/rwsem_test 
-semaphore.count: 0x0000000000000000
-</code></pre><p>通过以上场景，我们可以总结以下规律：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo &#34;up_write E&#34; &gt; /proc/rwsem_test      
+</span></span><span class="line"><span class="cl"># cat /proc/rwsem_test 
+</span></span><span class="line"><span class="cl">semaphore.count: 0x0000000000000000
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>通过以上场景，我们可以总结以下规律：</p>
 <ol>
 <li>当读者持有锁时，且没有写者等待时，后续的读者可以直接获取锁成功；</li>
 <li>当有一个写者等待时，后续的写者和读者都不能获取锁；</li>
@@ -464,39 +636,83 @@ semaphore.count: 0x0000000000000000
 </tbody>
 </table>
 <h3 id="x86实现细节分析"><code>x86</code>实现细节分析</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * trylock for reading -- returns 1 if successful, 0 if contention
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">down_read_trylock</span>(<span style="color:#66d9ef">struct</span> rw_semaphore <span style="color:#f92672">*</span>sem)
-{
-        <span style="color:#66d9ef">int</span> ret <span style="color:#f92672">=</span> __down_read_trylock(sem);
-
-        <span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>)
-                rwsem_acquire_read(<span style="color:#f92672">&amp;</span>sem<span style="color:#f92672">-&gt;</span>dep_map, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, _RET_IP_);
-        <span style="color:#66d9ef">return</span> ret;
-}
-</code></pre></div><pre><code class="language-c?linenums" data-lang="c?linenums">/*
- * trylock for reading -- returns 1 if successful, 0 if contention
- */
-static inline int __down_read_trylock(struct rw_semaphore *sem)
-{
-        long result, tmp;
-        asm volatile(&quot;# beginning __down_read_trylock\n\t&quot;
-                     &quot;  mov          %0,%1\n\t&quot;
-                     &quot;1:\n\t&quot;
-                     &quot;  mov          %1,%2\n\t&quot;
-                     &quot;  add          %3,%2\n\t&quot;
-                     &quot;  jle          2f\n\t&quot;
-                     LOCK_PREFIX &quot;  cmpxchg  %2,%0\n\t&quot;
-                     &quot;  jnz          1b\n\t&quot;
-                     &quot;2:\n\t&quot;
-                     &quot;# ending __down_read_trylock\n\t&quot;
-                     : &quot;+m&quot; (sem-&gt;count), &quot;=&amp;a&quot; (result), &quot;=&amp;r&quot; (tmp)
-                     : &quot;i&quot; (RWSEM_ACTIVE_READ_BIAS)
-                     : &quot;memory&quot;, &quot;cc&quot;);
-        return result &gt;= 0 ? 1 : 0;
-}
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * trylock for reading -- returns 1 if successful, 0 if contention
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">down_read_trylock</span><span class="p">(</span><span class="k">struct</span> <span class="n">rw_semaphore</span> <span class="o">*</span><span class="n">sem</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="nf">__down_read_trylock</span><span class="p">(</span><span class="n">sem</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">rwsem_acquire_read</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sem</span><span class="o">-&gt;</span><span class="n">dep_map</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">_RET_IP_</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * trylock for reading -- returns 1 if successful, 0 if contention
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">static inline int __down_read_trylock(struct rw_semaphore *sem)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">        long result, tmp;
+</span></span><span class="line"><span class="cl">        asm volatile(&#34;# beginning __down_read_trylock\n\t&#34;
+</span></span><span class="line"><span class="cl">                     &#34;  mov          %0,%1\n\t&#34;
+</span></span><span class="line"><span class="cl">                     &#34;1:\n\t&#34;
+</span></span><span class="line"><span class="cl">                     &#34;  mov          %1,%2\n\t&#34;
+</span></span><span class="line"><span class="cl">                     &#34;  add          %3,%2\n\t&#34;
+</span></span><span class="line"><span class="cl">                     &#34;  jle          2f\n\t&#34;
+</span></span><span class="line"><span class="cl">                     LOCK_PREFIX &#34;  cmpxchg  %2,%0\n\t&#34;
+</span></span><span class="line"><span class="cl">                     &#34;  jnz          1b\n\t&#34;
+</span></span><span class="line"><span class="cl">                     &#34;2:\n\t&#34;
+</span></span><span class="line"><span class="cl">                     &#34;# ending __down_read_trylock\n\t&#34;
+</span></span><span class="line"><span class="cl">                     : &#34;+m&#34; (sem-&gt;count), &#34;=&amp;a&#34; (result), &#34;=&amp;r&#34; (tmp)
+</span></span><span class="line"><span class="cl">                     : &#34;i&#34; (RWSEM_ACTIVE_READ_BIAS)
+</span></span><span class="line"><span class="cl">                     : &#34;memory&#34;, &#34;cc&#34;);
+</span></span><span class="line"><span class="cl">        return result &gt;= 0 ? 1 : 0;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>第<code>7</code>和<code>16</code>行中的汇编代码是注释；</li>
 <li>第<code>7</code>行中的<code>asm volatile</code>的含义如下：
 <ul>
@@ -530,24 +746,43 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
 </li>
 </ul>
 <p>这段代码编译后的结果如下：</p>
-<pre><code class="language-x86asm?linenums" data-lang="x86asm?linenums">crash&gt;   dis down_read_trylock
-0xffffffff8109c2a0 &lt;down_read_trylock&gt;: nopl   0x0(%rax,%rax,1) [FTRACE NOP]
-0xffffffff8109c2a5 &lt;down_read_trylock+5&gt;:       push   %rbp
-0xffffffff8109c2a6 &lt;down_read_trylock+6&gt;:       mov    %rsp,%rbp
-0xffffffff8109c2a9 &lt;down_read_trylock+9&gt;:       mov    (%rdi),%rax
-0xffffffff8109c2ac &lt;down_read_trylock+12&gt;:      mov    %rax,%rdx
-0xffffffff8109c2af &lt;down_read_trylock+15&gt;:      add    $0x1,%rdx
-0xffffffff8109c2b3 &lt;down_read_trylock+19&gt;:      jle    0xffffffff8109c2bc &lt;down_read_trylock+28&gt;
-0xffffffff8109c2b5 &lt;down_read_trylock+21&gt;:      lock cmpxchg %rdx,(%rdi)
-0xffffffff8109c2ba &lt;down_read_trylock+26&gt;:      jne    0xffffffff8109c2ac &lt;down_read_trylock+12&gt;
-0xffffffff8109c2bc &lt;down_read_trylock+28&gt;:      not    %rax
-0xffffffff8109c2bf &lt;down_read_trylock+31&gt;:      shr    $0x3f,%rax
-0xffffffff8109c2c3 &lt;down_read_trylock+35&gt;:      pop    %rbp
-0xffffffff8109c2c4 &lt;down_read_trylock+36&gt;:      retq   
-</code></pre><p>该段代码的目的就是原子的给<code>rw_semaphore.count</code> 值加<code>1</code>，如果成功加<code>1</code>，则返回<code>1</code>，失败则返回<code>0</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt;   dis down_read_trylock
+</span></span><span class="line"><span class="cl">0xffffffff8109c2a0 &lt;down_read_trylock&gt;: nopl   0x0(%rax,%rax,1) [FTRACE NOP]
+</span></span><span class="line"><span class="cl">0xffffffff8109c2a5 &lt;down_read_trylock+5&gt;:       push   %rbp
+</span></span><span class="line"><span class="cl">0xffffffff8109c2a6 &lt;down_read_trylock+6&gt;:       mov    %rsp,%rbp
+</span></span><span class="line"><span class="cl">0xffffffff8109c2a9 &lt;down_read_trylock+9&gt;:       mov    (%rdi),%rax
+</span></span><span class="line"><span class="cl">0xffffffff8109c2ac &lt;down_read_trylock+12&gt;:      mov    %rax,%rdx
+</span></span><span class="line"><span class="cl">0xffffffff8109c2af &lt;down_read_trylock+15&gt;:      add    $0x1,%rdx
+</span></span><span class="line"><span class="cl">0xffffffff8109c2b3 &lt;down_read_trylock+19&gt;:      jle    0xffffffff8109c2bc &lt;down_read_trylock+28&gt;
+</span></span><span class="line"><span class="cl">0xffffffff8109c2b5 &lt;down_read_trylock+21&gt;:      lock cmpxchg %rdx,(%rdi)
+</span></span><span class="line"><span class="cl">0xffffffff8109c2ba &lt;down_read_trylock+26&gt;:      jne    0xffffffff8109c2ac &lt;down_read_trylock+12&gt;
+</span></span><span class="line"><span class="cl">0xffffffff8109c2bc &lt;down_read_trylock+28&gt;:      not    %rax
+</span></span><span class="line"><span class="cl">0xffffffff8109c2bf &lt;down_read_trylock+31&gt;:      shr    $0x3f,%rax
+</span></span><span class="line"><span class="cl">0xffffffff8109c2c3 &lt;down_read_trylock+35&gt;:      pop    %rbp
+</span></span><span class="line"><span class="cl">0xffffffff8109c2c4 &lt;down_read_trylock+36&gt;:      retq   
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该段代码的目的就是原子的给<code>rw_semaphore.count</code> 值加<code>1</code>，如果成功加<code>1</code>，则返回<code>1</code>，失败则返回<code>0</code>。</p>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -555,7 +790,10 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2019-03-02</span>
+    <span class="item-content">
+        2019-03-02
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -563,43 +801,29 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">内核基础设施</a>
-          
           <a href="/tags/rw_semaphore/">rw_semaphore</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/kernel-dynamic-debug/">
+        <a class="prev" href="/kernel/kernel-dynamic-debug/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">内核调试——dyndbg特性</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/shrink_lruvec/">
+        <a class="next" href="/kernel/shrink_lruvec/">
             <span class="next-text nav-default">内存管理：shrink_lruvec分析</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -613,6 +837,11 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -637,26 +866,24 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="内核里有很多代码里有类似do{}while(0)这样的写法，这个写法有两个不同的用法。 本文介绍了do{}while(0)的两个不同的用法。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+<meta name="author" content="laoqinren" /><meta name="description" content="内核里有很多代码里有类似do{}while(0)这样的写法，这个写法有两个不同的用法。 本文介绍了do{}while(0)的两个不同的用法。
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/do-while-zero/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,34 +36,23 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="do{}while(0)为什么要这样写呢？" />
 <meta property="og:description" content="内核里有很多代码里有类似do{}while(0)这样的写法，这个写法有两个不同的用法。
 本文介绍了do{}while(0)的两个不同的用法。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/do-while-zero/" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/do-while-zero/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-08-03T18:02:43+08:00" />
 <meta property="article:modified_time" content="2020-08-03T18:02:43+08:00" />
 <meta itemprop="name" content="do{}while(0)为什么要这样写呢？">
 <meta itemprop="description" content="内核里有很多代码里有类似do{}while(0)这样的写法，这个写法有两个不同的用法。
-本文介绍了do{}while(0)的两个不同的用法。">
-<meta itemprop="datePublished" content="2020-08-03T18:02:43+08:00" />
+本文介绍了do{}while(0)的两个不同的用法。"><meta itemprop="datePublished" content="2020-08-03T18:02:43+08:00" />
 <meta itemprop="dateModified" content="2020-08-03T18:02:43+08:00" />
-<meta itemprop="wordCount" content="708">
-
-
-
-<meta itemprop="keywords" content="" />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="789">
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="do{}while(0)为什么要这样写呢？"/>
 <meta name="twitter:description" content="内核里有很多代码里有类似do{}while(0)这样的写法，这个写法有两个不同的用法。
 本文介绍了do{}while(0)的两个不同的用法。"/>
@@ -111,12 +96,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -137,6 +131,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -150,138 +145,240 @@
       <div class="post-meta">
         <span class="post-time"> 2020-08-03 </span>
         
-        <span class="more-meta"> 708 words </span>
-        <span class="more-meta"> 2 mins read </span>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#1形成单独逻辑块避免宏替换以后产生错误">1.形成单独逻辑块（避免宏替换以后产生错误）</a></li>
-        <li><a href="#2-精简判断分支不使用goto语句">2. 精简判断分支（不使用goto语句）</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#1形成单独逻辑块避免宏替换以后产生错误">1.形成单独逻辑块（避免宏替换以后产生错误）</a></li>
+            <li><a href="#2-精简判断分支不使用goto语句">2. 精简判断分支（不使用goto语句）</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>内核里有很多代码里有类似<code>do{}while(0)</code>这样的写法，这个写法有两个不同的用法。
 本文介绍了<code>do{}while(0)</code>的两个不同的用法。</p>
 <h3 id="1形成单独逻辑块避免宏替换以后产生错误">1.形成单独逻辑块（避免宏替换以后产生错误）</h3>
 <p>举个例子：（https://elixir.bootlin.com/linux/v2.6.39.4/source/include/net/udp.h#L211）</p>
-<pre><code>#define UDP6_INC_STATS_BH(net, field, is_udplite) 	    do { \
-	if (is_udplite) SNMP_INC_STATS_BH((net)-&gt;mib.udplite_stats_in6, field);\
-	else		SNMP_INC_STATS_BH((net)-&gt;mib.udp_stats_in6, field);  \
-} while(0)
-#define UDP6_INC_STATS_USER(net, field, __lite)		    do { \
-	if (__lite) SNMP_INC_STATS_USER((net)-&gt;mib.udplite_stats_in6, field);  \
-	else	    SNMP_INC_STATS_USER((net)-&gt;mib.udp_stats_in6, field);      \
-} while(0)
-
-#define UDPX_INC_STATS_BH(sk, field) \
-	do { \
-		if ((sk)-&gt;sk_family == AF_INET) \
-			UDP_INC_STATS_BH(sock_net(sk), field, 0); \
-		else \
-			UDP6_INC_STATS_BH(sock_net(sk), field, 0); \
-	} while (0);
-
-</code></pre><p>先看前两个宏用了do {…} while(0) ，如果展开到第三个宏就是：</p>
-<pre><code>#define UDPX_INC_STATS_BH(sk, field) \
-	do { \
-		if ((sk)-&gt;sk_family == AF_INET) \
-			do { \
-					if (is_udplite) SNMP_INC_STATS_BH((net)-&gt;mib.udplite_stats_in6, field);\
-				else		SNMP_INC_STATS_BH((net)-&gt;mib.udp_stats_in6, field);  \
-			} while(0);
-		else \
-			 do { \
-				if (__lite) SNMP_INC_STATS_USER((net)-&gt;mib.udplite_stats_in6, field);  \
-				else	    SNMP_INC_STATS_USER((net)-&gt;mib.udp_stats_in6, field);      \
-			} while(0);
-	} while (0);
-
-</code></pre><p>如果去掉前两个宏的do while去掉， 就变成：</p>
-<pre><code>#define UDPX_INC_STATS_BH(sk, field) \
-	do { \
-		if ((sk)-&gt;sk_family == AF_INET) \
-					if (is_udplite) SNMP_INC_STATS_BH((net)-&gt;mib.udplite_stats_in6, field);\
-				else		SNMP_INC_STATS_BH((net)-&gt;mib.udp_stats_in6, field);  \
-		else \
-				if (__lite) SNMP_INC_STATS_USER((net)-&gt;mib.udplite_stats_in6, field);  \
-				else	    SNMP_INC_STATS_USER((net)-&gt;mib.udp_stats_in6, field);      \
-	} while (0);
-
-</code></pre><p>显而易见，else无法匹配，代码完全错乱，无法编译通过。
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#define UDP6_INC_STATS_BH(net, field, is_udplite) 	    do { \
+</span></span><span class="line"><span class="cl">	if (is_udplite) SNMP_INC_STATS_BH((net)-&gt;mib.udplite_stats_in6, field);\
+</span></span><span class="line"><span class="cl">	else		SNMP_INC_STATS_BH((net)-&gt;mib.udp_stats_in6, field);  \
+</span></span><span class="line"><span class="cl">} while(0)
+</span></span><span class="line"><span class="cl">#define UDP6_INC_STATS_USER(net, field, __lite)		    do { \
+</span></span><span class="line"><span class="cl">	if (__lite) SNMP_INC_STATS_USER((net)-&gt;mib.udplite_stats_in6, field);  \
+</span></span><span class="line"><span class="cl">	else	    SNMP_INC_STATS_USER((net)-&gt;mib.udp_stats_in6, field);      \
+</span></span><span class="line"><span class="cl">} while(0)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">#define UDPX_INC_STATS_BH(sk, field) \
+</span></span><span class="line"><span class="cl">	do { \
+</span></span><span class="line"><span class="cl">		if ((sk)-&gt;sk_family == AF_INET) \
+</span></span><span class="line"><span class="cl">			UDP_INC_STATS_BH(sock_net(sk), field, 0); \
+</span></span><span class="line"><span class="cl">		else \
+</span></span><span class="line"><span class="cl">			UDP6_INC_STATS_BH(sock_net(sk), field, 0); \
+</span></span><span class="line"><span class="cl">	} while (0);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>先看前两个宏用了do {…} while(0) ，如果展开到第三个宏就是：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#define UDPX_INC_STATS_BH(sk, field) \
+</span></span><span class="line"><span class="cl">	do { \
+</span></span><span class="line"><span class="cl">		if ((sk)-&gt;sk_family == AF_INET) \
+</span></span><span class="line"><span class="cl">			do { \
+</span></span><span class="line"><span class="cl">					if (is_udplite) SNMP_INC_STATS_BH((net)-&gt;mib.udplite_stats_in6, field);\
+</span></span><span class="line"><span class="cl">				else		SNMP_INC_STATS_BH((net)-&gt;mib.udp_stats_in6, field);  \
+</span></span><span class="line"><span class="cl">			} while(0);
+</span></span><span class="line"><span class="cl">		else \
+</span></span><span class="line"><span class="cl">			 do { \
+</span></span><span class="line"><span class="cl">				if (__lite) SNMP_INC_STATS_USER((net)-&gt;mib.udplite_stats_in6, field);  \
+</span></span><span class="line"><span class="cl">				else	    SNMP_INC_STATS_USER((net)-&gt;mib.udp_stats_in6, field);      \
+</span></span><span class="line"><span class="cl">			} while(0);
+</span></span><span class="line"><span class="cl">	} while (0);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果去掉前两个宏的do while去掉， 就变成：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#define UDPX_INC_STATS_BH(sk, field) \
+</span></span><span class="line"><span class="cl">	do { \
+</span></span><span class="line"><span class="cl">		if ((sk)-&gt;sk_family == AF_INET) \
+</span></span><span class="line"><span class="cl">					if (is_udplite) SNMP_INC_STATS_BH((net)-&gt;mib.udplite_stats_in6, field);\
+</span></span><span class="line"><span class="cl">				else		SNMP_INC_STATS_BH((net)-&gt;mib.udp_stats_in6, field);  \
+</span></span><span class="line"><span class="cl">		else \
+</span></span><span class="line"><span class="cl">				if (__lite) SNMP_INC_STATS_USER((net)-&gt;mib.udplite_stats_in6, field);  \
+</span></span><span class="line"><span class="cl">				else	    SNMP_INC_STATS_USER((net)-&gt;mib.udp_stats_in6, field);      \
+</span></span><span class="line"><span class="cl">	} while (0);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>显而易见，else无法匹配，代码完全错乱，无法编译通过。
 所以一般只要在宏定义中含有逻辑判断的情况，都要用do while去分割，这样比较安全，再修改代码也不需要会过头去重新匹配if else 等。</p>
 <h3 id="2-精简判断分支不使用goto语句">2. 精简判断分支（不使用goto语句）</h3>
 <p>比如如下代码</p>
-<pre><code>bool Execute()
-{
-	// 分配资源
-	int *p = new int;
-	bool bOk(true);// 执行并进行错误处理
-	bOk = func1();
-	if(!bOk) goto errorhandle;
-	bOk = func2();
-	if(!bOk) goto errorhandle;
-	bOk = func3();
-	if(!bOk) goto errorhandle;
-	// ..........
-
-	// 执行成功，释放资源并返回
-	delete p;
-	p = NULL;
-	return true;
-errorhandle:
-	delete p;
-	p = NULL;
-	return false;
-}
-
-</code></pre><p>虽然正确的使用<code>goto</code>可以大大提高程序的灵活性与简洁性，但太灵活的东西往往是很危险的，它会让我们的程序捉摸不定，那么怎么才能避免使用<code>goto</code>语句，又能消除代码冗余呢，请看<code>do…while(0)</code>循环：</p>
-<pre><code>bool Execute()
-{
-	// 分配资源
-	int *p = new int;bool bOk(true);
-	do
-	{
-		// 执行并进行错误处理
-		bOk = func1();
-		if(!bOk) break;
-		bOk = func2();
-		if(!bOk) break;
-		bOk = func3();
-		if(!bOk) break;
-		// ..........
-	}while(0);
-
-	// 释放资源
-	delete p;
-	p = NULL;
-	return bOk;
-}
-
-</code></pre><h3 id="参考文章">参考文章</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">bool Execute()
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	// 分配资源
+</span></span><span class="line"><span class="cl">	int *p = new int;
+</span></span><span class="line"><span class="cl">	bool bOk(true);// 执行并进行错误处理
+</span></span><span class="line"><span class="cl">	bOk = func1();
+</span></span><span class="line"><span class="cl">	if(!bOk) goto errorhandle;
+</span></span><span class="line"><span class="cl">	bOk = func2();
+</span></span><span class="line"><span class="cl">	if(!bOk) goto errorhandle;
+</span></span><span class="line"><span class="cl">	bOk = func3();
+</span></span><span class="line"><span class="cl">	if(!bOk) goto errorhandle;
+</span></span><span class="line"><span class="cl">	// ..........
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	// 执行成功，释放资源并返回
+</span></span><span class="line"><span class="cl">	delete p;
+</span></span><span class="line"><span class="cl">	p = NULL;
+</span></span><span class="line"><span class="cl">	return true;
+</span></span><span class="line"><span class="cl">errorhandle:
+</span></span><span class="line"><span class="cl">	delete p;
+</span></span><span class="line"><span class="cl">	p = NULL;
+</span></span><span class="line"><span class="cl">	return false;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>虽然正确的使用<code>goto</code>可以大大提高程序的灵活性与简洁性，但太灵活的东西往往是很危险的，它会让我们的程序捉摸不定，那么怎么才能避免使用<code>goto</code>语句，又能消除代码冗余呢，请看<code>do…while(0)</code>循环：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">bool Execute()
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	// 分配资源
+</span></span><span class="line"><span class="cl">	int *p = new int;bool bOk(true);
+</span></span><span class="line"><span class="cl">	do
+</span></span><span class="line"><span class="cl">	{
+</span></span><span class="line"><span class="cl">		// 执行并进行错误处理
+</span></span><span class="line"><span class="cl">		bOk = func1();
+</span></span><span class="line"><span class="cl">		if(!bOk) break;
+</span></span><span class="line"><span class="cl">		bOk = func2();
+</span></span><span class="line"><span class="cl">		if(!bOk) break;
+</span></span><span class="line"><span class="cl">		bOk = func3();
+</span></span><span class="line"><span class="cl">		if(!bOk) break;
+</span></span><span class="line"><span class="cl">		// ..........
+</span></span><span class="line"><span class="cl">	}while(0);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	// 释放资源
+</span></span><span class="line"><span class="cl">	delete p;
+</span></span><span class="line"><span class="cl">	p = NULL;
+</span></span><span class="line"><span class="cl">	return bOk;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="https://lp007819.wordpress.com/2011/03/17/%e5%86%85%e6%a0%b8%e4%bb%a3%e7%a0%81%e5%a5%87%e6%8a%80%e6%b7%ab%e5%b7%a7-dowhile-%e5%ae%8f/">https://lp007819.wordpress.com/2011/03/17/%e5%86%85%e6%a0%b8%e4%bb%a3%e7%a0%81%e5%a5%87%e6%8a%80%e6%b7%ab%e5%b7%a7-dowhile-%e5%ae%8f/</a></li>
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -289,7 +386,10 @@ errorhandle:
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2020-08-03</span>
+    <span class="item-content">
+        2020-08-03
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -297,33 +397,24 @@ errorhandle:
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
-      
-
+<footer class="post-footer">
       
       <nav class="post-nav">
-        
-          <a class="prev" href="/posts/001-how-to-start/">
+        <a class="prev" href="/posts/001-how-to-start/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">001-计算机是如何启动的</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/posts/x86-64-stack-layout-and-call-conventions/">
+        <a class="next" href="/posts/x86-64-stack-layout-and-call-conventions/">
             <span class="next-text nav-default">关于x86-64的栈布局和函数调用约定</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -337,6 +428,11 @@ errorhandle:
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -361,26 +457,24 @@ errorhandle:
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

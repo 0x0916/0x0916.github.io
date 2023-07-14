@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+<meta name="author" content="laoqinren" /><meta name="description" content="保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/009-protect-mode/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,32 +36,21 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="009-进入保护模式" />
 <meta property="og:description" content="保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/009-protect-mode/" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/009-protect-mode/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-02-27T13:57:08+08:00" />
 <meta property="article:modified_time" content="2021-02-27T13:57:08+08:00" />
 <meta itemprop="name" content="009-进入保护模式">
-<meta itemprop="description" content="保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。">
-<meta itemprop="datePublished" content="2021-02-27T13:57:08+08:00" />
+<meta itemprop="description" content="保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。"><meta itemprop="datePublished" content="2021-02-27T13:57:08+08:00" />
 <meta itemprop="dateModified" content="2021-02-27T13:57:08+08:00" />
-<meta itemprop="wordCount" content="3958">
-
-
-
-<meta itemprop="keywords" content="" />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="4057">
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="009-进入保护模式"/>
 <meta name="twitter:description" content="保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。"/>
 
@@ -108,12 +93,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -134,6 +128,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -147,41 +142,38 @@
       <div class="post-meta">
         <span class="post-time"> 2021-02-27 </span>
         
-        <span class="more-meta"> 3958 words </span>
-        <span class="more-meta"> 8 mins read </span>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#进入保护模式">进入保护模式</a>
+    <li>
       <ul>
-        <li><a href="#a20-地址线">A20 地址线</a></li>
-        <li><a href="#gdt-global-descriptor-table">GDT (Global Descriptor Table)</a></li>
-        <li><a href="#将处理器切换到保护模式">将处理器切换到保护模式</a></li>
-      </ul>
-    </li>
-    <li><a href="#示例">示例</a>
-      <ul>
-        <li><a href="#代码">代码</a></li>
-        <li><a href="#编译链接">编译链接</a></li>
-        <li><a href="#运行">运行</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li><a href="#进入保护模式">进入保护模式</a>
+          <ul>
+            <li><a href="#a20-地址线">A20 地址线</a></li>
+            <li><a href="#gdt-global-descriptor-table">GDT (Global Descriptor Table)</a></li>
+            <li><a href="#将处理器切换到保护模式">将处理器切换到保护模式</a></li>
+          </ul>
+        </li>
+        <li><a href="#示例">示例</a>
+          <ul>
+            <li><a href="#代码">代码</a></li>
+            <li><a href="#编译链接">编译链接</a></li>
+            <li><a href="#运行">运行</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>保护模式其实很简单，就是概念比较多，本就就跟大家一起讨论一下如何进入保护模式。</p>
 <h2 id="进入保护模式">进入保护模式</h2>
@@ -195,10 +187,19 @@
 <h3 id="a20-地址线">A20 地址线</h3>
 <p>众所周知，<code>8086</code>处理器有<code>20</code>根地址线，可访问的最大内存地址是<code>0xfffff</code>，即<code>1MB</code>。<code>32</code>位处理器具有<code>32</code>根地址线，可访问的最大内存地址是<code>0xffffffff</code>，即<code>4GB</code>。在<code>32</code>位处理器刚面世的时候并没有太多针对<code>32</code>位处理器开发的软件，更多的是为<code>8086</code>开发的软件，计算机制造商为了能够兼容这些软件，便想出了一个办法，在计算机启动后将第<code>21</code>根地址线，即<code>A20</code>，置为<code>0</code>。这样，当地址超过<code>0xfffff</code>后，由于第<code>21</code>根地址线为<code>0</code>，所以地址又会绕回到<code>0x00000</code>开始。从外表上看就好像是一个<code>16</code>位的处理器。</p>
 <p>现在，我们要做的就是打开<code>A20</code>，让处理器可以使用全部的<code>32</code>根地址线。打开<code>A20</code>的方法有很<a href="https://wiki.osdev.org/A20_Line">多种</a>，这里我们介绍一种被称为<code>Fast A20 Gate</code>的方法，通过读写<code>0x92</code>端口控制<code>A20</code>的开关。代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">inb</span> <span style="color:#66d9ef">$0x92</span>, %al    <span style="color:#75715e"># 读出原数
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">orb</span> <span style="color:#66d9ef">$0x2</span>, %al     <span style="color:#75715e"># 将第`2`位置为`1`
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">outb</span> %al, <span style="color:#66d9ef">$0x92</span>   <span style="color:#75715e"># 写入数据
-</span></code></pre></div><p>这样就打开了<code>A20</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="nf">inb</span> <span class="no">$0x92</span><span class="p">,</span> <span class="nv">%al</span>    <span class="c1"># 读出原数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">orb</span> <span class="no">$0x2</span><span class="p">,</span> <span class="nv">%al</span>     <span class="c1"># 将第`2`位置为`1`
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">outb</span> <span class="nv">%al</span><span class="p">,</span> <span class="no">$0x92</span>   <span class="c1"># 写入数据
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>这样就打开了<code>A20</code>。</p>
 <h3 id="gdt-global-descriptor-table">GDT (Global Descriptor Table)</h3>
 <p><code>GDT</code>即全局描述符表，<code>GDT</code>中的项被称为<strong>段描述符 (Segment Descriptor)</strong>。段描述符用于描述内存段，描述符中包含内存段的基地址、段界限和用于访问检测、数据保护的信息，每一个段描述符占据<code>8</code>个字节，每一个字节的图解如下：</p>
 <p><img src="./segment_descriptor.png" alt=""></p>
@@ -235,112 +236,228 @@
 <p>每一个描述符需要占据<code>8</code>个字节，显然我们不可能把描述符表全部保存在寄存器中，因为没有那么多的寄存器空间。所以全局描述符表是被放在内存中的，处理器中有一个<code>48</code>位的，专用于保存全局描述符表信息的寄存器 —— <strong>全局描述符表寄存器(GDTR)</strong>。其中低<code>16</code>位<code>(0~15)</code>表示<code>GDT</code>的边界，其值为表的长度减一，从<code>0</code>开始计，高<code>32</code>位<code>(16~47)</code>存放<code>GDT</code>在内存中的基地址。图示如下：</p>
 <p><img src="./gdtr.png" alt=""></p>
 <p>一旦准备好了<code>GDT</code>，就可以通过<code>lgdt</code>指令将其描述信息加载到<code>GDTR</code>中，指令格式如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">lgdt</span> <span style="color:#66d9ef">gdtdesc</span>  <span style="color:#75715e"># gdtdesc 是全局描述符表信息在内存中的地址
-</span></code></pre></div><h3 id="将处理器切换到保护模式">将处理器切换到保护模式</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="nf">lgdt</span> <span class="no">gdtdesc</span>  <span class="c1"># gdtdesc 是全局描述符表信息在内存中的地址
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="将处理器切换到保护模式">将处理器切换到保护模式</h3>
 <p>将处理器从实模式切换到保护模式非常的简单，只须将控制寄存器<code>cr0</code>的<code>PE</code>位置位即可。<code>cr0</code>寄存器每一位的含义如下：</p>
 <p><img src="./cr0.png" alt=""></p>
 <p>当处理器刚加电时，<code>PE</code>位，即保护模式允许位<code>(Protection Enable)</code>默认为<code>0</code>，表示处理器运行在实模式下，处理器的寻址，计算都按照实模式来。一旦<code>PE</code>位置为<code>1</code>，则处理器立刻切换到保护模式执行。这也意味着，我们必须在将处理器运行模式切换到保护模式之前设置好<code>全局描述符表</code>并开启<code>A20</code>。设置<code>PE</code>位的代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">movl</span> %cr0, %eax
-<span style="color:#a6e22e">orl</span> <span style="color:#66d9ef">$0x1</span>, %eax
-<span style="color:#a6e22e">movl</span> %eax, %cr0
-</code></pre></div><p>有了上面的理论知识，下面我们开始实战。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="nf">movl</span> <span class="nv">%cr0</span><span class="p">,</span> <span class="nv">%eax</span>
+</span></span><span class="line"><span class="cl"><span class="nf">orl</span> <span class="no">$0x1</span><span class="p">,</span> <span class="nv">%eax</span>
+</span></span><span class="line"><span class="cl"><span class="nf">movl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%cr0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>有了上面的理论知识，下面我们开始实战。</p>
 <h2 id="示例">示例</h2>
 <h3 id="代码">代码</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#75715e"># 分别定义了两个符号，值分别为0x08，0x10
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">.set</span> <span style="color:#66d9ef">PROT_MODE_CSEG</span>, <span style="color:#ae81ff">0x08</span>	<span style="color:#75715e"># code segment selector
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">.set</span> <span style="color:#66d9ef">PROT_MODE_DSEG</span>, <span style="color:#ae81ff">0x10</span>	<span style="color:#75715e"># data segment selector
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e"># 定义了一个全局可见的符号start
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">.global</span> <span style="color:#66d9ef">start</span>
-
-start:
-	<span style="color:#75715e"># 告诉编译器以16位模式编译，因为BIOS在加载并运行我们的代码时是处于16位实地址模式的
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">.code16</span>		<span style="color:#75715e"># 用伪指令.code16告诉汇编器下面的代码按照16位的格式汇编
-</span><span style="color:#75715e"></span>
-	<span style="color:#a6e22e">cli</span>		<span style="color:#75715e"># 用于关闭中断，因为我们还没有设置如何处理保护模式下的中断
-</span><span style="color:#75715e"></span>
-	<span style="color:#75715e"># Enable A20
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">inb</span>	<span style="color:#66d9ef">$0x92</span>, %al
-	<span style="color:#a6e22e">orb</span>	<span style="color:#66d9ef">$0x2</span>, %al
-	<span style="color:#a6e22e">outb</span>	%al, <span style="color:#66d9ef">$0x92</span>
-
-	<span style="color:#75715e"># Load GDT
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">lgdt</span>	<span style="color:#66d9ef">gdtdesc</span>
-
-	<span style="color:#75715e"># Switch from real to protected mode
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movl</span>	%cr0, %eax
-	<span style="color:#a6e22e">orl</span>	<span style="color:#66d9ef">$0x1</span>, %eax
-	<span style="color:#a6e22e">movl</span>	%eax, %cr0
-
-	<span style="color:#75715e"># Jump into 32-bit protected mode
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ljmp</span> <span style="color:#66d9ef">$PROT_MODE_CSEG</span>, <span style="color:#66d9ef">$protcseg</span>		<span style="color:#75715e"># 使用ljmp长跳转指令跳转到保护模式代码段中
-</span><span style="color:#75715e"></span>
-	<span style="color:#a6e22e">.code32</span>					<span style="color:#75715e"># 伪指令.code32告诉汇编器，之后的指令都按照32位格式编译。
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">protcseg</span>:
-	<span style="color:#a6e22e">movw</span>	<span style="color:#66d9ef">$PROT_MODE_DSEG</span>, %ax
-	<span style="color:#a6e22e">movw</span>	%ax, %ds
-	<span style="color:#75715e"># 向数据段，即显存对应的内存段写入数据以显示字符
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">H</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">0</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">1</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">e</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">2</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">3</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">l</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">4</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">5</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">l</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">6</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">7</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">o</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">8</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">9</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span>,<span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">10</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">11</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">W</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">12</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">13</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">o</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">14</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">15</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">r</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">16</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">17</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">l</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">18</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">19</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">d</span><span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">20</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">21</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$</span><span style="color:#960050;background-color:#1e0010">&#39;</span>!<span style="color:#960050;background-color:#1e0010">&#39;</span>, <span style="color:#ae81ff">22</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#66d9ef">$0x0a</span>, <span style="color:#ae81ff">23</span>
-
-	<span style="color:#a6e22e">hlt</span>			<span style="color:#75715e"># hlt使处理器暂停。
-</span><span style="color:#75715e"></span>
-<span style="color:#a6e22e">.p2align</span> <span style="color:#ae81ff">2</span>			<span style="color:#75715e"># 伪指令.p2align 2强制4字节对齐。
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">gdt</span>:
-	<span style="color:#a6e22e">.quad</span>	<span style="color:#ae81ff">0x0</span>		<span style="color:#75715e"># 处理器规定的空描述符。
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">.quad</span>	<span style="color:#ae81ff">0x00cf98000000ffff</span>
-	<span style="color:#a6e22e">.quad</span>	<span style="color:#ae81ff">0x0040920b8000ffff</span>
-
-<span style="color:#75715e"># gdtdesc定义，其中低16位是GDT的长度减一，高32位是GDT的基地址。
-</span><span style="color:#75715e"></span>gdtdesc:
-	<span style="color:#a6e22e">.word</span>	<span style="color:#66d9ef">gdtdesc-gdt</span> -<span style="color:#ae81ff">1</span>
-	<span style="color:#a6e22e">.long</span>	<span style="color:#66d9ef">gdt</span>
-
-	<span style="color:#75715e"># .org伪指令指示编译器把位置计数器移动到操作数所指定的位置，这里是将位置计数器移动到510处
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">.org</span>	<span style="color:#ae81ff">510</span>
-	<span style="color:#75715e"># .word伪指令指示编译器在当前位置写入一个字大小的数据
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">.word</span>	<span style="color:#ae81ff">0xaa55</span>
-</code></pre></div><p>实模式下，段寄存器<code>cs、ds、es、ss</code>中保存的是<code>16</code>位的段基地址。保护模式下，段寄存器中保存的就不是段基地址了，而是<strong>段选择子</strong>，并且每个段寄存器还包含了一个<code>64</code>位的不可见部分，被称为<strong>描述符高速缓存器</strong>，如下图：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span><span class="lnt">83
+</span><span class="lnt">84
+</span><span class="lnt">85
+</span><span class="lnt">86
+</span><span class="lnt">87
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="c1"># 分别定义了两个符号，值分别为0x08，0x10
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="na">.set</span> <span class="no">PROT_MODE_CSEG</span><span class="p">,</span> <span class="mi">0x08</span>	<span class="c1"># code segment selector
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="na">.set</span> <span class="no">PROT_MODE_DSEG</span><span class="p">,</span> <span class="mi">0x10</span>	<span class="c1"># data segment selector
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 定义了一个全局可见的符号start
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="na">.global</span> <span class="no">start</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nl">start:</span>
+</span></span><span class="line"><span class="cl">	<span class="c1"># 告诉编译器以16位模式编译，因为BIOS在加载并运行我们的代码时是处于16位实地址模式的
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="na">.code16</span>		<span class="c1"># 用伪指令.code16告诉汇编器下面的代码按照16位的格式汇编
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="nf">cli</span>		<span class="c1"># 用于关闭中断，因为我们还没有设置如何处理保护模式下的中断
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="c1"># Enable A20
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">inb</span>	<span class="no">$0x92</span><span class="p">,</span> <span class="nv">%al</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">orb</span>	<span class="no">$0x2</span><span class="p">,</span> <span class="nv">%al</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">outb</span>	<span class="nv">%al</span><span class="p">,</span> <span class="no">$0x92</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1"># Load GDT
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">lgdt</span>	<span class="no">gdtdesc</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1"># Switch from real to protected mode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">movl</span>	<span class="nv">%cr0</span><span class="p">,</span> <span class="nv">%eax</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">orl</span>	<span class="no">$0x1</span><span class="p">,</span> <span class="nv">%eax</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movl</span>	<span class="nv">%eax</span><span class="p">,</span> <span class="nv">%cr0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1"># Jump into 32-bit protected mode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">ljmp</span> <span class="no">$PROT_MODE_CSEG</span><span class="p">,</span> <span class="no">$protcseg</span>		<span class="c1"># 使用ljmp长跳转指令跳转到保护模式代码段中
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="na">.code32</span>					<span class="c1"># 伪指令.code32告诉汇编器，之后的指令都按照32位格式编译。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nl">protcseg:</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movw</span>	<span class="no">$PROT_MODE_DSEG</span><span class="p">,</span> <span class="nv">%ax</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movw</span>	<span class="nv">%ax</span><span class="p">,</span> <span class="nv">%ds</span>
+</span></span><span class="line"><span class="cl">	<span class="c1"># 向数据段，即显存对应的内存段写入数据以显示字符
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">H</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">e</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">2</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">3</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">l</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">4</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">5</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">l</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">6</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">7</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">o</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">8</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">9</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="p">,</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">10</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">11</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">W</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">12</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">13</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">o</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">14</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">15</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">r</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">16</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">17</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">l</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">18</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">19</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="no">d</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">20</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">21</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$</span><span class="err">&#39;</span><span class="p">!</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">22</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">movb</span>	<span class="no">$0x0a</span><span class="p">,</span> <span class="mi">23</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">hlt</span>			<span class="c1"># hlt使处理器暂停。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="na">.p2align</span> <span class="mi">2</span>			<span class="c1"># 伪指令.p2align 2强制4字节对齐。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nl">gdt:</span>
+</span></span><span class="line"><span class="cl">	<span class="na">.quad</span>	<span class="mi">0x0</span>		<span class="c1"># 处理器规定的空描述符。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="na">.quad</span>	<span class="mi">0x00cf98000000ffff</span>
+</span></span><span class="line"><span class="cl">	<span class="na">.quad</span>	<span class="mi">0x0040920b8000ffff</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># gdtdesc定义，其中低16位是GDT的长度减一，高32位是GDT的基地址。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nl">gdtdesc:</span>
+</span></span><span class="line"><span class="cl">	<span class="na">.word</span>	<span class="no">gdtdesc-gdt</span> <span class="p">-</span><span class="mi">1</span>
+</span></span><span class="line"><span class="cl">	<span class="na">.long</span>	<span class="no">gdt</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1"># .org伪指令指示编译器把位置计数器移动到操作数所指定的位置，这里是将位置计数器移动到510处
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="na">.org</span>	<span class="mi">510</span>
+</span></span><span class="line"><span class="cl">	<span class="c1"># .word伪指令指示编译器在当前位置写入一个字大小的数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="na">.word</span>	<span class="mi">0xaa55</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>实模式下，段寄存器<code>cs、ds、es、ss</code>中保存的是<code>16</code>位的段基地址。保护模式下，段寄存器中保存的就不是段基地址了，而是<strong>段选择子</strong>，并且每个段寄存器还包含了一个<code>64</code>位的不可见部分，被称为<strong>描述符高速缓存器</strong>，如下图：</p>
 <p><img src="./descriptor_cache.jpg" alt=""></p>
 <p><strong>描述符高速缓存器</strong>中保存的就是我们在描述符表中定义的段的信息，而<strong>段选择子</strong>就是用于在描述符表中定位描述符的。段选择子也是<code>16</code>位的，其格式如下：</p>
 <p><img src="./segment_selector.jpg" alt=""></p>
 <p>这<code>16</code>位的信息分为三部分，第<code>0、1</code>位是<code>RPL（请求特权级）</code>，表示给出当前选择子的程序的特权级别，用于处理器固件校验权限。第<code>2</code>位是<code>TI</code>位，用于标识所需要的段描述符在<code>GDT</code>还是<code>LDT</code>中，<code>GDT</code>我们之前介绍过，<code>LDT</code>是<strong>局部描述符表</strong>，和<code>GDT</code>类似。当<code>TI</code>位为<code>0</code>时表示在<code>GDT</code>中取描述符，为<code>1</code>时表示在<code>LDT</code>中取描述符。第<code>3~15</code>位时<strong>索引</strong>，如果把描述符表看作一个数组的话，这里的索引就相当于数组的下标。因为每个描述符占<code>8</code>个字节，所以处理器拿到索引后先将其乘以<code>8</code>，在以得到的结果为偏移量到描述符表中获取相应的描述符。</p>
 <p>以<code>PROT_MODE_CSEG</code>为例，其值为<code>0x08</code>，对应二进制<code>0000000000001_0_00</code>，根据上面的知识就很好理解了。<code>RPL</code>为<code>0</code>，表示最高特权级；<code>TI</code>为<code>0</code>，表示请求的描述符在<code>GDT</code>中；<code>Index</code>为<code>1</code>，<code>1 * 8 = 8</code>，表示该描述符相对于描述符表的基地址偏移量为<code>8</code>，即描述符表中的第二个描述符。为什么不用第一个描述符呢？这是因为<code>Intel</code>规定，全局描述符表中的第一个描述符必须为<strong>空描述符</strong>，即<code>8</code>个字节全为<code>0</code>，所以我们能使用的描述符只能从第二个开始了。我们将段选择子<code>0x08</code>指向的描述符表示的段做为代码段，其定义在第<code>50</code>行，如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">.quad</span> <span style="color:#ae81ff">0x00cf98000000ffff</span>
-</code></pre></div><p>为了简单，在这里我们直接写入了<code>64</code>位的数据。将这<code>64</code>位的数据按照段描述符的格式拆解可得：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="na">.quad</span> <span class="mi">0x00cf98000000ffff</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>为了简单，在这里我们直接写入了<code>64</code>位的数据。将这<code>64</code>位的数据按照段描述符的格式拆解可得：</p>
 <ul>
 <li><code>Base 31_24: 00</code></li>
 <li><code>G: 1</code></li>
@@ -372,8 +489,15 @@ start:
 <p>其中段界限为<code>0xfffff</code>，粒度为<code>4KB</code>，段界限与粒度相乘可得上限为<code>4GB</code>。基地址为<code>0x0</code>，所以这个描述符表示的范围是全部的<code>4GB</code>内存空间。</p>
 <p>第<code>25</code>行，伪指令<code>.code32</code>告诉汇编器，之后的指令都按照<code>32</code>位格式编译。</p>
 <p>第<code>27、28</code>行，我们将数据段设置为选择子<code>PROT_MODE_DSEG</code>，值为<code>0x10</code>，对应的描述符定义在第<code>51</code>行，如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">.quad</span> <span style="color:#ae81ff">0x0040920b8000ffff</span>
-</code></pre></div><p>拆解可得：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="na">.quad</span> <span class="mi">0x0040920b8000ffff</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>拆解可得：</p>
 <ul>
 <li><code>Base: 0x000b8000</code></li>
 <li><code>Limit: 0x0ffff</code></li>
@@ -388,9 +512,17 @@ start:
 </ul>
 <p>基地址<code>0xb8000</code>对应显存的起始地址，段界限<code>0xffff * 1 = 0xffff</code>，即<code>64KB</code>。</p>
 <h3 id="编译链接">编译链接</h3>
-<pre><code># as --32 boot.s -o boot.o
-# ld -e start -Ttext=0x7c00 -m elf_i386 --oformat binary boot.o -o boot.bin
-</code></pre><p>这次我们使用了链接器<code>ld</code>而不是<code>objcopy</code>制作最终的启动文件。其参数含义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># as --32 boot.s -o boot.o
+</span></span><span class="line"><span class="cl"># ld -e start -Ttext=0x7c00 -m elf_i386 --oformat binary boot.o -o boot.bin
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这次我们使用了链接器<code>ld</code>而不是<code>objcopy</code>制作最终的启动文件。其参数含义如下：</p>
 <ul>
 <li><code>-e</code> 指定程序入口点为<code>start</code>，这是我们在代码里导出的符号</li>
 <li><code>-T</code> 指定代码段<code>(text)</code>的地址为<code>0x7c00</code></li>
@@ -398,8 +530,15 @@ start:
 <li><code>--oformat binary</code> 指定生成纯二进制的文件</li>
 </ul>
 <h3 id="运行">运行</h3>
-<pre><code># qemu-system-i386 boot.bin
-</code></pre><p>此时运行情况如下：
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># qemu-system-i386 boot.bin
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>此时运行情况如下：
 <img src="./protect-mode.png" alt=""></p>
 <p>我们在<code>qemu</code>的控制台上，输入<code>info registers</code>查看寄存器的状态。</p>
 <p><img src="./register.png" alt=""></p>
@@ -409,7 +548,6 @@ start:
 <h3 id="参考文章">参考文章</h3>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -417,7 +555,10 @@ start:
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2021-02-27</span>
+    <span class="item-content">
+        2021-02-27
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -425,33 +566,24 @@ start:
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
-      
-
+<footer class="post-footer">
       
       <nav class="post-nav">
-        
-          <a class="prev" href="/posts/012-bootloader-with-elf-kernel/">
+        <a class="prev" href="/posts/012-bootloader-with-elf-kernel/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">012-可以加载ELF格式内核的Bootloader</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/posts/008-interrupt/">
+        <a class="next" href="/posts/008-interrupt/">
             <span class="next-text nav-default">008-中断</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -465,6 +597,11 @@ start:
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -489,26 +626,24 @@ start:
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
+<meta name="author" content="laoqinren" /><meta name="description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
 本文将介绍kprobe的用法和解析其工作原理。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/linux-kprobe/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,34 +37,23 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="Linux内核跟踪技术之——kprobe技术" />
 <meta property="og:description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
 本文将介绍kprobe的用法和解析其工作原理。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/linux-kprobe/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/linux-kprobe/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2020-08-30T10:08:20+08:00" />
 <meta property="article:modified_time" content="2020-08-30T10:08:20+08:00" />
 <meta itemprop="name" content="Linux内核跟踪技术之——kprobe技术">
 <meta itemprop="description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
-本文将介绍kprobe的用法和解析其工作原理。">
-<meta itemprop="datePublished" content="2020-08-30T10:08:20+08:00" />
+本文将介绍kprobe的用法和解析其工作原理。"><meta itemprop="datePublished" content="2020-08-30T10:08:20+08:00" />
 <meta itemprop="dateModified" content="2020-08-30T10:08:20+08:00" />
-<meta itemprop="wordCount" content="3603">
-
-
-
-<meta itemprop="keywords" content="kernel,linux," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="3642">
+<meta itemprop="keywords" content="kernel,linux," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux内核跟踪技术之——kprobe技术"/>
 <meta name="twitter:description" content="Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。
 本文将介绍kprobe的用法和解析其工作原理。"/>
@@ -112,12 +97,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -138,6 +132,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -151,38 +146,33 @@
       <div class="post-meta">
         <span class="post-time"> 2020-08-30 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-          </div>
-        <span class="more-meta"> 3603 words </span>
-        <span class="more-meta"> 8 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#kprobe是什么">kprobe是什么？</a></li>
-        <li><a href="#kprobe的使用方法">kprobe的使用方法</a></li>
-        <li><a href="#kprobe的工作原理">kprobe的工作原理</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#kprobe是什么">kprobe是什么？</a></li>
+            <li><a href="#kprobe的使用方法">kprobe的使用方法</a></li>
+            <li><a href="#kprobe的工作原理">kprobe的工作原理</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>Linux kprobes调试技术是内核开发者们专门为了便于跟踪内核函数执行状态所设计的一种轻量级内核调试技术。利用kprobes技术，内核开发人员可以在内核的绝大多数指定函数中动态的插入探测点来收集所需的调试状态信息而基本不影响内核原有的执行流程。</p>
 <p>本文将介绍kprobe的用法和解析其工作原理。</p>
@@ -247,51 +237,110 @@
 <h4 id="x86_64下kprobe的分析">x86_64下kprobe的分析</h4>
 <p>我们以内核代码中的<a href="https://github.com/torvalds/linux/blob/master/samples/kprobes/kprobe_example.c">samples/kprobes/kprobe_example.c</a>为例</p>
 <p>该模块默认的探测点是：<code>_do_fork</code>这个内核函数，再插入模块前，<code>_do_fork</code>处的代码指令为：</p>
-<pre><code>crash&gt; dis _do_fork
-0xffffffffa30af440 &lt;_do_fork&gt;:  nopl   0x0(%rax,%rax,1) [FTRACE NOP]
-0xffffffffa30af445 &lt;_do_fork+5&gt;:        push   %r15
-0xffffffffa30af447 &lt;_do_fork+7&gt;:        mov    %rdi,%r15
-0xffffffffa30af44a &lt;_do_fork+10&gt;:       push   %r14
-0xffffffffa30af44c &lt;_do_fork+12&gt;:       push   %r13
-0xffffffffa30af44e &lt;_do_fork+14&gt;:       push   %r12
-0xffffffffa30af450 &lt;_do_fork+16&gt;:       push   %rbp
-0xffffffffa30af451 &lt;_do_fork+17&gt;:       xor    %ebp,%ebp
-0xffffffffa30af453 &lt;_do_fork+19&gt;:       push   %rbx
-0xffffffffa30af454 &lt;_do_fork+20&gt;:       sub    $0x30,%rsp
-0xffffffffa30af458 &lt;_do_fork+24&gt;:       mov    %rcx,(%rsp)
-0xffffffffa30af45c &lt;_do_fork+28&gt;:       mov    %r8,%rcx
-0xffffffffa30af45f &lt;_do_fork+31&gt;:       mov    %gs:0x28,%rax
-0xffffffffa30af468 &lt;_do_fork+40&gt;:       mov    %rax,0x28(%rsp)
-0xffffffffa30af46d &lt;_do_fork+45&gt;:       xor    %eax,%eax
-0xffffffffa30af46f &lt;_do_fork+47&gt;:       test   $0x800000,%edi
-0xffffffffa30af475 &lt;_do_fork+53&gt;:       jne    0xffffffffa30af4ba &lt;_do_fork+122&gt;
-0xffffffffa30af477 &lt;_do_fork+55&gt;:       test   $0x4000,%edi
-0xffffffffa30af47d &lt;_do_fork+61&gt;:       jne    0xffffffffa30af5bc &lt;_do_fork+380&gt;
-</code></pre><p>我们可以看到，默认情况下：<code>_do_fork</code>的位置是<code>nopl   0x0(%rax,%rax,1)</code>指令，这个跟FTRACE有关系。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; dis _do_fork
+</span></span><span class="line"><span class="cl">0xffffffffa30af440 &lt;_do_fork&gt;:  nopl   0x0(%rax,%rax,1) [FTRACE NOP]
+</span></span><span class="line"><span class="cl">0xffffffffa30af445 &lt;_do_fork+5&gt;:        push   %r15
+</span></span><span class="line"><span class="cl">0xffffffffa30af447 &lt;_do_fork+7&gt;:        mov    %rdi,%r15
+</span></span><span class="line"><span class="cl">0xffffffffa30af44a &lt;_do_fork+10&gt;:       push   %r14
+</span></span><span class="line"><span class="cl">0xffffffffa30af44c &lt;_do_fork+12&gt;:       push   %r13
+</span></span><span class="line"><span class="cl">0xffffffffa30af44e &lt;_do_fork+14&gt;:       push   %r12
+</span></span><span class="line"><span class="cl">0xffffffffa30af450 &lt;_do_fork+16&gt;:       push   %rbp
+</span></span><span class="line"><span class="cl">0xffffffffa30af451 &lt;_do_fork+17&gt;:       xor    %ebp,%ebp
+</span></span><span class="line"><span class="cl">0xffffffffa30af453 &lt;_do_fork+19&gt;:       push   %rbx
+</span></span><span class="line"><span class="cl">0xffffffffa30af454 &lt;_do_fork+20&gt;:       sub    $0x30,%rsp
+</span></span><span class="line"><span class="cl">0xffffffffa30af458 &lt;_do_fork+24&gt;:       mov    %rcx,(%rsp)
+</span></span><span class="line"><span class="cl">0xffffffffa30af45c &lt;_do_fork+28&gt;:       mov    %r8,%rcx
+</span></span><span class="line"><span class="cl">0xffffffffa30af45f &lt;_do_fork+31&gt;:       mov    %gs:0x28,%rax
+</span></span><span class="line"><span class="cl">0xffffffffa30af468 &lt;_do_fork+40&gt;:       mov    %rax,0x28(%rsp)
+</span></span><span class="line"><span class="cl">0xffffffffa30af46d &lt;_do_fork+45&gt;:       xor    %eax,%eax
+</span></span><span class="line"><span class="cl">0xffffffffa30af46f &lt;_do_fork+47&gt;:       test   $0x800000,%edi
+</span></span><span class="line"><span class="cl">0xffffffffa30af475 &lt;_do_fork+53&gt;:       jne    0xffffffffa30af4ba &lt;_do_fork+122&gt;
+</span></span><span class="line"><span class="cl">0xffffffffa30af477 &lt;_do_fork+55&gt;:       test   $0x4000,%edi
+</span></span><span class="line"><span class="cl">0xffffffffa30af47d &lt;_do_fork+61&gt;:       jne    0xffffffffa30af5bc &lt;_do_fork+380&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们可以看到，默认情况下：<code>_do_fork</code>的位置是<code>nopl   0x0(%rax,%rax,1)</code>指令，这个跟FTRACE有关系。</p>
 <p>注册kprobe后，指令为<code>callq  0xffffffffc02ea000</code></p>
-<pre><code>crash&gt; dis _do_fork
-0xffffffffa30af440 &lt;_do_fork&gt;:  callq  0xffffffffc02ea000
-0xffffffffa30af445 &lt;_do_fork+5&gt;:        push   %r15
-0xffffffffa30af447 &lt;_do_fork+7&gt;:        mov    %rdi,%r15
-0xffffffffa30af44a &lt;_do_fork+10&gt;:       push   %r14
-0xffffffffa30af44c &lt;_do_fork+12&gt;:       push   %r13
-0xffffffffa30af44e &lt;_do_fork+14&gt;:       push   %r12
-0xffffffffa30af450 &lt;_do_fork+16&gt;:       push   %rbp
-0xffffffffa30af451 &lt;_do_fork+17&gt;:       xor    %ebp,%ebp
-0xffffffffa30af453 &lt;_do_fork+19&gt;:       push   %rbx
-0xffffffffa30af454 &lt;_do_fork+20&gt;:       sub    $0x30,%rsp
-0xffffffffa30af458 &lt;_do_fork+24&gt;:       mov    %rcx,(%rsp)
-0xffffffffa30af45c &lt;_do_fork+28&gt;:       mov    %r8,%rcx
-0xffffffffa30af45f &lt;_do_fork+31&gt;:       mov    %gs:0x28,%rax
-0xffffffffa30af468 &lt;_do_fork+40&gt;:       mov    %rax,0x28(%rsp)
-0xffffffffa30af46d &lt;_do_fork+45&gt;:       xor    %eax,%eax
-0xffffffffa30af46f &lt;_do_fork+47&gt;:       test   $0x800000,%edi
-</code></pre><p>这里不是上面提到的int3指令，是因为和ftrace有关系，有机会再深入分析。不过我们可以看到，探测点的位置被保存到了kprobe结构体中：</p>
-<pre><code>crash&gt; kprobe.addr 0xffffffffc0998000
-  addr = 0xffffffffa30af440 &quot;軫#\035AWI\211\377AVAUATU1\355SH\203\354\060H\211\f$L\211\301eH\213\004%(&quot;
-crash&gt;  sym 0xffffffffa30af440
-ffffffffa30af440 (T) _do_fork /usr/src/debug/kernel-4.18.0-147.0.3.el8_1/linux-4.18.0-147.mt20200626.413.el8_1.x86_64/kernel/fork.c: 2219
-</code></pre><h3 id="参考文章">参考文章</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; dis _do_fork
+</span></span><span class="line"><span class="cl">0xffffffffa30af440 &lt;_do_fork&gt;:  callq  0xffffffffc02ea000
+</span></span><span class="line"><span class="cl">0xffffffffa30af445 &lt;_do_fork+5&gt;:        push   %r15
+</span></span><span class="line"><span class="cl">0xffffffffa30af447 &lt;_do_fork+7&gt;:        mov    %rdi,%r15
+</span></span><span class="line"><span class="cl">0xffffffffa30af44a &lt;_do_fork+10&gt;:       push   %r14
+</span></span><span class="line"><span class="cl">0xffffffffa30af44c &lt;_do_fork+12&gt;:       push   %r13
+</span></span><span class="line"><span class="cl">0xffffffffa30af44e &lt;_do_fork+14&gt;:       push   %r12
+</span></span><span class="line"><span class="cl">0xffffffffa30af450 &lt;_do_fork+16&gt;:       push   %rbp
+</span></span><span class="line"><span class="cl">0xffffffffa30af451 &lt;_do_fork+17&gt;:       xor    %ebp,%ebp
+</span></span><span class="line"><span class="cl">0xffffffffa30af453 &lt;_do_fork+19&gt;:       push   %rbx
+</span></span><span class="line"><span class="cl">0xffffffffa30af454 &lt;_do_fork+20&gt;:       sub    $0x30,%rsp
+</span></span><span class="line"><span class="cl">0xffffffffa30af458 &lt;_do_fork+24&gt;:       mov    %rcx,(%rsp)
+</span></span><span class="line"><span class="cl">0xffffffffa30af45c &lt;_do_fork+28&gt;:       mov    %r8,%rcx
+</span></span><span class="line"><span class="cl">0xffffffffa30af45f &lt;_do_fork+31&gt;:       mov    %gs:0x28,%rax
+</span></span><span class="line"><span class="cl">0xffffffffa30af468 &lt;_do_fork+40&gt;:       mov    %rax,0x28(%rsp)
+</span></span><span class="line"><span class="cl">0xffffffffa30af46d &lt;_do_fork+45&gt;:       xor    %eax,%eax
+</span></span><span class="line"><span class="cl">0xffffffffa30af46f &lt;_do_fork+47&gt;:       test   $0x800000,%edi
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里不是上面提到的int3指令，是因为和ftrace有关系，有机会再深入分析。不过我们可以看到，探测点的位置被保存到了kprobe结构体中：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; kprobe.addr 0xffffffffc0998000
+</span></span><span class="line"><span class="cl">  addr = 0xffffffffa30af440 &#34;軫#\035AWI\211\377AVAUATU1\355SH\203\354\060H\211\f$L\211\301eH\213\004%(&#34;
+</span></span><span class="line"><span class="cl">crash&gt;  sym 0xffffffffa30af440
+</span></span><span class="line"><span class="cl">ffffffffa30af440 (T) _do_fork /usr/src/debug/kernel-4.18.0-147.0.3.el8_1/linux-4.18.0-147.mt20200626.413.el8_1.x86_64/kernel/fork.c: 2219
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="https://www.cnblogs.com/honpey/p/4575928.html">https://www.cnblogs.com/honpey/p/4575928.html</a></li>
 <li><a href="https://www.cnblogs.com/honpey/p/4575902.html">https://www.cnblogs.com/honpey/p/4575902.html</a></li>
@@ -300,7 +349,6 @@ ffffffffa30af440 (T) _do_fork /usr/src/debug/kernel-4.18.0-147.0.3.el8_1/linux-4
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -308,7 +356,10 @@ ffffffffa30af440 (T) _do_fork /usr/src/debug/kernel-4.18.0-147.0.3.el8_1/linux-4
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2020-08-30</span>
+    <span class="item-content">
+        2020-08-30
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -316,34 +367,23 @@ ffffffffa30af440 (T) _do_fork /usr/src/debug/kernel-4.18.0-147.0.3.el8_1/linux-4
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
         
-        
-          <a class="next" href="/kernel/how-to-user-__kernel__/">
-            <span class="next-text nav-default">__KERNEL__宏的作用是什么呢？该如何使用呢？</span>
-            <span class="prev-text nav-mobile">Next</span>
+        <a class="next" href="/kernel/linux-timer/">
+            <span class="next-text nav-default">Linux时间子系统之低精度定时器(Timer)</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -357,6 +397,11 @@ ffffffffa30af440 (T) _do_fork /usr/src/debug/kernel-4.18.0-147.0.3.el8_1/linux-4
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -381,26 +426,24 @@ ffffffffa30af440 (T) _do_fork /usr/src/debug/kernel-4.18.0-147.0.3.el8_1/linux-4
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

@@ -16,24 +16,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。
+<meta name="author" content="laoqinren" /><meta name="description" content="cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。
 这些文件包括：
- notify_on_release release_agent cgroup.procs tasks cgroup.clone_children cgroup.event_control cgroup.sane_behavior   注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+notify_on_release release_agent cgroup.procs tasks cgroup.clone_children cgroup.event_control cgroup.sane_behavior 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-default-file/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -42,14 +38,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="cgroup源码分析6——cgroup 中默认控制文件的内核实现分析" />
@@ -68,7 +58,7 @@ cgroup.sane_behavior
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-default-file/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-default-file/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2018-08-26T10:09:56+08:00" />
 <meta property="article:modified_time" content="2018-08-26T10:09:56+08:00" />
 <meta itemprop="name" content="cgroup源码分析6——cgroup 中默认控制文件的内核实现分析">
@@ -85,15 +75,10 @@ cgroup.sane_behavior
 
 
 注意：本文分析中引用的代码来自于centos系统自带的内核：kernel-3.10.0-862.9.1.el7
-">
-<meta itemprop="datePublished" content="2018-08-26T10:09:56+08:00" />
+"><meta itemprop="datePublished" content="2018-08-26T10:09:56+08:00" />
 <meta itemprop="dateModified" content="2018-08-26T10:09:56+08:00" />
-<meta itemprop="wordCount" content="3362">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,cgroup," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="3673">
+<meta itemprop="keywords" content="kernel,linux,cgroup," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="cgroup源码分析6——cgroup 中默认控制文件的内核实现分析"/>
 <meta name="twitter:description" content="cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。
 这些文件包括：
@@ -149,12 +134,21 @@ cgroup.sane_behavior
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -175,6 +169,7 @@ cgroup.sane_behavior
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -188,43 +183,37 @@ cgroup.sane_behavior
       <div class="post-meta">
         <span class="post-time"> 2018-08-26 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-              <a href="/categories/cgroup/"> cgroup </a>
-            
-          </div>
-        <span class="more-meta"> 3362 words </span>
-        <span class="more-meta"> 7 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            <a href="/categories/cgroup/"> cgroup </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#notify_on_release">notify_on_release</a></li>
-        <li><a href="#release_agent">release_agent</a></li>
-        <li><a href="#cgroupprocs-和tasks">cgroup.procs 和tasks</a></li>
-        <li><a href="#cgroupclone_children">cgroup.clone_children</a></li>
-        <li><a href="#cgroupevent_control">cgroup.event_control</a></li>
-        <li><a href="#cgroupsane_behavior">cgroup.sane_behavior</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#notify_on_release">notify_on_release</a></li>
+            <li><a href="#release_agent">release_agent</a></li>
+            <li><a href="#cgroupprocs-和tasks">cgroup.procs 和tasks</a></li>
+            <li><a href="#cgroupclone_children">cgroup.clone_children</a></li>
+            <li><a href="#cgroupevent_control">cgroup.event_control</a></li>
+            <li><a href="#cgroupsane_behavior">cgroup.sane_behavior</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>cgroup中有一些默认的文件，本文详细分析了这些文件背后的内核实现细节，以便更深入的理解cgroup。</p>
 <p>这些文件包括：</p>
@@ -242,244 +231,497 @@ cgroup.sane_behavior
 </blockquote>
 <h3 id="notify_on_release">notify_on_release</h3>
 <p><code>notify_on_release</code>接口在每个cgroup都存在，对其读写本质上是修改该<code>cgroup-&gt;flags</code>的<code>CGRP_NOTIFY_ON_RELEASE</code>, 后续cgroup释放时，会根据该flags进行相应的操作。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> cftype files[] <span style="color:#f92672">=</span> {
-	... 
-	... 
-	{
-                .name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;notify_on_release&#34;</span>,
-                .read_u64 <span style="color:#f92672">=</span> cgroup_read_notify_on_release,
-                .write_u64 <span style="color:#f92672">=</span> cgroup_write_notify_on_release,
-        },
-	... 
-	... 
-	{}
-};
-
-<span style="color:#66d9ef">static</span> u64 <span style="color:#a6e22e">cgroup_read_notify_on_release</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp,
-                                            <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft)
-{
-        <span style="color:#66d9ef">return</span> notify_on_release(cgrp);
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_write_notify_on_release</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp,
-                                          <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft,
-                                          u64 val)
-{
-        clear_bit(CGRP_RELEASABLE, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>flags);
-        <span style="color:#66d9ef">if</span> (val)
-                set_bit(CGRP_NOTIFY_ON_RELEASE, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>flags);
-        <span style="color:#66d9ef">else</span>
-                clear_bit(CGRP_NOTIFY_ON_RELEASE, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>flags);
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-</code></pre></div><p>从<code>cgroup_write_notify_on_release</code>可以看出:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">cftype</span> <span class="n">files</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span> 
+</span></span><span class="line"><span class="cl">	<span class="p">...</span> 
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;notify_on_release&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="p">.</span><span class="n">read_u64</span> <span class="o">=</span> <span class="n">cgroup_read_notify_on_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="p">.</span><span class="n">write_u64</span> <span class="o">=</span> <span class="n">cgroup_write_notify_on_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span> 
+</span></span><span class="line"><span class="cl">	<span class="p">...</span> 
+</span></span><span class="line"><span class="cl">	<span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="n">u64</span> <span class="nf">cgroup_read_notify_on_release</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                            <span class="k">struct</span> <span class="n">cftype</span> <span class="o">*</span><span class="n">cft</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">notify_on_release</span><span class="p">(</span><span class="n">cgrp</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">cgroup_write_notify_on_release</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                          <span class="k">struct</span> <span class="n">cftype</span> <span class="o">*</span><span class="n">cft</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                          <span class="n">u64</span> <span class="n">val</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">clear_bit</span><span class="p">(</span><span class="n">CGRP_RELEASABLE</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">val</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">set_bit</span><span class="p">(</span><span class="n">CGRP_NOTIFY_ON_RELEASE</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">clear_bit</span><span class="p">(</span><span class="n">CGRP_NOTIFY_ON_RELEASE</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>从<code>cgroup_write_notify_on_release</code>可以看出:</p>
 <ul>
 <li>写入0或者空都可以清除CGRP_NOTIFY_ON_RELEASE这个flags</li>
 <li>写入1或者任意正整数，都可以置位CGRP_NOTIFY_ON_RELEASE这个flags</li>
 </ul>
 <p>示例如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~  <span style="color:#75715e"># # 进入memory cgroup，准备实验</span>
-~  <span style="color:#75715e"># cd /sys/fs/cgroup/memory/</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># # 创建测试用的cgroup</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># mkdir test1 test2</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test1/notify_on_release </span>
-<span style="color:#ae81ff">0</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test2/notify_on_release </span>
-<span style="color:#ae81ff">0</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># # 写入0或者一个正数</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># echo 1 &gt; test1/notify_on_release </span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># echo 40 &gt; test2/notify_on_release </span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># # 查看结果，notify_on_release都置位为1</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test1/notify_on_release </span>
-<span style="color:#ae81ff">1</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test2/notify_on_release </span>
-<span style="color:#ae81ff">1</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># # 写入0或者空清除该flags</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># echo &gt; test1/notify_on_release </span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># echo 0 &gt; test2/notify_on_release </span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># # 查看结果，notify_on_release都置位为0</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test1/notify_on_release </span>
-<span style="color:#ae81ff">0</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># cat test2/notify_on_release </span>
-<span style="color:#ae81ff">0</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># # 清理</span>
-/sys/fs/cgroup/memory  <span style="color:#75715e"># rmdir test1 test2</span>
-</code></pre></div><h3 id="release_agent">release_agent</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~  <span class="c1"># # 进入memory cgroup，准备实验</span>
+</span></span><span class="line"><span class="cl">~  <span class="c1"># cd /sys/fs/cgroup/memory/</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># # 创建测试用的cgroup</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># mkdir test1 test2</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># cat test1/notify_on_release </span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># cat test2/notify_on_release </span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># # 写入0或者一个正数</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># echo 1 &gt; test1/notify_on_release </span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># echo 40 &gt; test2/notify_on_release </span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># # 查看结果，notify_on_release都置位为1</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># cat test1/notify_on_release </span>
+</span></span><span class="line"><span class="cl"><span class="m">1</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># cat test2/notify_on_release </span>
+</span></span><span class="line"><span class="cl"><span class="m">1</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># # 写入0或者空清除该flags</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># echo &gt; test1/notify_on_release </span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># echo 0 &gt; test2/notify_on_release </span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># # 查看结果，notify_on_release都置位为0</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># cat test1/notify_on_release </span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># cat test2/notify_on_release </span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># # 清理</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/memory  <span class="c1"># rmdir test1 test2</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="release_agent">release_agent</h3>
 <p>release_agent里面包含了cgroup退出时将会执行的命令，系统调用该命令时会将相应cgroup的相对路径当作参数传进去。</p>
 <blockquote>
 <p>注意：这个文件只会存在于root cgroup下面，其他cgroup里面不会有这个文件。</p>
 </blockquote>
 <p>当cgroup退出是，如果notify_on_release为1，则会调用release_agent里面配置的命令。</p>
 <p>内核中，该文件对应的就是一个字符串，其保存在<code>cgroup-&gt;root-&gt;release_agent_path</code>中。 对该文件的读写就不分析了，这里主要分析一下内核中如何实现<code>cgroup</code>退出时，执行<code>release_agent</code>中指定的命令。</p>
-<pre><code>/* the list of cgroups eligible for automatic release. Protected by
- * release_list_lock */
-static LIST_HEAD(release_list);
-static DEFINE_RAW_SPINLOCK(release_list_lock);
-static void cgroup_release_agent(struct work_struct *work);
-static DECLARE_WORK(release_agent_work, cgroup_release_agent);
-static void check_for_release(struct cgroup *cgrp);
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/* the list of cgroups eligible for automatic release. Protected by
+</span></span><span class="line"><span class="cl"> * release_list_lock */
+</span></span><span class="line"><span class="cl">static LIST_HEAD(release_list);
+</span></span><span class="line"><span class="cl">static DEFINE_RAW_SPINLOCK(release_list_lock);
+</span></span><span class="line"><span class="cl">static void cgroup_release_agent(struct work_struct *work);
+</span></span><span class="line"><span class="cl">static DECLARE_WORK(release_agent_work, cgroup_release_agent);
+</span></span><span class="line"><span class="cl">static void check_for_release(struct cgroup *cgrp);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>在<code>cgroup_destroy_locked</code>和<code>__put_css_set</code>等<code>cgroup</code>退出的代码路径中，都会调用<code>check_for_release</code>函数，该函数用来判断是否需要执行<code>release_agent</code>指定的命令，如果需要，就将该cgroup添加到链表<code>release_list</code>中,并调度<code>schedule_work(&amp;release_agent_work);</code>。</li>
 <li><code>cgroup_release_agent</code>这个方法，从<code>release_list</code>链表中循环读取要退出的cgroup，然后构建执行环境，去执行指定的命令。</li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">cgroup_release_agent</span>(<span style="color:#66d9ef">struct</span> work_struct <span style="color:#f92672">*</span>work)
-{
-        BUG_ON(work <span style="color:#f92672">!=</span> <span style="color:#f92672">&amp;</span>release_agent_work);
-        mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-        raw_spin_lock(<span style="color:#f92672">&amp;</span>release_list_lock);
-        <span style="color:#66d9ef">while</span> (<span style="color:#f92672">!</span>list_empty(<span style="color:#f92672">&amp;</span>release_list)) {
-                <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[<span style="color:#ae81ff">3</span>], <span style="color:#f92672">*</span>envp[<span style="color:#ae81ff">3</span>];
-                <span style="color:#66d9ef">int</span> i;
-                <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pathbuf <span style="color:#f92672">=</span> NULL, <span style="color:#f92672">*</span>agentbuf <span style="color:#f92672">=</span> NULL;
-                <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp <span style="color:#f92672">=</span> list_entry(release_list.next,
-                                                    <span style="color:#66d9ef">struct</span> cgroup,
-                                                    release_list);
-                list_del_init(<span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>release_list);
-                raw_spin_unlock(<span style="color:#f92672">&amp;</span>release_list_lock);
-                pathbuf <span style="color:#f92672">=</span> kmalloc(PAGE_SIZE, GFP_KERNEL);
-                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>pathbuf)
-                        <span style="color:#66d9ef">goto</span> continue_free;
-                <span style="color:#66d9ef">if</span> (cgroup_path(cgrp, pathbuf, PAGE_SIZE) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-                        <span style="color:#66d9ef">goto</span> continue_free;
-                agentbuf <span style="color:#f92672">=</span> kstrdup(cgrp<span style="color:#f92672">-&gt;</span>root<span style="color:#f92672">-&gt;</span>release_agent_path, GFP_KERNEL);
-                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>agentbuf)
-                        <span style="color:#66d9ef">goto</span> continue_free;
-
-                i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-                argv[i<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> agentbuf;
-                argv[i<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> pathbuf;
-                argv[i] <span style="color:#f92672">=</span> NULL;
-
-                i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-                <span style="color:#75715e">/* minimal command environment */</span>
-                envp[i<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;HOME=/&#34;</span>;
-                envp[i<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;PATH=/sbin:/bin:/usr/sbin:/usr/bin&#34;</span>;
-                envp[i] <span style="color:#f92672">=</span> NULL;
-
-                <span style="color:#75715e">/* Drop the lock while we invoke the usermode helper,
-</span><span style="color:#75715e">                 * since the exec could involve hitting disk and hence
-</span><span style="color:#75715e">                 * be a slow process */</span>
-                mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-                call_usermodehelper(argv[<span style="color:#ae81ff">0</span>], argv, envp, UMH_WAIT_EXEC);
-                mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
- continue_free:
-                kfree(pathbuf);
-                kfree(agentbuf);
-                raw_spin_lock(<span style="color:#f92672">&amp;</span>release_list_lock);
-        }
-        raw_spin_unlock(<span style="color:#f92672">&amp;</span>release_list_lock);
-        mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-}
-</code></pre></div><p>可以看出，<code>release_agent</code> 中指定的命令的执行时，其<code>HOME</code>目录为<code>/</code>。另外，这种设计可以让<code>cgroup</code>退出和执行<code>release_agent</code> 中指定的命令异步进行。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="nf">cgroup_release_agent</span><span class="p">(</span><span class="k">struct</span> <span class="n">work_struct</span> <span class="o">*</span><span class="n">work</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">BUG_ON</span><span class="p">(</span><span class="n">work</span> <span class="o">!=</span> <span class="o">&amp;</span><span class="n">release_agent_work</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">raw_spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">release_list_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="nf">list_empty</span><span class="p">(</span><span class="o">&amp;</span><span class="n">release_list</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="o">*</span><span class="n">envp</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">char</span> <span class="o">*</span><span class="n">pathbuf</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">,</span> <span class="o">*</span><span class="n">agentbuf</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span> <span class="o">=</span> <span class="nf">list_entry</span><span class="p">(</span><span class="n">release_list</span><span class="p">.</span><span class="n">next</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                                    <span class="k">struct</span> <span class="n">cgroup</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                                    <span class="n">release_list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">list_del_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">release_list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">raw_spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">release_list_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="n">pathbuf</span> <span class="o">=</span> <span class="nf">kmalloc</span><span class="p">(</span><span class="n">PAGE_SIZE</span><span class="p">,</span> <span class="n">GFP_KERNEL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">pathbuf</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">goto</span> <span class="n">continue_free</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="nf">cgroup_path</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="n">pathbuf</span><span class="p">,</span> <span class="n">PAGE_SIZE</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">goto</span> <span class="n">continue_free</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="n">agentbuf</span> <span class="o">=</span> <span class="nf">kstrdup</span><span class="p">(</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">release_agent_path</span><span class="p">,</span> <span class="n">GFP_KERNEL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">agentbuf</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">goto</span> <span class="n">continue_free</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">agentbuf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">pathbuf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="cm">/* minimal command environment */</span>
+</span></span><span class="line"><span class="cl">                <span class="n">envp</span><span class="p">[</span><span class="n">i</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#34;HOME=/&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="n">envp</span><span class="p">[</span><span class="n">i</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#34;PATH=/sbin:/bin:/usr/sbin:/usr/bin&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="n">envp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="cm">/* Drop the lock while we invoke the usermode helper,
+</span></span></span><span class="line"><span class="cl"><span class="cm">                 * since the exec could involve hitting disk and hence
+</span></span></span><span class="line"><span class="cl"><span class="cm">                 * be a slow process */</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">call_usermodehelper</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">argv</span><span class="p">,</span> <span class="n">envp</span><span class="p">,</span> <span class="n">UMH_WAIT_EXEC</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"> <span class="nl">continue_free</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">kfree</span><span class="p">(</span><span class="n">pathbuf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">kfree</span><span class="p">(</span><span class="n">agentbuf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">raw_spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">release_list_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">raw_spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">release_list_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看出，<code>release_agent</code> 中指定的命令的执行时，其<code>HOME</code>目录为<code>/</code>。另外，这种设计可以让<code>cgroup</code>退出和执行<code>release_agent</code> 中指定的命令异步进行。</p>
 <h3 id="cgroupprocs-和tasks">cgroup.procs 和tasks</h3>
 <p>cgroup.procs和tasks的区别，请参考<a href="../../posts/hierarchy-without-controller-group/#procs-%E5%92%8Ctasks-%E7%9A%84%E5%8C%BA%E5%88%AB">这篇博客</a>。</p>
 <p>想这两个文件中写入一个进程号或者线程号时，内核中最终调用的函数为：<code>attach_task_by_pid</code>,其原型如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * Find the task_struct of the task to attach by vpid and pass it along to the
-</span><span style="color:#75715e"> * function to attach either it or all tasks in its threadgroup. Will lock
-</span><span style="color:#75715e"> * cgroup_mutex and threadgroup; may take task_lock of task.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">attach_task_by_pid</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, u64 pid, <span style="color:#66d9ef">bool</span> threadgroup);
-</code></pre></div><p>根据threadgroup 是否为true，来决定写入的pid代表的是进程还是线程。即该函数是通过写cgroup.procs进入的时，threadgroup为ture，通过写tasks进入的时，threadgroup为false。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Find the task_struct of the task to attach by vpid and pass it along to the
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * function to attach either it or all tasks in its threadgroup. Will lock
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * cgroup_mutex and threadgroup; may take task_lock of task.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">attach_task_by_pid</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span><span class="p">,</span> <span class="n">u64</span> <span class="n">pid</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">threadgroup</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>根据threadgroup 是否为true，来决定写入的pid代表的是进程还是线程。即该函数是通过写cgroup.procs进入的时，threadgroup为ture，通过写tasks进入的时，threadgroup为false。</p>
 <p>读取这两个文件的内容时,执行的函数分别为<code>cgroup_tasks_open</code>和<code>cgroup_procs_open</code>，最终都调用函数<code>cgroup_pidlist_open</code>，只是其中的第二个参数不同，内核中的实现如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * The following functions handle opens on a file that displays a pidlist
-</span><span style="color:#75715e"> * (tasks or procs). Prepare an array of the process/thread IDs of whoever&#39;s
-</span><span style="color:#75715e"> * in the cgroup.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#75715e">/* helper function for the two below it */</span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_pidlist_open</span>(<span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file, <span style="color:#66d9ef">enum</span> cgroup_filetype type)
-{
-        <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp <span style="color:#f92672">=</span> __d_cgrp(file<span style="color:#f92672">-&gt;</span>f_dentry<span style="color:#f92672">-&gt;</span>d_parent);
-        <span style="color:#66d9ef">struct</span> cgroup_pidlist <span style="color:#f92672">*</span>l;
-        <span style="color:#66d9ef">int</span> retval;
-
-        <span style="color:#75715e">/* Nothing to do for write-only files */</span>
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>(file<span style="color:#f92672">-&gt;</span>f_mode <span style="color:#f92672">&amp;</span> FMODE_READ))
-                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-
-        <span style="color:#75715e">/* have the array populated */</span>
-        retval <span style="color:#f92672">=</span> pidlist_array_load(cgrp, type, <span style="color:#f92672">&amp;</span>l);
-        <span style="color:#66d9ef">if</span> (retval)
-                <span style="color:#66d9ef">return</span> retval;
-        <span style="color:#75715e">/* configure file information */</span>
-        file<span style="color:#f92672">-&gt;</span>f_op <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>cgroup_pidlist_operations;
-
-        retval <span style="color:#f92672">=</span> seq_open(file, <span style="color:#f92672">&amp;</span>cgroup_pidlist_seq_operations);
-        <span style="color:#66d9ef">if</span> (retval) {
-                cgroup_release_pid_array(l);
-                <span style="color:#66d9ef">return</span> retval;
-        }
-        ((<span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>)file<span style="color:#f92672">-&gt;</span>private_data)<span style="color:#f92672">-&gt;</span>private <span style="color:#f92672">=</span> l;
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_tasks_open</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>unused, <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file)
-{
-        <span style="color:#66d9ef">return</span> cgroup_pidlist_open(file, CGROUP_FILE_TASKS);
-}
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_procs_open</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>unused, <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file)
-{
-        <span style="color:#66d9ef">return</span> cgroup_pidlist_open(file, CGROUP_FILE_PROCS);
-}
-</code></pre></div><p>在<code>cgroup_pidlist_open</code>中，关键的获取进程/线程 ID的函数为<code>pidlist_array_load</code>:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * Load a cgroup&#39;s pidarray with either procs&#39; tgids or tasks&#39; pids
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">pidlist_array_load</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, <span style="color:#66d9ef">enum</span> cgroup_filetype type,
-                              <span style="color:#66d9ef">struct</span> cgroup_pidlist <span style="color:#f92672">**</span>lp)
-{
-        pid_t <span style="color:#f92672">*</span>array;
-        <span style="color:#66d9ef">int</span> length;
-        <span style="color:#66d9ef">int</span> pid, n <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">/* used for populating the array */</span>
-        <span style="color:#66d9ef">struct</span> cgroup_iter it;
-        <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>tsk;
-        <span style="color:#66d9ef">struct</span> cgroup_pidlist <span style="color:#f92672">*</span>l;
-
-        <span style="color:#75715e">/*
-</span><span style="color:#75715e">         * If cgroup gets more users after we read count, we won&#39;t have
-</span><span style="color:#75715e">         * enough space - tough.  This race is indistinguishable to the
-</span><span style="color:#75715e">         * caller from the case that the additional cgroup users didn&#39;t
-</span><span style="color:#75715e">         * show up until sometime later on.
-</span><span style="color:#75715e">         */</span>
-        length <span style="color:#f92672">=</span> cgroup_task_count(cgrp);
-        array <span style="color:#f92672">=</span> pidlist_allocate(length);
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>array)
-                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>ENOMEM;
-        <span style="color:#75715e">/* now, populate the array */</span>
-        cgroup_iter_start(cgrp, <span style="color:#f92672">&amp;</span>it);
-        <span style="color:#66d9ef">while</span> ((tsk <span style="color:#f92672">=</span> cgroup_iter_next(cgrp, <span style="color:#f92672">&amp;</span>it))) {
-                <span style="color:#66d9ef">if</span> (unlikely(n <span style="color:#f92672">==</span> length))
-                        <span style="color:#66d9ef">break</span>;
-                <span style="color:#75715e">/* get tgid or pid for procs or tasks file respectively */</span>
-                <span style="color:#66d9ef">if</span> (type <span style="color:#f92672">==</span> CGROUP_FILE_PROCS)
-                        pid <span style="color:#f92672">=</span> task_tgid_vnr(tsk);
-                <span style="color:#66d9ef">else</span>
-                        pid <span style="color:#f92672">=</span> task_pid_vnr(tsk);
-                <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) <span style="color:#75715e">/* make sure to only use valid results */</span>
-                        array[n<span style="color:#f92672">++</span>] <span style="color:#f92672">=</span> pid;
-        }
-        cgroup_iter_end(cgrp, <span style="color:#f92672">&amp;</span>it);
-        length <span style="color:#f92672">=</span> n;
-        <span style="color:#75715e">/* now sort &amp; (if procs) strip out duplicates */</span>
-        sort(array, length, <span style="color:#66d9ef">sizeof</span>(pid_t), cmppid, NULL);
-        <span style="color:#66d9ef">if</span> (type <span style="color:#f92672">==</span> CGROUP_FILE_PROCS)
-                length <span style="color:#f92672">=</span> pidlist_uniq(array, length);
-        l <span style="color:#f92672">=</span> cgroup_pidlist_find(cgrp, type);
-        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>l) {
-                pidlist_free(array);
-                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>ENOMEM;
-        }
-        <span style="color:#75715e">/* store array, freeing old if necessary - lock already held */</span>
-        pidlist_free(l<span style="color:#f92672">-&gt;</span>list);
-        l<span style="color:#f92672">-&gt;</span>list <span style="color:#f92672">=</span> array;
-        l<span style="color:#f92672">-&gt;</span>length <span style="color:#f92672">=</span> length;
-        l<span style="color:#f92672">-&gt;</span>use_count<span style="color:#f92672">++</span>;
-        up_write(<span style="color:#f92672">&amp;</span>l<span style="color:#f92672">-&gt;</span>mutex);
-        <span style="color:#f92672">*</span>lp <span style="color:#f92672">=</span> l;
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * The following functions handle opens on a file that displays a pidlist
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * (tasks or procs). Prepare an array of the process/thread IDs of whoever&#39;s
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * in the cgroup.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="cm">/* helper function for the two below it */</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">cgroup_pidlist_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="k">enum</span> <span class="n">cgroup_filetype</span> <span class="n">type</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span> <span class="o">=</span> <span class="nf">__d_cgrp</span><span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_dentry</span><span class="o">-&gt;</span><span class="n">d_parent</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">cgroup_pidlist</span> <span class="o">*</span><span class="n">l</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">retval</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Nothing to do for write-only files */</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_mode</span> <span class="o">&amp;</span> <span class="n">FMODE_READ</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* have the array populated */</span>
+</span></span><span class="line"><span class="cl">        <span class="n">retval</span> <span class="o">=</span> <span class="nf">pidlist_array_load</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="n">type</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">l</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">retval</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="n">retval</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* configure file information */</span>
+</span></span><span class="line"><span class="cl">        <span class="n">file</span><span class="o">-&gt;</span><span class="n">f_op</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">cgroup_pidlist_operations</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">retval</span> <span class="o">=</span> <span class="nf">seq_open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cgroup_pidlist_seq_operations</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">retval</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">cgroup_release_pid_array</span><span class="p">(</span><span class="n">l</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="n">retval</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">((</span><span class="k">struct</span> <span class="n">seq_file</span> <span class="o">*</span><span class="p">)</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">private_data</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">private</span> <span class="o">=</span> <span class="n">l</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">cgroup_tasks_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">unused</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">cgroup_pidlist_open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">CGROUP_FILE_TASKS</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">cgroup_procs_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">unused</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">cgroup_pidlist_open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">CGROUP_FILE_PROCS</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>cgroup_pidlist_open</code>中，关键的获取进程/线程 ID的函数为<code>pidlist_array_load</code>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Load a cgroup&#39;s pidarray with either procs&#39; tgids or tasks&#39; pids
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">pidlist_array_load</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span><span class="p">,</span> <span class="k">enum</span> <span class="n">cgroup_filetype</span> <span class="n">type</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                              <span class="k">struct</span> <span class="n">cgroup_pidlist</span> <span class="o">**</span><span class="n">lp</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">pid_t</span> <span class="o">*</span><span class="n">array</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">length</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">pid</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="cm">/* used for populating the array */</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">cgroup_iter</span> <span class="n">it</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">tsk</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">cgroup_pidlist</span> <span class="o">*</span><span class="n">l</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * If cgroup gets more users after we read count, we won&#39;t have
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * enough space - tough.  This race is indistinguishable to the
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * caller from the case that the additional cgroup users didn&#39;t
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * show up until sometime later on.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         */</span>
+</span></span><span class="line"><span class="cl">        <span class="n">length</span> <span class="o">=</span> <span class="nf">cgroup_task_count</span><span class="p">(</span><span class="n">cgrp</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">array</span> <span class="o">=</span> <span class="nf">pidlist_allocate</span><span class="p">(</span><span class="n">length</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">array</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="o">-</span><span class="n">ENOMEM</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* now, populate the array */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">cgroup_iter_start</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">it</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">while</span> <span class="p">((</span><span class="n">tsk</span> <span class="o">=</span> <span class="nf">cgroup_iter_next</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">it</span><span class="p">)))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="nf">unlikely</span><span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="n">length</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">                        <span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="cm">/* get tgid or pid for procs or tasks file respectively */</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="n">type</span> <span class="o">==</span> <span class="n">CGROUP_FILE_PROCS</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">pid</span> <span class="o">=</span> <span class="nf">task_tgid_vnr</span><span class="p">(</span><span class="n">tsk</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">else</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">pid</span> <span class="o">=</span> <span class="nf">task_pid_vnr</span><span class="p">(</span><span class="n">tsk</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="cm">/* make sure to only use valid results */</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">array</span><span class="p">[</span><span class="n">n</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">pid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">cgroup_iter_end</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">it</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">length</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* now sort &amp; (if procs) strip out duplicates */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sort</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">pid_t</span><span class="p">),</span> <span class="n">cmppid</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">type</span> <span class="o">==</span> <span class="n">CGROUP_FILE_PROCS</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">length</span> <span class="o">=</span> <span class="nf">pidlist_uniq</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">l</span> <span class="o">=</span> <span class="nf">cgroup_pidlist_find</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">l</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">pidlist_free</span><span class="p">(</span><span class="n">array</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="o">-</span><span class="n">ENOMEM</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* store array, freeing old if necessary - lock already held */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">pidlist_free</span><span class="p">(</span><span class="n">l</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">l</span><span class="o">-&gt;</span><span class="n">list</span> <span class="o">=</span> <span class="n">array</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">l</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">=</span> <span class="n">length</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">l</span><span class="o">-&gt;</span><span class="n">use_count</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">up_write</span><span class="p">(</span><span class="o">&amp;</span><span class="n">l</span><span class="o">-&gt;</span><span class="n">mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="o">*</span><span class="n">lp</span> <span class="o">=</span> <span class="n">l</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>第20行通过cgroup_task_count获取该cgroup中的进程个数</li>
 <li>第21行分配存放结果的数组array</li>
 <li>第25-37行代码填充数组array</li>
@@ -502,111 +744,220 @@ static void check_for_release(struct cgroup *cgrp);
 <blockquote>
 <p>注意： 该文件是只读的，也就是说不能随便修改该值，只有在mount各个子系统时，指定mount选项<code>__DEVEL__sane_behavior</code>是，该位的值才会置位1。</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> cftype files[] <span style="color:#f92672">=</span> {
-	... 
-	... 
-        {
-                .name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;cgroup.sane_behavior&#34;</span>,
-                .flags <span style="color:#f92672">=</span> CFTYPE_ONLY_ON_ROOT,
-                .read_seq_string <span style="color:#f92672">=</span> cgroup_sane_behavior_show,
-        },
-	... 
-	... 
-        {}
-};
-
-<span style="color:#75715e">// 关于CGRP_ROOT_SANE_BEHAVIOR的描述信息：
-</span><span style="color:#75715e"></span>
-        <span style="color:#75715e">/*
-</span><span style="color:#75715e">         * Unfortunately, cgroup core and various controllers are riddled
-</span><span style="color:#75715e">         * with idiosyncrasies and pointless options.  The following flag,
-</span><span style="color:#75715e">         * when set, will force sane behavior - some options are forced on,
-</span><span style="color:#75715e">         * others are disallowed, and some controllers will change their
-</span><span style="color:#75715e">         * hierarchical or other behaviors.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * The set of behaviors affected by this flag are still being
-</span><span style="color:#75715e">         * determined and developed and the mount option for this flag is
-</span><span style="color:#75715e">         * prefixed with __DEVEL__.  The prefix will be dropped once we
-</span><span style="color:#75715e">         * reach the point where all behaviors are compatible with the
-</span><span style="color:#75715e">         * planned unified hierarchy, which will automatically turn on this
-</span><span style="color:#75715e">         * flag.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * The followings are the behaviors currently affected this flag.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * - Mount options &#34;noprefix&#34; and &#34;clone_children&#34; are disallowed.
-</span><span style="color:#75715e">         *   Also, cgroupfs file cgroup.clone_children is not created.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * - When mounting an existing superblock, mount options should
-</span><span style="color:#75715e">         *   match.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * - Remount is disallowed.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * - cpuset: tasks will be kept in empty cpusets when hotplug happens
-</span><span style="color:#75715e">         *   and take masks of ancestors with non-empty cpus/mems, instead of
-</span><span style="color:#75715e">         *   being moved to an ancestor.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * - cpuset: a task can be moved into an empty cpuset, and again it
-</span><span style="color:#75715e">         *   takes masks of ancestors.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * - memcg: use_hierarchy is on by default and the cgroup file for
-</span><span style="color:#75715e">         *   the flag is not created.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * - blkcg: blk-throttle becomes properly hierarchical.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * The followings are planned changes.
-</span><span style="color:#75715e">         *
-</span><span style="color:#75715e">         * - release_agent will be disallowed once replacement notification
-</span><span style="color:#75715e">         *   mechanism is implemented.
-</span><span style="color:#75715e">         */</span>
-        CGRP_ROOT_SANE_BEHAVIOR <span style="color:#f92672">=</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">0</span>),
-
-</code></pre></div><p>在centos 7.5 上，该flags默认都没有打开：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~  <span style="color:#75715e"># mount | grep cgroup</span>
-tmpfs on /sys/fs/cgroup type tmpfs <span style="color:#f92672">(</span>ro,nosuid,nodev,noexec,mode<span style="color:#f92672">=</span>755<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/systemd type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span style="color:#f92672">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span style="color:#f92672">=</span>systemd<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/memory type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,memory<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/cpuset type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,cpuset<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/debug type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,debug<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,cpuacct,cpu<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/perf_event type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,perf_event<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/hugetlb type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,hugetlb<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/blkio type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,blkio<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/pids type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,pids<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/freezer type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,freezer<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/devices type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,devices<span style="color:#f92672">)</span>
-cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup <span style="color:#f92672">(</span>rw,nosuid,nodev,noexec,relatime,net_prio,net_cls<span style="color:#f92672">)</span>
-root@3<span style="color:#f92672">(</span>NXDOMAIN<span style="color:#f92672">)</span>::<span style="color:#f92672">[</span>20:05:09<span style="color:#f92672">]</span>::<span style="color:#f92672">[</span>Exit Code: 0<span style="color:#f92672">]</span> -&gt;
-~  <span style="color:#75715e"># cd /sys/fs/cgroup/</span>
-/sys/fs/cgroup  <span style="color:#75715e"># find . -name &#34;cgroup.sane_behavior&#34;</span>
-./net_cls,net_prio/cgroup.sane_behavior
-./devices/cgroup.sane_behavior
-./freezer/cgroup.sane_behavior
-./pids/cgroup.sane_behavior
-./blkio/cgroup.sane_behavior
-./hugetlb/cgroup.sane_behavior
-./perf_event/cgroup.sane_behavior
-./cpu,cpuacct/cgroup.sane_behavior
-./debug/cgroup.sane_behavior
-./cpuset/cgroup.sane_behavior
-./memory/cgroup.sane_behavior
-./systemd/cgroup.sane_behavior
-/sys/fs/cgroup  <span style="color:#75715e"># find . -name &#34;cgroup.sane_behavior&#34; | xargs cat </span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-<span style="color:#ae81ff">0</span>
-</code></pre></div><h3 id="参考文章">参考文章</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">cftype</span> <span class="n">files</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span> 
+</span></span><span class="line"><span class="cl">	<span class="p">...</span> 
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;cgroup.sane_behavior&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="p">.</span><span class="n">flags</span> <span class="o">=</span> <span class="n">CFTYPE_ONLY_ON_ROOT</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="p">.</span><span class="n">read_seq_string</span> <span class="o">=</span> <span class="n">cgroup_sane_behavior_show</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span> 
+</span></span><span class="line"><span class="cl">	<span class="p">...</span> 
+</span></span><span class="line"><span class="cl">        <span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 关于CGRP_ROOT_SANE_BEHAVIOR的描述信息：
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * Unfortunately, cgroup core and various controllers are riddled
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * with idiosyncrasies and pointless options.  The following flag,
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * when set, will force sane behavior - some options are forced on,
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * others are disallowed, and some controllers will change their
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * hierarchical or other behaviors.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * The set of behaviors affected by this flag are still being
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * determined and developed and the mount option for this flag is
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * prefixed with __DEVEL__.  The prefix will be dropped once we
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * reach the point where all behaviors are compatible with the
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * planned unified hierarchy, which will automatically turn on this
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * flag.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * The followings are the behaviors currently affected this flag.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * - Mount options &#34;noprefix&#34; and &#34;clone_children&#34; are disallowed.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *   Also, cgroupfs file cgroup.clone_children is not created.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * - When mounting an existing superblock, mount options should
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *   match.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * - Remount is disallowed.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * - cpuset: tasks will be kept in empty cpusets when hotplug happens
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *   and take masks of ancestors with non-empty cpus/mems, instead of
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *   being moved to an ancestor.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * - cpuset: a task can be moved into an empty cpuset, and again it
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *   takes masks of ancestors.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * - memcg: use_hierarchy is on by default and the cgroup file for
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *   the flag is not created.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * - blkcg: blk-throttle becomes properly hierarchical.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * The followings are planned changes.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * - release_agent will be disallowed once replacement notification
+</span></span></span><span class="line"><span class="cl"><span class="cm">         *   mechanism is implemented.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         */</span>
+</span></span><span class="line"><span class="cl">        <span class="n">CGRP_ROOT_SANE_BEHAVIOR</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">),</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在centos 7.5 上，该flags默认都没有打开：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~  <span class="c1"># mount | grep cgroup</span>
+</span></span><span class="line"><span class="cl">tmpfs on /sys/fs/cgroup <span class="nb">type</span> tmpfs <span class="o">(</span>ro,nosuid,nodev,noexec,mode<span class="o">=</span>755<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/systemd <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span class="o">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span class="o">=</span>systemd<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/memory <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,memory<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/cpuset <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,cpuset<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/debug <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,debug<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/cpu,cpuacct <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,cpuacct,cpu<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/perf_event <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,perf_event<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/hugetlb <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,hugetlb<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/blkio <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,blkio<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/pids <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,pids<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/freezer <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,freezer<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/devices <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,devices<span class="o">)</span>
+</span></span><span class="line"><span class="cl">cgroup on /sys/fs/cgroup/net_cls,net_prio <span class="nb">type</span> cgroup <span class="o">(</span>rw,nosuid,nodev,noexec,relatime,net_prio,net_cls<span class="o">)</span>
+</span></span><span class="line"><span class="cl">root@3<span class="o">(</span>NXDOMAIN<span class="o">)</span>::<span class="o">[</span>20:05:09<span class="o">]</span>::<span class="o">[</span>Exit Code: 0<span class="o">]</span> -&gt;
+</span></span><span class="line"><span class="cl">~  <span class="c1"># cd /sys/fs/cgroup/</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup  <span class="c1"># find . -name &#34;cgroup.sane_behavior&#34;</span>
+</span></span><span class="line"><span class="cl">./net_cls,net_prio/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./devices/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./freezer/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./pids/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./blkio/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./hugetlb/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./perf_event/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./cpu,cpuacct/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./debug/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./cpuset/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./memory/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">./systemd/cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup  <span class="c1"># find . -name &#34;cgroup.sane_behavior&#34; | xargs cat </span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文章">参考文章</h3>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -614,7 +965,10 @@ root@3<span style="color:#f92672">(</span>NXDOMAIN<span style="color:#f92672">)<
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-08-26</span>
+    <span class="item-content">
+        2018-08-26
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -622,41 +976,28 @@ root@3<span style="color:#f92672">(</span>NXDOMAIN<span style="color:#f92672">)<
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/cgroup/">cgroup</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/radix-tree/">
+        <a class="prev" href="/kernel/radix-tree/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">Radix Tree </span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/cgroup-source-proc-pid-cgroup/">
+        <a class="next" href="/kernel/cgroup-source-proc-pid-cgroup/">
             <span class="next-text nav-default">cgroup源码分析5——/proc/&lt;pid&gt;/cgroup实现分析</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -670,6 +1011,11 @@ root@3<span style="color:#f92672">(</span>NXDOMAIN<span style="color:#f92672">)<
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -694,26 +1040,24 @@ root@3<span style="color:#f92672">(</span>NXDOMAIN<span style="color:#f92672">)<
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

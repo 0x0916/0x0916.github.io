@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
+<meta name="author" content="laoqinren" /><meta name="description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
 经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/002-print-hello-world/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,34 +37,23 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="002-在屏幕上打印Hello，World！" />
 <meta property="og:description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
 经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/002-print-hello-world/" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/002-print-hello-world/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-02-22T23:19:30+08:00" />
 <meta property="article:modified_time" content="2021-02-22T23:19:30+08:00" />
 <meta itemprop="name" content="002-在屏幕上打印Hello，World！">
 <meta itemprop="description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
-经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。">
-<meta itemprop="datePublished" content="2021-02-22T23:19:30+08:00" />
+经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。"><meta itemprop="datePublished" content="2021-02-22T23:19:30+08:00" />
 <meta itemprop="dateModified" content="2021-02-22T23:19:30+08:00" />
-<meta itemprop="wordCount" content="5677">
-
-
-
-<meta itemprop="keywords" content="" />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="5780">
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="002-在屏幕上打印Hello，World！"/>
 <meta name="twitter:description" content="本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印Hello World。
 经过学习，我们可以到一些基本的GNU汇编语言的用法，同时也会了解在屏幕上打印字符的原理。"/>
@@ -112,12 +97,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -138,6 +132,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -151,36 +146,33 @@
       <div class="post-meta">
         <span class="post-time"> 2021-02-22 </span>
         
-        <span class="more-meta"> 5677 words </span>
-        <span class="more-meta"> 12 mins read </span>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#基础知识">基础知识</a></li>
-        <li><a href="#在屏幕上打印字符h">在屏幕上打印字符H</a></li>
-        <li><a href="#在屏幕上打印字符串hello-world">在屏幕上打印字符串Hello World！</a></li>
-        <li><a href="#使用串操作指令打印hello-world">使用串操作指令打印Hello World!</a></li>
-        <li><a href="#总结">总结</a></li>
-        <li><a href="#参考文档">参考文档</a></li>
+        <li>
+          <ul>
+            <li><a href="#基础知识">基础知识</a></li>
+            <li><a href="#在屏幕上打印字符h">在屏幕上打印字符H</a></li>
+            <li><a href="#在屏幕上打印字符串hello-world">在屏幕上打印字符串Hello World！</a></li>
+            <li><a href="#使用串操作指令打印hello-world">使用串操作指令打印Hello World!</a></li>
+            <li><a href="#总结">总结</a></li>
+            <li><a href="#参考文档">参考文档</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本文的目标是，构建一个引导扇区，并使用汇编语言，在屏幕上打印<code>Hello World</code>。</p>
 <p>经过学习，我们可以到一些基本的<code>GNU</code>汇编语言的用法，同时也会了解在屏幕上打印字符的原理。</p>
@@ -194,19 +186,37 @@
 <p>有了上面的这些基础知识，那在屏幕上打印字符就非常简单了。具体来说，就是把字符的<code>ASCII</code>码和字符的属性依次送入显存对应的内存即可。</p>
 <h3 id="在屏幕上打印字符h">在屏幕上打印字符H</h3>
 <p>如下汇编代码，会在屏幕上打印一个字符H：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-as" data-lang="as">.<span style="color:#a6e22e">code16</span>
-
-	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0xb800</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>
-	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span>
-
-	<span style="color:#a6e22e">movb</span>	<span style="color:#a6e22e">$</span><span style="color:#e6db74">&#39;H&#39;</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#a6e22e">$0xa</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span><span style="color:#f92672">:</span><span style="color:#ae81ff">1</span>
-
-	<span style="color:#a6e22e">jmp</span>	.
-
-	.<span style="color:#a6e22e">org</span>	<span style="color:#ae81ff">510</span>
-	.<span style="color:#a6e22e">word</span>	<span style="color:#ae81ff">0xaa55</span>
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-as" data-lang="as"><span class="line"><span class="cl"><span class="p">.</span><span class="nx">code16</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="nx">$0xb800</span><span class="o">,</span> <span class="o">%</span><span class="nx">ax</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="o">%</span><span class="nx">ax</span><span class="o">,</span> <span class="o">%</span><span class="nx">es</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">movb</span>	<span class="nx">$</span><span class="s1">&#39;H&#39;</span><span class="o">,</span> <span class="o">%</span><span class="nx">es</span><span class="o">:</span><span class="mi">0</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">movb</span>	<span class="nx">$0xa</span><span class="o">,</span> <span class="o">%</span><span class="nx">es</span><span class="o">:</span><span class="mi">1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">jmp</span>	<span class="p">.</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">org</span>	<span class="mi">510</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">word</span>	<span class="mh">0xaa55</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>第<code>1</code>行告诉编译器以<code>16</code>位模式编译，因为<code>BIOS</code>在加载并运行我们的代码时是处于<code>16</code>位实地址模式的。</li>
 <li>第<code>3</code>、<code>4</code>行将附加数据段寄存器<code>es</code>的内容设置为<code>0xb800</code>。<code>mov</code>是数据转移指令，<code>mov</code>后面的<code>w</code>表示操作数的宽度为一个<code>word</code>，即<code>16</code>位的数据。<code>movw $0xb800</code>, <code>%ax</code>表示把立即数<code>0xb800</code>转移到寄存器<code>ax</code>中。其中<code>0xb800</code>是源操作数，<code>ax</code>是目的操作数。根据<code>at&amp;t</code>的规范，立即数前需要加<code>$</code>符，用来和内存地址区分。寄存器前需要加<code>%</code>。这条指令执行完成之后<code>ax</code>寄存器的内容为<code>0xb800</code>，下一条指令又把<code>ax</code>寄存器中的数据转移到<code>es</code>中，完成段寄存器的设置。为啥不直接把<code>0xb800</code>放到<code>es</code>里？答案是段寄存器在程序运行中的职责比较重要，所以<code>Intel</code>没有提供直接把立即数转移到段寄存器的指令。通过强制多加一个步骤，可以使操作者明白自己到底在做什么，是否真的需要修改段寄存器的值。</li>
 <li>第<code>6</code>行我们先来分析一下目的操作数<code>%es:0</code>，根据之前的内容我们知道这是以<strong>段基址:段内偏移</strong>的形式来给出内存地址。此时<code>es</code>的内容为<code>0xb800</code>，左移<code>4</code>位再加上偏移地址<code>0</code>，得到的物理地址为<code>0xb8000</code>。再来看看源操作数<code>'H'</code>，为啥这样写呢？得益于<code>GNU as</code>编译器的支持，我们能够以这种方式表示一个<code>ASCII</code>字符，编译器会帮我们把<code>'H'</code>转换为<code>0x48</code>。接下来看看<code>mov</code>后面的<code>b</code>，<code>b</code>表示<code>byte</code>，因为这次我们只操作一个字节的数据。</li>
@@ -215,70 +225,162 @@
 <li>第<code>11</code>、<code>12</code>行用了两条伪指令，伪指令是给编译器看的，并不是处理器最终会执行的指令。<code>.org</code>伪指令指示编译器把位置计数器移动到操作数所指定的位置，这里是将位置计数器移动到<code>510</code>处。<code>.word</code>伪指令指示编译器在当前位置写入一个字大小的数据，当然，操作数也可以用逗号隔开，表示写入一组一个字大小的数据。这里要写入的数据是<code>0xAA55</code>，何以是<code>0xAA55</code>？上次不是才说过第一个扇区的最后两个字节要是<code>0x55</code>、<code>0xAA</code>才能被引导吗？怎么反过来了？这是因为<code>Intel</code>处理器使用的是小端序，即数据的低字节存放在内存的低地址处，高字节存放在内存的高地址处。所以<code>0xAA55</code>在内存中仍然是按照<code>0x55</code>，<code>0xAA</code>的顺序存放的。</li>
 </ul>
 <p>编译：</p>
-<pre><code># as --32 boot.s -o boot.o
-</code></pre><p>我们先看看<code>boot.o</code>的大小，它是不是符合我们<code>512</code>字节的要求</p>
-<pre><code># ls -l boot.o
--rw-r--r-- 1 root root 956 Feb 23 16:47 boot.o
-</code></pre><p><code>956</code>字节，显然胖了。出现这种结果的原因是<code>as</code>生成的目标文件默认是<code>elf</code>格式的，<code>elf</code>格式的文件中除了二进制代码，还会附加一些头信息、段信息、链接信息、调试信息等等。对于我们这个程序来说，是用不到这些信息的，甚至连链接都不需要，直接把目标文件中的二进制代码复制出来就行了。这个操作我们使用<code>objcopy</code>这个工具来完成。</p>
-<pre><code># objcopy -O binary -j .text boot.o boot.bin
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># as --32 boot.s -o boot.o
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们先看看<code>boot.o</code>的大小，它是不是符合我们<code>512</code>字节的要求</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># ls -l boot.o
+</span></span><span class="line"><span class="cl">-rw-r--r-- 1 root root 956 Feb 23 16:47 boot.o
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>956</code>字节，显然胖了。出现这种结果的原因是<code>as</code>生成的目标文件默认是<code>elf</code>格式的，<code>elf</code>格式的文件中除了二进制代码，还会附加一些头信息、段信息、链接信息、调试信息等等。对于我们这个程序来说，是用不到这些信息的，甚至连链接都不需要，直接把目标文件中的二进制代码复制出来就行了。这个操作我们使用<code>objcopy</code>这个工具来完成。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># objcopy -O binary -j .text boot.o boot.bin
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>-O</code>: <code>binary</code>指定输出文件的格式为纯二进制格式，</li>
 <li><code>-j</code>: <code>.text</code>指定只复制<code>.text</code>段</li>
 </ul>
 <p>输出的文件名为<code>boot.bin</code>。我们再来看看<code>boot.bin</code>文件的大小。</p>
-<pre><code># ls -l boot.bin 
--rw-r--r-- 1 root root 512 Feb 23 16:48 boot.bin
-</code></pre><p>刚刚好，<code>512</code>字节。再来看看其中的内容。</p>
-<pre><code>#  xxd -a boot.bin 
-00000000: b800 b88e c026 c606 0000 4826 c606 0100  .....&amp;....H&amp;....
-00000010: 0aeb fe00 0000 0000 0000 0000 0000 0000  ................
-00000020: 0000 0000 0000 0000 0000 0000 0000 0000  ................
-*
-000001f0: 0000 0000 0000 0000 0000 0000 0000 55aa  ..............U.
-</code></pre><p>启动一下：</p>
-<pre><code>$ qemu-system-i386 boot.bin
-</code></pre><p><img src="./print_H.png" alt=""></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># ls -l boot.bin 
+</span></span><span class="line"><span class="cl">-rw-r--r-- 1 root root 512 Feb 23 16:48 boot.bin
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>刚刚好，<code>512</code>字节。再来看看其中的内容。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#  xxd -a boot.bin 
+</span></span><span class="line"><span class="cl">00000000: b800 b88e c026 c606 0000 4826 c606 0100  .....&amp;....H&amp;....
+</span></span><span class="line"><span class="cl">00000010: 0aeb fe00 0000 0000 0000 0000 0000 0000  ................
+</span></span><span class="line"><span class="cl">00000020: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+</span></span><span class="line"><span class="cl">*
+</span></span><span class="line"><span class="cl">000001f0: 0000 0000 0000 0000 0000 0000 0000 55aa  ..............U.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>启动一下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ qemu-system-i386 boot.bin
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="./print_H.png" alt=""></p>
 <p><code>H</code>字符打印出来，下一步我们来打印完整的<code>Hello World</code>。</p>
 <h3 id="在屏幕上打印字符串hello-world">在屏幕上打印字符串Hello World！</h3>
 <p>本节我们用循环的方式让计算机把所有的字符都打印出来。代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-as" data-lang="as">.<span style="color:#a6e22e">code16</span>
-
-	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0x07c0</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>	
-	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ds</span>
-
-	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0xb800</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>
-	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span>
-
-	<span style="color:#a6e22e">xorw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">si</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>
-	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">message_length</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">cx</span>
-
-<span style="color:#a6e22e">print</span><span style="color:#f92672">:</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#a6e22e">message</span>(<span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>)<span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">bl</span>
-	<span style="color:#a6e22e">movb</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">bl</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span><span style="color:#f92672">:</span>(<span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>)
-	<span style="color:#a6e22e">incw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>		
-	<span style="color:#a6e22e">loop</span>	<span style="color:#a6e22e">print</span>
-
-	<span style="color:#a6e22e">jmp</span>	.
-
-<span style="color:#a6e22e">message</span><span style="color:#f92672">:</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;H&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;e&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;o&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39; &#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;W&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;o&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;r&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;d&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-
-<span style="color:#a6e22e">message_length</span><span style="color:#f92672">:</span>
-	.<span style="color:#a6e22e">word</span>	. <span style="color:#f92672">-</span> <span style="color:#a6e22e">message</span>
-
-	.<span style="color:#a6e22e">org</span>	<span style="color:#ae81ff">510</span>
-	.<span style="color:#a6e22e">word</span>	<span style="color:#ae81ff">0xaa55</span>
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-as" data-lang="as"><span class="line"><span class="cl"><span class="p">.</span><span class="nx">code16</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="nx">$0x07c0</span><span class="o">,</span> <span class="o">%</span><span class="nx">ax</span>	
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="o">%</span><span class="nx">ax</span><span class="o">,</span> <span class="o">%</span><span class="nx">ds</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="nx">$0xb800</span><span class="o">,</span> <span class="o">%</span><span class="nx">ax</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="o">%</span><span class="nx">ax</span><span class="o">,</span> <span class="o">%</span><span class="nx">es</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">xorw</span>	<span class="o">%</span><span class="nx">si</span><span class="o">,</span> <span class="o">%</span><span class="nx">si</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="nx">message_length</span><span class="o">,</span> <span class="o">%</span><span class="nx">cx</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">print</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">movb</span>	<span class="nx">message</span><span class="p">(</span><span class="o">%</span><span class="nx">si</span><span class="p">)</span><span class="o">,</span> <span class="o">%</span><span class="nx">bl</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">movb</span>	<span class="o">%</span><span class="nx">bl</span><span class="o">,</span> <span class="o">%</span><span class="nx">es</span><span class="o">:</span><span class="p">(</span><span class="o">%</span><span class="nx">si</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">incw</span>	<span class="o">%</span><span class="nx">si</span>		
+</span></span><span class="line"><span class="cl">	<span class="nx">loop</span>	<span class="nx">print</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">jmp</span>	<span class="p">.</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">message</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;H&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;e&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;l&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;l&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;o&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39; &#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;W&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;o&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;r&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;l&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;d&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">message_length</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">word</span>	<span class="p">.</span> <span class="o">-</span> <span class="nx">message</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">org</span>	<span class="mi">510</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">word</span>	<span class="mh">0xaa55</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>
 <p>第<code>3、4</code>行用于将数据段寄存器<code>ds</code>的值设置为<code>0x07c0</code>，这是为了访问数据的方便。这里的数据指的是<code>message</code>和<code>message_length</code>这两个符号所处位置的数据。为什么是<code>0x07c0</code>呢？还记得我们在前面的文章中说的吗。<code>BIOS</code>会把我们的程序，也就是磁盘<code>0</code>柱面<code>0</code>磁道的第<code>1</code>个扇区加载到内存<code>0x7c00</code>处执行。因为<code>ds</code>是段寄存器，所以在寻址的时候左移<code>4</code>位，<code>0x07c0</code>转换为<code>0x7c00</code>。</p>
 </li>
@@ -329,10 +431,19 @@
 </li>
 </ul>
 <p>编译并运行</p>
-<pre><code># as --32 boot.s -o boot.o
-# objcopy -O binary -j .text boot.o boot.bin
-# qemu-system-i386 boot.bin
-</code></pre><p>运行结果如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># as --32 boot.s -o boot.o
+</span></span><span class="line"><span class="cl"># objcopy -O binary -j .text boot.o boot.bin
+</span></span><span class="line"><span class="cl"># qemu-system-i386 boot.bin
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>运行结果如下：</p>
 <p><img src="./print_Hello_World.png" alt=""></p>
 <h3 id="使用串操作指令打印hello-world">使用串操作指令打印Hello World!</h3>
 <p>含义：<strong>通过执行一条字符串操作指令，对存储器中某一个连续的内存中存放的一串字或字节均进行同样的操作，称为串操作。字符串操作指令简称为串操作指令。</strong></p>
@@ -341,42 +452,83 @@
 <p>若源串和目的串在同一段中，可使<code>ds</code>和<code>es</code>指向相同数据段，即<code>ds=es</code>。</p>
 <p>还可以在任一串操作指令前加一个指令前缀，构成重复前级指令，通过此指令来控制串操作指令的重复执行操作。</p>
 <p>下面结合代码来看一下如何通过串操作指令打印<code>Hello World</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-as" data-lang="as">.<span style="color:#a6e22e">code16</span>
-
-	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0x07c0</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>
-	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ds</span>
-
-	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$0xb800</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span>
-	<span style="color:#a6e22e">movw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">ax</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">es</span>
-
-
-	<span style="color:#a6e22e">cld</span>			
-	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">$message</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">si</span>	
-	<span style="color:#a6e22e">xorw</span>	<span style="color:#f92672">%</span><span style="color:#a6e22e">di</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">di</span>	
-	<span style="color:#a6e22e">movw</span>	<span style="color:#a6e22e">message_length</span><span style="color:#f92672">,</span> <span style="color:#f92672">%</span><span style="color:#a6e22e">cx</span>	
-	<span style="color:#a6e22e">rep</span>	<span style="color:#a6e22e">movsb</span>		
-
-	<span style="color:#a6e22e">jmp</span>	.
-
-<span style="color:#a6e22e">message</span><span style="color:#f92672">:</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;H&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;e&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;o&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39; &#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;W&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;o&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;r&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;l&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-	.<span style="color:#a6e22e">byte</span> <span style="color:#e6db74">&#39;d&#39;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">0xa</span>
-
-<span style="color:#a6e22e">message_length</span><span style="color:#f92672">:</span>
-	.<span style="color:#a6e22e">word</span>	. <span style="color:#f92672">-</span> <span style="color:#a6e22e">message</span>
-
-	.<span style="color:#a6e22e">org</span>	<span style="color:#ae81ff">510</span>
-	.<span style="color:#a6e22e">word</span>	<span style="color:#ae81ff">0xaa55</span>
-</code></pre></div><p>跟上一个打印<code>Hello World</code>的代码不同之处主要在<code>10</code>到<code>14</code>行。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-as" data-lang="as"><span class="line"><span class="cl"><span class="p">.</span><span class="nx">code16</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="nx">$0x07c0</span><span class="o">,</span> <span class="o">%</span><span class="nx">ax</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="o">%</span><span class="nx">ax</span><span class="o">,</span> <span class="o">%</span><span class="nx">ds</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="nx">$0xb800</span><span class="o">,</span> <span class="o">%</span><span class="nx">ax</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="o">%</span><span class="nx">ax</span><span class="o">,</span> <span class="o">%</span><span class="nx">es</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">cld</span>			
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="nx">$message</span><span class="o">,</span> <span class="o">%</span><span class="nx">si</span>	
+</span></span><span class="line"><span class="cl">	<span class="nx">xorw</span>	<span class="o">%</span><span class="nx">di</span><span class="o">,</span> <span class="o">%</span><span class="nx">di</span>	
+</span></span><span class="line"><span class="cl">	<span class="nx">movw</span>	<span class="nx">message_length</span><span class="o">,</span> <span class="o">%</span><span class="nx">cx</span>	
+</span></span><span class="line"><span class="cl">	<span class="nx">rep</span>	<span class="nx">movsb</span>		
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">jmp</span>	<span class="p">.</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">message</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;H&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;e&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;l&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;l&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;o&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39; &#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;W&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;o&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;r&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;l&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">byte</span> <span class="s1">&#39;d&#39;</span><span class="o">,</span> <span class="mh">0xa</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">message_length</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">word</span>	<span class="p">.</span> <span class="o">-</span> <span class="nx">message</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">org</span>	<span class="mi">510</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="nx">word</span>	<span class="mh">0xaa55</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>跟上一个打印<code>Hello World</code>的代码不同之处主要在<code>10</code>到<code>14</code>行。</p>
 <ul>
 <li>
 <p>第<code>10</code>行，使用<code>cld</code>指令将<code>DF</code>标志位置为<code>0</code>，表示每次操作后对<code>si</code>和<code>di</code>做增量操作。</p>
@@ -396,10 +548,19 @@
 </ul>
 <p>通过组合<code>rep</code>和<code>movs</code>我们就可以批量的把数据从内存的一个区域转移到另一个区域。</p>
 <p>编译并运行</p>
-<pre><code># as --32 boot.s -o boot.o
-# objcopy -O binary -j .text boot.o boot.bin
-# qemu-system-i386 boot.bin
-</code></pre><p>运行结果如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># as --32 boot.s -o boot.o
+</span></span><span class="line"><span class="cl"># objcopy -O binary -j .text boot.o boot.bin
+</span></span><span class="line"><span class="cl"># qemu-system-i386 boot.bin
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>运行结果如下：</p>
 <p><img src="./print_Hello_World.png" alt=""></p>
 <h3 id="总结">总结</h3>
 <p>最后我们来对学到的知识点做一个总结：</p>
@@ -433,7 +594,6 @@
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -441,7 +601,10 @@
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2021-02-22</span>
+    <span class="item-content">
+        2021-02-22
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -449,33 +612,24 @@
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
-      
-
+<footer class="post-footer">
       
       <nav class="post-nav">
-        
-          <a class="prev" href="/posts/003-debug-boot-sectors/">
+        <a class="prev" href="/posts/003-debug-boot-sectors/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">003-调试引导扇区</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/posts/001-how-to-start/">
+        <a class="next" href="/posts/001-how-to-start/">
             <span class="next-text nav-default">001-计算机是如何启动的</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -489,6 +643,11 @@
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -513,26 +672,24 @@
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

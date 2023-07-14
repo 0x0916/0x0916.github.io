@@ -16,27 +16,23 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。
+<meta name="author" content="laoqinren" /><meta name="description" content="在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。
 本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。
 红黑树介绍 红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：红黑树。
 红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？
 了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。
 自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。
-" />
-<meta name="keywords" content="rbtree" />
+" /><meta name="keywords" content="rbtree" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/rbtree/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -45,14 +41,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="红黑树(一) ——原理" />
@@ -64,7 +54,7 @@
 了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。
 自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/rbtree/" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/rbtree/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2018-07-16T10:28:23+08:00" />
 <meta property="article:modified_time" content="2018-07-16T10:28:23+08:00" />
 <meta itemprop="name" content="红黑树(一) ——原理">
@@ -74,15 +64,10 @@
 红黑树由Rudolf Bayer于1972年发明，当时被称为平衡二叉B树（symmetric binary B-trees），1978年被Leonidas J. Guibas 和Robert Sedgewick改成一个比较摩登的名字：红黑树。
 红黑树是每个节点都带有颜色属性的二叉查找树，颜色为红色或黑色。那既然已经有二叉查找树，为什么还需要红黑树呢？
 了解过二叉查找树的同学应该都知道，随着不断的插入和删除结点，二叉查找树有可能会退化成一个长链。所以就有了AVL树的概念，目的就是在插入和删除结点时，保证查找树的平衡。而红黑树和AVL树类似，都是在进行插入和删除操作时通过特定操作保持二叉查找树的平衡，从而获得较高的查找性能。
-自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。">
-<meta itemprop="datePublished" content="2018-07-16T10:28:23+08:00" />
+自从红黑树出来后，AVL树就被放到了博物馆里，据说是红黑树有更好的效率，更高的统计性能。"><meta itemprop="datePublished" content="2018-07-16T10:28:23+08:00" />
 <meta itemprop="dateModified" content="2018-07-16T10:28:23+08:00" />
-<meta itemprop="wordCount" content="4311">
-
-
-
-<meta itemprop="keywords" content="" />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="4377">
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="红黑树(一) ——原理"/>
 <meta name="twitter:description" content="在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。
 本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。
@@ -131,12 +116,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -157,6 +151,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -170,58 +165,52 @@
       <div class="post-meta">
         <span class="post-time"> 2018-07-16 </span>
         <div class="post-category">
-            
-              <a href="/categories/algorithm/"> algorithm </a>
-            
-              <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
-            
-          </div>
-        <span class="more-meta"> 4311 words </span>
-        <span class="more-meta"> 9 mins read </span>
+            <a href="/categories/algorithm/"> algorithm </a>
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#红黑树介绍">红黑树介绍</a></li>
-    <li><a href="#红黑树的平衡">红黑树的平衡</a></li>
-    <li><a href="#定义红黑树的结构体">定义红黑树的结构体</a></li>
-    <li><a href="#结点的基本操作">结点的基本操作</a>
+    <li>
       <ul>
-        <li><a href="#寻找parentgrandparentslibinguncle等">寻找parent、grandparent、slibing、uncle等</a></li>
-        <li><a href="#中序遍历">中序遍历</a></li>
-        <li><a href="#旋转">旋转</a></li>
+        <li><a href="#红黑树介绍">红黑树介绍</a></li>
+        <li><a href="#红黑树的平衡">红黑树的平衡</a></li>
+        <li><a href="#定义红黑树的结构体">定义红黑树的结构体</a></li>
+        <li><a href="#结点的基本操作">结点的基本操作</a>
+          <ul>
+            <li><a href="#寻找parentgrandparentslibinguncle等">寻找parent、grandparent、slibing、uncle等</a></li>
+            <li><a href="#中序遍历">中序遍历</a></li>
+            <li><a href="#旋转">旋转</a></li>
+          </ul>
+        </li>
+        <li><a href="#红黑树的插入">红黑树的插入</a>
+          <ul>
+            <li><a href="#0插入的节点为根节点">（0）插入的节点为根节点</a></li>
+            <li><a href="#1插入的节点的父节点为黑色">（1）插入的节点的父节点为黑色</a></li>
+            <li><a href="#2插入的节点的父节点为红色">（2）插入的节点的父节点为红色</a></li>
+          </ul>
+        </li>
+        <li><a href="#红黑树的删除">红黑树的删除</a>
+          <ul>
+            <li><a href="#旧结点为红色结点">旧结点为红色结点</a></li>
+            <li><a href="#旧结点为黑色结点新结点为红色结点">旧结点为黑色结点，新结点为红色结点</a></li>
+            <li><a href="#旧结点和新结点都为黑色">旧结点和新结点都为黑色</a></li>
+          </ul>
+        </li>
+        <li><a href="#代码">代码</a></li>
+        <li><a href="#参考文档">参考文档</a></li>
       </ul>
     </li>
-    <li><a href="#红黑树的插入">红黑树的插入</a>
-      <ul>
-        <li><a href="#0插入的节点为根节点">（0）插入的节点为根节点</a></li>
-        <li><a href="#1插入的节点的父节点为黑色">（1）插入的节点的父节点为黑色</a></li>
-        <li><a href="#2插入的节点的父节点为红色">（2）插入的节点的父节点为红色</a></li>
-      </ul>
-    </li>
-    <li><a href="#红黑树的删除">红黑树的删除</a>
-      <ul>
-        <li><a href="#旧结点为红色结点">旧结点为红色结点</a></li>
-        <li><a href="#旧结点为黑色结点新结点为红色结点">旧结点为黑色结点，新结点为红色结点</a></li>
-        <li><a href="#旧结点和新结点都为黑色">旧结点和新结点都为黑色</a></li>
-      </ul>
-    </li>
-    <li><a href="#代码">代码</a></li>
-    <li><a href="#参考文档">参考文档</a></li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>在分析内核代码的过程中，发现很多内核子系统都会使用红黑树这个查找结构，本文由浅入深的总结了红黑树这个查找结构。</p>
 <p>本文尽可能做到浅显易懂。最后，本文会基于C语言，自己实现一个红黑树，方便大家对其理解。</p>
@@ -248,83 +237,172 @@
 </blockquote>
 <h2 id="定义红黑树的结构体">定义红黑树的结构体</h2>
 <p>为了方便的进行讨论，我们根据如上红黑树的特性，定义了红黑树节点的数据结构，如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define BLACK	0
-</span><span style="color:#75715e">#define RED	1
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> _RBNode {
-	<span style="color:#66d9ef">int</span> key;
-	<span style="color:#66d9ef">int</span> color;
-	<span style="color:#66d9ef">struct</span> _RBNode <span style="color:#f92672">*</span>parent, <span style="color:#f92672">*</span>left, <span style="color:#f92672">*</span>right;
-} RBNode;
-</code></pre></div><h2 id="结点的基本操作">结点的基本操作</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define BLACK	0
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define RED	1
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_RBNode</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">key</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">color</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">_RBNode</span> <span class="o">*</span><span class="n">parent</span><span class="p">,</span> <span class="o">*</span><span class="n">left</span><span class="p">,</span> <span class="o">*</span><span class="n">right</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">RBNode</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="结点的基本操作">结点的基本操作</h2>
 <h3 id="寻找parentgrandparentslibinguncle等">寻找parent、grandparent、slibing、uncle等</h3>
 <p>这些基本操作比较简单，具体代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">parent</span>(RBNode <span style="color:#f92672">*</span>n) {
-	<span style="color:#66d9ef">return</span> n<span style="color:#f92672">-&gt;</span>parent;
-}
-
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">is_leaf</span>(RBNode <span style="color:#f92672">*</span>n) {
-	<span style="color:#66d9ef">return</span> n <span style="color:#f92672">==</span> LEAF;
-}
-
-RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">grandparent</span>(RBNode <span style="color:#f92672">*</span>n) {
-	RBNode <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> parent(n);
-	<span style="color:#66d9ef">if</span> (p <span style="color:#f92672">==</span> NULL)
-		<span style="color:#66d9ef">return</span> NULL;<span style="color:#75715e">// no parent means no grandparent
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">return</span> parent(p);
-}
-
-RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">slibing</span>(RBNode <span style="color:#f92672">*</span>n) {
-	RBNode <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> parent(n);
-	<span style="color:#66d9ef">if</span> (p <span style="color:#f92672">==</span> NULL)
-		<span style="color:#66d9ef">return</span> NULL;<span style="color:#75715e">// no parent means no slibing 
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (n <span style="color:#f92672">==</span> p<span style="color:#f92672">-&gt;</span>left)
-		<span style="color:#66d9ef">return</span> p<span style="color:#f92672">-&gt;</span>right;
-	<span style="color:#66d9ef">else</span>
-		<span style="color:#66d9ef">return</span> p<span style="color:#f92672">-&gt;</span>left;
-}
-
-RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">uncle</span>(RBNode<span style="color:#f92672">*</span> n) {
-	RBNode <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> parent(n);
-	RBNode <span style="color:#f92672">*</span>g <span style="color:#f92672">=</span> grandparent(n);
-
-	<span style="color:#66d9ef">if</span> (g <span style="color:#f92672">==</span> NULL)
-		<span style="color:#66d9ef">return</span> NULL; <span style="color:#75715e">// No grandparent means no uncle
-</span><span style="color:#75715e"></span>
-	<span style="color:#66d9ef">return</span> slibing(p);
-}
-</code></pre></div><h3 id="中序遍历">中序遍历</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">RBNode</span><span class="o">*</span> <span class="nf">parent</span><span class="p">(</span><span class="n">RBNode</span> <span class="o">*</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">n</span><span class="o">-&gt;</span><span class="n">parent</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">is_leaf</span><span class="p">(</span><span class="n">RBNode</span> <span class="o">*</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">n</span> <span class="o">==</span> <span class="n">LEAF</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">RBNode</span><span class="o">*</span> <span class="nf">grandparent</span><span class="p">(</span><span class="n">RBNode</span> <span class="o">*</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="n">RBNode</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="nf">parent</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span><span class="c1">// no parent means no grandparent
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">return</span> <span class="nf">parent</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">RBNode</span><span class="o">*</span> <span class="nf">slibing</span><span class="p">(</span><span class="n">RBNode</span> <span class="o">*</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="n">RBNode</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="nf">parent</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span><span class="c1">// no parent means no slibing 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">else</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">RBNode</span><span class="o">*</span> <span class="nf">uncle</span><span class="p">(</span><span class="n">RBNode</span><span class="o">*</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="n">RBNode</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="nf">parent</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">RBNode</span> <span class="o">*</span><span class="n">g</span> <span class="o">=</span> <span class="nf">grandparent</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">g</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="c1">// No grandparent means no uncle
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">slibing</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="中序遍历">中序遍历</h3>
 <p>中序遍历，即按照关键字的从小到大的顺序。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">inorder_tree_walk</span>(RBNode<span style="color:#f92672">*</span> root) {
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>is_leaf(root)) {
-		inorder_tree_walk(root<span style="color:#f92672">-&gt;</span>left);
-		printf(<span style="color:#e6db74">&#34; %d&#34;</span>, root<span style="color:#f92672">-&gt;</span>key);
-		inorder_tree_walk(root<span style="color:#f92672">-&gt;</span>right);
-	}
-}
-
-</code></pre></div><h3 id="旋转">旋转</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">inorder_tree_walk</span><span class="p">(</span><span class="n">RBNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">is_leaf</span><span class="p">(</span><span class="n">root</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">inorder_tree_walk</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34; %d&#34;</span><span class="p">,</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">inorder_tree_walk</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="旋转">旋转</h3>
 <p>插入和删除过程中都会有破坏红黑树性质的情况发生，为了维护这些性质，必须要改变树中某些结点的颜色和指针结构。指针结构的修改是通过旋转来完成的，旋转被分为左旋和右旋；在插入和删除操作中这两个操作会多次出现，我们先来分析一下这两个操作:</p>
 <p><img src="./left-rotate-right-rotate.png" alt="enter description here" title="left-rotate-right-rotate"></p>
 <h4 id="左旋">左旋</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">rotate_left</span>(RBNode<span style="color:#f92672">*</span> n) { 
-	RBNode<span style="color:#f92672">*</span> nnew <span style="color:#f92672">=</span> n<span style="color:#f92672">-&gt;</span>right;
-
-	n<span style="color:#f92672">-&gt;</span>right <span style="color:#f92672">=</span> nnew<span style="color:#f92672">-&gt;</span>left;
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>is_leaf(nnew<span style="color:#f92672">-&gt;</span>left)) {
-		nnew<span style="color:#f92672">-&gt;</span>left<span style="color:#f92672">-&gt;</span>parent <span style="color:#f92672">=</span> n;
-	}
-	nnew<span style="color:#f92672">-&gt;</span>parent <span style="color:#f92672">=</span> n<span style="color:#f92672">-&gt;</span>parent;
-
-	<span style="color:#66d9ef">if</span> (n<span style="color:#f92672">-&gt;</span>parent <span style="color:#f92672">!=</span> NULL) {
-		<span style="color:#66d9ef">if</span> (n <span style="color:#f92672">==</span> n<span style="color:#f92672">-&gt;</span>parent<span style="color:#f92672">-&gt;</span>left)
-			n<span style="color:#f92672">-&gt;</span>parent<span style="color:#f92672">-&gt;</span>left <span style="color:#f92672">=</span> nnew;
-		<span style="color:#66d9ef">else</span>
-			n<span style="color:#f92672">-&gt;</span>parent<span style="color:#f92672">-&gt;</span>right <span style="color:#f92672">=</span> nnew;
-	}
-	nnew<span style="color:#f92672">-&gt;</span>left <span style="color:#f92672">=</span> n;
-	n<span style="color:#f92672">-&gt;</span>parent <span style="color:#f92672">=</span> nnew;
-}
-</code></pre></div><h4 id="右旋">右旋</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">rotate_left</span><span class="p">(</span><span class="n">RBNode</span><span class="o">*</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span> 
+</span></span><span class="line"><span class="cl">	<span class="n">RBNode</span><span class="o">*</span> <span class="n">nnew</span> <span class="o">=</span> <span class="n">n</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">n</span><span class="o">-&gt;</span><span class="n">right</span> <span class="o">=</span> <span class="n">nnew</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">is_leaf</span><span class="p">(</span><span class="n">nnew</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="n">nnew</span><span class="o">-&gt;</span><span class="n">left</span><span class="o">-&gt;</span><span class="n">parent</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="n">nnew</span><span class="o">-&gt;</span><span class="n">parent</span> <span class="o">=</span> <span class="n">n</span><span class="o">-&gt;</span><span class="n">parent</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">n</span><span class="o">-&gt;</span><span class="n">parent</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="n">n</span><span class="o">-&gt;</span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="n">n</span><span class="o">-&gt;</span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">left</span> <span class="o">=</span> <span class="n">nnew</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">else</span>
+</span></span><span class="line"><span class="cl">			<span class="n">n</span><span class="o">-&gt;</span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">right</span> <span class="o">=</span> <span class="n">nnew</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="n">nnew</span><span class="o">-&gt;</span><span class="n">left</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">n</span><span class="o">-&gt;</span><span class="n">parent</span> <span class="o">=</span> <span class="n">nnew</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="右旋">右旋</h4>
 <p>右旋代码跟左旋代码对称，这里就不贴出来了。</p>
 <h2 id="红黑树的插入">红黑树的插入</h2>
 <p>在讨论红黑树的插入操作之前必须要明白，<strong>任何一个即将插入的新结点的初始颜色都为红色</strong>。这一点很容易理解，因为插入黑点会增加某条路径上黑结点的数目，从而导致整棵树黑高度的不平衡。但如果新结点父结点为红色时（如下图所示），将会违返红黑树性质：一条路径上不能出现相邻的两个红色结点。这时就需要通过一系列操作来使红黑树保持平衡。</p>
@@ -449,7 +527,6 @@ RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">uncle</sp
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -457,7 +534,10 @@ RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">uncle</sp
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-07-16</span>
+    <span class="item-content">
+        2018-07-16
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -465,33 +545,24 @@ RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">uncle</sp
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
-      
-
+<footer class="post-footer">
       
       <nav class="post-nav">
-        
-          <a class="prev" href="/posts/process_resource/">
+        <a class="prev" href="/posts/process_resource/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">Process Resource</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/posts/use-high-version-of-gcc-in-centos7/">
+        <a class="next" href="/posts/use-high-version-of-gcc-in-centos7/">
             <span class="next-text nav-default">在centos7中使用高版本的GCC</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -505,6 +576,11 @@ RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">uncle</sp
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -529,26 +605,24 @@ RBNode<span style="color:#f92672">*</span> <span style="color:#a6e22e">uncle</sp
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

@@ -18,6 +18,16 @@
     </item>
     
     <item>
+      <title>Linux时间子系统之低精度定时器(Timer)</title>
+      <link>http://linux.laoqinren.net/kernel/linux-timer/</link>
+      <pubDate>Sat, 29 Aug 2020 09:34:48 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/kernel/linux-timer/</guid>
+      <description>&lt;p&gt;定时器层是基于&lt;code&gt;Tick&lt;/code&gt;层之上的，是根据系统&lt;code&gt;jiffies&lt;/code&gt;来触发的，精度相对比较低。利用定时器，我们可以设定在未来的某一时刻，触发一个特定的事件。经常，也会把这种低精度定时器称作时间轮（&lt;code&gt;Timer Wheel&lt;/code&gt;）。&lt;/p&gt;
+&lt;p&gt;本文将详细分析内核中低精度定时器的实现。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>__KERNEL__宏的作用是什么呢？该如何使用呢？</title>
       <link>http://linux.laoqinren.net/kernel/how-to-user-__kernel__/</link>
       <pubDate>Mon, 03 Aug 2020 17:47:08 +0800</pubDate>
@@ -413,15 +423,32 @@
 &lt;h2 id=&#34;数据结构&#34;&gt;数据结构&lt;/h2&gt;
 &lt;p&gt;&lt;code&gt;hlist_head&lt;/code&gt;和&lt;code&gt;hlist_node&lt;/code&gt;用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:&lt;/p&gt;
 &lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190&#34;&gt; include/linux/types.h(line 190) &lt;/a&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_head {
-	&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;first;
-};
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node {
-	&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; hlist_node &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;next, &lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;pprev;
-};
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;hlist_head&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;	&lt;span class=&#34;k&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;hlist_node&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;first&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;a target=&#34;_blank&#34; href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194&#34;&gt; include/linux/types.h(line 194) &lt;/a&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;hlist_node&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;	&lt;span class=&#34;k&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;hlist_node&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;next&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;**&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;pprev&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
     </item>
     
     <item>
@@ -472,21 +499,6 @@
       <guid>http://linux.laoqinren.net/linux/linux-swap/</guid>
       <description>&lt;p&gt;本文转载于：https://segmentfault.com/a/1190000008125116&lt;/p&gt;
 &lt;p&gt;每次安装Linux的时候，都会要求配置交换分区，那么这个分区是干嘛的呢？不设置这个分区有什么后果？如果一定要设置，设置多大比较合适？本篇将试图回答这些问题并尽量覆盖所有swap相关的知识。&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Linux用户程序如何访问物理内存</title>
-      <link>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</link>
-      <pubDate>Sat, 28 Apr 2018 15:06:33 +0800</pubDate>
-      
-      <guid>http://linux.laoqinren.net/kernel/reading-linux-physical-memory/</guid>
-      <description>&lt;p&gt;本文转载于：http://ilinuxkernel.com/?p=1248&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;注意：转载文中的代码在最新的内核上已经无法编译通过，原文中留言区提到的获取内核总的页数的方法有点瑕疵。这些在本文中都会进行修正。
-本文中使用的内核版本为：&lt;a href=&#34;http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.21.1.el7.src.rpm&#34;&gt;3.10.0-693.21.1&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址，也并不是物理地址，而是逻辑地址。至于这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。&lt;/p&gt;
-&lt;p&gt;通过用户程序若想访问物理内存，我们需要通过内核才能实现。本文介绍基于内核模块的方式，实现在&lt;code&gt;Linux&lt;/code&gt;中用户态程序访问所有物理内存。&lt;/p&gt;</description>
     </item>
     
     <item>

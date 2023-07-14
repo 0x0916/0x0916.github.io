@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Categories on Notes about linux and my work</title>
+    <link>http://linux.laoqinren.net/categories/</link>
+    <description>Recent content in Categories on Notes about linux and my work</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 30 Aug 2020 10:08:20 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>kernel</title>
+      <link>http://linux.laoqinren.net/categories/kernel/</link>
+      <pubDate>Sun, 30 Aug 2020 10:08:20 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/kernel/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>linux</title>
+      <link>http://linux.laoqinren.net/categories/linux/</link>
+      <pubDate>Sun, 10 Feb 2019 20:20:18 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/linux/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>socket</title>
+      <link>http://linux.laoqinren.net/categories/socket/</link>
+      <pubDate>Sun, 16 Sep 2018 18:06:34 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/socket/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>File System</title>
+      <link>http://linux.laoqinren.net/categories/file-system/</link>
+      <pubDate>Sat, 15 Sep 2018 20:10:34 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/file-system/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>radix-tree</title>
+      <link>http://linux.laoqinren.net/categories/radix-tree/</link>
+      <pubDate>Sun, 09 Sep 2018 13:36:38 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/radix-tree/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>cgroup</title>
+      <link>http://linux.laoqinren.net/categories/cgroup/</link>
+      <pubDate>Sun, 26 Aug 2018 10:09:56 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/cgroup/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>algorithm</title>
+      <link>http://linux.laoqinren.net/categories/algorithm/</link>
+      <pubDate>Mon, 06 Aug 2018 16:17:53 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/algorithm/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>算法</title>
+      <link>http://linux.laoqinren.net/categories/%E7%AE%97%E6%B3%95/</link>
+      <pubDate>Mon, 06 Aug 2018 16:17:53 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/%E7%AE%97%E6%B3%95/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>gcc</title>
+      <link>http://linux.laoqinren.net/categories/gcc/</link>
+      <pubDate>Wed, 27 Jun 2018 21:18:15 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/gcc/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>API</title>
+      <link>http://linux.laoqinren.net/categories/api/</link>
+      <pubDate>Thu, 12 Apr 2018 22:45:09 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/api/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>eventfd</title>
+      <link>http://linux.laoqinren.net/categories/eventfd/</link>
+      <pubDate>Thu, 12 Apr 2018 22:45:09 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/eventfd/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Development</title>
+      <link>http://linux.laoqinren.net/categories/development/</link>
+      <pubDate>Wed, 01 Feb 2017 19:20:04 -0700</pubDate>
+      
+      <guid>http://linux.laoqinren.net/categories/development/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本文转载于：http://www.wowotech.net/memory_management/memory_model.html
+<meta name="author" content="laoqinren" /><meta name="description" content="本文转载于：http://www.wowotech.net/memory_management/memory_model.html
 在原文的基础上，做了如下的改动：
- 文中出现的内核代码修改成基于4.4.128 对于体系结构相关的代码,使用x86架构中的代码 对代码格式进行调整 会添加一些内容，便于更进一步的理解 " />
-<meta name="keywords" content="kernel, linux, memory, mem_section, sparse memory" />
+文中出现的内核代码修改成基于4.4.128 对于体系结构相关的代码,使用x86架构中的代码 对代码格式进行调整 会添加一些内容，便于更进一步的理解 " /><meta name="keywords" content="kernel, linux, memory, mem_section, sparse memory" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/memory-model/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,14 +37,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="Linux内存模型分析" />
@@ -61,7 +51,7 @@
 会添加一些内容，便于更进一步的理解
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/memory-model/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/memory-model/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2018-04-25T22:03:05+08:00" />
 <meta property="article:modified_time" content="2018-04-25T22:03:05+08:00" />
 <meta itemprop="name" content="Linux内存模型分析">
@@ -72,15 +62,10 @@
 对于体系结构相关的代码,使用x86架构中的代码
 对代码格式进行调整
 会添加一些内容，便于更进一步的理解
-">
-<meta itemprop="datePublished" content="2018-04-25T22:03:05+08:00" />
+"><meta itemprop="datePublished" content="2018-04-25T22:03:05+08:00" />
 <meta itemprop="dateModified" content="2018-04-25T22:03:05+08:00" />
-<meta itemprop="wordCount" content="6318">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,memory," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="6224">
+<meta itemprop="keywords" content="kernel,linux,memory," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux内存模型分析"/>
 <meta name="twitter:description" content="本文转载于：http://www.wowotech.net/memory_management/memory_model.html
 在原文的基础上，做了如下的改动：
@@ -130,12 +115,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -156,6 +150,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -169,52 +164,47 @@
       <div class="post-meta">
         <span class="post-time"> 2018-04-25 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-          </div>
-        <span class="more-meta"> 6318 words </span>
-        <span class="more-meta"> 13 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#一前言">一、前言</a></li>
-    <li><a href="#二和内存模型相关的术语">二、和内存模型相关的术语</a>
+    <li>
       <ul>
-        <li><a href="#1什么是page-frame">1、什么是page frame？</a></li>
-        <li><a href="#2什么是pfn">2、什么是PFN？</a></li>
-        <li><a href="#3什么是numa">3、什么是NUMA？</a></li>
-      </ul>
-    </li>
-    <li><a href="#三linux-内核中的三种memory-model">三、Linux 内核中的三种memory model</a>
-      <ul>
-        <li><a href="#1什么是flat-memory-model">1、什么是FLAT memory model？</a></li>
-        <li><a href="#2什么是discontiguous-memory-model">2、什么是Discontiguous Memory Model？</a></li>
-        <li><a href="#3什么是sparse-memory-model">3、什么是Sparse Memory Model？</a></li>
-      </ul>
-    </li>
-    <li><a href="#四代码分析">四、代码分析</a>
-      <ul>
-        <li><a href="#1flat-memory">1、flat memory。</a></li>
-        <li><a href="#2discontiguous-memory-model">2、Discontiguous Memory Model</a></li>
-        <li><a href="#3sparse-memory-model">3、Sparse Memory Model</a></li>
+        <li><a href="#一前言">一、前言</a></li>
+        <li><a href="#二和内存模型相关的术语">二、和内存模型相关的术语</a>
+          <ul>
+            <li><a href="#1什么是page-frame">1、什么是page frame？</a></li>
+            <li><a href="#2什么是pfn">2、什么是PFN？</a></li>
+            <li><a href="#3什么是numa">3、什么是NUMA？</a></li>
+          </ul>
+        </li>
+        <li><a href="#三linux-内核中的三种memory-model">三、Linux 内核中的三种memory model</a>
+          <ul>
+            <li><a href="#1什么是flat-memory-model">1、什么是FLAT memory model？</a></li>
+            <li><a href="#2什么是discontiguous-memory-model">2、什么是Discontiguous Memory Model？</a></li>
+            <li><a href="#3什么是sparse-memory-model">3、什么是Sparse Memory Model？</a></li>
+          </ul>
+        </li>
+        <li><a href="#四代码分析">四、代码分析</a>
+          <ul>
+            <li><a href="#1flat-memory">1、flat memory。</a></li>
+            <li><a href="#2discontiguous-memory-model">2、Discontiguous Memory Model</a></li>
+            <li><a href="#3sparse-memory-model">3、Sparse Memory Model</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本文转载于：http://www.wowotech.net/memory_management/memory_model.html</p>
 <p>在原文的基础上，做了如下的改动：</p>
@@ -262,40 +252,89 @@
 <p>我们的代码分析主要是通过<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/asm-generic/memory_model.h?h=v4.4.128#n32"> include/asm-generic/memory_model.h(line 32)</a>展开的。</p>
 <h3 id="1flat-memory">1、flat memory。</h3>
 <p>代码如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/asm-generic/memory_model.h?h=v4.4.128#n32"> include/asm-generic/memory_model.h(line 32)</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define __pfn_to_page(pfn)      (mem_map + ((pfn) - ARCH_PFN_OFFSET))
-</span><span style="color:#75715e">#define __page_to_pfn(page)     ((unsigned long)((page) - mem_map) + \
-</span><span style="color:#75715e">                                 ARCH_PFN_OFFSET)
-</span></code></pre></div><p>由代码可知，<code>PFN</code>和<code>struct page</code>数组（<code>mem_map</code>）<code>index</code>是<strong>线性关系</strong>，<strong>有一个固定的偏移就是ARCH_PFN_OFFSET</strong>，这个偏移是和估计的<code>architecture</code>有关。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define __pfn_to_page(pfn)      (mem_map + ((pfn) - ARCH_PFN_OFFSET))
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define __page_to_pfn(page)     ((unsigned long)((page) - mem_map) + \
+</span></span></span><span class="line"><span class="cl"><span class="cp">                                 ARCH_PFN_OFFSET)
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>由代码可知，<code>PFN</code>和<code>struct page</code>数组（<code>mem_map</code>）<code>index</code>是<strong>线性关系</strong>，<strong>有一个固定的偏移就是ARCH_PFN_OFFSET</strong>，这个偏移是和估计的<code>architecture</code>有关。</p>
 <h3 id="2discontiguous-memory-model">2、Discontiguous Memory Model</h3>
 <p>代码如下：<a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/asm-generic/memory_model.h?h=v4.4.128#n37"> include/asm-generic/memory_model.h(line 37)</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define __pfn_to_page(pfn)                      \
-</span><span style="color:#75715e">({      unsigned long __pfn = (pfn);            \
-</span><span style="color:#75715e">        unsigned long __nid = arch_pfn_to_nid(__pfn);  \
-</span><span style="color:#75715e">        NODE_DATA(__nid)-&gt;node_mem_map + arch_local_page_offset(__pfn, __nid);\
-</span><span style="color:#75715e">})
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#define __page_to_pfn(pg)                                               \
-</span><span style="color:#75715e">({      const struct page *__pg = (pg);                                 \
-</span><span style="color:#75715e">        struct pglist_data *__pgdat = NODE_DATA(page_to_nid(__pg));     \
-</span><span style="color:#75715e">        (unsigned long)(__pg - __pgdat-&gt;node_mem_map) +                 \
-</span><span style="color:#75715e">         __pgdat-&gt;node_start_pfn;                                       \
-</span><span style="color:#75715e">})
-</span></code></pre></div><p><code>Discontiguous Memory Model</code>需要获取<code>node id</code>，只要找到<code>node id</code>，一切都好办了，比对<code>flat memory model</code>进行就<code>OK</code>了。因此对于<code>__pfn_to_page</code>的定义，可以首先通过<code>arch_pfn_to_nid</code>将<code>PFN</code>转换成<code>node id</code>，通过<code>NODE_DATA</code>宏定义可以找到该<code>node</code>对应的<code>pglist_data</code>数据结构，该数据结构的<code>node_start_pfn</code>记录了该<code>node</code>的第一个<code>page frame number</code>，因此，也就可以得到其对应<code>struct page</code>在<code>node_mem_map</code>的偏移。<code>__page_to_pfn</code>类似，大家可以自己分析。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define __pfn_to_page(pfn)                      \
+</span></span></span><span class="line"><span class="cl"><span class="cp">({      unsigned long __pfn = (pfn);            \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        unsigned long __nid = arch_pfn_to_nid(__pfn);  \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        NODE_DATA(__nid)-&gt;node_mem_map + arch_local_page_offset(__pfn, __nid);\
+</span></span></span><span class="line"><span class="cl"><span class="cp">})
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define __page_to_pfn(pg)                                               \
+</span></span></span><span class="line"><span class="cl"><span class="cp">({      const struct page *__pg = (pg);                                 \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        struct pglist_data *__pgdat = NODE_DATA(page_to_nid(__pg));     \
+</span></span></span><span class="line"><span class="cl"><span class="cp">        (unsigned long)(__pg - __pgdat-&gt;node_mem_map) +                 \
+</span></span></span><span class="line"><span class="cl"><span class="cp">         __pgdat-&gt;node_start_pfn;                                       \
+</span></span></span><span class="line"><span class="cl"><span class="cp">})
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>Discontiguous Memory Model</code>需要获取<code>node id</code>，只要找到<code>node id</code>，一切都好办了，比对<code>flat memory model</code>进行就<code>OK</code>了。因此对于<code>__pfn_to_page</code>的定义，可以首先通过<code>arch_pfn_to_nid</code>将<code>PFN</code>转换成<code>node id</code>，通过<code>NODE_DATA</code>宏定义可以找到该<code>node</code>对应的<code>pglist_data</code>数据结构，该数据结构的<code>node_start_pfn</code>记录了该<code>node</code>的第一个<code>page frame number</code>，因此，也就可以得到其对应<code>struct page</code>在<code>node_mem_map</code>的偏移。<code>__page_to_pfn</code>类似，大家可以自己分析。</p>
 <h3 id="3sparse-memory-model">3、Sparse Memory Model</h3>
 <p>经典算法的代码我们就不看了，一起看看配置了<code>SPARSEMEM_VMEMMAP</code>的代码，如下：</p>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/asm-generic/memory_model.h?h=v4.4.128#n52"> include/asm-generic/memory_model.h(line 52)</a>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* memmap is virtually contiguous.  */</span>
-<span style="color:#75715e">#define __pfn_to_page(pfn)      (vmemmap + (pfn))
-</span><span style="color:#75715e">#define __page_to_pfn(page)     (unsigned long)((page) - vmemmap)
-</span></code></pre></div><p>简单而清晰，<code>PFN</code>就是<code>vmemmap</code>这个<code>struct page</code>数组的<code>index</code>啊。对于<code>x86</code>而言，<code>vmemmap</code>定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/* memmap is virtually contiguous.  */</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define __pfn_to_page(pfn)      (vmemmap + (pfn))
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define __page_to_pfn(page)     (unsigned long)((page) - vmemmap)
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>简单而清晰，<code>PFN</code>就是<code>vmemmap</code>这个<code>struct page</code>数组的<code>index</code>啊。对于<code>x86</code>而言，<code>vmemmap</code>定义如下：</p>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/arch/x86/include/asm/pgtable_64.h?h=v4.4.128#n199"> arch/x86/include/asm/pgtable_64.h(line 199)</a>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define vmemmap ((struct page *)VMEMMAP_START)
-</span></code></pre></div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/arch/x86/include/asm/pgtable_64_types.h?h=v4.4.128#n59"> arch/x86/include/asm/pgtable_64_types.h(line 59)</a>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define VMEMMAP_START    _AC(0xffffea0000000000, UL)
-</span></code></pre></div><p>毫无疑问，我们需要在虚拟地址空间中分配一段地址来安放<code>struct page</code>数组（该数组包含了所有物理内存跨度空间<code>page</code>），也就是<code>VMEMMAP_START</code>的定义。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define vmemmap ((struct page *)VMEMMAP_START)
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/arch/x86/include/asm/pgtable_64_types.h?h=v4.4.128#n59"> arch/x86/include/asm/pgtable_64_types.h(line 59)</a>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define VMEMMAP_START    _AC(0xffffea0000000000, UL)
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>毫无疑问，我们需要在虚拟地址空间中分配一段地址来安放<code>struct page</code>数组（该数组包含了所有物理内存跨度空间<code>page</code>），也就是<code>VMEMMAP_START</code>的定义。</p>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -303,7 +342,10 @@
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-04-25</span>
+    <span class="item-content">
+        2018-04-25
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -311,41 +353,28 @@
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/memory/">memory</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/reading-linux-physical-memory/">
+        <a class="prev" href="/kernel/reading-linux-physical-memory/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">Linux用户程序如何访问物理内存</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/floating-proportions/">
+        <a class="next" href="/kernel/floating-proportions/">
             <span class="next-text nav-default">Floating proportions with flexible aging period</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -359,6 +388,11 @@
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -383,26 +417,24 @@
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

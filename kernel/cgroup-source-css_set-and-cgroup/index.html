@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
- 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-" />
-<meta name="keywords" content="cgroup" />
+<meta name="author" content="laoqinren" /><meta name="description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
+本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+" /><meta name="keywords" content="cgroup" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,14 +37,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="cgroup源码分析1—— css_set和cgroup的关系" />
@@ -57,22 +47,17 @@
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-css_set-and-cgroup/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2018-08-23T15:19:35+08:00" />
 <meta property="article:modified_time" content="2018-08-23T15:19:35+08:00" />
 <meta itemprop="name" content="cgroup源码分析1—— css_set和cgroup的关系">
 <meta itemprop="description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
 
 本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-">
-<meta itemprop="datePublished" content="2018-08-23T15:19:35+08:00" />
+"><meta itemprop="datePublished" content="2018-08-23T15:19:35+08:00" />
 <meta itemprop="dateModified" content="2018-08-23T15:19:35+08:00" />
-<meta itemprop="wordCount" content="5497">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,cgroup," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="5825">
+<meta itemprop="keywords" content="kernel,linux,cgroup," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="cgroup源码分析1—— css_set和cgroup的关系"/>
 <meta name="twitter:description" content="本系列文章主要从源码入手，分析linux kernel中cgroup的实现。
 
@@ -118,12 +103,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -144,6 +138,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -157,48 +152,42 @@
       <div class="post-meta">
         <span class="post-time"> 2018-08-23 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-              <a href="/categories/cgroup/"> cgroup </a>
-            
-          </div>
-        <span class="more-meta"> 5497 words </span>
-        <span class="more-meta"> 11 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            <a href="/categories/cgroup/"> cgroup </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#基本概念">基本概念</a>
+    <li>
       <ul>
-        <li><a href="#cgroup功能">cgroup功能</a></li>
-        <li><a href="#概念">概念</a></li>
+        <li><a href="#基本概念">基本概念</a>
+          <ul>
+            <li><a href="#cgroup功能">cgroup功能</a></li>
+            <li><a href="#概念">概念</a></li>
+          </ul>
+        </li>
+        <li><a href="#css_set-和-cgroup-的多对多的关系">css_set 和 cgroup 的多对多的关系</a>
+          <ul>
+            <li><a href="#task_struct-结构">task_struct 结构</a></li>
+            <li><a href="#css_set-结构">css_set 结构</a></li>
+            <li><a href="#cgroup_subsys_state-结构">cgroup_subsys_state 结构</a></li>
+            <li><a href="#cgroup-结构">cgroup 结构</a></li>
+            <li><a href="#css_set和cgroup之间的关系"><code>css_set</code>和<code>cgroup</code>之间的关系</a></li>
+          </ul>
+        </li>
+        <li><a href="#参考文档">参考文档</a></li>
       </ul>
     </li>
-    <li><a href="#css_set-和-cgroup-的多对多的关系">css_set 和 cgroup 的多对多的关系</a>
-      <ul>
-        <li><a href="#task_struct-结构">task_struct 结构</a></li>
-        <li><a href="#css_set-结构">css_set 结构</a></li>
-        <li><a href="#cgroup_subsys_state-结构">cgroup_subsys_state 结构</a></li>
-        <li><a href="#cgroup-结构">cgroup 结构</a></li>
-        <li><a href="#css_set和cgroup之间的关系"><code>css_set</code>和<code>cgroup</code>之间的关系</a></li>
-      </ul>
-    </li>
-    <li><a href="#参考文档">参考文档</a></li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本系列文章主要从源码入手，分析<code>linux kernel</code>中<code>cgroup</code>的实现。</p>
 <blockquote>
@@ -227,58 +216,118 @@
 <p>我们先从进程的角度出发，来剖析<code>cgroups</code>相关数据结构之间的关系。</p>
 <h3 id="task_struct-结构">task_struct 结构</h3>
 <p>在 <code>Linux</code> 中，管理进程的数据结构是 <code>task_struct</code>，其中与 <code>cgroups</code> 有关的是如下两个成员:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#ifdef CONFIG_CGROUPS
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">/* Control Group info protected by css_set_lock */</span>
-	<span style="color:#66d9ef">struct</span> css_set __rcu <span style="color:#f92672">*</span>cgroups;
-	<span style="color:#75715e">/* cg_list protected by css_set_lock and tsk-&gt;alloc_lock */</span>
-	<span style="color:#66d9ef">struct</span> list_head cg_list;
-<span style="color:#75715e">#endif
-</span></code></pre></div><p>其中<code>cgroups</code>指向了一个<code>css_set</code>结构，而<code>css_set</code>存储了与进程相关的<code>cgroups</code>信息。<code>cg_list</code>将使用同一个<code>css_set</code>的进程链接在一起。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_CGROUPS
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>	<span class="cm">/* Control Group info protected by css_set_lock */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">css_set</span> <span class="n">__rcu</span> <span class="o">*</span><span class="n">cgroups</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/* cg_list protected by css_set_lock and tsk-&gt;alloc_lock */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">cg_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>其中<code>cgroups</code>指向了一个<code>css_set</code>结构，而<code>css_set</code>存储了与进程相关的<code>cgroups</code>信息。<code>cg_list</code>将使用同一个<code>css_set</code>的进程链接在一起。</p>
 <h3 id="css_set-结构">css_set 结构</h3>
 <p>我们来看<code>css_set</code>结构：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * A css_set is a structure holding pointers to a set of
-</span><span style="color:#75715e"> * cgroup_subsys_state objects. This saves space in the task struct
-</span><span style="color:#75715e"> * object and speeds up fork()/exit(), since a single inc/dec and a
-</span><span style="color:#75715e"> * list_add()/del() can bump the reference count on the entire cgroup
-</span><span style="color:#75715e"> * set for a task.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">struct</span> css_set {
-
-	<span style="color:#75715e">/* Reference count */</span>
-	atomic_t refcount;
-	
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * List running through all cgroup groups in the same hash
-</span><span style="color:#75715e">	 * slot. Protected by css_set_lock
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> hlist_node hlist;
-	
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * List running through all tasks using this cgroup
-</span><span style="color:#75715e">	 * group. Protected by css_set_lock
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> list_head tasks;
-	
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * List of cg_cgroup_link objects on link chains from
-</span><span style="color:#75715e">	 * cgroups referenced from this css_set. Protected by
-</span><span style="color:#75715e">	 * css_set_lock
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> list_head cg_links;
-	
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * Set of subsystem states, one for each subsystem. This array
-</span><span style="color:#75715e">	 * is immutable after creation apart from the init_css_set
-</span><span style="color:#75715e">	 * during subsystem registration (at boot time) and modular subsystem
-</span><span style="color:#75715e">	 * loading/unloading.
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> cgroup_subsys_state <span style="color:#f92672">*</span>subsys[CGROUP_SUBSYS_COUNT];
-	
-	<span style="color:#75715e">/* For RCU-protected deletion */</span>
-	<span style="color:#66d9ef">struct</span> rcu_head rcu_head;
-};
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * A css_set is a structure holding pointers to a set of
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * cgroup_subsys_state objects. This saves space in the task struct
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * object and speeds up fork()/exit(), since a single inc/dec and a
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * list_add()/del() can bump the reference count on the entire cgroup
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * set for a task.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">css_set</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Reference count */</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">atomic_t</span> <span class="n">refcount</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * List running through all cgroup groups in the same hash
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * slot. Protected by css_set_lock
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span> <span class="n">hlist</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * List running through all tasks using this cgroup
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * group. Protected by css_set_lock
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">tasks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * List of cg_cgroup_link objects on link chains from
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * cgroups referenced from this css_set. Protected by
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * css_set_lock
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">cg_links</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * Set of subsystem states, one for each subsystem. This array
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * is immutable after creation apart from the init_css_set
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * during subsystem registration (at boot time) and modular subsystem
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * loading/unloading.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup_subsys_state</span> <span class="o">*</span><span class="n">subsys</span><span class="p">[</span><span class="n">CGROUP_SUBSYS_COUNT</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/* For RCU-protected deletion */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">rcu_head</span> <span class="n">rcu_head</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>其中<code>refcount</code>是该<code>css_set</code>的引用计数，因为一个<code>css_set</code>可以被多个进程共用,只要这些进程的<code>cgroups</code>信息相同。比如：在所有已经创建的层级里面都在同一个<code>cgroup</code>里的进程。</li>
 <li><code>hlist</code>是嵌入的<code>hlist_node</code>，用于把所有的<code>css_set</code>组成一个<code>hash</code>表，这样内核可以快速查找特定的<code>css_set</code>（后续单独有文字分析这个）。</li>
 <li><code>tasks</code>是将所有引用此<code>css_set</code>的进程连接成链表。</li>
@@ -286,146 +335,300 @@
 <li><code>subsys</code>是一个指针数组，存储一组指向<code>cgroup_subsys_state</code>的指针。一个<code>cgroup_subsys_state</code>就是进程与一个特定的子系统相关的信息。通过这个指针，进程就可以获得相应的<code>cgroups</code>控制信息了。</li>
 </ul>
 <p>我们可以通过实验，观察一下<code>css_set</code>中的<code>tasks</code>链表。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 启动两个sleep进程</span>
-~ <span style="color:#75715e"># sleep 72000 &amp;</span>
-<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> <span style="color:#ae81ff">1968</span>
-~ <span style="color:#75715e"># sleep 72000 &amp;</span>
-<span style="color:#f92672">[</span>2<span style="color:#f92672">]</span> <span style="color:#ae81ff">1973</span>
-~ <span style="color:#75715e"># # 创建一个新的memory cgroup</span>
-~ <span style="color:#75715e"># mkdir /sys/fs/cgroup/memory/test1</span>
-~ <span style="color:#75715e"># # 将这两个进程加入到新创建的cgroup中</span>
-~ <span style="color:#75715e"># echo 1968 &gt; /sys/fs/cgroup/memory/test1/cgroup.procs </span>
-~ <span style="color:#75715e"># echo 1973 &gt; /sys/fs/cgroup/memory/test1/cgroup.procs</span>
-~ <span style="color:#75715e"># cat /sys/fs/cgroup/memory/test1/cgroup.procs</span>
-<span style="color:#ae81ff">1968</span>
-<span style="color:#ae81ff">1973</span>
-</code></pre></div><p>通过<code>crash</code>，我们可以看到这两个进程使用同一个<code>css_set</code>, 而使用同一个<code>css_set</code>的进程被<code>cg_list</code>链接到了一起，其链表头为<code>css_set</code>中的成员<code>tasks</code>。</p>
-<pre><code>crash&gt; task -R cgroups 1968
-PID: 1968   TASK: ffff904710fdc000  CPU: 0   COMMAND: &quot;sleep&quot;
-  cgroups = 0xffff90460d67b9c0, 
-
-crash&gt; task -R cgroups 1973
-PID: 1973   TASK: ffff90463b61c000  CPU: 0   COMMAND: &quot;sleep&quot;
-  cgroups = 0xffff90460d67b9c0, 
-
-crash&gt; struct -o css_set 0xffff90460d67b9c0
-struct css_set {
-  [ffff90460d67b9c0] atomic_t refcount;
-  [ffff90460d67b9c8] struct hlist_node hlist;
-  [ffff90460d67b9d8] struct list_head tasks;
-  [ffff90460d67b9e8] struct list_head cg_links;
-  [ffff90460d67b9f8] struct cgroup_subsys_state *subsys[13];
-  [ffff90460d67ba60] struct callback_head callback_head;
-}
-SIZE: 176
-crash&gt; list -l task_struct.cg_list -s task_struct.comm -H ffff90460d67b9d8
-ffff90463b61d508
-  comm = &quot;sleep\000\000\000\060\000\000\000\000\000\000&quot;
-ffff904710fdd508
-  comm = &quot;sleep\000\000\000\060\000\000\000\000\000\000&quot;
-</code></pre><h3 id="cgroup_subsys_state-结构">cgroup_subsys_state 结构</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 启动两个sleep进程</span>
+</span></span><span class="line"><span class="cl">~ <span class="c1"># sleep 72000 &amp;</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>1<span class="o">]</span> <span class="m">1968</span>
+</span></span><span class="line"><span class="cl">~ <span class="c1"># sleep 72000 &amp;</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>2<span class="o">]</span> <span class="m">1973</span>
+</span></span><span class="line"><span class="cl">~ <span class="c1"># # 创建一个新的memory cgroup</span>
+</span></span><span class="line"><span class="cl">~ <span class="c1"># mkdir /sys/fs/cgroup/memory/test1</span>
+</span></span><span class="line"><span class="cl">~ <span class="c1"># # 将这两个进程加入到新创建的cgroup中</span>
+</span></span><span class="line"><span class="cl">~ <span class="c1"># echo 1968 &gt; /sys/fs/cgroup/memory/test1/cgroup.procs </span>
+</span></span><span class="line"><span class="cl">~ <span class="c1"># echo 1973 &gt; /sys/fs/cgroup/memory/test1/cgroup.procs</span>
+</span></span><span class="line"><span class="cl">~ <span class="c1"># cat /sys/fs/cgroup/memory/test1/cgroup.procs</span>
+</span></span><span class="line"><span class="cl"><span class="m">1968</span>
+</span></span><span class="line"><span class="cl"><span class="m">1973</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>通过<code>crash</code>，我们可以看到这两个进程使用同一个<code>css_set</code>, 而使用同一个<code>css_set</code>的进程被<code>cg_list</code>链接到了一起，其链表头为<code>css_set</code>中的成员<code>tasks</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; task -R cgroups 1968
+</span></span><span class="line"><span class="cl">PID: 1968   TASK: ffff904710fdc000  CPU: 0   COMMAND: &#34;sleep&#34;
+</span></span><span class="line"><span class="cl">  cgroups = 0xffff90460d67b9c0, 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">crash&gt; task -R cgroups 1973
+</span></span><span class="line"><span class="cl">PID: 1973   TASK: ffff90463b61c000  CPU: 0   COMMAND: &#34;sleep&#34;
+</span></span><span class="line"><span class="cl">  cgroups = 0xffff90460d67b9c0, 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">crash&gt; struct -o css_set 0xffff90460d67b9c0
+</span></span><span class="line"><span class="cl">struct css_set {
+</span></span><span class="line"><span class="cl">  [ffff90460d67b9c0] atomic_t refcount;
+</span></span><span class="line"><span class="cl">  [ffff90460d67b9c8] struct hlist_node hlist;
+</span></span><span class="line"><span class="cl">  [ffff90460d67b9d8] struct list_head tasks;
+</span></span><span class="line"><span class="cl">  [ffff90460d67b9e8] struct list_head cg_links;
+</span></span><span class="line"><span class="cl">  [ffff90460d67b9f8] struct cgroup_subsys_state *subsys[13];
+</span></span><span class="line"><span class="cl">  [ffff90460d67ba60] struct callback_head callback_head;
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">SIZE: 176
+</span></span><span class="line"><span class="cl">crash&gt; list -l task_struct.cg_list -s task_struct.comm -H ffff90460d67b9d8
+</span></span><span class="line"><span class="cl">ffff90463b61d508
+</span></span><span class="line"><span class="cl">  comm = &#34;sleep\000\000\000\060\000\000\000\000\000\000&#34;
+</span></span><span class="line"><span class="cl">ffff904710fdd508
+</span></span><span class="line"><span class="cl">  comm = &#34;sleep\000\000\000\060\000\000\000\000\000\000&#34;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="cgroup_subsys_state-结构">cgroup_subsys_state 结构</h3>
 <p>接着，我们来看<code>cgroup_subsys_state</code>结构</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* Per-subsystem/per-cgroup state maintained by the system. */</span>
-<span style="color:#66d9ef">struct</span> cgroup_subsys_state {
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * The cgroup that this subsystem is attached to. Useful
-</span><span style="color:#75715e">	 * for subsystems that want to know about the cgroup
-</span><span style="color:#75715e">	 * hierarchy structure
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgroup;
-	
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * State maintained by the cgroup system to allow subsystems
-</span><span style="color:#75715e">	 * to be &#34;busy&#34;. Should be accessed via css_get(),
-</span><span style="color:#75715e">	 * css_tryget() and css_put().
-</span><span style="color:#75715e">	 */</span>
-	atomic_t refcnt;
-	
-	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> flags;
-	<span style="color:#75715e">/* ID for this css, if possible */</span>
-	<span style="color:#66d9ef">struct</span> css_id __rcu <span style="color:#f92672">*</span>id;
-	
-	<span style="color:#75715e">/* Used to put @cgroup-&gt;dentry on the last css_put() */</span>
-	<span style="color:#66d9ef">struct</span> work_struct dput_work;
-};
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/* Per-subsystem/per-cgroup state maintained by the system. */</span>
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">cgroup_subsys_state</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * The cgroup that this subsystem is attached to. Useful
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * for subsystems that want to know about the cgroup
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * hierarchy structure
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgroup</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * State maintained by the cgroup system to allow subsystems
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * to be &#34;busy&#34;. Should be accessed via css_get(),
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * css_tryget() and css_put().
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">atomic_t</span> <span class="n">refcnt</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">flags</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/* ID for this css, if possible */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">css_id</span> <span class="n">__rcu</span> <span class="o">*</span><span class="n">id</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Used to put @cgroup-&gt;dentry on the last css_put() */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">work_struct</span> <span class="n">dput_work</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>cgroup</code>指针指向了一个<code>cgroup</code>结构，也就是进程属于的<code>cgroup</code>。进程受到子系统的控制，实际上是通过加入到特定的<code>cgroup</code>实现的，因为<code>cgroup</code>在特定的层级上，而子系统又是附加到层级上的。</li>
 </ul>
 <p>通过以上三个结构，<code>task_struct</code>就可以和<code>cgroup</code> 连接起来了 :<code>task_struct-&gt;css_set-&gt;cgroup_subsys_state-&gt;cgroup</code></p>
 <h3 id="cgroup-结构">cgroup 结构</h3>
 <p>我们再来看<code>cgroup</code>结构：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> cgroup {
-	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> flags;		<span style="color:#75715e">/* &#34;unsigned long&#34; so bitops work */</span>
-	
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * count users of this cgroup. &gt;0 means busy, but doesn&#39;t
-</span><span style="color:#75715e">	 * necessarily indicate the number of tasks in the cgroup
-</span><span style="color:#75715e">	 */</span>
-	atomic_t count;
-	
-	<span style="color:#66d9ef">int</span> id;				<span style="color:#75715e">/* ida allocated in-hierarchy ID */</span>
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * We link our &#39;sibling&#39; struct into our parent&#39;s &#39;children&#39;.
-</span><span style="color:#75715e">	 * Our children link their &#39;sibling&#39; into our &#39;children&#39;.
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> list_head sibling;	<span style="color:#75715e">/* my parent&#39;s children */</span>
-	<span style="color:#66d9ef">struct</span> list_head children;	<span style="color:#75715e">/* my children */</span>
-	<span style="color:#66d9ef">struct</span> list_head files;		<span style="color:#75715e">/* my files */</span>
-	
-	<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>parent;		<span style="color:#75715e">/* my parent */</span>
-	<span style="color:#66d9ef">struct</span> dentry <span style="color:#f92672">*</span>dentry;		<span style="color:#75715e">/* cgroup fs entry, RCU protected */</span>
-
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * This is a copy of dentry-&gt;d_name, and it&#39;s needed because
-</span><span style="color:#75715e">	 * we can&#39;t use dentry-&gt;d_name in cgroup_path().
-</span><span style="color:#75715e">	 *
-</span><span style="color:#75715e">	 * You must acquire rcu_read_lock() to access cgrp-&gt;name, and
-</span><span style="color:#75715e">	 * the only place that can change it is rename(), which is
-</span><span style="color:#75715e">	 * protected by parent dir&#39;s i_mutex.
-</span><span style="color:#75715e">	 *
-</span><span style="color:#75715e">	 * Normally you should use cgroup_name() wrapper rather than
-</span><span style="color:#75715e">	 * access it directly.
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> cgroup_name __rcu <span style="color:#f92672">*</span>name;
-	
-	<span style="color:#75715e">/* Private pointers for each registered subsystem */</span>
-	<span style="color:#66d9ef">struct</span> cgroup_subsys_state <span style="color:#f92672">*</span>subsys[CGROUP_SUBSYS_COUNT];
-	<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root;
-
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * List of cg_cgroup_links pointing at css_sets with
-</span><span style="color:#75715e">	 * tasks in this cgroup. Protected by css_set_lock
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> list_head css_sets;
-	<span style="color:#66d9ef">struct</span> list_head allcg_node;	<span style="color:#75715e">/* cgroupfs_root-&gt;allcg_list */</span>
-	<span style="color:#66d9ef">struct</span> list_head cft_q_node;	<span style="color:#75715e">/* used during cftype add/rm */</span>
-
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * Linked list running through all cgroups that can
-</span><span style="color:#75715e">	 * potentially be reaped by the release agent. Protected by
-</span><span style="color:#75715e">	 * release_list_lock
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> list_head release_list;
-
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * list of pidlists, up to two for each namespace (one for procs, one
-</span><span style="color:#75715e">	 * for tasks); created on demand.
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> list_head pidlists;
-	<span style="color:#66d9ef">struct</span> mutex pidlist_mutex;
-
-	<span style="color:#75715e">/* For RCU-protected deletion */</span>
-	<span style="color:#66d9ef">struct</span> rcu_head rcu_head;
-	<span style="color:#66d9ef">struct</span> work_struct free_work;
-
-	<span style="color:#75715e">/* List of events which userspace want to receive */</span>
-	<span style="color:#66d9ef">struct</span> list_head event_list;
-	spinlock_t event_list_lock;
-
-	<span style="color:#75715e">/* directory xattrs */</span>
-	<span style="color:#66d9ef">struct</span> simple_xattrs xattrs;
-};
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">cgroup</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">flags</span><span class="p">;</span>		<span class="cm">/* &#34;unsigned long&#34; so bitops work */</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * count users of this cgroup. &gt;0 means busy, but doesn&#39;t
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * necessarily indicate the number of tasks in the cgroup
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">atomic_t</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">id</span><span class="p">;</span>				<span class="cm">/* ida allocated in-hierarchy ID */</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * We link our &#39;sibling&#39; struct into our parent&#39;s &#39;children&#39;.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * Our children link their &#39;sibling&#39; into our &#39;children&#39;.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">sibling</span><span class="p">;</span>	<span class="cm">/* my parent&#39;s children */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">children</span><span class="p">;</span>	<span class="cm">/* my children */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">files</span><span class="p">;</span>		<span class="cm">/* my files */</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">parent</span><span class="p">;</span>		<span class="cm">/* my parent */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">dentry</span> <span class="o">*</span><span class="n">dentry</span><span class="p">;</span>		<span class="cm">/* cgroup fs entry, RCU protected */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * This is a copy of dentry-&gt;d_name, and it&#39;s needed because
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * we can&#39;t use dentry-&gt;d_name in cgroup_path().
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 *
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * You must acquire rcu_read_lock() to access cgrp-&gt;name, and
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * the only place that can change it is rename(), which is
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * protected by parent dir&#39;s i_mutex.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 *
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * Normally you should use cgroup_name() wrapper rather than
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * access it directly.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup_name</span> <span class="n">__rcu</span> <span class="o">*</span><span class="n">name</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Private pointers for each registered subsystem */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup_subsys_state</span> <span class="o">*</span><span class="n">subsys</span><span class="p">[</span><span class="n">CGROUP_SUBSYS_COUNT</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * List of cg_cgroup_links pointing at css_sets with
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * tasks in this cgroup. Protected by css_set_lock
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">css_sets</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">allcg_node</span><span class="p">;</span>	<span class="cm">/* cgroupfs_root-&gt;allcg_list */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">cft_q_node</span><span class="p">;</span>	<span class="cm">/* used during cftype add/rm */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * Linked list running through all cgroups that can
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * potentially be reaped by the release agent. Protected by
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * release_list_lock
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">release_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * list of pidlists, up to two for each namespace (one for procs, one
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * for tasks); created on demand.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">pidlists</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">mutex</span> <span class="n">pidlist_mutex</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* For RCU-protected deletion */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">rcu_head</span> <span class="n">rcu_head</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">work_struct</span> <span class="n">free_work</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* List of events which userspace want to receive */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">event_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">spinlock_t</span> <span class="n">event_list_lock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* directory xattrs */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">simple_xattrs</span> <span class="n">xattrs</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>sibling</code>,<code>children</code>和<code>parent</code>三个嵌入的<code>list_head</code>负责将同一层级的<code>cgroup</code>连接成一颗<code>cgroup</code>树。</li>
 <li><code>subsys</code>是一个指针数组，存储一组指向<code>cgroup_subsys_state</code>的指针。这组指针指向了此<code>cgroup</code>跟各个子系统相关的信息，这个跟<code>css_set</code>中的道理是一样的。</li>
 <li><code>root</code>指向了一个<code>cgroupfs_root</code>的结构，就是<code>cgroup</code>所在的层级对应的结构体。</li>
@@ -435,22 +638,43 @@ ffff904710fdd508
 <h3 id="css_set和cgroup之间的关系"><code>css_set</code>和<code>cgroup</code>之间的关系</h3>
 <h4 id="cg_cgroup_link-结构">cg_cgroup_link 结构</h4>
 <p>下面我们来分析一个<code>css_set</code>和<code>cgroup</code>之间的关系。我们先看一下<code>cg_cgroup_link</code>的结构</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#75715e">/* Link structure for associating css_set objects with cgroups */</span>
-<span style="color:#66d9ef">struct</span> cg_cgroup_link {
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * List running through cg_cgroup_links associated with a
-</span><span style="color:#75715e">	 * cgroup, anchored on cgroup-&gt;css_sets
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> list_head cgrp_link_list;
-	<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp;
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * List running through cg_cgroup_links pointing at a
-</span><span style="color:#75715e">	 * single css_set object, anchored on css_set-&gt;cg_links
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">struct</span> list_head cg_link_list;
-	<span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>cg;
-};
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="cm">/* Link structure for associating css_set objects with cgroups */</span>
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">cg_cgroup_link</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * List running through cg_cgroup_links associated with a
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * cgroup, anchored on cgroup-&gt;css_sets
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">cgrp_link_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * List running through cg_cgroup_links pointing at a
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * single css_set object, anchored on css_set-&gt;cg_links
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="n">cg_link_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">css_set</span> <span class="o">*</span><span class="n">cg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>cgrp_link_list</code>连入到<code>cgroup-&gt;css_sets</code>指向的链表</li>
 <li><code>cgrp</code>则指向此<code>cg_cgroup_link</code>相关的<code>cgroup</code>。</li>
 <li><code>cg_link_list</code>则连入到<code>css_set-&gt;cg_links</code>指向的链表</li>
@@ -473,154 +697,343 @@ ffff904710fdd508
 <p><img src="./cgroup-to-css_set.svg" alt="cgroup-to-css_set" title="cgroup-to-css_set"></p>
 <h4 id="实验">实验</h4>
 <p>在后台启动两个睡眠进程（睡眠足够长，为了后续好观察）:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~  <span style="color:#75715e"># sleep 36000 &amp;</span>
-<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> <span style="color:#ae81ff">28889</span>
-~  <span style="color:#75715e"># sleep 36000 &amp;</span>
-<span style="color:#f92672">[</span>2<span style="color:#f92672">]</span> <span style="color:#ae81ff">28894</span>
-</code></pre></div><p>新创建一个<code>memory</code>的<code>cgroup</code>和一个<code>pids</code>的<code>cgroup</code>。并分布将两个睡眠进程加入到新创建的<code>cgroup</code>中。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">~  <span style="color:#75715e"># cd /sys/fs/cgroup/</span>
-/sys/fs/cgroup  <span style="color:#75715e"># mkdir memory/test</span>
-/sys/fs/cgroup  <span style="color:#75715e"># echo 28889 &gt; memory/test/cgroup.procs </span>
-/sys/fs/cgroup  <span style="color:#75715e"># mkdir pids/test</span>
-/sys/fs/cgroup  <span style="color:#75715e"># echo 28894 &gt; pids/test/cgroup.procs </span>
-</code></pre></div><p><strong>通过<code>task_struct-&gt;css_set-&gt;cgroup_subsys_state-&gt;cgroup</code> 查找cgroup</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~  <span class="c1"># sleep 36000 &amp;</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>1<span class="o">]</span> <span class="m">28889</span>
+</span></span><span class="line"><span class="cl">~  <span class="c1"># sleep 36000 &amp;</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>2<span class="o">]</span> <span class="m">28894</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>新创建一个<code>memory</code>的<code>cgroup</code>和一个<code>pids</code>的<code>cgroup</code>。并分布将两个睡眠进程加入到新创建的<code>cgroup</code>中。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~  <span class="c1"># cd /sys/fs/cgroup/</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup  <span class="c1"># mkdir memory/test</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup  <span class="c1"># echo 28889 &gt; memory/test/cgroup.procs </span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup  <span class="c1"># mkdir pids/test</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup  <span class="c1"># echo 28894 &gt; pids/test/cgroup.procs </span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>通过<code>task_struct-&gt;css_set-&gt;cgroup_subsys_state-&gt;cgroup</code> 查找cgroup</strong></p>
 <p>我们通过<code>crash</code>可以查看这两个进程，可以看出两个进程对应的<code>css_set</code>不同。</p>
-<pre><code>crash&gt; task -R cgroups 28889
-PID: 28889  TASK: ffff904653b10000  CPU: 3   COMMAND: &quot;sleep&quot;
-  cgroups = 0xffff9046d1ef1a80, 
-
-crash&gt; task -R cgroups 28894
-PID: 28894  TASK: ffff90470446c000  CPU: 1   COMMAND: &quot;sleep&quot;
-  cgroups = 0xffff9047076a8540, 
-</code></pre><p>我们输出<code>css_set</code>的详细信息：</p>
-<pre><code>crash&gt; css_set.cg_links,subsys 0xffff9046d1ef1a80
-  cg_links = {
-    next = 0xffff904713f68958, 
-    prev = 0xffff904713f68558
-  }
-  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff904688253000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046db1d1e40, 0xffff90471e913b80}
-crash&gt; css_set.cg_links,subsys 0xffff9047076a8540
-  cg_links = {
-    next = 0xffff904646222958, 
-    prev = 0xffff904646222098
-  }
-  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff90471e96d000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046448959c0, 0xffff90471e913b80}
-</code></pre><p>这两个进程除了<code>memory cgroup</code> 和<code>pids cgroup </code>不同外，其他的<code>cgroup</code>都相同。这可以通过如上的<code>css_set</code>的<code>subsys</code>观察到。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; task -R cgroups 28889
+</span></span><span class="line"><span class="cl">PID: 28889  TASK: ffff904653b10000  CPU: 3   COMMAND: &#34;sleep&#34;
+</span></span><span class="line"><span class="cl">  cgroups = 0xffff9046d1ef1a80, 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">crash&gt; task -R cgroups 28894
+</span></span><span class="line"><span class="cl">PID: 28894  TASK: ffff90470446c000  CPU: 1   COMMAND: &#34;sleep&#34;
+</span></span><span class="line"><span class="cl">  cgroups = 0xffff9047076a8540, 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们输出<code>css_set</code>的详细信息：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; css_set.cg_links,subsys 0xffff9046d1ef1a80
+</span></span><span class="line"><span class="cl">  cg_links = {
+</span></span><span class="line"><span class="cl">    next = 0xffff904713f68958, 
+</span></span><span class="line"><span class="cl">    prev = 0xffff904713f68558
+</span></span><span class="line"><span class="cl">  }
+</span></span><span class="line"><span class="cl">  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff904688253000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046db1d1e40, 0xffff90471e913b80}
+</span></span><span class="line"><span class="cl">crash&gt; css_set.cg_links,subsys 0xffff9047076a8540
+</span></span><span class="line"><span class="cl">  cg_links = {
+</span></span><span class="line"><span class="cl">    next = 0xffff904646222958, 
+</span></span><span class="line"><span class="cl">    prev = 0xffff904646222098
+</span></span><span class="line"><span class="cl">  }
+</span></span><span class="line"><span class="cl">  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff90471e96d000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046448959c0, 0xffff90471e913b80}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这两个进程除了<code>memory cgroup</code> 和<code>pids cgroup </code>不同外，其他的<code>cgroup</code>都相同。这可以通过如上的<code>css_set</code>的<code>subsys</code>观察到。</p>
 <p>通过<code>cgroup_subsys_state</code>可以找到<code>cgroup</code>，<code>cgroup</code>中也存在着<code>cgroup_subsys_state</code>。不同的控制器结构体种第一个字段都是<code>cgroup_subsys_state</code>。</p>
 <p>他们的关系如下：</p>
-<pre><code>crash&gt; cgroup_subsys_state.cgroup 0xffffffffa3ffb2a0
-  cgroup = 0xffff90471418e030
-crash&gt; cgroup.subsys 0xffff90471418e030
-  subsys = {0xffffffffa3ffb2a0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
-crash&gt; 
-</code></pre><p><strong>通过<code>css_set</code>的<code>cg_links</code>找<code>cgroup</code></strong></p>
-<pre><code>crash&gt; struct -o css_set.cg_links 0xffff9046d1ef1a80
-struct css_set {
-  [ffff9046d1ef1aa8] struct list_head cg_links;
-}
-crash&gt; struct -o css_set.cg_links 0xffff9047076a8540
-struct css_set {
-  [ffff9047076a8568] struct list_head cg_links;
-}
-crash&gt; list -l cg_cgroup_link.cg_link_list  -s  cg_cgroup_link.cgrp -H ffff9047076a8568
-ffff904646222958
-  cgrp = 0xffffffffa57ff030
-ffff904646222758
-  cgrp = 0xffff9046894d0c00
-ffff9046462227d8
-  cgrp = 0xffff904714188030
-ffff904646222b18
-  cgrp = 0xffff90471418e030
-ffff904646222c98
-  cgrp = 0xffff90471418c030
-ffff904646222698
-  cgrp = 0xffff9047143c6030
-ffff904646222458
-  cgrp = 0xffff9047143c4030
-ffff904646222498
-  cgrp = 0xffff9047143c2030
-ffff904646222e98
-  cgrp = 0xffff9047143c0030
-ffff904646222a18
-  cgrp = 0xffff9046881b5c00
-ffff904646222618
-  cgrp = 0xffff9047143ba030
-ffff904646222798
-  cgrp = 0xffff9046db3e7400
-ffff904646222098
-  cgrp = 0xffff9047143be030
-crash&gt; list -l cg_cgroup_link.cg_link_list  -s  cg_cgroup_link.cgrp -H ffff9046d1ef1aa8
-ffff904713f68958
-  cgrp = 0xffffffffa57ff030
-ffff904713f68bd8
-  cgrp = 0xffff9046894d0c00
-ffff904713f68fd8
-  cgrp = 0xffff90464b624000
-ffff904713f68158
-  cgrp = 0xffff90471418e030
-ffff904713f687d8
-  cgrp = 0xffff90471418c030
-ffff904713f685d8
-  cgrp = 0xffff9047143c6030
-ffff904713f68118
-  cgrp = 0xffff9047143c4030
-ffff904713f68a98
-  cgrp = 0xffff9047143c2030
-ffff904713f68658
-  cgrp = 0xffff9047143c0030
-ffff904713f684d8
-  cgrp = 0xffff904634e32000
-ffff904713f68418
-  cgrp = 0xffff9047143ba030
-ffff904713f68998
-  cgrp = 0xffff9046db3e7400
-ffff904713f68558
-  cgrp = 0xffff9047143be030
-</code></pre><p>可以看出，我们的系统上有<code>13</code>个<code>cgroup</code>子系统</p>
-<pre><code># cat /proc/cgroups 
-#subsys_name    hierarchy       num_cgroups     enabled
-cpuset  3       2       1
-debug   4       3       1
-cpu     5       40      1
-cpuacct 5       40      1
-memory  2       44      1
-devices 11      42      1
-freezer 10      2       1
-net_cls 12      2       1
-blkio   8       42      1
-perf_event      6       2       1
-hugetlb 7       2       1
-pids    9       109     1
-net_prio        12      2       1
-</code></pre><p>** 通过<code>cgroup</code>的<code>css_sets</code>找<code>css_set</code>, 进而找到task_struct**</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; cgroup_subsys_state.cgroup 0xffffffffa3ffb2a0
+</span></span><span class="line"><span class="cl">  cgroup = 0xffff90471418e030
+</span></span><span class="line"><span class="cl">crash&gt; cgroup.subsys 0xffff90471418e030
+</span></span><span class="line"><span class="cl">  subsys = {0xffffffffa3ffb2a0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
+</span></span><span class="line"><span class="cl">crash&gt; 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>通过<code>css_set</code>的<code>cg_links</code>找<code>cgroup</code></strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; struct -o css_set.cg_links 0xffff9046d1ef1a80
+</span></span><span class="line"><span class="cl">struct css_set {
+</span></span><span class="line"><span class="cl">  [ffff9046d1ef1aa8] struct list_head cg_links;
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">crash&gt; struct -o css_set.cg_links 0xffff9047076a8540
+</span></span><span class="line"><span class="cl">struct css_set {
+</span></span><span class="line"><span class="cl">  [ffff9047076a8568] struct list_head cg_links;
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">crash&gt; list -l cg_cgroup_link.cg_link_list  -s  cg_cgroup_link.cgrp -H ffff9047076a8568
+</span></span><span class="line"><span class="cl">ffff904646222958
+</span></span><span class="line"><span class="cl">  cgrp = 0xffffffffa57ff030
+</span></span><span class="line"><span class="cl">ffff904646222758
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9046894d0c00
+</span></span><span class="line"><span class="cl">ffff9046462227d8
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff904714188030
+</span></span><span class="line"><span class="cl">ffff904646222b18
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff90471418e030
+</span></span><span class="line"><span class="cl">ffff904646222c98
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff90471418c030
+</span></span><span class="line"><span class="cl">ffff904646222698
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143c6030
+</span></span><span class="line"><span class="cl">ffff904646222458
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143c4030
+</span></span><span class="line"><span class="cl">ffff904646222498
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143c2030
+</span></span><span class="line"><span class="cl">ffff904646222e98
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143c0030
+</span></span><span class="line"><span class="cl">ffff904646222a18
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9046881b5c00
+</span></span><span class="line"><span class="cl">ffff904646222618
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143ba030
+</span></span><span class="line"><span class="cl">ffff904646222798
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9046db3e7400
+</span></span><span class="line"><span class="cl">ffff904646222098
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143be030
+</span></span><span class="line"><span class="cl">crash&gt; list -l cg_cgroup_link.cg_link_list  -s  cg_cgroup_link.cgrp -H ffff9046d1ef1aa8
+</span></span><span class="line"><span class="cl">ffff904713f68958
+</span></span><span class="line"><span class="cl">  cgrp = 0xffffffffa57ff030
+</span></span><span class="line"><span class="cl">ffff904713f68bd8
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9046894d0c00
+</span></span><span class="line"><span class="cl">ffff904713f68fd8
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff90464b624000
+</span></span><span class="line"><span class="cl">ffff904713f68158
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff90471418e030
+</span></span><span class="line"><span class="cl">ffff904713f687d8
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff90471418c030
+</span></span><span class="line"><span class="cl">ffff904713f685d8
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143c6030
+</span></span><span class="line"><span class="cl">ffff904713f68118
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143c4030
+</span></span><span class="line"><span class="cl">ffff904713f68a98
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143c2030
+</span></span><span class="line"><span class="cl">ffff904713f68658
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143c0030
+</span></span><span class="line"><span class="cl">ffff904713f684d8
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff904634e32000
+</span></span><span class="line"><span class="cl">ffff904713f68418
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143ba030
+</span></span><span class="line"><span class="cl">ffff904713f68998
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9046db3e7400
+</span></span><span class="line"><span class="cl">ffff904713f68558
+</span></span><span class="line"><span class="cl">  cgrp = 0xffff9047143be030
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看出，我们的系统上有<code>13</code>个<code>cgroup</code>子系统</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># cat /proc/cgroups 
+</span></span><span class="line"><span class="cl">#subsys_name    hierarchy       num_cgroups     enabled
+</span></span><span class="line"><span class="cl">cpuset  3       2       1
+</span></span><span class="line"><span class="cl">debug   4       3       1
+</span></span><span class="line"><span class="cl">cpu     5       40      1
+</span></span><span class="line"><span class="cl">cpuacct 5       40      1
+</span></span><span class="line"><span class="cl">memory  2       44      1
+</span></span><span class="line"><span class="cl">devices 11      42      1
+</span></span><span class="line"><span class="cl">freezer 10      2       1
+</span></span><span class="line"><span class="cl">net_cls 12      2       1
+</span></span><span class="line"><span class="cl">blkio   8       42      1
+</span></span><span class="line"><span class="cl">perf_event      6       2       1
+</span></span><span class="line"><span class="cl">hugetlb 7       2       1
+</span></span><span class="line"><span class="cl">pids    9       109     1
+</span></span><span class="line"><span class="cl">net_prio        12      2       1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>** 通过<code>cgroup</code>的<code>css_sets</code>找<code>css_set</code>, 进而找到task_struct**</p>
 <p>我们以刚才新创建的<code>cgroup</code>为例，其应该只有一个对应的<code>css_set</code></p>
-<pre><code>crash&gt; css_set.cg_links,subsys 0xffff9046d1ef1a80
-  cg_links = {
-    next = 0xffff904713f68958, 
-    prev = 0xffff904713f68558
-  }
-  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff904688253000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046db1d1e40, 0xffff90471e913b80}
-crash&gt; cgroup_subsys_state.cgroup 0xffff904688253000
-  cgroup = 0xffff90464b624000
-crash&gt; struct -o cgroup.css_sets  0xffff90464b624000
-struct cgroup {
-  [ffff90464b6240c8] struct list_head css_sets;
-}
-crash&gt; list -l cg_cgroup_link.cgrp_link_list -s cg_cgroup_link.cg -H ffff90464b6240c8
-ffff904713f68fc0
-  cg = 0xffff9046d1ef1a80
-</code></pre><p>以第一个<code>cgroup</code>(cpuset)为例，可以看到其关联了系统上所有的<code>css_set</code>。</p>
-<pre><code>crash&gt; cgroup_subsys_state.cgroup  0xffffffffa3ffb2a0
-  cgroup = 0xffff90471418e030
-crash&gt; struct -o cgroup.css_sets 0xffff90471418e030
-struct cgroup {
-  [ffff90471418e0f8] struct list_head css_sets;
-}
-crash&gt; list -H ffff90471418e0f8 | wc -l
-48
-crash&gt; p css_set_count
-css_set_count = $1 = 48
-</code></pre><h2 id="参考文档">参考文档</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; css_set.cg_links,subsys 0xffff9046d1ef1a80
+</span></span><span class="line"><span class="cl">  cg_links = {
+</span></span><span class="line"><span class="cl">    next = 0xffff904713f68958, 
+</span></span><span class="line"><span class="cl">    prev = 0xffff904713f68558
+</span></span><span class="line"><span class="cl">  }
+</span></span><span class="line"><span class="cl">  subsys = {0xffffffffa3ffb2a0, 0xffff90471e913a00, 0xffffffffa49ac1c0, 0xffffffffa3ff1560, 0xffff904688253000, 0xffff9046d6aa4180, 0xffff90471e919540, 0xffff90471e913a80, 0xffffffffa40990c0, 0xffff90471e913b00, 0xffff90471e919600, 0xffff9046db1d1e40, 0xffff90471e913b80}
+</span></span><span class="line"><span class="cl">crash&gt; cgroup_subsys_state.cgroup 0xffff904688253000
+</span></span><span class="line"><span class="cl">  cgroup = 0xffff90464b624000
+</span></span><span class="line"><span class="cl">crash&gt; struct -o cgroup.css_sets  0xffff90464b624000
+</span></span><span class="line"><span class="cl">struct cgroup {
+</span></span><span class="line"><span class="cl">  [ffff90464b6240c8] struct list_head css_sets;
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">crash&gt; list -l cg_cgroup_link.cgrp_link_list -s cg_cgroup_link.cg -H ffff90464b6240c8
+</span></span><span class="line"><span class="cl">ffff904713f68fc0
+</span></span><span class="line"><span class="cl">  cg = 0xffff9046d1ef1a80
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>以第一个<code>cgroup</code>(cpuset)为例，可以看到其关联了系统上所有的<code>css_set</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; cgroup_subsys_state.cgroup  0xffffffffa3ffb2a0
+</span></span><span class="line"><span class="cl">  cgroup = 0xffff90471418e030
+</span></span><span class="line"><span class="cl">crash&gt; struct -o cgroup.css_sets 0xffff90471418e030
+</span></span><span class="line"><span class="cl">struct cgroup {
+</span></span><span class="line"><span class="cl">  [ffff90471418e0f8] struct list_head css_sets;
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">crash&gt; list -H ffff90471418e0f8 | wc -l
+</span></span><span class="line"><span class="cl">48
+</span></span><span class="line"><span class="cl">crash&gt; p css_set_count
+</span></span><span class="line"><span class="cl">css_set_count = $1 = 48
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="参考文档">参考文档</h2>
 <ul>
 <li>
 <p><a href="http://editor.method.ac/">http://editor.method.ac/</a></p>
@@ -628,7 +1041,6 @@ css_set_count = $1 = 48
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -636,7 +1048,10 @@ css_set_count = $1 = 48
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-08-23</span>
+    <span class="item-content">
+        2018-08-23
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -644,41 +1059,28 @@ css_set_count = $1 = 48
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/cgroup/">cgroup</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/cgroup-source-cgroup_init/">
+        <a class="prev" href="/kernel/cgroup-source-cgroup_init/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">cgroup源码分析2——cgroup的初始化</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/cgroup-debug/">
+        <a class="next" href="/kernel/cgroup-debug/">
             <span class="next-text nav-default">cgroup之debug子系统</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -692,6 +1094,11 @@ css_set_count = $1 = 48
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -716,26 +1123,24 @@ css_set_count = $1 = 48
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

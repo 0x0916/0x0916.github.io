@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
-   文件 描述     /proc/buddyinfo 展示系统上各个zone的buddy信息，主要用来分析内存碎片问题   /proc/pagetypeinfo 输出系统上各个zone中的不同迁移类型的详细状态信息   /proc/vmstat 描述内存统计信息   /proc/zoneinfo 输出系统上各个内存zone的详细信息    在详细介绍这些接口之前，我们先要明确一下几点：
- 现在的内核中，内存管理最大概念为node。 在node上再分为一个或者几个zone 每个zone中又分为不同的迁移类型 " />
-<meta name="keywords" content="zoneinfo, buddyinfo, vmstat, pagetypeinfo" />
+<meta name="author" content="laoqinren" /><meta name="description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
+文件 描述 /proc/buddyinfo 展示系统上各个zone的buddy信息，主要用来分析内存碎片问题 /proc/pagetypeinfo 输出系统上各个zone中的不同迁移类型的详细状态信息 /proc/vmstat 描述内存统计信息 /proc/zoneinfo 输出系统上各个内存zone的详细信息 在详细介绍这些接口之前，我们先要明确一下几点：
+现在的内核中，内存管理最大概念为node。 在node上再分为一个或者几个zone 每个zone中又分为不同的迁移类型 " /><meta name="keywords" content="zoneinfo, buddyinfo, vmstat, pagetypeinfo" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/proc-memory/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,14 +37,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="内核中内存信息的展示" />
@@ -86,7 +76,7 @@
 每个zone中又分为不同的迁移类型
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/linux/proc-memory/" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/proc-memory/" /><meta property="article:section" content="linux" />
 <meta property="article:published_time" content="2019-01-13T10:28:37+08:00" />
 <meta property="article:modified_time" content="2019-01-13T10:28:37+08:00" />
 <meta itemprop="name" content="内核中内存信息的展示">
@@ -122,15 +112,10 @@
 现在的内核中，内存管理最大概念为node。
 在node上再分为一个或者几个zone
 每个zone中又分为不同的迁移类型
-">
-<meta itemprop="datePublished" content="2019-01-13T10:28:37+08:00" />
+"><meta itemprop="datePublished" content="2019-01-13T10:28:37+08:00" />
 <meta itemprop="dateModified" content="2019-01-13T10:28:37+08:00" />
-<meta itemprop="wordCount" content="3146">
-
-
-
-<meta itemprop="keywords" content="kernel,linux," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="3631">
+<meta itemprop="keywords" content="kernel,linux," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核中内存信息的展示"/>
 <meta name="twitter:description" content="在linux内核中，整个内存信息和状态的展示可以通过以下几个文件获得：
 
@@ -205,12 +190,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -231,6 +225,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -244,40 +239,35 @@
       <div class="post-meta">
         <span class="post-time"> 2019-01-13 </span>
         <div class="post-category">
-            
-              <a href="/categories/linux/"> linux </a>
-            
-          </div>
-        <span class="more-meta"> 3146 words </span>
-        <span class="more-meta"> 7 mins read </span>
+            <a href="/categories/linux/"> linux </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#系统环境">系统环境</a></li>
-        <li><a href="#procvmstat">/proc/vmstat</a></li>
-        <li><a href="#procbuddyinfo">/proc/buddyinfo</a></li>
-        <li><a href="#procpagetypeinfo">/proc/pagetypeinfo</a></li>
-        <li><a href="#proczoneinfo">/proc/zoneinfo</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#系统环境">系统环境</a></li>
+            <li><a href="#procvmstat">/proc/vmstat</a></li>
+            <li><a href="#procbuddyinfo">/proc/buddyinfo</a></li>
+            <li><a href="#procpagetypeinfo">/proc/pagetypeinfo</a></li>
+            <li><a href="#proczoneinfo">/proc/zoneinfo</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>在<code>linux</code>内核中，整个内存信息和状态的展示可以通过以下几个文件获得：</p>
 <table>
@@ -330,154 +320,318 @@
 <p>简单讨论一下这几类数据的内核实现：</p>
 <p>（1）各种类型的页面统计信息：</p>
 <p>使用数组<code>vm_stat</code>来记录各种类型的页面统计信息，其类型为原子变量：<code>atomic_long_t</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">atomic_long_t vm_stat[NR_VM_ZONE_STAT_ITEMS] __cacheline_aligned_in_smp; 
-</code></pre></div><p>（2）<code>writeback</code>相关的统计信息，是通过函数<code>global_dirty_limits</code>来获取的，这里就不具体分析了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">atomic_long_t</span> <span class="n">vm_stat</span><span class="p">[</span><span class="n">NR_VM_ZONE_STAT_ITEMS</span><span class="p">]</span> <span class="n">__cacheline_aligned_in_smp</span><span class="p">;</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>（2）<code>writeback</code>相关的统计信息，是通过函数<code>global_dirty_limits</code>来获取的，这里就不具体分析了。</p>
 <p>（3）<code>vm</code>相关事件的统计信息是通过函数<code>all_vm_events</code>来计算,内核定义了<code>vm_event_states</code>每<code>cpu</code>变量，<code>all_vm_events</code>用于将所有处理器上的这些事件进行累加。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">DEFINE_PER_CPU(<span style="color:#66d9ef">struct</span> vm_event_state, vm_event_states) <span style="color:#f92672">=</span> {{<span style="color:#ae81ff">0</span>}};  
-</code></pre></div><p>该文件的输出示例如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat /proc/vmstat
-nr_free_pages <span style="color:#ae81ff">29655945</span> 			//各种类型页面数的统计信息
-nr_alloc_batch <span style="color:#ae81ff">5265</span>
-nr_inactive_anon <span style="color:#ae81ff">1105696</span>
-nr_active_anon <span style="color:#ae81ff">145571</span>
-nr_inactive_file <span style="color:#ae81ff">77585</span>
-nr_active_file <span style="color:#ae81ff">146995</span>
-nr_unevictable <span style="color:#ae81ff">0</span>
-nr_mlock <span style="color:#ae81ff">0</span>
-nr_anon_pages <span style="color:#ae81ff">91904</span>
-nr_mapped <span style="color:#ae81ff">31031</span>
-nr_file_pages <span style="color:#ae81ff">1284682</span>
-nr_dirty <span style="color:#ae81ff">111</span>
-nr_writeback <span style="color:#ae81ff">0</span>
-nr_slab_reclaimable <span style="color:#ae81ff">945919</span>
-nr_slab_unreclaimable <span style="color:#ae81ff">144386</span>
-nr_page_table_pages <span style="color:#ae81ff">3120</span>
-nr_kernel_stack <span style="color:#ae81ff">983</span>
-nr_unstable <span style="color:#ae81ff">0</span>
-nr_bounce <span style="color:#ae81ff">0</span>
-nr_vmscan_write <span style="color:#ae81ff">132</span>
-nr_vmscan_immediate_reclaim <span style="color:#ae81ff">0</span>
-nr_writeback_temp <span style="color:#ae81ff">0</span>
-nr_isolated_anon <span style="color:#ae81ff">0</span>
-nr_isolated_file <span style="color:#ae81ff">0</span>
-nr_shmem <span style="color:#ae81ff">1060098</span>
-nr_dirtied <span style="color:#ae81ff">1100238982</span>
-nr_written <span style="color:#ae81ff">764546994</span>
-numa_hit <span style="color:#ae81ff">117570377080</span>
-numa_miss <span style="color:#ae81ff">2104051815</span>
-numa_foreign <span style="color:#ae81ff">2104051815</span>
-numa_interleave <span style="color:#ae81ff">71023</span>
-numa_local <span style="color:#ae81ff">117569971886</span>
-numa_other <span style="color:#ae81ff">2104457009</span>
-workingset_refault <span style="color:#ae81ff">1414110</span>
-workingset_activate <span style="color:#ae81ff">127292</span>
-workingset_nodereclaim <span style="color:#ae81ff">0</span>
-nr_anon_transparent_hugepages <span style="color:#ae81ff">194</span>
-nr_free_cma <span style="color:#ae81ff">0</span>
-nr_dirty_threshold 8921519		//writeback相关统计信息
-nr_dirty_background_threshold <span style="color:#ae81ff">1482076</span>
-pgpgin 47745153				//vm相关事件统计信息
-pgpgout <span style="color:#ae81ff">3334426145</span>
-pswpin <span style="color:#ae81ff">0</span>
-pswpout <span style="color:#ae81ff">132</span>
-pgalloc_dma <span style="color:#ae81ff">2440</span>
-pgalloc_dma32 <span style="color:#ae81ff">906331246</span>
-pgalloc_normal <span style="color:#ae81ff">122337837001</span>
-pgalloc_movable <span style="color:#ae81ff">0</span>
-pgfree <span style="color:#ae81ff">123275102844</span>
-pgactivate <span style="color:#ae81ff">866958575</span>
-pgdeactivate <span style="color:#ae81ff">35134007</span>
-pgfault <span style="color:#ae81ff">200181149428</span>
-pgmajfault <span style="color:#ae81ff">302912</span>
-pgrefill_dma <span style="color:#ae81ff">0</span>
-pgrefill_dma32 <span style="color:#ae81ff">330384</span>
-pgrefill_normal <span style="color:#ae81ff">33572221</span>
-pgrefill_movable <span style="color:#ae81ff">0</span>
-pgsteal_kswapd_dma <span style="color:#ae81ff">0</span>
-pgsteal_kswapd_dma32 <span style="color:#ae81ff">217561</span>
-pgsteal_kswapd_normal <span style="color:#ae81ff">20754709</span>
-pgsteal_kswapd_movable <span style="color:#ae81ff">0</span>
-pgsteal_direct_dma <span style="color:#ae81ff">0</span>
-pgsteal_direct_dma32 <span style="color:#ae81ff">44442</span>
-pgsteal_direct_normal <span style="color:#ae81ff">5791306</span>
-pgsteal_direct_movable <span style="color:#ae81ff">0</span>
-pgscan_kswapd_dma <span style="color:#ae81ff">0</span>
-pgscan_kswapd_dma32 <span style="color:#ae81ff">217623</span>
-pgscan_kswapd_normal <span style="color:#ae81ff">20758866</span>
-pgscan_kswapd_movable <span style="color:#ae81ff">0</span>
-pgscan_direct_dma <span style="color:#ae81ff">0</span>
-pgscan_direct_dma32 <span style="color:#ae81ff">44444</span>
-pgscan_direct_normal <span style="color:#ae81ff">5801646</span>
-pgscan_direct_movable <span style="color:#ae81ff">0</span>
-pgscan_direct_throttle <span style="color:#ae81ff">0</span>
-zone_reclaim_failed <span style="color:#ae81ff">0</span>
-pginodesteal <span style="color:#ae81ff">521563</span>
-slabs_scanned <span style="color:#ae81ff">19199872</span>
-kswapd_inodesteal <span style="color:#ae81ff">830416</span>
-kswapd_low_wmark_hit_quickly <span style="color:#ae81ff">7589</span>
-kswapd_high_wmark_hit_quickly <span style="color:#ae81ff">3308</span>
-pageoutrun <span style="color:#ae81ff">13365</span>
-allocstall <span style="color:#ae81ff">1873</span>
-pgrotated <span style="color:#ae81ff">1079550</span>
-drop_pagecache <span style="color:#ae81ff">2</span>
-drop_slab <span style="color:#ae81ff">0</span>
-numa_pte_updates <span style="color:#ae81ff">10414340982</span>
-numa_huge_pte_updates <span style="color:#ae81ff">348659</span>
-numa_hint_faults <span style="color:#ae81ff">9485402037</span>
-numa_hint_faults_local <span style="color:#ae81ff">8163824272</span>
-numa_pages_migrated <span style="color:#ae81ff">1233051066</span>
-pgmigrate_success <span style="color:#ae81ff">1234311263</span>
-pgmigrate_fail <span style="color:#ae81ff">4573711</span>
-compact_migrate_scanned <span style="color:#ae81ff">26654488</span>
-compact_free_scanned <span style="color:#ae81ff">857655344</span>
-compact_isolated <span style="color:#ae81ff">2530461</span>
-compact_stall <span style="color:#ae81ff">355</span>
-compact_fail <span style="color:#ae81ff">70</span>
-compact_success <span style="color:#ae81ff">285</span>
-htlb_buddy_alloc_success <span style="color:#ae81ff">0</span>
-htlb_buddy_alloc_fail <span style="color:#ae81ff">0</span>
-unevictable_pgs_culled <span style="color:#ae81ff">0</span>
-unevictable_pgs_scanned <span style="color:#ae81ff">0</span>
-unevictable_pgs_rescued <span style="color:#ae81ff">0</span>
-unevictable_pgs_mlocked <span style="color:#ae81ff">0</span>
-unevictable_pgs_munlocked <span style="color:#ae81ff">0</span>
-unevictable_pgs_cleared <span style="color:#ae81ff">0</span>
-unevictable_pgs_stranded <span style="color:#ae81ff">0</span>
-thp_fault_alloc <span style="color:#ae81ff">4953381</span>
-thp_fault_fallback <span style="color:#ae81ff">35453294</span>
-thp_collapse_alloc <span style="color:#ae81ff">15648</span>
-thp_collapse_alloc_failed <span style="color:#ae81ff">55693</span>
-thp_split <span style="color:#ae81ff">494944</span>
-thp_zero_page_alloc <span style="color:#ae81ff">1</span>
-thp_zero_page_alloc_failed <span style="color:#ae81ff">0</span>
-balloon_inflate <span style="color:#ae81ff">0</span>
-balloon_deflate <span style="color:#ae81ff">0</span>
-balloon_migrate <span style="color:#ae81ff">0</span>
-
-</code></pre></div><h3 id="procbuddyinfo">/proc/buddyinfo</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="nf">DEFINE_PER_CPU</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm_event_state</span><span class="p">,</span> <span class="n">vm_event_states</span><span class="p">)</span> <span class="o">=</span> <span class="p">{{</span><span class="mi">0</span><span class="p">}};</span>  
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该文件的输出示例如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ cat /proc/vmstat
+</span></span><span class="line"><span class="cl">nr_free_pages <span class="m">29655945</span> 			//各种类型页面数的统计信息
+</span></span><span class="line"><span class="cl">nr_alloc_batch <span class="m">5265</span>
+</span></span><span class="line"><span class="cl">nr_inactive_anon <span class="m">1105696</span>
+</span></span><span class="line"><span class="cl">nr_active_anon <span class="m">145571</span>
+</span></span><span class="line"><span class="cl">nr_inactive_file <span class="m">77585</span>
+</span></span><span class="line"><span class="cl">nr_active_file <span class="m">146995</span>
+</span></span><span class="line"><span class="cl">nr_unevictable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_mlock <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_anon_pages <span class="m">91904</span>
+</span></span><span class="line"><span class="cl">nr_mapped <span class="m">31031</span>
+</span></span><span class="line"><span class="cl">nr_file_pages <span class="m">1284682</span>
+</span></span><span class="line"><span class="cl">nr_dirty <span class="m">111</span>
+</span></span><span class="line"><span class="cl">nr_writeback <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_slab_reclaimable <span class="m">945919</span>
+</span></span><span class="line"><span class="cl">nr_slab_unreclaimable <span class="m">144386</span>
+</span></span><span class="line"><span class="cl">nr_page_table_pages <span class="m">3120</span>
+</span></span><span class="line"><span class="cl">nr_kernel_stack <span class="m">983</span>
+</span></span><span class="line"><span class="cl">nr_unstable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_bounce <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_vmscan_write <span class="m">132</span>
+</span></span><span class="line"><span class="cl">nr_vmscan_immediate_reclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_writeback_temp <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_isolated_anon <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_isolated_file <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_shmem <span class="m">1060098</span>
+</span></span><span class="line"><span class="cl">nr_dirtied <span class="m">1100238982</span>
+</span></span><span class="line"><span class="cl">nr_written <span class="m">764546994</span>
+</span></span><span class="line"><span class="cl">numa_hit <span class="m">117570377080</span>
+</span></span><span class="line"><span class="cl">numa_miss <span class="m">2104051815</span>
+</span></span><span class="line"><span class="cl">numa_foreign <span class="m">2104051815</span>
+</span></span><span class="line"><span class="cl">numa_interleave <span class="m">71023</span>
+</span></span><span class="line"><span class="cl">numa_local <span class="m">117569971886</span>
+</span></span><span class="line"><span class="cl">numa_other <span class="m">2104457009</span>
+</span></span><span class="line"><span class="cl">workingset_refault <span class="m">1414110</span>
+</span></span><span class="line"><span class="cl">workingset_activate <span class="m">127292</span>
+</span></span><span class="line"><span class="cl">workingset_nodereclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_anon_transparent_hugepages <span class="m">194</span>
+</span></span><span class="line"><span class="cl">nr_free_cma <span class="m">0</span>
+</span></span><span class="line"><span class="cl">nr_dirty_threshold 8921519		//writeback相关统计信息
+</span></span><span class="line"><span class="cl">nr_dirty_background_threshold <span class="m">1482076</span>
+</span></span><span class="line"><span class="cl">pgpgin 47745153				//vm相关事件统计信息
+</span></span><span class="line"><span class="cl">pgpgout <span class="m">3334426145</span>
+</span></span><span class="line"><span class="cl">pswpin <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pswpout <span class="m">132</span>
+</span></span><span class="line"><span class="cl">pgalloc_dma <span class="m">2440</span>
+</span></span><span class="line"><span class="cl">pgalloc_dma32 <span class="m">906331246</span>
+</span></span><span class="line"><span class="cl">pgalloc_normal <span class="m">122337837001</span>
+</span></span><span class="line"><span class="cl">pgalloc_movable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgfree <span class="m">123275102844</span>
+</span></span><span class="line"><span class="cl">pgactivate <span class="m">866958575</span>
+</span></span><span class="line"><span class="cl">pgdeactivate <span class="m">35134007</span>
+</span></span><span class="line"><span class="cl">pgfault <span class="m">200181149428</span>
+</span></span><span class="line"><span class="cl">pgmajfault <span class="m">302912</span>
+</span></span><span class="line"><span class="cl">pgrefill_dma <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgrefill_dma32 <span class="m">330384</span>
+</span></span><span class="line"><span class="cl">pgrefill_normal <span class="m">33572221</span>
+</span></span><span class="line"><span class="cl">pgrefill_movable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgsteal_kswapd_dma <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgsteal_kswapd_dma32 <span class="m">217561</span>
+</span></span><span class="line"><span class="cl">pgsteal_kswapd_normal <span class="m">20754709</span>
+</span></span><span class="line"><span class="cl">pgsteal_kswapd_movable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgsteal_direct_dma <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgsteal_direct_dma32 <span class="m">44442</span>
+</span></span><span class="line"><span class="cl">pgsteal_direct_normal <span class="m">5791306</span>
+</span></span><span class="line"><span class="cl">pgsteal_direct_movable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgscan_kswapd_dma <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgscan_kswapd_dma32 <span class="m">217623</span>
+</span></span><span class="line"><span class="cl">pgscan_kswapd_normal <span class="m">20758866</span>
+</span></span><span class="line"><span class="cl">pgscan_kswapd_movable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgscan_direct_dma <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgscan_direct_dma32 <span class="m">44444</span>
+</span></span><span class="line"><span class="cl">pgscan_direct_normal <span class="m">5801646</span>
+</span></span><span class="line"><span class="cl">pgscan_direct_movable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pgscan_direct_throttle <span class="m">0</span>
+</span></span><span class="line"><span class="cl">zone_reclaim_failed <span class="m">0</span>
+</span></span><span class="line"><span class="cl">pginodesteal <span class="m">521563</span>
+</span></span><span class="line"><span class="cl">slabs_scanned <span class="m">19199872</span>
+</span></span><span class="line"><span class="cl">kswapd_inodesteal <span class="m">830416</span>
+</span></span><span class="line"><span class="cl">kswapd_low_wmark_hit_quickly <span class="m">7589</span>
+</span></span><span class="line"><span class="cl">kswapd_high_wmark_hit_quickly <span class="m">3308</span>
+</span></span><span class="line"><span class="cl">pageoutrun <span class="m">13365</span>
+</span></span><span class="line"><span class="cl">allocstall <span class="m">1873</span>
+</span></span><span class="line"><span class="cl">pgrotated <span class="m">1079550</span>
+</span></span><span class="line"><span class="cl">drop_pagecache <span class="m">2</span>
+</span></span><span class="line"><span class="cl">drop_slab <span class="m">0</span>
+</span></span><span class="line"><span class="cl">numa_pte_updates <span class="m">10414340982</span>
+</span></span><span class="line"><span class="cl">numa_huge_pte_updates <span class="m">348659</span>
+</span></span><span class="line"><span class="cl">numa_hint_faults <span class="m">9485402037</span>
+</span></span><span class="line"><span class="cl">numa_hint_faults_local <span class="m">8163824272</span>
+</span></span><span class="line"><span class="cl">numa_pages_migrated <span class="m">1233051066</span>
+</span></span><span class="line"><span class="cl">pgmigrate_success <span class="m">1234311263</span>
+</span></span><span class="line"><span class="cl">pgmigrate_fail <span class="m">4573711</span>
+</span></span><span class="line"><span class="cl">compact_migrate_scanned <span class="m">26654488</span>
+</span></span><span class="line"><span class="cl">compact_free_scanned <span class="m">857655344</span>
+</span></span><span class="line"><span class="cl">compact_isolated <span class="m">2530461</span>
+</span></span><span class="line"><span class="cl">compact_stall <span class="m">355</span>
+</span></span><span class="line"><span class="cl">compact_fail <span class="m">70</span>
+</span></span><span class="line"><span class="cl">compact_success <span class="m">285</span>
+</span></span><span class="line"><span class="cl">htlb_buddy_alloc_success <span class="m">0</span>
+</span></span><span class="line"><span class="cl">htlb_buddy_alloc_fail <span class="m">0</span>
+</span></span><span class="line"><span class="cl">unevictable_pgs_culled <span class="m">0</span>
+</span></span><span class="line"><span class="cl">unevictable_pgs_scanned <span class="m">0</span>
+</span></span><span class="line"><span class="cl">unevictable_pgs_rescued <span class="m">0</span>
+</span></span><span class="line"><span class="cl">unevictable_pgs_mlocked <span class="m">0</span>
+</span></span><span class="line"><span class="cl">unevictable_pgs_munlocked <span class="m">0</span>
+</span></span><span class="line"><span class="cl">unevictable_pgs_cleared <span class="m">0</span>
+</span></span><span class="line"><span class="cl">unevictable_pgs_stranded <span class="m">0</span>
+</span></span><span class="line"><span class="cl">thp_fault_alloc <span class="m">4953381</span>
+</span></span><span class="line"><span class="cl">thp_fault_fallback <span class="m">35453294</span>
+</span></span><span class="line"><span class="cl">thp_collapse_alloc <span class="m">15648</span>
+</span></span><span class="line"><span class="cl">thp_collapse_alloc_failed <span class="m">55693</span>
+</span></span><span class="line"><span class="cl">thp_split <span class="m">494944</span>
+</span></span><span class="line"><span class="cl">thp_zero_page_alloc <span class="m">1</span>
+</span></span><span class="line"><span class="cl">thp_zero_page_alloc_failed <span class="m">0</span>
+</span></span><span class="line"><span class="cl">balloon_inflate <span class="m">0</span>
+</span></span><span class="line"><span class="cl">balloon_deflate <span class="m">0</span>
+</span></span><span class="line"><span class="cl">balloon_migrate <span class="m">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="procbuddyinfo">/proc/buddyinfo</h3>
 <p>该文件输出了系统内存管理中，伙伴系统的状态。该文件每一行代表一个<code>zone</code>中<code>buddy</code>的信息。每一行先输出<code> node</code> 编号，然后是<code>zone</code>的名称，紧接着是各个<code>order（0-10）</code>剩余的块个数。</p>
 <ul>
 <li>每个<code>order</code>对应的大小为：<code>2^(order)*PAGE_SIZE</code></li>
 <li>当内存系统碎片化比较严重时，<code>order</code>比较大的计数一般为<code>0</code>，此时分配大的内存将会失败</li>
 </ul>
 <p>该文件的内核实现比较简单，直接输出每个<code>zone</code>对应的<code>free_area[order].nr_free</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">frag_show_print</span>(<span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>m, pg_data_t <span style="color:#f92672">*</span>pgdat,                                                                                                  
-                                                <span style="color:#66d9ef">struct</span> zone <span style="color:#f92672">*</span>zone)                                                                                                 
-{                                                                                                                                                                  
-        <span style="color:#66d9ef">int</span> order;                                                                                                                                                 
-                                                                                                                                                                   
-        seq_printf(m, <span style="color:#e6db74">&#34;Node %d, zone %8s &#34;</span>, pgdat<span style="color:#f92672">-&gt;</span>node_id, zone<span style="color:#f92672">-&gt;</span>name);
-        <span style="color:#66d9ef">for</span> (order <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; order <span style="color:#f92672">&lt;</span> MAX_ORDER; <span style="color:#f92672">++</span>order)
-                seq_printf(m, <span style="color:#e6db74">&#34;%6lu &#34;</span>, zone<span style="color:#f92672">-&gt;</span>free_area[order].nr_free);
-        seq_putc(m, <span style="color:#e6db74">&#39;\n&#39;</span>);
-}
-</code></pre></div><p>输出示例如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat /proc/buddyinfo 
-Node 0, zone      DMA      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">2</span> 
-Node 0, zone    DMA32    <span style="color:#ae81ff">688</span>   <span style="color:#ae81ff">2080</span>   <span style="color:#ae81ff">1420</span>    <span style="color:#ae81ff">995</span>    <span style="color:#ae81ff">596</span>    <span style="color:#ae81ff">357</span>    <span style="color:#ae81ff">278</span>    <span style="color:#ae81ff">241</span>    <span style="color:#ae81ff">276</span>     <span style="color:#ae81ff">32</span>    <span style="color:#ae81ff">133</span> 
-Node 0, zone   Normal <span style="color:#ae81ff">195748</span> <span style="color:#ae81ff">204074</span> <span style="color:#ae81ff">161167</span> <span style="color:#ae81ff">119070</span>  <span style="color:#ae81ff">70791</span>  <span style="color:#ae81ff">33578</span>   <span style="color:#ae81ff">9556</span>   <span style="color:#ae81ff">2070</span>   <span style="color:#ae81ff">1034</span>   <span style="color:#ae81ff">2533</span>   <span style="color:#ae81ff">7328</span> 
-Node 1, zone   Normal  <span style="color:#ae81ff">11705</span>  <span style="color:#ae81ff">51467</span>  <span style="color:#ae81ff">36752</span>  <span style="color:#ae81ff">21326</span>  <span style="color:#ae81ff">11343</span>   <span style="color:#ae81ff">7309</span>   <span style="color:#ae81ff">5024</span>   <span style="color:#ae81ff">3403</span>   <span style="color:#ae81ff">2597</span>   <span style="color:#ae81ff">3056</span>  <span style="color:#ae81ff">10898</span>
-</code></pre></div><h3 id="procpagetypeinfo">/proc/pagetypeinfo</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="nf">frag_show_print</span><span class="p">(</span><span class="k">struct</span> <span class="n">seq_file</span> <span class="o">*</span><span class="n">m</span><span class="p">,</span> <span class="kt">pg_data_t</span> <span class="o">*</span><span class="n">pgdat</span><span class="p">,</span>                                                                                                  
+</span></span><span class="line"><span class="cl">                                                <span class="k">struct</span> <span class="n">zone</span> <span class="o">*</span><span class="n">zone</span><span class="p">)</span>                                                                                                 
+</span></span><span class="line"><span class="cl"><span class="p">{</span>                                                                                                                                                                  
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">order</span><span class="p">;</span>                                                                                                                                                 
+</span></span><span class="line"><span class="cl">                                                                                                                                                                   
+</span></span><span class="line"><span class="cl">        <span class="nf">seq_printf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&#34;Node %d, zone %8s &#34;</span><span class="p">,</span> <span class="n">pgdat</span><span class="o">-&gt;</span><span class="n">node_id</span><span class="p">,</span> <span class="n">zone</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="n">order</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">order</span> <span class="o">&lt;</span> <span class="n">MAX_ORDER</span><span class="p">;</span> <span class="o">++</span><span class="n">order</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">seq_printf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&#34;%6lu &#34;</span><span class="p">,</span> <span class="n">zone</span><span class="o">-&gt;</span><span class="n">free_area</span><span class="p">[</span><span class="n">order</span><span class="p">].</span><span class="n">nr_free</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">seq_putc</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="sc">&#39;\n&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>输出示例如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ cat /proc/buddyinfo 
+</span></span><span class="line"><span class="cl">Node 0, zone      DMA      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">0</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">2</span> 
+</span></span><span class="line"><span class="cl">Node 0, zone    DMA32    <span class="m">688</span>   <span class="m">2080</span>   <span class="m">1420</span>    <span class="m">995</span>    <span class="m">596</span>    <span class="m">357</span>    <span class="m">278</span>    <span class="m">241</span>    <span class="m">276</span>     <span class="m">32</span>    <span class="m">133</span> 
+</span></span><span class="line"><span class="cl">Node 0, zone   Normal <span class="m">195748</span> <span class="m">204074</span> <span class="m">161167</span> <span class="m">119070</span>  <span class="m">70791</span>  <span class="m">33578</span>   <span class="m">9556</span>   <span class="m">2070</span>   <span class="m">1034</span>   <span class="m">2533</span>   <span class="m">7328</span> 
+</span></span><span class="line"><span class="cl">Node 1, zone   Normal  <span class="m">11705</span>  <span class="m">51467</span>  <span class="m">36752</span>  <span class="m">21326</span>  <span class="m">11343</span>   <span class="m">7309</span>   <span class="m">5024</span>   <span class="m">3403</span>   <span class="m">2597</span>   <span class="m">3056</span>  <span class="m">10898</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="procpagetypeinfo">/proc/pagetypeinfo</h3>
 <p><code>pagetypeinfo</code>输出系统上各个<code>zone</code>中的不同迁移类型的详细状态信息，其比<code>/proc/buddyinfo </code>中的信息更加详细。同时该文件也输出了如下信息：</p>
 <ul>
 <li>系统上<code>page block</code>的大小和<code>page block order</code>的值：一般情况下，<code>Page block order</code> 为<code>9</code>， 所以每个<code>page block</code>中有<code>512</code>个<code>page</code>页。</li>
@@ -487,48 +641,95 @@ Node 1, zone   Normal  <span style="color:#ae81ff">11705</span>  <span style="co
 <p>注意：跟<code>buddyinfo</code>不同，这里直接输出的<code>page</code>的个数，而不是<code>order</code>对应的伙伴系统的空闲块的个数</p>
 </blockquote>
 <p>输出示例信息如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat /proc/pagetypeinfo 
-Page block order: <span style="color:#ae81ff">9</span>
-Pages per block:  <span style="color:#ae81ff">512</span>
-
-Free pages count per migrate type at order       <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">2</span>      <span style="color:#ae81ff">3</span>      <span style="color:#ae81ff">4</span>      <span style="color:#ae81ff">5</span>      <span style="color:#ae81ff">6</span>      <span style="color:#ae81ff">7</span>      <span style="color:#ae81ff">8</span>      <span style="color:#ae81ff">9</span>     <span style="color:#ae81ff">10</span> 
-Node    0, zone      DMA, type    Unmovable      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone      DMA, type  Reclaimable      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone      DMA, type      Movable      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">2</span> 
-Node    0, zone      DMA, type      Reserve      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone      DMA, type          CMA      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone      DMA, type      Isolate      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone    DMA32, type    Unmovable     <span style="color:#ae81ff">95</span>    <span style="color:#ae81ff">216</span>    <span style="color:#ae81ff">141</span>     <span style="color:#ae81ff">63</span>     <span style="color:#ae81ff">27</span>      <span style="color:#ae81ff">3</span>      <span style="color:#ae81ff">2</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">5</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone    DMA32, type  Reclaimable      <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">871</span>    <span style="color:#ae81ff">900</span>    <span style="color:#ae81ff">605</span>    <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">62</span>     <span style="color:#ae81ff">21</span>     <span style="color:#ae81ff">10</span>     <span style="color:#ae81ff">15</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone    DMA32, type      Movable    <span style="color:#ae81ff">566</span>    <span style="color:#ae81ff">981</span>    <span style="color:#ae81ff">382</span>    <span style="color:#ae81ff">327</span>    <span style="color:#ae81ff">313</span>    <span style="color:#ae81ff">291</span>    <span style="color:#ae81ff">255</span>    <span style="color:#ae81ff">230</span>    <span style="color:#ae81ff">256</span>     <span style="color:#ae81ff">32</span>    <span style="color:#ae81ff">133</span> 
-Node    0, zone    DMA32, type      Reserve      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone    DMA32, type          CMA      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone    DMA32, type      Isolate      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone   Normal, type    Unmovable   <span style="color:#ae81ff">3635</span>   <span style="color:#ae81ff">2151</span>   <span style="color:#ae81ff">1535</span>    <span style="color:#ae81ff">962</span>    <span style="color:#ae81ff">927</span>    <span style="color:#ae81ff">352</span>     <span style="color:#ae81ff">24</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone   Normal, type  Reclaimable   <span style="color:#ae81ff">4235</span>  <span style="color:#ae81ff">36693</span>  <span style="color:#ae81ff">29792</span>  <span style="color:#ae81ff">13837</span>   <span style="color:#ae81ff">2886</span>    <span style="color:#ae81ff">318</span>     <span style="color:#ae81ff">23</span>      <span style="color:#ae81ff">4</span>      <span style="color:#ae81ff">4</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">1</span> 
-Node    0, zone   Normal, type      Movable <span style="color:#ae81ff">186666</span> <span style="color:#ae81ff">165228</span> <span style="color:#ae81ff">129840</span> <span style="color:#ae81ff">104268</span>  <span style="color:#ae81ff">66977</span>  <span style="color:#ae81ff">32908</span>   <span style="color:#ae81ff">9510</span>   <span style="color:#ae81ff">2066</span>   <span style="color:#ae81ff">1030</span>   <span style="color:#ae81ff">2534</span>   <span style="color:#ae81ff">7327</span> 
-Node    0, zone   Normal, type      Reserve      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone   Normal, type          CMA      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    0, zone   Normal, type      Isolate      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-
-Number of blocks type     Unmovable  Reclaimable      Movable      Reserve          CMA      Isolate 
-Node 0, zone      DMA            <span style="color:#ae81ff">3</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">5</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span> 
-Node 0, zone    DMA32           <span style="color:#ae81ff">69</span>           <span style="color:#ae81ff">59</span>          <span style="color:#ae81ff">760</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span> 
-Node 0, zone   Normal         <span style="color:#ae81ff">1256</span>         <span style="color:#ae81ff">1426</span>        <span style="color:#ae81ff">29062</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span> 
-Page block order: <span style="color:#ae81ff">9</span>
-Pages per block:  <span style="color:#ae81ff">512</span>
-
-Free pages count per migrate type at order       <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">2</span>      <span style="color:#ae81ff">3</span>      <span style="color:#ae81ff">4</span>      <span style="color:#ae81ff">5</span>      <span style="color:#ae81ff">6</span>      <span style="color:#ae81ff">7</span>      <span style="color:#ae81ff">8</span>      <span style="color:#ae81ff">9</span>     <span style="color:#ae81ff">10</span> 
-Node    1, zone   Normal, type    Unmovable   <span style="color:#ae81ff">5911</span>   <span style="color:#ae81ff">2837</span>   <span style="color:#ae81ff">1059</span>    <span style="color:#ae81ff">495</span>    <span style="color:#ae81ff">341</span>    <span style="color:#ae81ff">132</span>     <span style="color:#ae81ff">67</span>     <span style="color:#ae81ff">34</span>     <span style="color:#ae81ff">29</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    1, zone   Normal, type  Reclaimable   <span style="color:#ae81ff">4972</span>  <span style="color:#ae81ff">34049</span>  <span style="color:#ae81ff">27480</span>  <span style="color:#ae81ff">12864</span>   <span style="color:#ae81ff">2317</span>    <span style="color:#ae81ff">547</span>     <span style="color:#ae81ff">29</span>      <span style="color:#ae81ff">4</span>      <span style="color:#ae81ff">3</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    1, zone   Normal, type      Movable    <span style="color:#ae81ff">374</span>  <span style="color:#ae81ff">14707</span>   <span style="color:#ae81ff">8209</span>   <span style="color:#ae81ff">7967</span>   <span style="color:#ae81ff">8685</span>   <span style="color:#ae81ff">6630</span>   <span style="color:#ae81ff">4928</span>   <span style="color:#ae81ff">3365</span>   <span style="color:#ae81ff">2565</span>   <span style="color:#ae81ff">3056</span>  <span style="color:#ae81ff">10898</span> 
-Node    1, zone   Normal, type      Reserve      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    1, zone   Normal, type          CMA      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-Node    1, zone   Normal, type      Isolate      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span> 
-
-Number of blocks type     Unmovable  Reclaimable      Movable      Reserve          CMA      Isolate 
-Node 1, zone   Normal         <span style="color:#ae81ff">1009</span>         <span style="color:#ae81ff">1602</span>        <span style="color:#ae81ff">30157</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span> 
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ cat /proc/pagetypeinfo 
+</span></span><span class="line"><span class="cl">Page block order: <span class="m">9</span>
+</span></span><span class="line"><span class="cl">Pages per block:  <span class="m">512</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Free pages count per migrate <span class="nb">type</span> at order       <span class="m">0</span>      <span class="m">1</span>      <span class="m">2</span>      <span class="m">3</span>      <span class="m">4</span>      <span class="m">5</span>      <span class="m">6</span>      <span class="m">7</span>      <span class="m">8</span>      <span class="m">9</span>     <span class="m">10</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone      DMA, <span class="nb">type</span>    Unmovable      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">0</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">1</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone      DMA, <span class="nb">type</span>  Reclaimable      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone      DMA, <span class="nb">type</span>      Movable      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">1</span>      <span class="m">2</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone      DMA, <span class="nb">type</span>      Reserve      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone      DMA, <span class="nb">type</span>          CMA      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone      DMA, <span class="nb">type</span>      Isolate      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone    DMA32, <span class="nb">type</span>    Unmovable     <span class="m">95</span>    <span class="m">216</span>    <span class="m">141</span>     <span class="m">63</span>     <span class="m">27</span>      <span class="m">3</span>      <span class="m">2</span>      <span class="m">1</span>      <span class="m">5</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone    DMA32, <span class="nb">type</span>  Reclaimable      <span class="m">0</span>    <span class="m">871</span>    <span class="m">900</span>    <span class="m">605</span>    <span class="m">255</span>     <span class="m">62</span>     <span class="m">21</span>     <span class="m">10</span>     <span class="m">15</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone    DMA32, <span class="nb">type</span>      Movable    <span class="m">566</span>    <span class="m">981</span>    <span class="m">382</span>    <span class="m">327</span>    <span class="m">313</span>    <span class="m">291</span>    <span class="m">255</span>    <span class="m">230</span>    <span class="m">256</span>     <span class="m">32</span>    <span class="m">133</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone    DMA32, <span class="nb">type</span>      Reserve      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone    DMA32, <span class="nb">type</span>          CMA      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone    DMA32, <span class="nb">type</span>      Isolate      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone   Normal, <span class="nb">type</span>    Unmovable   <span class="m">3635</span>   <span class="m">2151</span>   <span class="m">1535</span>    <span class="m">962</span>    <span class="m">927</span>    <span class="m">352</span>     <span class="m">24</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone   Normal, <span class="nb">type</span>  Reclaimable   <span class="m">4235</span>  <span class="m">36693</span>  <span class="m">29792</span>  <span class="m">13837</span>   <span class="m">2886</span>    <span class="m">318</span>     <span class="m">23</span>      <span class="m">4</span>      <span class="m">4</span>      <span class="m">0</span>      <span class="m">1</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone   Normal, <span class="nb">type</span>      Movable <span class="m">186666</span> <span class="m">165228</span> <span class="m">129840</span> <span class="m">104268</span>  <span class="m">66977</span>  <span class="m">32908</span>   <span class="m">9510</span>   <span class="m">2066</span>   <span class="m">1030</span>   <span class="m">2534</span>   <span class="m">7327</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone   Normal, <span class="nb">type</span>      Reserve      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone   Normal, <span class="nb">type</span>          CMA      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    0, zone   Normal, <span class="nb">type</span>      Isolate      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Number of blocks <span class="nb">type</span>     Unmovable  Reclaimable      Movable      Reserve          CMA      Isolate 
+</span></span><span class="line"><span class="cl">Node 0, zone      DMA            <span class="m">3</span>            <span class="m">0</span>            <span class="m">5</span>            <span class="m">0</span>            <span class="m">0</span>            <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node 0, zone    DMA32           <span class="m">69</span>           <span class="m">59</span>          <span class="m">760</span>            <span class="m">0</span>            <span class="m">0</span>            <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node 0, zone   Normal         <span class="m">1256</span>         <span class="m">1426</span>        <span class="m">29062</span>            <span class="m">0</span>            <span class="m">0</span>            <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Page block order: <span class="m">9</span>
+</span></span><span class="line"><span class="cl">Pages per block:  <span class="m">512</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Free pages count per migrate <span class="nb">type</span> at order       <span class="m">0</span>      <span class="m">1</span>      <span class="m">2</span>      <span class="m">3</span>      <span class="m">4</span>      <span class="m">5</span>      <span class="m">6</span>      <span class="m">7</span>      <span class="m">8</span>      <span class="m">9</span>     <span class="m">10</span> 
+</span></span><span class="line"><span class="cl">Node    1, zone   Normal, <span class="nb">type</span>    Unmovable   <span class="m">5911</span>   <span class="m">2837</span>   <span class="m">1059</span>    <span class="m">495</span>    <span class="m">341</span>    <span class="m">132</span>     <span class="m">67</span>     <span class="m">34</span>     <span class="m">29</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    1, zone   Normal, <span class="nb">type</span>  Reclaimable   <span class="m">4972</span>  <span class="m">34049</span>  <span class="m">27480</span>  <span class="m">12864</span>   <span class="m">2317</span>    <span class="m">547</span>     <span class="m">29</span>      <span class="m">4</span>      <span class="m">3</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    1, zone   Normal, <span class="nb">type</span>      Movable    <span class="m">374</span>  <span class="m">14707</span>   <span class="m">8209</span>   <span class="m">7967</span>   <span class="m">8685</span>   <span class="m">6630</span>   <span class="m">4928</span>   <span class="m">3365</span>   <span class="m">2565</span>   <span class="m">3056</span>  <span class="m">10898</span> 
+</span></span><span class="line"><span class="cl">Node    1, zone   Normal, <span class="nb">type</span>      Reserve      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    1, zone   Normal, <span class="nb">type</span>          CMA      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">Node    1, zone   Normal, <span class="nb">type</span>      Isolate      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Number of blocks <span class="nb">type</span>     Unmovable  Reclaimable      Movable      Reserve          CMA      Isolate 
+</span></span><span class="line"><span class="cl">Node 1, zone   Normal         <span class="m">1009</span>         <span class="m">1602</span>        <span class="m">30157</span>            <span class="m">0</span>            <span class="m">0</span>            <span class="m">0</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>从输出来看，我们系统上每个<code>pageblock</code>的大小为<code>512 * 4k = 2MB</code></li>
 <li>我们看到<code>DMA</code>区的总共有<code>8</code>个<code>pageblock</code>，所以<code>DMA</code>的大小为<code>8 * 2MB = 16MB</code></li>
 </ul>
@@ -544,322 +745,636 @@ Node 1, zone   Normal         <span style="color:#ae81ff">1009</span>         <s
 <ul>
 <li>在本示例输出中，<code>node0</code>有<code>DMA</code>、 <code>DMA32</code>、<code>Normal</code>这三个<code>zone</code>，<code>node1</code>只有一个<code>Normal zone</code>。</li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat /proc/zoneinfo
-Node 0, zone      DMA		// node信息，zone名称
-  pages free     3039		// 空闲page个数
-        min      2			// min水位
-        low      2			//low 水位
-        high     3			// high 水位
-        scanned  <span style="color:#ae81ff">0</span>
-        spanned  4095		// spanned_pages <span style="color:#f92672">=</span> zone_end_pfn - zone_start_pfn <span style="color:#f92672">(</span>包含hole<span style="color:#f92672">)</span>
-        present  3997		// present_pages <span style="color:#f92672">=</span> spanned_pages - absent_pages<span style="color:#f92672">(</span>pages in holes<span style="color:#f92672">)</span>
-        managed  3976		// managed_pages <span style="color:#f92672">=</span> present_pages - reserved_pages<span style="color:#f92672">(</span>buddy管理的页面个数<span style="color:#f92672">)</span>
-    nr_free_pages <span style="color:#ae81ff">3039</span>  // 以下38行统计了该zone中不同用途类型的page的个数
-    nr_alloc_batch <span style="color:#ae81ff">1</span>
-    nr_inactive_anon <span style="color:#ae81ff">0</span>
-    nr_active_anon <span style="color:#ae81ff">0</span>
-    nr_inactive_file <span style="color:#ae81ff">0</span>
-    nr_active_file <span style="color:#ae81ff">0</span>
-    nr_unevictable <span style="color:#ae81ff">0</span>
-    nr_mlock     <span style="color:#ae81ff">0</span>
-    nr_anon_pages <span style="color:#ae81ff">0</span>
-    nr_mapped    <span style="color:#ae81ff">0</span>
-    nr_file_pages <span style="color:#ae81ff">0</span>
-    nr_dirty     <span style="color:#ae81ff">0</span>
-    nr_writeback <span style="color:#ae81ff">0</span>
-    nr_slab_reclaimable <span style="color:#ae81ff">0</span>
-    nr_slab_unreclaimable <span style="color:#ae81ff">0</span>
-    nr_page_table_pages <span style="color:#ae81ff">0</span>
-    nr_kernel_stack <span style="color:#ae81ff">0</span>
-    nr_unstable  <span style="color:#ae81ff">0</span>
-    nr_bounce    <span style="color:#ae81ff">0</span>
-    nr_vmscan_write <span style="color:#ae81ff">0</span>
-    nr_vmscan_immediate_reclaim <span style="color:#ae81ff">0</span>
-    nr_writeback_temp <span style="color:#ae81ff">0</span>
-    nr_isolated_anon <span style="color:#ae81ff">0</span>
-    nr_isolated_file <span style="color:#ae81ff">0</span>
-    nr_shmem     <span style="color:#ae81ff">0</span>
-    nr_dirtied   <span style="color:#ae81ff">0</span>
-    nr_written   <span style="color:#ae81ff">0</span>
-    numa_hit     <span style="color:#ae81ff">1675</span>
-    numa_miss    <span style="color:#ae81ff">0</span>
-    numa_foreign <span style="color:#ae81ff">0</span>
-    numa_interleave <span style="color:#ae81ff">0</span>
-    numa_local   <span style="color:#ae81ff">1586</span>
-    numa_other   <span style="color:#ae81ff">89</span>
-    workingset_refault <span style="color:#ae81ff">0</span>
-    workingset_activate <span style="color:#ae81ff">0</span>
-    workingset_nodereclaim <span style="color:#ae81ff">0</span>
-    nr_anon_transparent_hugepages <span style="color:#ae81ff">0</span>
-    nr_free_cma  <span style="color:#ae81ff">0</span>
-        protection: <span style="color:#f92672">(</span>0, 1383, 63848, 63848<span style="color:#f92672">)</span>
-  pagesets
-    cpu: <span style="color:#ae81ff">0</span>
-              count: <span style="color:#ae81ff">0</span>
-              high:  <span style="color:#ae81ff">0</span>
-              batch: <span style="color:#ae81ff">1</span>
-  vm stats threshold: <span style="color:#ae81ff">12</span>
-    cpu: <span style="color:#ae81ff">1</span>
-              count: <span style="color:#ae81ff">0</span>
-              high:  <span style="color:#ae81ff">0</span>
-              batch: <span style="color:#ae81ff">1</span>
-  vm stats threshold: <span style="color:#ae81ff">12</span>
-...
-...
-...
-...
-    cpu: <span style="color:#ae81ff">38</span>
-              count: <span style="color:#ae81ff">0</span>
-              high:  <span style="color:#ae81ff">0</span>
-              batch: <span style="color:#ae81ff">1</span>
-  vm stats threshold: <span style="color:#ae81ff">12</span>
-    cpu: <span style="color:#ae81ff">39</span>
-              count: <span style="color:#ae81ff">0</span>
-              high:  <span style="color:#ae81ff">0</span>
-              batch: <span style="color:#ae81ff">1</span>
-  vm stats threshold: <span style="color:#ae81ff">12</span>
-  all_unreclaimable: <span style="color:#ae81ff">0</span>
-  start_pfn:         <span style="color:#ae81ff">1</span>
-  inactive_ratio:    <span style="color:#ae81ff">1</span>
-Node 0, zone    DMA32
-  pages free     <span style="color:#ae81ff">310887</span>
-        min      <span style="color:#ae81ff">242</span>
-        low      <span style="color:#ae81ff">302</span>
-        high     <span style="color:#ae81ff">363</span>
-        scanned  <span style="color:#ae81ff">0</span>
-        spanned  <span style="color:#ae81ff">1044480</span>
-        present  <span style="color:#ae81ff">417248</span>
-        managed  <span style="color:#ae81ff">354201</span>
-    nr_free_pages <span style="color:#ae81ff">310887</span>
-    nr_alloc_batch <span style="color:#ae81ff">61</span>
-    nr_inactive_anon <span style="color:#ae81ff">13164</span>
-    nr_active_anon <span style="color:#ae81ff">477</span>
-    nr_inactive_file <span style="color:#ae81ff">806</span>
-    nr_active_file <span style="color:#ae81ff">1797</span>
-    nr_unevictable <span style="color:#ae81ff">0</span>
-    nr_mlock     <span style="color:#ae81ff">0</span>
-    nr_anon_pages <span style="color:#ae81ff">729</span>
-    nr_mapped    <span style="color:#ae81ff">194</span>
-    nr_file_pages <span style="color:#ae81ff">14973</span>
-    nr_dirty     <span style="color:#ae81ff">0</span>
-    nr_writeback <span style="color:#ae81ff">0</span>
-    nr_slab_reclaimable <span style="color:#ae81ff">7453</span>
-    nr_slab_unreclaimable <span style="color:#ae81ff">1325</span>
-    nr_page_table_pages <span style="color:#ae81ff">37</span>
-    nr_kernel_stack <span style="color:#ae81ff">6</span>
-    nr_unstable  <span style="color:#ae81ff">0</span>
-    nr_bounce    <span style="color:#ae81ff">0</span>
-    nr_vmscan_write <span style="color:#ae81ff">0</span>
-    nr_vmscan_immediate_reclaim <span style="color:#ae81ff">0</span>
-    nr_writeback_temp <span style="color:#ae81ff">0</span>
-    nr_isolated_anon <span style="color:#ae81ff">0</span>
-    nr_isolated_file <span style="color:#ae81ff">0</span>
-    nr_shmem     <span style="color:#ae81ff">12370</span>
-    nr_dirtied   <span style="color:#ae81ff">8381421</span>
-    nr_written   <span style="color:#ae81ff">5315197</span>
-    numa_hit     <span style="color:#ae81ff">854956447</span>
-    numa_miss    <span style="color:#ae81ff">153095</span>
-    numa_foreign <span style="color:#ae81ff">0</span>
-    numa_interleave <span style="color:#ae81ff">0</span>
-    numa_local   <span style="color:#ae81ff">854952367</span>
-    numa_other   <span style="color:#ae81ff">157175</span>
-    workingset_refault <span style="color:#ae81ff">10804</span>
-    workingset_activate <span style="color:#ae81ff">97</span>
-    workingset_nodereclaim <span style="color:#ae81ff">0</span>
-    nr_anon_transparent_hugepages <span style="color:#ae81ff">1</span>
-    nr_free_cma  <span style="color:#ae81ff">0</span>
-        protection: <span style="color:#f92672">(</span>0, 0, 62464, 62464<span style="color:#f92672">)</span>
-  pagesets
-    cpu: <span style="color:#ae81ff">0</span>
-              count: <span style="color:#ae81ff">158</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">60</span>
-    cpu: <span style="color:#ae81ff">1</span>
-              count: <span style="color:#ae81ff">170</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">60</span>
-    cpu: <span style="color:#ae81ff">2</span>
-              count: <span style="color:#ae81ff">182</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">60</span>
-...
-...
-...
-    cpu: <span style="color:#ae81ff">38</span>
-              count: <span style="color:#ae81ff">0</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">60</span>
-    cpu: <span style="color:#ae81ff">39</span>
-              count: <span style="color:#ae81ff">0</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">60</span>
-  all_unreclaimable: <span style="color:#ae81ff">0</span>
-  start_pfn:         4096				// 开始的pfn号
-  inactive_ratio:    <span style="color:#ae81ff">3</span>
-Node 0, zone   Normal
-  pages free     <span style="color:#ae81ff">14351077</span>
-        min      <span style="color:#ae81ff">10962</span>
-        low      <span style="color:#ae81ff">13702</span>
-        high     <span style="color:#ae81ff">16443</span>
-        scanned  <span style="color:#ae81ff">0</span>
-        spanned  <span style="color:#ae81ff">16252928</span>
-        present  <span style="color:#ae81ff">16252928</span>
-        managed  <span style="color:#ae81ff">15991024</span>
-    nr_free_pages <span style="color:#ae81ff">14351077</span>
-    nr_alloc_batch <span style="color:#ae81ff">1381</span>
-    nr_inactive_anon <span style="color:#ae81ff">557945</span>
-    nr_active_anon <span style="color:#ae81ff">49324</span>
-    nr_inactive_file <span style="color:#ae81ff">30342</span>
-    nr_active_file <span style="color:#ae81ff">56404</span>
-    nr_unevictable <span style="color:#ae81ff">0</span>
-    nr_mlock     <span style="color:#ae81ff">0</span>
-    nr_anon_pages <span style="color:#ae81ff">31468</span>
-    nr_mapped    <span style="color:#ae81ff">12918</span>
-    nr_file_pages <span style="color:#ae81ff">643281</span>
-    nr_dirty     <span style="color:#ae81ff">59</span>
-    nr_writeback <span style="color:#ae81ff">0</span>
-    nr_slab_reclaimable <span style="color:#ae81ff">416893</span>
-    nr_slab_unreclaimable <span style="color:#ae81ff">71886</span>
-    nr_page_table_pages <span style="color:#ae81ff">1351</span>
-    nr_kernel_stack <span style="color:#ae81ff">519</span>
-    nr_unstable  <span style="color:#ae81ff">0</span>
-    nr_bounce    <span style="color:#ae81ff">0</span>
-    nr_vmscan_write <span style="color:#ae81ff">25</span>
-    nr_vmscan_immediate_reclaim <span style="color:#ae81ff">0</span>
-    nr_writeback_temp <span style="color:#ae81ff">0</span>
-    nr_isolated_anon <span style="color:#ae81ff">0</span>
-    nr_isolated_file <span style="color:#ae81ff">0</span>
-    nr_shmem     <span style="color:#ae81ff">556532</span>
-    nr_dirtied   <span style="color:#ae81ff">598988584</span>
-    nr_written   <span style="color:#ae81ff">419469120</span>
-    numa_hit     <span style="color:#ae81ff">60842388353</span>
-    numa_miss    <span style="color:#ae81ff">2044762264</span>
-    numa_foreign <span style="color:#ae81ff">59136456</span>
-    numa_interleave <span style="color:#ae81ff">35507</span>
-    numa_local   <span style="color:#ae81ff">60842226428</span>
-    numa_other   <span style="color:#ae81ff">2044924189</span>
-    workingset_refault <span style="color:#ae81ff">610786</span>
-    workingset_activate <span style="color:#ae81ff">22873</span>
-    workingset_nodereclaim <span style="color:#ae81ff">0</span>
-    nr_anon_transparent_hugepages <span style="color:#ae81ff">37</span>
-    nr_free_cma  <span style="color:#ae81ff">0</span>
-        protection: <span style="color:#f92672">(</span>0, 0, 0, 0<span style="color:#f92672">)</span>
-  pagesets
-    cpu: <span style="color:#ae81ff">0</span>
-              count: <span style="color:#ae81ff">125</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">120</span>
-    cpu: <span style="color:#ae81ff">1</span>
-              count: <span style="color:#ae81ff">162</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">120</span>
-...
-...
-...
-...
-    cpu: <span style="color:#ae81ff">38</span>
-              count: <span style="color:#ae81ff">176</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">120</span>
-    cpu: <span style="color:#ae81ff">39</span>
-              count: <span style="color:#ae81ff">174</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">120</span>
-  all_unreclaimable: <span style="color:#ae81ff">0</span>
-  start_pfn:         <span style="color:#ae81ff">1048576</span>
-  inactive_ratio:    <span style="color:#ae81ff">24</span>
-Node 1, zone   Normal
-  pages free     <span style="color:#ae81ff">14993432</span>
-        min      <span style="color:#ae81ff">11320</span>
-        low      <span style="color:#ae81ff">14150</span>
-        high     <span style="color:#ae81ff">16980</span>
-        scanned  <span style="color:#ae81ff">0</span>
-        spanned  <span style="color:#ae81ff">16777216</span>
-        present  <span style="color:#ae81ff">16777216</span>
-        managed  <span style="color:#ae81ff">16514229</span>
-    nr_free_pages <span style="color:#ae81ff">14993432</span>
-    nr_alloc_batch <span style="color:#ae81ff">894</span>
-    nr_inactive_anon <span style="color:#ae81ff">534587</span>
-    nr_active_anon <span style="color:#ae81ff">95276</span>
-    nr_inactive_file <span style="color:#ae81ff">46704</span>
-    nr_active_file <span style="color:#ae81ff">87189</span>
-    nr_unevictable <span style="color:#ae81ff">0</span>
-    nr_mlock     <span style="color:#ae81ff">0</span>
-    nr_anon_pages <span style="color:#ae81ff">59220</span>
-    nr_mapped    <span style="color:#ae81ff">17798</span>
-    nr_file_pages <span style="color:#ae81ff">625093</span>
-    nr_dirty     <span style="color:#ae81ff">90</span>
-    nr_writeback <span style="color:#ae81ff">0</span>
-    nr_slab_reclaimable <span style="color:#ae81ff">521541</span>
-    nr_slab_unreclaimable <span style="color:#ae81ff">71127</span>
-    nr_page_table_pages <span style="color:#ae81ff">1682</span>
-    nr_kernel_stack <span style="color:#ae81ff">459</span>
-    nr_unstable  <span style="color:#ae81ff">0</span>
-    nr_bounce    <span style="color:#ae81ff">0</span>
-    nr_vmscan_write <span style="color:#ae81ff">107</span>
-    nr_vmscan_immediate_reclaim <span style="color:#ae81ff">0</span>
-    nr_writeback_temp <span style="color:#ae81ff">0</span>
-    nr_isolated_anon <span style="color:#ae81ff">0</span>
-    nr_isolated_file <span style="color:#ae81ff">0</span>
-    nr_shmem     <span style="color:#ae81ff">491196</span>
-    nr_dirtied   <span style="color:#ae81ff">492864604</span>
-    nr_written   <span style="color:#ae81ff">339759696</span>
-    numa_hit     <span style="color:#ae81ff">55865496981</span>
-    numa_miss    <span style="color:#ae81ff">59136456</span>
-    numa_foreign <span style="color:#ae81ff">2044915359</span>
-    numa_interleave <span style="color:#ae81ff">35516</span>
-    numa_local   <span style="color:#ae81ff">55865257923</span>
-    numa_other   <span style="color:#ae81ff">59375514</span>
-    workingset_refault <span style="color:#ae81ff">792520</span>
-    workingset_activate <span style="color:#ae81ff">104322</span>
-    workingset_nodereclaim <span style="color:#ae81ff">0</span>
-    nr_anon_transparent_hugepages <span style="color:#ae81ff">155</span>
-    nr_free_cma  <span style="color:#ae81ff">0</span>
-        protection: <span style="color:#f92672">(</span>0, 0, 0, 0<span style="color:#f92672">)</span>
-  pagesets
-    cpu: <span style="color:#ae81ff">0</span>
-              count: <span style="color:#ae81ff">157</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">120</span>
-    cpu: <span style="color:#ae81ff">1</span>
-              count: <span style="color:#ae81ff">181</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">120</span>
-...
-...
-...
-...
-    cpu: <span style="color:#ae81ff">38</span>
-              count: <span style="color:#ae81ff">158</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">120</span>
-    cpu: <span style="color:#ae81ff">39</span>
-              count: <span style="color:#ae81ff">125</span>
-              high:  <span style="color:#ae81ff">186</span>
-              batch: <span style="color:#ae81ff">31</span>
-  vm stats threshold: <span style="color:#ae81ff">120</span>
-  all_unreclaimable: <span style="color:#ae81ff">0</span>
-  start_pfn:         <span style="color:#ae81ff">17301504</span>
-  inactive_ratio:    <span style="color:#ae81ff">24</span>
-</code></pre></div><h3 id="参考文章">参考文章</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span><span class="lnt">155
+</span><span class="lnt">156
+</span><span class="lnt">157
+</span><span class="lnt">158
+</span><span class="lnt">159
+</span><span class="lnt">160
+</span><span class="lnt">161
+</span><span class="lnt">162
+</span><span class="lnt">163
+</span><span class="lnt">164
+</span><span class="lnt">165
+</span><span class="lnt">166
+</span><span class="lnt">167
+</span><span class="lnt">168
+</span><span class="lnt">169
+</span><span class="lnt">170
+</span><span class="lnt">171
+</span><span class="lnt">172
+</span><span class="lnt">173
+</span><span class="lnt">174
+</span><span class="lnt">175
+</span><span class="lnt">176
+</span><span class="lnt">177
+</span><span class="lnt">178
+</span><span class="lnt">179
+</span><span class="lnt">180
+</span><span class="lnt">181
+</span><span class="lnt">182
+</span><span class="lnt">183
+</span><span class="lnt">184
+</span><span class="lnt">185
+</span><span class="lnt">186
+</span><span class="lnt">187
+</span><span class="lnt">188
+</span><span class="lnt">189
+</span><span class="lnt">190
+</span><span class="lnt">191
+</span><span class="lnt">192
+</span><span class="lnt">193
+</span><span class="lnt">194
+</span><span class="lnt">195
+</span><span class="lnt">196
+</span><span class="lnt">197
+</span><span class="lnt">198
+</span><span class="lnt">199
+</span><span class="lnt">200
+</span><span class="lnt">201
+</span><span class="lnt">202
+</span><span class="lnt">203
+</span><span class="lnt">204
+</span><span class="lnt">205
+</span><span class="lnt">206
+</span><span class="lnt">207
+</span><span class="lnt">208
+</span><span class="lnt">209
+</span><span class="lnt">210
+</span><span class="lnt">211
+</span><span class="lnt">212
+</span><span class="lnt">213
+</span><span class="lnt">214
+</span><span class="lnt">215
+</span><span class="lnt">216
+</span><span class="lnt">217
+</span><span class="lnt">218
+</span><span class="lnt">219
+</span><span class="lnt">220
+</span><span class="lnt">221
+</span><span class="lnt">222
+</span><span class="lnt">223
+</span><span class="lnt">224
+</span><span class="lnt">225
+</span><span class="lnt">226
+</span><span class="lnt">227
+</span><span class="lnt">228
+</span><span class="lnt">229
+</span><span class="lnt">230
+</span><span class="lnt">231
+</span><span class="lnt">232
+</span><span class="lnt">233
+</span><span class="lnt">234
+</span><span class="lnt">235
+</span><span class="lnt">236
+</span><span class="lnt">237
+</span><span class="lnt">238
+</span><span class="lnt">239
+</span><span class="lnt">240
+</span><span class="lnt">241
+</span><span class="lnt">242
+</span><span class="lnt">243
+</span><span class="lnt">244
+</span><span class="lnt">245
+</span><span class="lnt">246
+</span><span class="lnt">247
+</span><span class="lnt">248
+</span><span class="lnt">249
+</span><span class="lnt">250
+</span><span class="lnt">251
+</span><span class="lnt">252
+</span><span class="lnt">253
+</span><span class="lnt">254
+</span><span class="lnt">255
+</span><span class="lnt">256
+</span><span class="lnt">257
+</span><span class="lnt">258
+</span><span class="lnt">259
+</span><span class="lnt">260
+</span><span class="lnt">261
+</span><span class="lnt">262
+</span><span class="lnt">263
+</span><span class="lnt">264
+</span><span class="lnt">265
+</span><span class="lnt">266
+</span><span class="lnt">267
+</span><span class="lnt">268
+</span><span class="lnt">269
+</span><span class="lnt">270
+</span><span class="lnt">271
+</span><span class="lnt">272
+</span><span class="lnt">273
+</span><span class="lnt">274
+</span><span class="lnt">275
+</span><span class="lnt">276
+</span><span class="lnt">277
+</span><span class="lnt">278
+</span><span class="lnt">279
+</span><span class="lnt">280
+</span><span class="lnt">281
+</span><span class="lnt">282
+</span><span class="lnt">283
+</span><span class="lnt">284
+</span><span class="lnt">285
+</span><span class="lnt">286
+</span><span class="lnt">287
+</span><span class="lnt">288
+</span><span class="lnt">289
+</span><span class="lnt">290
+</span><span class="lnt">291
+</span><span class="lnt">292
+</span><span class="lnt">293
+</span><span class="lnt">294
+</span><span class="lnt">295
+</span><span class="lnt">296
+</span><span class="lnt">297
+</span><span class="lnt">298
+</span><span class="lnt">299
+</span><span class="lnt">300
+</span><span class="lnt">301
+</span><span class="lnt">302
+</span><span class="lnt">303
+</span><span class="lnt">304
+</span><span class="lnt">305
+</span><span class="lnt">306
+</span><span class="lnt">307
+</span><span class="lnt">308
+</span><span class="lnt">309
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ cat /proc/zoneinfo
+</span></span><span class="line"><span class="cl">Node 0, zone      DMA		// node信息，zone名称
+</span></span><span class="line"><span class="cl">  pages free     3039		// 空闲page个数
+</span></span><span class="line"><span class="cl">        min      2			// min水位
+</span></span><span class="line"><span class="cl">        low      2			//low 水位
+</span></span><span class="line"><span class="cl">        high     3			// high 水位
+</span></span><span class="line"><span class="cl">        scanned  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">        spanned  4095		// <span class="nv">spanned_pages</span> <span class="o">=</span> zone_end_pfn - zone_start_pfn <span class="o">(</span>包含hole<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        present  3997		// <span class="nv">present_pages</span> <span class="o">=</span> spanned_pages - absent_pages<span class="o">(</span>pages in holes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        managed  3976		// <span class="nv">managed_pages</span> <span class="o">=</span> present_pages - reserved_pages<span class="o">(</span>buddy管理的页面个数<span class="o">)</span>
+</span></span><span class="line"><span class="cl">    nr_free_pages <span class="m">3039</span>  // 以下38行统计了该zone中不同用途类型的page的个数
+</span></span><span class="line"><span class="cl">    nr_alloc_batch <span class="m">1</span>
+</span></span><span class="line"><span class="cl">    nr_inactive_anon <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_active_anon <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_inactive_file <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_active_file <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_unevictable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_mlock     <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_anon_pages <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_mapped    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_file_pages <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_dirty     <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_writeback <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_slab_reclaimable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_slab_unreclaimable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_page_table_pages <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_kernel_stack <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_unstable  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_bounce    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_vmscan_write <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_vmscan_immediate_reclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_writeback_temp <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_isolated_anon <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_isolated_file <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_shmem     <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_dirtied   <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_written   <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    numa_hit     <span class="m">1675</span>
+</span></span><span class="line"><span class="cl">    numa_miss    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    numa_foreign <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    numa_interleave <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    numa_local   <span class="m">1586</span>
+</span></span><span class="line"><span class="cl">    numa_other   <span class="m">89</span>
+</span></span><span class="line"><span class="cl">    workingset_refault <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    workingset_activate <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    workingset_nodereclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_anon_transparent_hugepages <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_free_cma  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">        protection: <span class="o">(</span>0, 1383, 63848, 63848<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  pagesets
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">12</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">12</span>
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">38</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">12</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">39</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">12</span>
+</span></span><span class="line"><span class="cl">  all_unreclaimable: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">  start_pfn:         <span class="m">1</span>
+</span></span><span class="line"><span class="cl">  inactive_ratio:    <span class="m">1</span>
+</span></span><span class="line"><span class="cl">Node 0, zone    DMA32
+</span></span><span class="line"><span class="cl">  pages free     <span class="m">310887</span>
+</span></span><span class="line"><span class="cl">        min      <span class="m">242</span>
+</span></span><span class="line"><span class="cl">        low      <span class="m">302</span>
+</span></span><span class="line"><span class="cl">        high     <span class="m">363</span>
+</span></span><span class="line"><span class="cl">        scanned  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">        spanned  <span class="m">1044480</span>
+</span></span><span class="line"><span class="cl">        present  <span class="m">417248</span>
+</span></span><span class="line"><span class="cl">        managed  <span class="m">354201</span>
+</span></span><span class="line"><span class="cl">    nr_free_pages <span class="m">310887</span>
+</span></span><span class="line"><span class="cl">    nr_alloc_batch <span class="m">61</span>
+</span></span><span class="line"><span class="cl">    nr_inactive_anon <span class="m">13164</span>
+</span></span><span class="line"><span class="cl">    nr_active_anon <span class="m">477</span>
+</span></span><span class="line"><span class="cl">    nr_inactive_file <span class="m">806</span>
+</span></span><span class="line"><span class="cl">    nr_active_file <span class="m">1797</span>
+</span></span><span class="line"><span class="cl">    nr_unevictable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_mlock     <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_anon_pages <span class="m">729</span>
+</span></span><span class="line"><span class="cl">    nr_mapped    <span class="m">194</span>
+</span></span><span class="line"><span class="cl">    nr_file_pages <span class="m">14973</span>
+</span></span><span class="line"><span class="cl">    nr_dirty     <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_writeback <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_slab_reclaimable <span class="m">7453</span>
+</span></span><span class="line"><span class="cl">    nr_slab_unreclaimable <span class="m">1325</span>
+</span></span><span class="line"><span class="cl">    nr_page_table_pages <span class="m">37</span>
+</span></span><span class="line"><span class="cl">    nr_kernel_stack <span class="m">6</span>
+</span></span><span class="line"><span class="cl">    nr_unstable  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_bounce    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_vmscan_write <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_vmscan_immediate_reclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_writeback_temp <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_isolated_anon <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_isolated_file <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_shmem     <span class="m">12370</span>
+</span></span><span class="line"><span class="cl">    nr_dirtied   <span class="m">8381421</span>
+</span></span><span class="line"><span class="cl">    nr_written   <span class="m">5315197</span>
+</span></span><span class="line"><span class="cl">    numa_hit     <span class="m">854956447</span>
+</span></span><span class="line"><span class="cl">    numa_miss    <span class="m">153095</span>
+</span></span><span class="line"><span class="cl">    numa_foreign <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    numa_interleave <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    numa_local   <span class="m">854952367</span>
+</span></span><span class="line"><span class="cl">    numa_other   <span class="m">157175</span>
+</span></span><span class="line"><span class="cl">    workingset_refault <span class="m">10804</span>
+</span></span><span class="line"><span class="cl">    workingset_activate <span class="m">97</span>
+</span></span><span class="line"><span class="cl">    workingset_nodereclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_anon_transparent_hugepages <span class="m">1</span>
+</span></span><span class="line"><span class="cl">    nr_free_cma  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">        protection: <span class="o">(</span>0, 0, 62464, 62464<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  pagesets
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">158</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">60</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">170</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">60</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">2</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">182</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">60</span>
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">38</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">60</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">39</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">60</span>
+</span></span><span class="line"><span class="cl">  all_unreclaimable: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">  start_pfn:         4096				// 开始的pfn号
+</span></span><span class="line"><span class="cl">  inactive_ratio:    <span class="m">3</span>
+</span></span><span class="line"><span class="cl">Node 0, zone   Normal
+</span></span><span class="line"><span class="cl">  pages free     <span class="m">14351077</span>
+</span></span><span class="line"><span class="cl">        min      <span class="m">10962</span>
+</span></span><span class="line"><span class="cl">        low      <span class="m">13702</span>
+</span></span><span class="line"><span class="cl">        high     <span class="m">16443</span>
+</span></span><span class="line"><span class="cl">        scanned  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">        spanned  <span class="m">16252928</span>
+</span></span><span class="line"><span class="cl">        present  <span class="m">16252928</span>
+</span></span><span class="line"><span class="cl">        managed  <span class="m">15991024</span>
+</span></span><span class="line"><span class="cl">    nr_free_pages <span class="m">14351077</span>
+</span></span><span class="line"><span class="cl">    nr_alloc_batch <span class="m">1381</span>
+</span></span><span class="line"><span class="cl">    nr_inactive_anon <span class="m">557945</span>
+</span></span><span class="line"><span class="cl">    nr_active_anon <span class="m">49324</span>
+</span></span><span class="line"><span class="cl">    nr_inactive_file <span class="m">30342</span>
+</span></span><span class="line"><span class="cl">    nr_active_file <span class="m">56404</span>
+</span></span><span class="line"><span class="cl">    nr_unevictable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_mlock     <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_anon_pages <span class="m">31468</span>
+</span></span><span class="line"><span class="cl">    nr_mapped    <span class="m">12918</span>
+</span></span><span class="line"><span class="cl">    nr_file_pages <span class="m">643281</span>
+</span></span><span class="line"><span class="cl">    nr_dirty     <span class="m">59</span>
+</span></span><span class="line"><span class="cl">    nr_writeback <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_slab_reclaimable <span class="m">416893</span>
+</span></span><span class="line"><span class="cl">    nr_slab_unreclaimable <span class="m">71886</span>
+</span></span><span class="line"><span class="cl">    nr_page_table_pages <span class="m">1351</span>
+</span></span><span class="line"><span class="cl">    nr_kernel_stack <span class="m">519</span>
+</span></span><span class="line"><span class="cl">    nr_unstable  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_bounce    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_vmscan_write <span class="m">25</span>
+</span></span><span class="line"><span class="cl">    nr_vmscan_immediate_reclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_writeback_temp <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_isolated_anon <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_isolated_file <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_shmem     <span class="m">556532</span>
+</span></span><span class="line"><span class="cl">    nr_dirtied   <span class="m">598988584</span>
+</span></span><span class="line"><span class="cl">    nr_written   <span class="m">419469120</span>
+</span></span><span class="line"><span class="cl">    numa_hit     <span class="m">60842388353</span>
+</span></span><span class="line"><span class="cl">    numa_miss    <span class="m">2044762264</span>
+</span></span><span class="line"><span class="cl">    numa_foreign <span class="m">59136456</span>
+</span></span><span class="line"><span class="cl">    numa_interleave <span class="m">35507</span>
+</span></span><span class="line"><span class="cl">    numa_local   <span class="m">60842226428</span>
+</span></span><span class="line"><span class="cl">    numa_other   <span class="m">2044924189</span>
+</span></span><span class="line"><span class="cl">    workingset_refault <span class="m">610786</span>
+</span></span><span class="line"><span class="cl">    workingset_activate <span class="m">22873</span>
+</span></span><span class="line"><span class="cl">    workingset_nodereclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_anon_transparent_hugepages <span class="m">37</span>
+</span></span><span class="line"><span class="cl">    nr_free_cma  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">        protection: <span class="o">(</span>0, 0, 0, 0<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  pagesets
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">125</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">120</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">162</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">120</span>
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">38</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">176</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">120</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">39</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">174</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">120</span>
+</span></span><span class="line"><span class="cl">  all_unreclaimable: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">  start_pfn:         <span class="m">1048576</span>
+</span></span><span class="line"><span class="cl">  inactive_ratio:    <span class="m">24</span>
+</span></span><span class="line"><span class="cl">Node 1, zone   Normal
+</span></span><span class="line"><span class="cl">  pages free     <span class="m">14993432</span>
+</span></span><span class="line"><span class="cl">        min      <span class="m">11320</span>
+</span></span><span class="line"><span class="cl">        low      <span class="m">14150</span>
+</span></span><span class="line"><span class="cl">        high     <span class="m">16980</span>
+</span></span><span class="line"><span class="cl">        scanned  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">        spanned  <span class="m">16777216</span>
+</span></span><span class="line"><span class="cl">        present  <span class="m">16777216</span>
+</span></span><span class="line"><span class="cl">        managed  <span class="m">16514229</span>
+</span></span><span class="line"><span class="cl">    nr_free_pages <span class="m">14993432</span>
+</span></span><span class="line"><span class="cl">    nr_alloc_batch <span class="m">894</span>
+</span></span><span class="line"><span class="cl">    nr_inactive_anon <span class="m">534587</span>
+</span></span><span class="line"><span class="cl">    nr_active_anon <span class="m">95276</span>
+</span></span><span class="line"><span class="cl">    nr_inactive_file <span class="m">46704</span>
+</span></span><span class="line"><span class="cl">    nr_active_file <span class="m">87189</span>
+</span></span><span class="line"><span class="cl">    nr_unevictable <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_mlock     <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_anon_pages <span class="m">59220</span>
+</span></span><span class="line"><span class="cl">    nr_mapped    <span class="m">17798</span>
+</span></span><span class="line"><span class="cl">    nr_file_pages <span class="m">625093</span>
+</span></span><span class="line"><span class="cl">    nr_dirty     <span class="m">90</span>
+</span></span><span class="line"><span class="cl">    nr_writeback <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_slab_reclaimable <span class="m">521541</span>
+</span></span><span class="line"><span class="cl">    nr_slab_unreclaimable <span class="m">71127</span>
+</span></span><span class="line"><span class="cl">    nr_page_table_pages <span class="m">1682</span>
+</span></span><span class="line"><span class="cl">    nr_kernel_stack <span class="m">459</span>
+</span></span><span class="line"><span class="cl">    nr_unstable  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_bounce    <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_vmscan_write <span class="m">107</span>
+</span></span><span class="line"><span class="cl">    nr_vmscan_immediate_reclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_writeback_temp <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_isolated_anon <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_isolated_file <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_shmem     <span class="m">491196</span>
+</span></span><span class="line"><span class="cl">    nr_dirtied   <span class="m">492864604</span>
+</span></span><span class="line"><span class="cl">    nr_written   <span class="m">339759696</span>
+</span></span><span class="line"><span class="cl">    numa_hit     <span class="m">55865496981</span>
+</span></span><span class="line"><span class="cl">    numa_miss    <span class="m">59136456</span>
+</span></span><span class="line"><span class="cl">    numa_foreign <span class="m">2044915359</span>
+</span></span><span class="line"><span class="cl">    numa_interleave <span class="m">35516</span>
+</span></span><span class="line"><span class="cl">    numa_local   <span class="m">55865257923</span>
+</span></span><span class="line"><span class="cl">    numa_other   <span class="m">59375514</span>
+</span></span><span class="line"><span class="cl">    workingset_refault <span class="m">792520</span>
+</span></span><span class="line"><span class="cl">    workingset_activate <span class="m">104322</span>
+</span></span><span class="line"><span class="cl">    workingset_nodereclaim <span class="m">0</span>
+</span></span><span class="line"><span class="cl">    nr_anon_transparent_hugepages <span class="m">155</span>
+</span></span><span class="line"><span class="cl">    nr_free_cma  <span class="m">0</span>
+</span></span><span class="line"><span class="cl">        protection: <span class="o">(</span>0, 0, 0, 0<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  pagesets
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">157</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">120</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">181</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">120</span>
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">38</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">158</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">120</span>
+</span></span><span class="line"><span class="cl">    cpu: <span class="m">39</span>
+</span></span><span class="line"><span class="cl">              count: <span class="m">125</span>
+</span></span><span class="line"><span class="cl">              high:  <span class="m">186</span>
+</span></span><span class="line"><span class="cl">              batch: <span class="m">31</span>
+</span></span><span class="line"><span class="cl">  vm stats threshold: <span class="m">120</span>
+</span></span><span class="line"><span class="cl">  all_unreclaimable: <span class="m">0</span>
+</span></span><span class="line"><span class="cl">  start_pfn:         <span class="m">17301504</span>
+</span></span><span class="line"><span class="cl">  inactive_ratio:    <span class="m">24</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="http://man7.org/linux/man-pages/man5/proc.5.html">http://man7.org/linux/man-pages/man5/proc.5.html</a></li>
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -867,7 +1382,10 @@ Node 1, zone   Normal
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2019-01-13</span>
+    <span class="item-content">
+        2019-01-13
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -875,39 +1393,27 @@ Node 1, zone   Normal
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/linux/access-physical-address/">
+        <a class="prev" href="/linux/access-physical-address/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">Linux用户程序如何访问物理内存</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/linux/get-init-pid-for-any-task/">
+        <a class="next" href="/linux/get-init-pid-for-any-task/">
             <span class="next-text nav-default">获取容器中init进程的pid</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -921,6 +1427,11 @@ Node 1, zone   Normal
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -945,26 +1456,24 @@ Node 1, zone   Normal
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

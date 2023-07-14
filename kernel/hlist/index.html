@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content=" 注意：本文中的代码参考于linux v4.16。
- 数据结构 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
-include/linux/types.h(line 190)  struct hlist_head { struct hlist_node *first; }; include/linux/types.h(line 194)  struct hlist_node { struct hlist_node *next, **pprev; }; " />
-
-  <meta name="keywords" content="Linux, kernel" />
+<meta name="author" content="laoqinren" /><meta name="description" content=" 注意：本文中的代码参考于linux v4.16。
+数据结构 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
+include/linux/types.h(line 190) 1 2 3 struct hlist_head { struct hlist_node *first; }; include/linux/types.h(line 194) 1 2 3 struct hlist_node { struct hlist_node *next, **pprev; }; " /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/hlist/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,14 +37,8 @@ include/linux/types.h(line 190)  struct hlist_head { struct hlist_node *first; }
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="内核基础设施——hlist_head/hlist_node结构解析" />
@@ -58,17 +48,34 @@ include/linux/types.h(line 190)  struct hlist_head { struct hlist_node *first; }
 数据结构
 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
  include/linux/types.h(line 190) 
+
+
+1
+2
+3
+
+
 struct hlist_head {
 	struct hlist_node *first;
 };
+
+
  include/linux/types.h(line 194) 
+
+
+1
+2
+3
+
+
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };
 
+
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/hlist/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/hlist/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2018-06-20T23:08:40+08:00" />
 <meta property="article:modified_time" content="2018-06-20T23:08:40+08:00" />
 <meta itemprop="name" content="内核基础设施——hlist_head/hlist_node结构解析">
@@ -78,23 +85,35 @@ struct hlist_node {
 数据结构
 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
  include/linux/types.h(line 190) 
+
+
+1
+2
+3
+
+
 struct hlist_head {
 	struct hlist_node *first;
 };
+
+
  include/linux/types.h(line 194) 
+
+
+1
+2
+3
+
+
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };
 
-">
-<meta itemprop="datePublished" content="2018-06-20T23:08:40+08:00" />
+
+"><meta itemprop="datePublished" content="2018-06-20T23:08:40+08:00" />
 <meta itemprop="dateModified" content="2018-06-20T23:08:40+08:00" />
-<meta itemprop="wordCount" content="2015">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,内核基础设施,hlist_head,hlist_node," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="2151">
+<meta itemprop="keywords" content="kernel,linux,内核基础设施,hlist_head,hlist_node," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核基础设施——hlist_head/hlist_node结构解析"/>
 <meta name="twitter:description" content="
 注意：本文中的代码参考于linux v4.16。
@@ -102,13 +121,30 @@ struct hlist_node {
 数据结构
 hlist_head和hlist_node用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:
  include/linux/types.h(line 190) 
+
+
+1
+2
+3
+
+
 struct hlist_head {
 	struct hlist_node *first;
 };
+
+
  include/linux/types.h(line 194) 
+
+
+1
+2
+3
+
+
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };
+
 
 "/>
 
@@ -151,12 +187,21 @@ struct hlist_node {
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -177,6 +222,7 @@ struct hlist_node {
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -190,40 +236,35 @@ struct hlist_node {
       <div class="post-meta">
         <span class="post-time"> 2018-06-20 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-          </div>
-        <span class="more-meta"> 2015 words </span>
-        <span class="more-meta"> 5 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#数据结构">数据结构</a></li>
-    <li><a href="#相关api">相关API</a></li>
-    <li><a href="#程序示例">程序示例</a>
+    <li>
       <ul>
-        <li><a href="#模块代码">模块代码</a></li>
-        <li><a href="#执行结果">执行结果</a></li>
+        <li><a href="#数据结构">数据结构</a></li>
+        <li><a href="#相关api">相关API</a></li>
+        <li><a href="#程序示例">程序示例</a>
+          <ul>
+            <li><a href="#模块代码">模块代码</a></li>
+            <li><a href="#执行结果">执行结果</a></li>
+          </ul>
+        </li>
+        <li><a href="#其他">其他</a></li>
+        <li><a href="#参考文档">参考文档</a></li>
       </ul>
     </li>
-    <li><a href="#其他">其他</a></li>
-    <li><a href="#参考文档">参考文档</a></li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <blockquote>
 <p>注意：本文中的代码参考于linux v4.16。</p>
@@ -231,20 +272,46 @@ struct hlist_node {
 <h2 id="数据结构">数据结构</h2>
 <p><code>hlist_head</code>和<code>hlist_node</code>用于散列表，分别表示列表头（数组中的一项）和列表头所在双向链表中的某项，两者结构如下:</p>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n190"> include/linux/types.h(line 190) </a>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> hlist_head {
-	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>first;
-};
-</code></pre></div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> hlist_node {
-	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>next, <span style="color:#f92672">**</span>pprev;
-};
-
-</code></pre></div><p>在内核中的普通双向链表基本上都是通过<code>list_head</code>实现的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">hlist_head</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span> <span class="o">*</span><span class="n">first</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n194"> include/linux/types.h(line 194) </a>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">hlist_node</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span> <span class="o">*</span><span class="n">next</span><span class="p">,</span> <span class="o">**</span><span class="n">pprev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在内核中的普通双向链表基本上都是通过<code>list_head</code>实现的：</p>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/types.h?h=v4.16#n186"> include/linux/types.h(line 186) </a>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> list_head {
-	<span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>next, <span style="color:#f92672">*</span>prev;
-};
-</code></pre></div><p><code>list_head</code>很好理解，但是<code>hlist_head</code>和<code>hlist_node</code>为何要这样设计呢？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">list_head</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">list_head</span> <span class="o">*</span><span class="n">next</span><span class="p">,</span> <span class="o">*</span><span class="n">prev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>list_head</code>很好理解，但是<code>hlist_head</code>和<code>hlist_node</code>为何要这样设计呢？</p>
 <p>先看下<code>hlist_head</code>和<code>hlist_node</code>的示意图:</p>
 <p><img src="./list_head-and-hlist_node.png" alt="hlist_head and hlist_node" title="list_head-and-hlist_node"></p>
 <p><code>hash_table</code>为散列表（数组），其中的元素类型为<code>struct hlist_head</code>。以<code>hlist_head</code>为链表头的链表，其中的节点<code>hash</code>值是相同的（也叫冲突）。<code>first</code>指针指向链表中的节点①，然后节点①的<code>pprev</code>指针指向<code>hlist_head</code>中的<code>first</code>，节点①的<code>next</code>指针指向节点②。以此类推。</p>
@@ -253,26 +320,56 @@ struct hlist_node {
 <p>对于散列表来说，一般发生冲突的情况并不多（除非<code>hash</code>设计出现了问题），所以一个链表中的元素数量比较有限，遍历的劣势基本可以忽略。</p>
 <p><strong>在删除链表头结点的时候，<code>pprev</code>这个设计无需判断删除的节点是否为头结点</strong>。如果是普通双向链表的设计，那么删除头结点之后，hlist_head中的first指针需要指向新的头结点。通过下面2个函数来加深理解:</p>
 <a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n669"> include/linux/list.h(line 669) </a>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">hlist_add_head</span>(<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>n, <span style="color:#66d9ef">struct</span> hlist_head <span style="color:#f92672">*</span>h)
-{
-	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>first <span style="color:#f92672">=</span> h<span style="color:#f92672">-&gt;</span>first;
-	n<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> first; <span style="color:#75715e">//新节点的next指针指向原头结点
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (first) 
-		first<span style="color:#f92672">-&gt;</span>pprev <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>n<span style="color:#f92672">-&gt;</span>next;<span style="color:#75715e">//原头结点的pprev指向新节点的next字段
-</span><span style="color:#75715e"></span>	WRITE_ONCE(h<span style="color:#f92672">-&gt;</span>first, n);<span style="color:#75715e">//first指针指向新的节点（更换了头结点）
-</span><span style="color:#75715e"></span>	n<span style="color:#f92672">-&gt;</span>pprev <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>h<span style="color:#f92672">-&gt;</span>first;<span style="color:#75715e">//此时n是链表的头结点,将它的pprev指向list_head的first字段
-</span><span style="color:#75715e"></span>}
-</code></pre></div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n644"> include/linux/list.h(line 644) </a>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__hlist_del</span>(<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>n)
-{
-	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>next <span style="color:#f92672">=</span> n<span style="color:#f92672">-&gt;</span>next;
-	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">**</span>pprev <span style="color:#f92672">=</span> n<span style="color:#f92672">-&gt;</span>pprev;
-
-	WRITE_ONCE(<span style="color:#f92672">*</span>pprev, next); <span style="color:#75715e">// pprev指向的是前一个节点的next指针,当该节点是头节点时指向 hlist_head的first,两种情况下不论该节点是一般的节点还是头结点都可以通过这个操作删除掉所需删除的节点。
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (next)
-		next<span style="color:#f92672">-&gt;</span>pprev <span style="color:#f92672">=</span> pprev;<span style="color:#75715e">//使删除节点的后一个节点的pprev指向删除节点的前一个节点的next字段，节点成功删除。
-</span><span style="color:#75715e"></span>}
-</code></pre></div><h2 id="相关api">相关API</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="nf">hlist_add_head</span><span class="p">(</span><span class="k">struct</span> <span class="n">hlist_node</span> <span class="o">*</span><span class="n">n</span><span class="p">,</span> <span class="k">struct</span> <span class="n">hlist_head</span> <span class="o">*</span><span class="n">h</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span> <span class="o">*</span><span class="n">first</span> <span class="o">=</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">first</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">n</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">first</span><span class="p">;</span> <span class="c1">//新节点的next指针指向原头结点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">first</span><span class="p">)</span> 
+</span></span><span class="line"><span class="cl">		<span class="n">first</span><span class="o">-&gt;</span><span class="n">pprev</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">n</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span><span class="c1">//原头结点的pprev指向新节点的next字段
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">WRITE_ONCE</span><span class="p">(</span><span class="n">h</span><span class="o">-&gt;</span><span class="n">first</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span><span class="c1">//first指针指向新的节点（更换了头结点）
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">n</span><span class="o">-&gt;</span><span class="n">pprev</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">h</span><span class="o">-&gt;</span><span class="n">first</span><span class="p">;</span><span class="c1">//此时n是链表的头结点,将它的pprev指向list_head的first字段
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><a target="_blank" href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/include/linux/list.h?h=v4.16#n644"> include/linux/list.h(line 644) </a>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="nf">__hlist_del</span><span class="p">(</span><span class="k">struct</span> <span class="n">hlist_node</span> <span class="o">*</span><span class="n">n</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span> <span class="o">*</span><span class="n">next</span> <span class="o">=</span> <span class="n">n</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span> <span class="o">**</span><span class="n">pprev</span> <span class="o">=</span> <span class="n">n</span><span class="o">-&gt;</span><span class="n">pprev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">WRITE_ONCE</span><span class="p">(</span><span class="o">*</span><span class="n">pprev</span><span class="p">,</span> <span class="n">next</span><span class="p">);</span> <span class="c1">// pprev指向的是前一个节点的next指针,当该节点是头节点时指向 hlist_head的first,两种情况下不论该节点是一般的节点还是头结点都可以通过这个操作删除掉所需删除的节点。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">next</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="n">next</span><span class="o">-&gt;</span><span class="n">pprev</span> <span class="o">=</span> <span class="n">pprev</span><span class="p">;</span><span class="c1">//使删除节点的后一个节点的pprev指向删除节点的前一个节点的next字段，节点成功删除。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="相关api">相关API</h2>
 <table>
 <thead>
 <tr>
@@ -378,116 +475,240 @@ struct hlist_node {
 <h2 id="程序示例">程序示例</h2>
 <p>写一个测试模块，验证一下各个API</p>
 <h3 id="模块代码">模块代码</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/init.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/list.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">struct</span> node {
-	<span style="color:#66d9ef">int</span> val;
-	<span style="color:#66d9ef">struct</span> hlist_node list;
-};
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">hlist_test_init</span>(<span style="color:#66d9ef">void</span>)
-{
-	<span style="color:#66d9ef">struct</span> hlist_head  head;
-	<span style="color:#66d9ef">struct</span> node a, b, c, d, e;
-	<span style="color:#66d9ef">struct</span> node <span style="color:#f92672">*</span>pos;
-	<span style="color:#66d9ef">struct</span> hlist_node <span style="color:#f92672">*</span>p;
-
-	printk(KERN_ALERT <span style="color:#e6db74">&#34;[Hello] hlist_test </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-
-	INIT_HLIST_HEAD(<span style="color:#f92672">&amp;</span>head); <span style="color:#75715e">//初始化链表头
-</span><span style="color:#75715e"></span>	a.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-	b.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
-	c.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;
-	d.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;
-	e.val <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
-
-	hlist_add_head(<span style="color:#f92672">&amp;</span>a.list, <span style="color:#f92672">&amp;</span>head); <span style="color:#75715e">//添加节点
-</span><span style="color:#75715e"></span>	hlist_add_head(<span style="color:#f92672">&amp;</span>b.list, <span style="color:#f92672">&amp;</span>head);
-	hlist_add_head(<span style="color:#f92672">&amp;</span>c.list, <span style="color:#f92672">&amp;</span>head);
-
-	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-	<span style="color:#75715e">//遍历链表，打印结果 方法1
-</span><span style="color:#75715e"></span>	hlist_for_each_entry(pos, <span style="color:#f92672">&amp;</span>head, list) {
-		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
-	} <span style="color:#75715e">// print 3 2 1
-</span><span style="color:#75715e"></span>
-	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-	<span style="color:#75715e">// 遍历链表，打印结果 方法2
-</span><span style="color:#75715e"></span>	hlist_for_each(p, <span style="color:#f92672">&amp;</span>head) {
-		pos <span style="color:#f92672">=</span> hlist_entry(p, <span style="color:#66d9ef">struct</span> node, list);
-		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
-	} <span style="color:#75715e">// print 3 2 1
-</span><span style="color:#75715e"></span>
-	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-	hlist_del_init(<span style="color:#f92672">&amp;</span>b.list); <span style="color:#75715e">// 删除中间节点
-</span><span style="color:#75715e"></span>	hlist_for_each_entry(pos, <span style="color:#f92672">&amp;</span>head, list) {
-		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
-	} <span style="color:#75715e">// print 3 1
-</span><span style="color:#75715e"></span>
-	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-	hlist_add_before(<span style="color:#f92672">&amp;</span>d.list, <span style="color:#f92672">&amp;</span>a.list); <span style="color:#75715e">//在最后一个节点之前添加新节点
-</span><span style="color:#75715e"></span>	hlist_for_each_entry(pos, <span style="color:#f92672">&amp;</span>head, list) {
-		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
-	} <span style="color:#75715e">// print 3 4 1
-</span><span style="color:#75715e"></span>
-	printk(KERN_ALERT <span style="color:#e6db74">&#34;-------------------------------------- </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-	hlist_add_behind(<span style="color:#f92672">&amp;</span>e.list, <span style="color:#f92672">&amp;</span>a.list);<span style="color:#75715e">//在最后一个节点之后添加新节点
-</span><span style="color:#75715e"></span>	hlist_for_each_entry(pos, <span style="color:#f92672">&amp;</span>head, list) {
-		printk(KERN_ALERT <span style="color:#e6db74">&#34;node.val = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pos<span style="color:#f92672">-&gt;</span>val);
-	} <span style="color:#75715e">// print 3 4 1 5
-</span><span style="color:#75715e"></span>
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">hlist_test_exit</span>(<span style="color:#66d9ef">void</span>)
-{
-	printk(KERN_ALERT <span style="color:#e6db74">&#34;[Goodbye] hlist_test</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-}
-
-module_init(hlist_test_init);
-module_exit(hlist_test_exit);
-MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
-</code></pre></div><h3 id="执行结果">执行结果</h3>
-<pre><code>[  944.056943] [Hello] hlist_test 
-[  944.056947] -------------------------------------- 
-[  944.056948] node.val = 3
-[  944.056949] node.val = 2
-[  944.056950] node.val = 1
-[  944.056951] -------------------------------------- 
-[  944.056952] node.val = 3
-[  944.056953] node.val = 2
-[  944.056954] node.val = 1
-[  944.056955] -------------------------------------- 
-[  944.056956] node.val = 3
-[  944.056957] node.val = 1
-[  944.056958] -------------------------------------- 
-[  944.056959] node.val = 3
-[  944.056960] node.val = 4
-[  944.056961] node.val = 1
-[  944.056962] -------------------------------------- 
-[  944.056963] node.val = 3
-[  944.056964] node.val = 4
-[  944.056965] node.val = 1
-[  944.056965] node.val = 5
-</code></pre><h2 id="其他">其他</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/module.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/kernel.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/init.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/list.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">node</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">val</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span> <span class="n">list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">hlist_test_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_head</span>  <span class="n">head</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">node</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">node</span> <span class="o">*</span><span class="n">pos</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;[Hello] hlist_test </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">INIT_HLIST_HEAD</span><span class="p">(</span><span class="o">&amp;</span><span class="n">head</span><span class="p">);</span> <span class="c1">//初始化链表头
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">a</span><span class="p">.</span><span class="n">val</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">b</span><span class="p">.</span><span class="n">val</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">c</span><span class="p">.</span><span class="n">val</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">d</span><span class="p">.</span><span class="n">val</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">e</span><span class="p">.</span><span class="n">val</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">hlist_add_head</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">.</span><span class="n">list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">head</span><span class="p">);</span> <span class="c1">//添加节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">hlist_add_head</span><span class="p">(</span><span class="o">&amp;</span><span class="n">b</span><span class="p">.</span><span class="n">list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">head</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">hlist_add_head</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="p">.</span><span class="n">list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">head</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;-------------------------------------- </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//遍历链表，打印结果 方法1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">hlist_for_each_entry</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">head</span><span class="p">,</span> <span class="n">list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;node.val = %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">pos</span><span class="o">-&gt;</span><span class="n">val</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span> <span class="c1">// print 3 2 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;-------------------------------------- </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// 遍历链表，打印结果 方法2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">hlist_for_each</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">head</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="n">pos</span> <span class="o">=</span> <span class="nf">hlist_entry</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="k">struct</span> <span class="n">node</span><span class="p">,</span> <span class="n">list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;node.val = %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">pos</span><span class="o">-&gt;</span><span class="n">val</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span> <span class="c1">// print 3 2 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;-------------------------------------- </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">hlist_del_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">b</span><span class="p">.</span><span class="n">list</span><span class="p">);</span> <span class="c1">// 删除中间节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">hlist_for_each_entry</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">head</span><span class="p">,</span> <span class="n">list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;node.val = %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">pos</span><span class="o">-&gt;</span><span class="n">val</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span> <span class="c1">// print 3 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;-------------------------------------- </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">hlist_add_before</span><span class="p">(</span><span class="o">&amp;</span><span class="n">d</span><span class="p">.</span><span class="n">list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">.</span><span class="n">list</span><span class="p">);</span> <span class="c1">//在最后一个节点之前添加新节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">hlist_for_each_entry</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">head</span><span class="p">,</span> <span class="n">list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;node.val = %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">pos</span><span class="o">-&gt;</span><span class="n">val</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span> <span class="c1">// print 3 4 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;-------------------------------------- </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">hlist_add_behind</span><span class="p">(</span><span class="o">&amp;</span><span class="n">e</span><span class="p">.</span><span class="n">list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">.</span><span class="n">list</span><span class="p">);</span><span class="c1">//在最后一个节点之后添加新节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">hlist_for_each_entry</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">head</span><span class="p">,</span> <span class="n">list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;node.val = %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">pos</span><span class="o">-&gt;</span><span class="n">val</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span> <span class="c1">// print 3 4 1 5
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="n">__exit</span> <span class="nf">hlist_test_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">printk</span><span class="p">(</span><span class="n">KERN_ALERT</span> <span class="s">&#34;[Goodbye] hlist_test</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">module_init</span><span class="p">(</span><span class="n">hlist_test_init</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">module_exit</span><span class="p">(</span><span class="n">hlist_test_exit</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">MODULE_LICENSE</span><span class="p">(</span><span class="s">&#34;GPL&#34;</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="执行结果">执行结果</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[  944.056943] [Hello] hlist_test 
+</span></span><span class="line"><span class="cl">[  944.056947] -------------------------------------- 
+</span></span><span class="line"><span class="cl">[  944.056948] node.val = 3
+</span></span><span class="line"><span class="cl">[  944.056949] node.val = 2
+</span></span><span class="line"><span class="cl">[  944.056950] node.val = 1
+</span></span><span class="line"><span class="cl">[  944.056951] -------------------------------------- 
+</span></span><span class="line"><span class="cl">[  944.056952] node.val = 3
+</span></span><span class="line"><span class="cl">[  944.056953] node.val = 2
+</span></span><span class="line"><span class="cl">[  944.056954] node.val = 1
+</span></span><span class="line"><span class="cl">[  944.056955] -------------------------------------- 
+</span></span><span class="line"><span class="cl">[  944.056956] node.val = 3
+</span></span><span class="line"><span class="cl">[  944.056957] node.val = 1
+</span></span><span class="line"><span class="cl">[  944.056958] -------------------------------------- 
+</span></span><span class="line"><span class="cl">[  944.056959] node.val = 3
+</span></span><span class="line"><span class="cl">[  944.056960] node.val = 4
+</span></span><span class="line"><span class="cl">[  944.056961] node.val = 1
+</span></span><span class="line"><span class="cl">[  944.056962] -------------------------------------- 
+</span></span><span class="line"><span class="cl">[  944.056963] node.val = 3
+</span></span><span class="line"><span class="cl">[  944.056964] node.val = 4
+</span></span><span class="line"><span class="cl">[  944.056965] node.val = 1
+</span></span><span class="line"><span class="cl">[  944.056965] node.val = 5
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="其他">其他</h2>
 <p>内核中用<code>hlist</code>来实现 <code>hash table</code>，在内核上一般有如下的<code>hash table</code>：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># dmesg | grep &#34;hash table entries&#34; </span>
-<span style="color:#f92672">[</span>    0.000000<span style="color:#f92672">]</span> PV qspinlock hash table entries: <span style="color:#ae81ff">256</span> <span style="color:#f92672">(</span>order: 0, <span style="color:#ae81ff">4096</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.000000<span style="color:#f92672">]</span> PID hash table entries: <span style="color:#ae81ff">4096</span> <span style="color:#f92672">(</span>order: 3, <span style="color:#ae81ff">32768</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.294869<span style="color:#f92672">]</span> Dentry cache hash table entries: <span style="color:#ae81ff">524288</span> <span style="color:#f92672">(</span>order: 10, <span style="color:#ae81ff">4194304</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.296328<span style="color:#f92672">]</span> Inode-cache hash table entries: <span style="color:#ae81ff">262144</span> <span style="color:#f92672">(</span>order: 9, <span style="color:#ae81ff">2097152</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.296589<span style="color:#f92672">]</span> Mount-cache hash table entries: <span style="color:#ae81ff">8192</span> <span style="color:#f92672">(</span>order: 4, <span style="color:#ae81ff">65536</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.296595<span style="color:#f92672">]</span> Mountpoint-cache hash table entries: <span style="color:#ae81ff">8192</span> <span style="color:#f92672">(</span>order: 4, <span style="color:#ae81ff">65536</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.614525<span style="color:#f92672">]</span> TCP established hash table entries: <span style="color:#ae81ff">32768</span> <span style="color:#f92672">(</span>order: 6, <span style="color:#ae81ff">262144</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.614769<span style="color:#f92672">]</span> TCP bind hash table entries: <span style="color:#ae81ff">32768</span> <span style="color:#f92672">(</span>order: 9, <span style="color:#ae81ff">2621440</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.616607<span style="color:#f92672">]</span> UDP hash table entries: <span style="color:#ae81ff">2048</span> <span style="color:#f92672">(</span>order: 6, <span style="color:#ae81ff">393216</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    0.616794<span style="color:#f92672">]</span> UDP-Lite hash table entries: <span style="color:#ae81ff">2048</span> <span style="color:#f92672">(</span>order: 6, <span style="color:#ae81ff">393216</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    1.053747<span style="color:#f92672">]</span> futex hash table entries: <span style="color:#ae81ff">1024</span> <span style="color:#f92672">(</span>order: 5, <span style="color:#ae81ff">131072</span> bytes<span style="color:#f92672">)</span>
-<span style="color:#f92672">[</span>    1.079062<span style="color:#f92672">]</span> Dquot-cache hash table entries: <span style="color:#ae81ff">512</span> <span style="color:#f92672">(</span>order 0, <span style="color:#ae81ff">4096</span> bytes<span style="color:#f92672">)</span>
-</code></pre></div><h2 id="参考文档">参考文档</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># dmesg | grep &#34;hash table entries&#34; </span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.000000<span class="o">]</span> PV qspinlock <span class="nb">hash</span> table entries: <span class="m">256</span> <span class="o">(</span>order: 0, <span class="m">4096</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.000000<span class="o">]</span> PID <span class="nb">hash</span> table entries: <span class="m">4096</span> <span class="o">(</span>order: 3, <span class="m">32768</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.294869<span class="o">]</span> Dentry cache <span class="nb">hash</span> table entries: <span class="m">524288</span> <span class="o">(</span>order: 10, <span class="m">4194304</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.296328<span class="o">]</span> Inode-cache <span class="nb">hash</span> table entries: <span class="m">262144</span> <span class="o">(</span>order: 9, <span class="m">2097152</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.296589<span class="o">]</span> Mount-cache <span class="nb">hash</span> table entries: <span class="m">8192</span> <span class="o">(</span>order: 4, <span class="m">65536</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.296595<span class="o">]</span> Mountpoint-cache <span class="nb">hash</span> table entries: <span class="m">8192</span> <span class="o">(</span>order: 4, <span class="m">65536</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.614525<span class="o">]</span> TCP established <span class="nb">hash</span> table entries: <span class="m">32768</span> <span class="o">(</span>order: 6, <span class="m">262144</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.614769<span class="o">]</span> TCP <span class="nb">bind</span> <span class="nb">hash</span> table entries: <span class="m">32768</span> <span class="o">(</span>order: 9, <span class="m">2621440</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.616607<span class="o">]</span> UDP <span class="nb">hash</span> table entries: <span class="m">2048</span> <span class="o">(</span>order: 6, <span class="m">393216</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    0.616794<span class="o">]</span> UDP-Lite <span class="nb">hash</span> table entries: <span class="m">2048</span> <span class="o">(</span>order: 6, <span class="m">393216</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    1.053747<span class="o">]</span> futex <span class="nb">hash</span> table entries: <span class="m">1024</span> <span class="o">(</span>order: 5, <span class="m">131072</span> bytes<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">[</span>    1.079062<span class="o">]</span> Dquot-cache <span class="nb">hash</span> table entries: <span class="m">512</span> <span class="o">(</span>order 0, <span class="m">4096</span> bytes<span class="o">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="参考文档">参考文档</h2>
 <ul>
 <li>
 <p><a href="https://vinoit.me/2016/09/01/linux-kernel-hlist_head-and-hlist_node/">https://vinoit.me/2016/09/01/linux-kernel-hlist_head-and-hlist_node/</a></p>
@@ -498,7 +719,6 @@ MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -506,7 +726,10 @@ MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-06-20</span>
+    <span class="item-content">
+        2018-06-20
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -514,45 +737,30 @@ MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/%E5%86%85%E6%A0%B8%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">内核基础设施</a>
-          
           <a href="/tags/hlist_head/">hlist_head</a>
-          
           <a href="/tags/hlist_node/">hlist_node</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/list/">
+        <a class="prev" href="/kernel/list/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">内核基础设施——list_head结构解析</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/cgroup-cpuacct/">
+        <a class="next" href="/kernel/cgroup-cpuacct/">
             <span class="next-text nav-default">Cgroup之cpuacct子系统</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -566,6 +774,11 @@ MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -590,26 +803,24 @@ MODULE_LICENSE(<span style="color:#e6db74">&#34;GPL&#34;</span>);
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

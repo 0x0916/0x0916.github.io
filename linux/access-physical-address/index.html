@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
+<meta name="author" content="laoqinren" /><meta name="description" content="用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
 如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现Linux中用户态程序访问所有物理内存。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/access-physical-address/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,34 +37,23 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="Linux用户程序如何访问物理内存" />
 <meta property="og:description" content="用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
 如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现Linux中用户态程序访问所有物理内存。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/linux/access-physical-address/" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/access-physical-address/" /><meta property="article:section" content="linux" />
 <meta property="article:published_time" content="2019-02-09T10:45:06+08:00" />
 <meta property="article:modified_time" content="2019-02-09T10:45:06+08:00" />
 <meta itemprop="name" content="Linux用户程序如何访问物理内存">
 <meta itemprop="description" content="用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
-如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现Linux中用户态程序访问所有物理内存。">
-<meta itemprop="datePublished" content="2019-02-09T10:45:06+08:00" />
+如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现Linux中用户态程序访问所有物理内存。"><meta itemprop="datePublished" content="2019-02-09T10:45:06+08:00" />
 <meta itemprop="dateModified" content="2019-02-09T10:45:06+08:00" />
-<meta itemprop="wordCount" content="1130">
-
-
-
-<meta itemprop="keywords" content="kernel,linux," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="1154">
+<meta itemprop="keywords" content="kernel,linux," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux用户程序如何访问物理内存"/>
 <meta name="twitter:description" content="用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。
 如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现Linux中用户态程序访问所有物理内存。"/>
@@ -112,12 +97,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -138,6 +132,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -151,39 +146,34 @@
       <div class="post-meta">
         <span class="post-time"> 2019-02-09 </span>
         <div class="post-category">
-            
-              <a href="/categories/linux/"> linux </a>
-            
-          </div>
-        <span class="more-meta"> 1130 words </span>
-        <span class="more-meta"> 3 mins read </span>
+            <a href="/categories/linux/"> linux </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#系统环境">系统环境</a></li>
-        <li><a href="#内核模块的编写">内核模块的编写</a></li>
-        <li><a href="#物理内存数据查看">物理内存数据查看</a></li>
-        <li><a href="#代码">代码</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#系统环境">系统环境</a></li>
+            <li><a href="#内核模块的编写">内核模块的编写</a></li>
+            <li><a href="#物理内存数据查看">物理内存数据查看</a></li>
+            <li><a href="#代码">代码</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>用户态的程序都是在内存保护模式下使用内存，无法直接访问物理内存。同时用户程序使用的地址都是逻辑地址，而不是物理地址。这些逻辑地址对应的物理内存在哪里，用户进程本身并不知道。</p>
 <p>如果用户程序想要访问物理内存，就需要通过内核实现。本文介绍基于内存模块的方式，实现<code>Linux</code>中用户态程序访问所有物理内存。</p>
@@ -202,20 +192,57 @@
 <li>/dev/crash</li>
 </ul>
 <p>这些模块的实现原理都类似：通过文件读写的方法，实现物理内存地址的访问。将物理地址，作为参数<code>poff</code>传递。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> ssize_t  <span style="color:#a6e22e">crash_read</span>(<span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>buf, size_t count, loff_t <span style="color:#f92672">*</span>poff) ;
-</code></pre></div><p>在内核代码中，是无法直接访问物理地址的，代码能访问的都是逻辑地址。此时我们需要先将物理地址转换成逻辑地址，才能在代码中对地址读写。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">ssize_t</span>  <span class="nf">crash_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="kt">loff_t</span> <span class="o">*</span><span class="n">poff</span><span class="p">)</span> <span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在内核代码中，是无法直接访问物理地址的，代码能访问的都是逻辑地址。此时我们需要先将物理地址转换成逻辑地址，才能在代码中对地址读写。</p>
 <p>物理地址转换成逻辑地址方法<code>map_virtual</code>的原理：</p>
 <p>（1）根据物理地址，计算出对应的页面号</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">pfn <span style="color:#f92672">=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)(poff <span style="color:#f92672">&gt;&gt;</span> PAGE_SHIFT); 
-</code></pre></div><p>（2）将页面号找到对应的页面指针</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">page <span style="color:#f92672">=</span> pfn_to_page(pfn); 
-</code></pre></div><p>（3）通过<code>kmap</code>映射成逻辑地址</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">vaddr <span style="color:#f92672">=</span> kmap(page); 
-</code></pre></div><p>基于以上原理，本文实现了一个内核模块<code>my_crash.ko</code>，插入模块后，系统上会创建一个设备文件<code>/dev/mycrash</code></p>
-<pre><code># insmod my_crash.ko 
-# ls -l /dev/mycrash 
-crw------- 1 root root 10, 58 Feb 10 09:52 /dev/mycrash
-</code></pre><blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">pfn</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)(</span><span class="n">poff</span> <span class="o">&gt;&gt;</span> <span class="n">PAGE_SHIFT</span><span class="p">);</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>（2）将页面号找到对应的页面指针</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">page</span> <span class="o">=</span> <span class="nf">pfn_to_page</span><span class="p">(</span><span class="n">pfn</span><span class="p">);</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>（3）通过<code>kmap</code>映射成逻辑地址</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">vaddr</span> <span class="o">=</span> <span class="nf">kmap</span><span class="p">(</span><span class="n">page</span><span class="p">);</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>基于以上原理，本文实现了一个内核模块<code>my_crash.ko</code>，插入模块后，系统上会创建一个设备文件<code>/dev/mycrash</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># insmod my_crash.ko 
+</span></span><span class="line"><span class="cl"># ls -l /dev/mycrash 
+</span></span><span class="line"><span class="cl">crw------- 1 root root 10, 58 Feb 10 09:52 /dev/mycrash
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
 <p>注意：<code>/dev/mycrash</code>是在<code>/dev/crash</code>的基础上修改而来的，因为<code>/dev/crash</code>中没有考虑整个系统的物理地址大小，其<code>crash_llseek</code>实现也不满足需求。</p>
 </blockquote>
 <h3 id="物理内存数据查看">物理内存数据查看</h3>
@@ -232,24 +259,47 @@ crw------- 1 root root 10, 58 Feb 10 09:52 /dev/mycrash
 </ul>
 <h4 id="查看物理内存示例">查看物理内存示例</h4>
 <p>我们通过<code>crash</code>寻找一个内核变量的物理地址：</p>
-<pre><code>crash&gt; p saved_command_line
-saved_command_line = $3 = 0xffff989d5ff39f00 &quot;BOOT_IMAGE=/vmlinuz-3.10.0-862.mt20190131.118.el7.x86_64 root=/dev/mapper/cl-root ro crashkernel=auto rd.lvm.lv=cl/root rd.lvm.lv=cl/swap rhgb quiet cgroup_no_v1= cgroup_debug processor.max_cstate=8 intel_idle.max_cstate=9 idle=xx LANG=en_US.UTF-8&quot;
-crash&gt; vtop 0xffff989d5ff39f00
-VIRTUAL           PHYSICAL        
-ffff989d5ff39f00  11ff39f00       
-
-PGD DIRECTORY: ffffffff9c40e000
-PAGE DIRECTORY: bae3a067
-   PUD: bae3a3a8 =&gt; bae3e067
-   PMD: bae3e7f8 =&gt; 800000011fe000e3
-  PAGE: 11fe00000  (2MB)
-
-      PTE         PHYSICAL   FLAGS
-800000011fe000e3  11fe00000  (PRESENT|RW|ACCESSED|DIRTY|PSE|NX)
-
-      PAGE       PHYSICAL      MAPPING       INDEX CNT FLAGS
-fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
-</code></pre><p><code>saved_command_line</code>变量的物理地址是<code>11ff39f00</code>，我们通过`fileview查看一下，看物理内存上的信息是否正确：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; p saved_command_line
+</span></span><span class="line"><span class="cl">saved_command_line = $3 = 0xffff989d5ff39f00 &#34;BOOT_IMAGE=/vmlinuz-3.10.0-862.mt20190131.118.el7.x86_64 root=/dev/mapper/cl-root ro crashkernel=auto rd.lvm.lv=cl/root rd.lvm.lv=cl/swap rhgb quiet cgroup_no_v1= cgroup_debug processor.max_cstate=8 intel_idle.max_cstate=9 idle=xx LANG=en_US.UTF-8&#34;
+</span></span><span class="line"><span class="cl">crash&gt; vtop 0xffff989d5ff39f00
+</span></span><span class="line"><span class="cl">VIRTUAL           PHYSICAL        
+</span></span><span class="line"><span class="cl">ffff989d5ff39f00  11ff39f00       
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">PGD DIRECTORY: ffffffff9c40e000
+</span></span><span class="line"><span class="cl">PAGE DIRECTORY: bae3a067
+</span></span><span class="line"><span class="cl">   PUD: bae3a3a8 =&gt; bae3e067
+</span></span><span class="line"><span class="cl">   PMD: bae3e7f8 =&gt; 800000011fe000e3
+</span></span><span class="line"><span class="cl">  PAGE: 11fe00000  (2MB)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      PTE         PHYSICAL   FLAGS
+</span></span><span class="line"><span class="cl">800000011fe000e3  11fe00000  (PRESENT|RW|ACCESSED|DIRTY|PSE|NX)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      PAGE       PHYSICAL      MAPPING       INDEX CNT FLAGS
+</span></span><span class="line"><span class="cl">fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>saved_command_line</code>变量的物理地址是<code>11ff39f00</code>，我们通过`fileview查看一下，看物理内存上的信息是否正确：</p>
 <p><img src="fileview2.png" alt="" title=""></p>
 <h3 id="代码">代码</h3>
 <p>本文中的模块和<code>fileview</code>代码：<a href="./access_physical_memory.tar.gz">access_physical_memory.tar.gz</a></p>
@@ -259,7 +309,6 @@ fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -267,7 +316,10 @@ fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2019-02-09</span>
+    <span class="item-content">
+        2019-02-09
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -275,39 +327,27 @@ fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/linux/build-auto-install-centos7-iso/">
+        <a class="prev" href="/linux/build-auto-install-centos7-iso/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">制作自动化安装的CENTOS7 ISO</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/linux/proc-memory/">
+        <a class="next" href="/linux/proc-memory/">
             <span class="next-text nav-default">内核中内存信息的展示</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -321,6 +361,11 @@ fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -345,26 +390,24 @@ fffff57e847fce40 11ff39000                0        0  1 2fffff00000400 reserved
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

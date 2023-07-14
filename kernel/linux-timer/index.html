@@ -1,0 +1,2452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Linux时间子系统之低精度定时器(Timer) - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" /><meta name="description" content="定时器层是基于Tick层之上的，是根据系统jiffies来触发的，精度相对比较低。利用定时器，我们可以设定在未来的某一时刻，触发一个特定的事件。经常，也会把这种低精度定时器称作时间轮（Timer Wheel）。
+本文将详细分析内核中低精度定时器的实现。
+" /><meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/kernel/linux-timer/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+<meta property="og:title" content="Linux时间子系统之低精度定时器(Timer)" />
+<meta property="og:description" content="定时器层是基于Tick层之上的，是根据系统jiffies来触发的，精度相对比较低。利用定时器，我们可以设定在未来的某一时刻，触发一个特定的事件。经常，也会把这种低精度定时器称作时间轮（Timer Wheel）。
+本文将详细分析内核中低精度定时器的实现。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/linux-timer/" /><meta property="article:section" content="kernel" />
+<meta property="article:published_time" content="2020-08-29T09:34:48+08:00" />
+<meta property="article:modified_time" content="2020-08-29T09:34:48+08:00" />
+<meta itemprop="name" content="Linux时间子系统之低精度定时器(Timer)">
+<meta itemprop="description" content="定时器层是基于Tick层之上的，是根据系统jiffies来触发的，精度相对比较低。利用定时器，我们可以设定在未来的某一时刻，触发一个特定的事件。经常，也会把这种低精度定时器称作时间轮（Timer Wheel）。
+本文将详细分析内核中低精度定时器的实现。"><meta itemprop="datePublished" content="2020-08-29T09:34:48+08:00" />
+<meta itemprop="dateModified" content="2020-08-29T09:34:48+08:00" />
+<meta itemprop="wordCount" content="15945">
+<meta itemprop="keywords" content="kernel,linux," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Linux时间子系统之低精度定时器(Timer)"/>
+<meta name="twitter:description" content="定时器层是基于Tick层之上的，是根据系统jiffies来触发的，精度相对比较低。利用定时器，我们可以设定在未来的某一时刻，触发一个特定的事件。经常，也会把这种低精度定时器称作时间轮（Timer Wheel）。
+本文将详细分析内核中低精度定时器的实现。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+
+  
+
+
+</nav>
+
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+
+
+
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Linux时间子系统之低精度定时器(Timer)</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2020-08-29 </span>
+        <div class="post-category">
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
+        
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#定时器基本数据结构timer_list">定时器基本数据结构timer_list</a></li>
+            <li><a href="#定时器基本数据结构timer_base">定时器基本数据结构timer_base</a></li>
+            <li><a href="#定时器层级level">定时器层级level</a></li>
+            <li><a href="#定时器粒度granularity">定时器粒度Granularity</a></li>
+            <li><a href="#定时器层的工作过程">定时器层的工作过程</a></li>
+            <li><a href="#低精度定时器的应用">低精度定时器的应用</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      <p>定时器层是基于<code>Tick</code>层之上的，是根据系统<code>jiffies</code>来触发的，精度相对比较低。利用定时器，我们可以设定在未来的某一时刻，触发一个特定的事件。经常，也会把这种低精度定时器称作时间轮（<code>Timer Wheel</code>）。</p>
+<p>本文将详细分析内核中低精度定时器的实现。</p>
+<blockquote>
+<p>注意：本文分析中引用的代码来自于：<a href="http://vault.centos.org/8.1.1911/BaseOS/Source/SPackages/kernel-4.18.0-147.8.1.el8_1.src.rpm">kernel-4.18.0-147.8.1.el8_1.src.rpm</a></p>
+</blockquote>
+<h3 id="定时器基本数据结构timer_list">定时器基本数据结构timer_list</h3>
+<p>在内核中，一个定时器是使用<code>timer_list</code>结构体来表示的:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">timer_list</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * All fields that change during normal runtime grouped to the
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * same cacheline
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_node</span>	<span class="n">entry</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">long</span>		<span class="n">expires</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">void</span>			<span class="p">(</span><span class="o">*</span><span class="n">function</span><span class="p">)(</span><span class="k">struct</span> <span class="n">timer_list</span> <span class="o">*</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">u32</span>			<span class="n">flags</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_LOCKDEP
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>	<span class="k">struct</span> <span class="n">lockdep_map</span>	<span class="n">lockdep_map</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>	<span class="nf">RH_KABI_RESERVE</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">RH_KABI_RESERVE</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">RH_KABI_RESERVE</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">RH_KABI_RESERVE</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><code>entry</code>：所有的定时器都会根据到期的时间被分配到一组链表中的一个中，该字段是链表的节点成员。</li>
+<li><code>expires</code>：字段指出了该定时器的到期时刻，也就是期望定时器到期时刻的<code>jiffies</code>计数值。这是一个绝对值，不是距离当前时刻再过多少<code>jiffies</code>。</li>
+<li><code>function</code>：是一个回调函数指针，定时器到期时，系统将会调用该函数，用于响应该定时器的到期事件。</li>
+<li><code>flags</code>：看名字应该是标志位，其定义如下：</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#define TIMER_CPUMASK		0x0003FFFF
+</span></span><span class="line"><span class="cl">#define TIMER_MIGRATING		0x00040000
+</span></span><span class="line"><span class="cl">#define TIMER_BASEMASK		(TIMER_CPUMASK | TIMER_MIGRATING)
+</span></span><span class="line"><span class="cl">#define TIMER_DEFERRABLE	0x00080000
+</span></span><span class="line"><span class="cl">#define TIMER_PINNED		0x00100000
+</span></span><span class="line"><span class="cl">#define TIMER_IRQSAFE		0x00200000
+</span></span><span class="line"><span class="cl">#define TIMER_ARRAYSHIFT	22
+</span></span><span class="line"><span class="cl">#define TIMER_ARRAYMASK		0xFFC00000
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看到，<code>flags</code>其实并不是标志位那么简单。其最高<code>10</code>位记录了定时器放置到桶的编号，后面会提到一共最多只有<strong>576</strong>个桶，所以<strong>10位</strong>足够了。而最低的<strong>18位</strong>指示了该定时器绑定到了哪个<code>CPU</code>上，注意是一个数值，而不是位图。夹在中间的一些位到真的是一些标志位。 如下图所示：</p>
+<p><img src="./timer_flags.png" alt=""></p>
+<ul>
+<li><code>TIMER_MIGRATING</code>表示定时器正在从一个CPU迁移到另外一个CPU。</li>
+<li><code>TIMER_DEFERRABLE</code>表示该定时器是可延迟的。</li>
+<li><code>TIMER_PINNED</code>表示定时器已经绑死了当前的CPU，无论如何都不会迁移到别的CPU上。</li>
+<li><code>TIMER_IRQSAFE</code>表示定时器是中断安全的，使用的时候只需要加锁，不需要关中断。</li>
+</ul>
+<h3 id="定时器基本数据结构timer_base">定时器基本数据结构timer_base</h3>
+<p>系统中可能同时存在成千上万个定时器，如果处理不好效率会非常低下。<code>Linux</code>目前会将定时器按照绑定的<code>CPU</code>和<code>种类</code>（普通定时器还是可延迟定时器两种）进行区分，由<code>timer_base</code>结构体组织起来：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">timer_base</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">raw_spinlock_t</span>		<span class="n">lock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">timer_list</span>	<span class="o">*</span><span class="n">running_timer</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">long</span>		<span class="n">clk</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">long</span>		<span class="n">next_expiry</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">int</span>		<span class="n">cpu</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">bool</span>			<span class="n">is_idle</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">bool</span>			<span class="n">must_forward_clk</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">DECLARE_BITMAP</span><span class="p">(</span><span class="n">pending_map</span><span class="p">,</span> <span class="n">WHEEL_SIZE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">hlist_head</span>	<span class="n">vectors</span><span class="p">[</span><span class="n">WHEEL_SIZE</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">____cacheline_aligned</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><code>lock</code>：保护该<code>timer_base</code>结构体的自旋锁，这个自旋锁还同时保护包含在<code>vectors</code>链表数组中的所有定时器。</li>
+<li><code>running_timer</code>：该字段指向当前<code>CPU</code>正在处理的定时器所对应的<code>timer_list</code>结构。</li>
+<li><code>clk</code>：当前定时器所经过的<code>jiffies</code>，用来判断包含的定时器是否已经到期或超时。</li>
+<li><code>next_expiry</code>：该字段指向该<code>CPU</code>下一个即将到期的定时器。最早 (距离超时最近的 <code>timer</code>) 的超时时间</li>
+<li><code>cpu</code>：所属的<code>CPU</code>号。</li>
+<li><code>is_idle</code>：指示是否处于空闲模式下，在<code>NO_HZ</code>模式下会用到。</li>
+<li><code>must_forward_clk</code>：指示是否需要更新当前<code>clk</code>的值，在<code>NO_HZ</code>模式下会用到。</li>
+<li><code>pending_map</code>：一个比特位图，时间轮中有几个桶就有几个比特位。如果某个桶内有定时器存在，那么就将相应的比特位置<code>1</code>。</li>
+<li><code>vectors</code>：时间轮所有桶的数组，每一个元素是一个链表。</li>
+</ul>
+<p>每个<code>CPU</code>都包含一个或者两个<code>timer_base</code>结构体变量：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="nf">DEFINE_PER_CPU</span><span class="p">(</span><span class="k">struct</span> <span class="n">timer_base</span><span class="p">,</span> <span class="n">timer_bases</span><span class="p">[</span><span class="n">NR_BASES</span><span class="p">]);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其中<code>NR_BASES</code>定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#ifdef CONFIG_NO_HZ_COMMON
+</span></span><span class="line"><span class="cl"># define NR_BASES	2
+</span></span><span class="line"><span class="cl"># define BASE_STD	0
+</span></span><span class="line"><span class="cl"># define BASE_DEF	1
+</span></span><span class="line"><span class="cl">#else
+</span></span><span class="line"><span class="cl"># define NR_BASES	1
+</span></span><span class="line"><span class="cl"># define BASE_STD	0
+</span></span><span class="line"><span class="cl"># define BASE_DEF	0
+</span></span><span class="line"><span class="cl">#endif
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>所以如果内核编译选项包含<code>CONFIG_NO_HZ_COMMON</code>，则每个<code>CPU</code>有两个<code>timer_base</code>结构体，下标分别是<code>BASE_STD（Standard）</code>和<code>BASE_DEF（Deferrable）</code>。如果内核编译选项没有包含<code>CONFIG_NO_HZ_COMMON</code>，那么每个<code>CPU</code>只有一个<code>timer_base</code>结构体，<code>BASE_STD</code>和<code>BASE_DEF</code>是同一个。</p>
+<p>为什么支持<code>NO_HZ</code>模式要包含两个<code>timer_base</code>呢？</p>
+<p>这其实和<code>NO_HZ</code>的工作模式有关。如果<code>NO_HZ</code>模式，那么当<code>CPU</code>处于空闲状态时，定时器层是收不到也不需要收到任何<code>Tick</code>的，这样可以节省电力。这时候底层的<code>Tick</code>层（准确说是<code>Tick Sched</code>）不会按照预定好的<code>HZ</code>频率，每次到期后都去不停的设置底层的定时事件设备（启动<code>NO_HZ</code>模式的前提是已经切换到了高精度模式下而高精度模式又要求定时事件设备是单次触发模式的）。但是，如果定时器到期了不就错过去了嘛。所以，在停止<code>Tick</code>之前，<code>Tick</code>层会从定时器层获得最近的下一次定时器到期的时间（通过调用<code>get_next_timer_interrupt</code>函数），然后对下面的定时事件设备进行编程，让其在这个最近的到期时刻到期，触发中断。但是，系统中有很多定时器，它们对到期的要求没有那么严格，迟一点到期也不是很要紧。对于这类定时器，在停止<code>Tick</code>之前，就没必要管他们到低什么时候到期。具体点说，<strong>就是Tick层在向定时器层询问下一次最近到期时间时，定时器层更本就不会查找这些可延迟的定时器。</strong></p>
+<p>对于前面说的第一种定时器存放在<code>BASE_STD</code>指明的那个<code>timer_base</code>结构体里面，而第二种定时器存放在<code>BASE_DEF</code>指明的那个<code>timer_base</code>结构体里面。如果在编译内核的时候没有包含<code>CONFIG_NO_HZ_COMMON</code>，也就是内核不支持<code>NO_HZ</code>模式，<code>Tick</code>从来就没有停止过，当然就不存在前面说的问题，也就没必要分两个了。</p>
+<h3 id="定时器层级level">定时器层级level</h3>
+<p>如果在内核配置文件里定义<code>Tick</code>周期大于<code>100</code>的话，一共有<code>8</code>个级别（编号从<code>0</code>到<code>7</code>）；而如果大于<code>100</code>的话，则一共会包含<code>9</code>个级别（编号从<code>0</code>到<code>8</code>）。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/* Level depth */
+</span></span><span class="line"><span class="cl">#if HZ &gt; 100
+</span></span><span class="line"><span class="cl"># define LVL_DEPTH	9
+</span></span><span class="line"><span class="cl"># else
+</span></span><span class="line"><span class="cl"># define LVL_DEPTH	8
+</span></span><span class="line"><span class="cl">#endif
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>一个级（<code>Level</code>）里面共有<code>64</code>（<code>LVL_SIZE</code>）个桶（<code>Bucket</code>），用<code>6</code>个比特表示：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/* Size of each clock level */
+</span></span><span class="line"><span class="cl">#define LVL_BITS	6
+</span></span><span class="line"><span class="cl">#define LVL_SIZE	(1UL &lt;&lt; LVL_BITS)
+</span></span><span class="line"><span class="cl">#define LVL_MASK	(LVL_SIZE - 1)
+</span></span><span class="line"><span class="cl">#define LVL_OFFS(n)	((n) * LVL_SIZE)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>宏<code>LVL_OFFS</code>定义了每一级桶下表的起始编号。</p>
+<p>所以，对于每个<code>timer_base</code>一共需要的桶的数目定义为：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * The resulting wheel size. If NOHZ is configured we allocate two
+</span></span><span class="line"><span class="cl"> * wheels so we have a separate storage for the deferrable timers.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">#define WHEEL_SIZE	(LVL_SIZE * LVL_DEPTH)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="定时器粒度granularity">定时器粒度Granularity</h3>
+<p>还有一个概念叫做粒度（<code>Granularity</code>），表示系统至少要过多少个<code>Tick</code>才会检查某一个级里面的所有定时器。</p>
+<p>每一级的<code>64</code>个桶的检查粒度是一样的，而不同级内的桶之间检查的粒度不同，级数越小，检查粒度越细。每一级粒度的<code>Tick</code>数由宏定义<code>LVL_CLK_DIV</code>的值决定：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/* Clock divisor for the next level */
+</span></span><span class="line"><span class="cl">#define LVL_CLK_SHIFT	3
+</span></span><span class="line"><span class="cl">#define LVL_CLK_DIV	(1UL &lt;&lt; LVL_CLK_SHIFT)
+</span></span><span class="line"><span class="cl">#define LVL_CLK_MASK	(LVL_CLK_DIV - 1)
+</span></span><span class="line"><span class="cl">#define LVL_SHIFT(n)	((n) * LVL_CLK_SHIFT)
+</span></span><span class="line"><span class="cl">#define LVL_GRAN(n)	(1UL &lt;&lt; LVL_SHIFT(n))
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>具体的计算公式为：</p>
+<p>$$ {LVL\_CLK\_DIV}^{Level} $$</p>
+<p>也就是第<code>0</code>级内<code>64</code>个桶中存放的所有定时器每个<code>Tick</code>都会检查，第<code>1</code>级内<code>64</code>个桶中存放的所有定时器每<code>8</code>个<code>Tick</code>才会检查，第<code>2</code>级内<code>64</code>个桶中存放的所有定时器每<code>64</code>个Tick才会检查，以此类推。</p>
+<p>对应每一个级，都有一个范围，其起始的<code>Tick</code>值由<code>LVL_START</code>定义：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * The time start value for each level to select the bucket at enqueue
+</span></span><span class="line"><span class="cl"> * time.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">#define LVL_START(n)	((LVL_SIZE - 1) &lt;&lt; (((n) - 1) * LVL_CLK_SHIFT))
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>下面具体举个例子，内核配置选项将<code>HZ</code>配置位<code>1000</code>，那么就一共需要<code>9</code>个级别，每个级别里面有<code>64</code>个桶，所以一共需要<code>576</code>个桶。每个级别的情况如下表：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">级别</th>
+<th style="text-align:right">编号偏移</th>
+<th style="text-align:right">粒度（Granularity））</th>
+<th style="text-align:right">差值范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1 ms</td>
+<td style="text-align:right">0 ms -         63 ms</td>
+</tr>
+<tr>
+<td style="text-align:left">1</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">8 ms</td>
+<td style="text-align:right">64 ms -        511 ms</td>
+</tr>
+<tr>
+<td style="text-align:left">2</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">64 ms</td>
+<td style="text-align:right">512 ms -       4095 ms (512ms - ~4s)</td>
+</tr>
+<tr>
+<td style="text-align:left">3</td>
+<td style="text-align:right">192</td>
+<td style="text-align:right">512 ms</td>
+<td style="text-align:right">4096 ms -      32767 ms (~4s - ~32s)</td>
+</tr>
+<tr>
+<td style="text-align:left">4</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">4096 ms (~4s)</td>
+<td style="text-align:right">32768 ms -     262143 ms (~32s - ~4m)</td>
+</tr>
+<tr>
+<td style="text-align:left">5</td>
+<td style="text-align:right">320</td>
+<td style="text-align:right">32768 ms (~32s)</td>
+<td style="text-align:right">262144 ms -    2097151 ms (~4m - ~34m)</td>
+</tr>
+<tr>
+<td style="text-align:left">6</td>
+<td style="text-align:right">384</td>
+<td style="text-align:right">262144 ms (~4m)</td>
+<td style="text-align:right">2097152 ms -   16777215 ms (~34m - ~4h)</td>
+</tr>
+<tr>
+<td style="text-align:left">7</td>
+<td style="text-align:right">448</td>
+<td style="text-align:right">2097152 ms (~34m)</td>
+<td style="text-align:right">16777216 ms -  134217727 ms (~4h - ~1d)</td>
+</tr>
+<tr>
+<td style="text-align:left">8</td>
+<td style="text-align:right">512</td>
+<td style="text-align:right">16777216 ms (~4h)</td>
+<td style="text-align:right">134217728 ms - 1073741822 ms (~1d - ~12d)</td>
+</tr>
+</tbody>
+</table>
+<p>因为配置的是<code>1000Hz</code>，所以每次<code>Tick</code>之间经过<code>1</code>毫秒。可以看出来，定时到期时间距离现在越久，那粒度就越差，误差也越大。</p>
+<p>具体将定时器放到哪一个级下面是由到期时间距离现在时间的差值，也就是距离现在还要过多长时间决定的；而要放到哪个桶里面，则单纯是由到期时间决定的。</p>
+<p>所以，综上所述，定时器层的数据结构如下图所示：</p>
+<p><img src="./timer_base.png" alt=""></p>
+<h3 id="定时器层的工作过程">定时器层的工作过程</h3>
+<p>下面分场景介绍一下定时器层的工作过程。</p>
+<h4 id="桶编号的计算">桶编号的计算</h4>
+<p><code>calc_wheel_index</code>函数根据到期<code>jiffies</code>和已经过<code>jiffies</code>两个参数，计算要将定时器放置到哪个桶下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static int calc_wheel_index(unsigned long expires, unsigned long clk)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	unsigned long delta = expires - clk; //计算到期jiffies和已经过jiffies的差，保存到delta中
+</span></span><span class="line"><span class="cl">	unsigned int idx;
+</span></span><span class="line"><span class="cl">	//按照差多处的范围决定将定时器放到哪一级
+</span></span><span class="line"><span class="cl">	if (delta &lt; LVL_START(1)) {
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, 0);
+</span></span><span class="line"><span class="cl">	} else if (delta &lt; LVL_START(2)) {
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, 1);
+</span></span><span class="line"><span class="cl">	} else if (delta &lt; LVL_START(3)) {
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, 2);
+</span></span><span class="line"><span class="cl">	} else if (delta &lt; LVL_START(4)) {
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, 3);
+</span></span><span class="line"><span class="cl">	} else if (delta &lt; LVL_START(5)) {
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, 4);
+</span></span><span class="line"><span class="cl">	} else if (delta &lt; LVL_START(6)) {
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, 5);
+</span></span><span class="line"><span class="cl">	} else if (delta &lt; LVL_START(7)) {
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, 6);
+</span></span><span class="line"><span class="cl">	} else if (LVL_DEPTH &gt; 8 &amp;&amp; delta &lt; LVL_START(8)) {
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, 7);
+</span></span><span class="line"><span class="cl">	} else if ((long) delta &lt; 0) { //如果差值为负值，就把它放到最低级别中，再过一个Tick就能检查到了。
+</span></span><span class="line"><span class="cl">		idx = clk &amp; LVL_MASK;
+</span></span><span class="line"><span class="cl">	} else {
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * Force expire obscene large timeouts to expire at the
+</span></span><span class="line"><span class="cl">		 * capacity limit of the wheel.
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		if (expires &gt;= WHEEL_TIMEOUT_CUTOFF) //如果差值过大强制限定过期时间到WHEEL_TIMEOUT_MAX
+</span></span><span class="line"><span class="cl">			expires = WHEEL_TIMEOUT_MAX;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		idx = calc_index(expires, LVL_DEPTH - 1);
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">	return idx;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看到，<strong>将定时器放到时间轮的哪一级是由距离现在还要过多长时间（准确的说是过多少<code>jiffies</code>）才到期决定的</strong>。该函数首先计算到期<code>jiffies</code>和当前已经过<code>jiffies</code>的差值。然后，根据差值的范围，决定放置到哪一个级别的桶内。</p>
+<p>如果差值为负代表其实定时器已经过期了，就把它放到最低级别（<code>0</code>）内，反正再过一个<code>Tick</code>就能检查到了。</p>
+<p>如果差值过大，强制限定到期时间到<code>WHEEL_TIMEOUT_MAX</code>，并将其放置到最后一级。</p>
+<p>定好级后，最后，调用<code>calc_index</code>函数，计算具体放置到的桶下标。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * Helper function to calculate the array index for a given expiry
+</span></span><span class="line"><span class="cl"> * time.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">static inline unsigned calc_index(unsigned expires, unsigned lvl)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	expires = (expires + LVL_GRAN(lvl)) &gt;&gt; LVL_SHIFT(lvl);
+</span></span><span class="line"><span class="cl">	return LVL_OFFS(lvl) + (expires &amp; LVL_MASK);
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>通过<code>LVL_OFFS</code>宏计算出对应该级的桶起始下标，每一级下面有<code>64</code>个桶，<strong>具体放到哪个桶下面是根据级号取到期时间的特定6位决定的</strong>。可以看到，最终的结果还要加<code>1</code>，因为定时器不会在到期时间之前被触发，所以放到下一个。在某个级之内，每个桶之间的的定时器到期时间相差一个该级的粒度。</p>
+<h4 id="通过定时器找到对应的timer_base结构体">通过定时器找到对应的timer_base结构体</h4>
+<p>定时器层一般调用<code>lock_timer_base</code>函数，找到定时器所对应的<code>timer_base</code>结构体，同时获得<code>timer_base</code>结构体内的自旋锁并关闭中断：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * We are using hashed locking: Holding per_cpu(timer_bases[x]).lock means
+</span></span><span class="line"><span class="cl"> * that all timers which are tied to this base are locked, and the base itself
+</span></span><span class="line"><span class="cl"> * is locked too.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * So __run_timers/migrate_timers can safely modify all timers which could
+</span></span><span class="line"><span class="cl"> * be found in the base-&gt;vectors array.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * When a timer is migrating then the TIMER_MIGRATING flag is set and we need
+</span></span><span class="line"><span class="cl"> * to wait until the migration is done.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">static struct timer_base *lock_timer_base(struct timer_list *timer,
+</span></span><span class="line"><span class="cl">					  unsigned long *flags)
+</span></span><span class="line"><span class="cl">	__acquires(timer-&gt;base-&gt;lock)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	for (;;) {
+</span></span><span class="line"><span class="cl">		struct timer_base *base;
+</span></span><span class="line"><span class="cl">		u32 tf;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * We need to use READ_ONCE() here, otherwise the compiler
+</span></span><span class="line"><span class="cl">		 * might re-read @tf between the check for TIMER_MIGRATING
+</span></span><span class="line"><span class="cl">		 * and spin_lock().
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		tf = READ_ONCE(timer-&gt;flags); //取定时器的标志位
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		if (!(tf &amp; TIMER_MIGRATING)) {
+</span></span><span class="line"><span class="cl">			base = get_timer_base(tf); //通过标志位中的CPU号来获得timer_base结构体
+</span></span><span class="line"><span class="cl">			raw_spin_lock_irqsave(&amp;base-&gt;lock, *flags);
+</span></span><span class="line"><span class="cl">			if (timer-&gt;flags == tf) //在这期间定时器的标志位是否发生了变化
+</span></span><span class="line"><span class="cl">				return base;
+</span></span><span class="line"><span class="cl">			raw_spin_unlock_irqrestore(&amp;base-&gt;lock, *flags);
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">		cpu_relax();
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数会获得定时器内的标志字段，判断其是不是正在迁移的过程中，如果是的话就像自旋锁一样循环等待其完成。如果没有在迁移，则调用<code>get_timer_base</code>函数，通过标志位中的<code>CPU</code>号来获得<code>timer_base</code>结构体。在获得了自旋锁并关闭中断之后，还要判断一下定时器当前的标志位是否和之前读取的相同，如果不同则释放锁，再走一次循环，否则直接返回找到的<code>timer_base</code>结构体。</p>
+<p>注意，<code>lock_timer_base</code>函数返回时，是已经持有了<code>timer_base</code>内的自旋锁，并且本地中断是关闭的。</p>
+<p>我们接着来看看<code>get_timer_base</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static inline struct timer_base *get_timer_base(u32 tflags)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	return get_timer_cpu_base(tflags, tflags &amp; TIMER_CPUMASK);
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>因为定时器的<code>flags</code>字段包含了<code>CPU</code>号的信息，所以直接取出来，然后调用<code>get_timer_cpu_base</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static inline struct timer_base *get_timer_cpu_base(u32 tflags, u32 cpu)
+</span></span><span class="line"><span class="cl">{	//获得BASE_STD编号的timer_base结构体
+</span></span><span class="line"><span class="cl">	struct timer_base *base = per_cpu_ptr(&amp;timer_bases[BASE_STD], cpu);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	/*
+</span></span><span class="line"><span class="cl">	 * If the timer is deferrable and NO_HZ_COMMON is set then we need
+</span></span><span class="line"><span class="cl">	 * to use the deferrable base.
+</span></span><span class="line"><span class="cl">	 */
+</span></span><span class="line"><span class="cl">	if (IS_ENABLED(CONFIG_NO_HZ_COMMON) &amp;&amp; (tflags &amp; TIMER_DEFERRABLE)) //如果设置了CONFIG_NO_HZ_COMMON内核编译选项并且定时器是可延迟的话
+</span></span><span class="line"><span class="cl">		base = per_cpu_ptr(&amp;timer_bases[BASE_DEF], cpu); //获得BASE_DEF编号的timer_base结构体
+</span></span><span class="line"><span class="cl">	return base;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个函数就很简单了，直接通过<code>CPU</code>号找到对应的<code>Per CPU</code>变量<code>timer_bases</code>。前面提到了，如果编译选项中包含<code>NO_HZ</code>的支持，则<code>timer_bases</code>其实包含了两个<code>timer_base</code>结构体，一个给标准的定时器，一个给可延迟的定时器。所以，该函数会判断定时器是否是可延迟的，如果不是或者不支持<code>NO_HZ</code>则返回<code>BASE_STD</code>编号的<code>timer_base</code>结构体；如果定时器是可延迟的，并且内核支持<code>NO_HZ</code>模式，则需要返回<code>BASE_DEF</code>编号的<code>timer_base</code>结构体。</p>
+<h4 id="定时器的删除">定时器的删除</h4>
+<p>定时器的删除是通过调用函数<code>del_timer</code>实现的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/**
+</span></span><span class="line"><span class="cl"> * del_timer - deactivate a timer.
+</span></span><span class="line"><span class="cl"> * @timer: the timer to be deactivated
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * del_timer() deactivates a timer - this works on both active and inactive
+</span></span><span class="line"><span class="cl"> * timers.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * The function returns whether it has deactivated a pending timer or not.
+</span></span><span class="line"><span class="cl"> * (ie. del_timer() of an inactive timer returns 0, del_timer() of an
+</span></span><span class="line"><span class="cl"> * active timer returns 1.)
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">int del_timer(struct timer_list *timer)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	struct timer_base *base;
+</span></span><span class="line"><span class="cl">	unsigned long flags;
+</span></span><span class="line"><span class="cl">	int ret = 0;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	debug_assert_init(timer);
+</span></span><span class="line"><span class="cl">	//判断定时器是否已经被添加进某个链表中了
+</span></span><span class="line"><span class="cl">	if (timer_pending(timer)) {
+</span></span><span class="line"><span class="cl">		base = lock_timer_base(timer, &amp;flags); //找到定时器对应的timer_base结构体并对其上锁
+</span></span><span class="line"><span class="cl">		ret = detach_if_pending(timer, base, true);//从链表中解除定时器
+</span></span><span class="line"><span class="cl">		raw_spin_unlock_irqrestore(&amp;base-&gt;lock, flags);
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	return ret;
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">EXPORT_SYMBOL(del_timer);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>先调用<code>timer_pending</code>函数判断定时器是否还存在于某个链表中，如果已经不在任何链表中了，证明已经被删除了，直接返回。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/**
+</span></span><span class="line"><span class="cl"> * timer_pending - is a timer pending?
+</span></span><span class="line"><span class="cl"> * @timer: the timer in question
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * timer_pending will tell whether a given timer is currently pending,
+</span></span><span class="line"><span class="cl"> * or not. Callers must ensure serialization wrt. other operations done
+</span></span><span class="line"><span class="cl"> * to this timer, eg. interrupt contexts, or other CPUs on SMP.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * return value: 1 if the timer is pending, 0 if not.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">static inline int timer_pending(const struct timer_list * timer)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	return timer-&gt;entry.pprev != NULL;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个函数就是检查定时器内的链表元素的向前指针是否是空指针，也就意味着该定时器没有被添加进任何链表中。</p>
+<p>如果还存在于某个链表中，则继续执行删除的动作。先通过定时器找到对应的<code>timer_base</code>结构体并上锁，然后调用<code>detach_if_pending</code>函数将定时器从链表中解除，最后释放锁并返回。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static int detach_if_pending(struct timer_list *timer, struct timer_base *base,
+</span></span><span class="line"><span class="cl">			     bool clear_pending)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	unsigned idx = timer_get_idx(timer); //获得存放定时器的桶编号
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	if (!timer_pending(timer)) //判断定时器是否已经被添加进某个链表中了
+</span></span><span class="line"><span class="cl">		return 0;
+</span></span><span class="line"><span class="cl">	//如果对应的桶中只有当前这一个定时器则清除pending_map对应位 
+</span></span><span class="line"><span class="cl">	if (hlist_is_singular_node(&amp;timer-&gt;entry, base-&gt;vectors + idx))
+</span></span><span class="line"><span class="cl">		__clear_bit(idx, base-&gt;pending_map);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	detach_timer(timer, clear_pending); //从链表中解除定时器 
+</span></span><span class="line"><span class="cl">	return 1;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数先调用<code>timer_get_idx</code>函数从定时器的<code>flags</code>字段中抽取出存放定时器的桶编号（<code>(timer-&gt;flags &amp; TIMER_ARRAYMASK) &gt;&gt; TIMER_ARRAYSHIFT</code>），接着再次判断定时器是否已经被解除，如果仍然没有还需要判断当前需要解除的定时器是否是对应桶内的最后一个定时器，如果是的话要将对应<code>timer_base</code>结构体内的<code>pending_map</code>变量中的对应标志位清<code>0</code>。最后调用<code>detach_timer</code>函数正式解除定时器：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static inline void detach_timer(struct timer_list *timer, bool clear_pending)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	struct hlist_node *entry = &amp;timer-&gt;entry;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	debug_deactivate(timer);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	__hlist_del(entry);//将定时器从链表中删除
+</span></span><span class="line"><span class="cl">	if (clear_pending)
+</span></span><span class="line"><span class="cl">		entry-&gt;pprev = NULL;
+</span></span><span class="line"><span class="cl">	entry-&gt;next = LIST_POISON2;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>detach_timer</code>就完全是链表的操作了，想将自己从对应链表中删除，如果设置了<code>clear_pending</code>的话，将<code>entry</code>的前向指针设置位空（前面说的<code>timer_pending</code>函数就是通过这个来判断定时器是否已经添加进某个链表中的）。后向指针设置为<code>LIST_POISON2</code>。</p>
+<h4 id="定时器的添加和修改">定时器的添加和修改</h4>
+<p>要向系统中添加一个定时器，需要调用<code>add_timer</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * add_timer - start a timer
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @timer: the timer to be added
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * The kernel will do a -&gt;function(@timer) callback from the
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * timer interrupt at the -&gt;expires point in the future. The
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * current time is &#39;jiffies&#39;.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * The timer&#39;s -&gt;expires, -&gt;function fields must be set prior calling this
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * function.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Timers with an -&gt;expires field in the past will be executed in the next
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * timer tick.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">add_timer</span><span class="p">(</span><span class="k">struct</span> <span class="n">timer_list</span> <span class="o">*</span><span class="n">timer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">BUG_ON</span><span class="p">(</span><span class="nf">timer_pending</span><span class="p">(</span><span class="n">timer</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mod_timer</span><span class="p">(</span><span class="n">timer</span><span class="p">,</span> <span class="n">timer</span><span class="o">-&gt;</span><span class="n">expires</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nf">EXPORT_SYMBOL</span><span class="p">(</span><span class="n">add_timer</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>先调用<code>timer_pending</code>函数，看要添加的定时器是否已经被添加过了，如果已经添加过了，会报内核错误。接着调用了<code>mod_timer</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/**
+</span></span><span class="line"><span class="cl"> * mod_timer - modify a timer&#39;s timeout
+</span></span><span class="line"><span class="cl"> * @timer: the timer to be modified
+</span></span><span class="line"><span class="cl"> * @expires: new timeout in jiffies
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * mod_timer() is a more efficient way to update the expire field of an
+</span></span><span class="line"><span class="cl"> * active timer (if the timer is inactive it will be activated)
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * mod_timer(timer, expires) is equivalent to:
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> *     del_timer(timer); timer-&gt;expires = expires; add_timer(timer);
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * Note that if there are multiple unserialized concurrent users of the
+</span></span><span class="line"><span class="cl"> * same timer, then mod_timer() is the only safe way to modify the timeout,
+</span></span><span class="line"><span class="cl"> * since add_timer() cannot modify an already running timer.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * The function returns whether it has modified a pending timer or not.
+</span></span><span class="line"><span class="cl"> * (ie. mod_timer() of an inactive timer returns 0, mod_timer() of an
+</span></span><span class="line"><span class="cl"> * active timer returns 1.)
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">int mod_timer(struct timer_list *timer, unsigned long expires)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	return __mod_timer(timer, expires, 0);
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">EXPORT_SYMBOL(mod_timer);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>mod_timer</code>函数只是简单封装了一下<code>__mod_timer</code>函数，后者是定时器层的核心函数，后面我们会分析。</p>
+<p>如果我们要修改一个已经存在的定时器，比如说减小其到期时间，要使用<code>timer_reduce</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/**
+</span></span><span class="line"><span class="cl"> * timer_reduce - Modify a timer&#39;s timeout if it would reduce the timeout
+</span></span><span class="line"><span class="cl"> * @timer:	The timer to be modified
+</span></span><span class="line"><span class="cl"> * @expires:	New timeout in jiffies
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * timer_reduce() is very similar to mod_timer(), except that it will only
+</span></span><span class="line"><span class="cl"> * modify a running timer if that would reduce the expiration time (it will
+</span></span><span class="line"><span class="cl"> * start a timer that isn&#39;t running).
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">int timer_reduce(struct timer_list *timer, unsigned long expires)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	return __mod_timer(timer, expires, MOD_TIMER_REDUCE);
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">EXPORT_SYMBOL(timer_reduce);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其也最终会调用<code>__mod_timer</code>函数。该函数有三个参数，第一个是要添加或修改的定时器；第二个是到期时间，如果是新添加的定时器，就将其设置成定时器自己的到期时间；第三个参数是模式，目前系统中共有两个：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#define MOD_TIMER_PENDING_ONLY		0x01
+</span></span><span class="line"><span class="cl">#define MOD_TIMER_REDUCE		0x02
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><code>MOD_TIMER_PENDING_ONLY</code>表示本次修改只针对还存在在系统内的定时器，如果定时器已经被删除了则不会再将其激活。</li>
+<li><code>MOD_TIMER_REDUCE</code>则表示本次修改只会将定时器的到期值减小。</li>
+</ul>
+<p>下面我们来重点分析一下<code>__mod_timer</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static inline int
+</span></span><span class="line"><span class="cl">__mod_timer(struct timer_list *timer, unsigned long expires, unsigned int options)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	struct timer_base *base, *new_base;
+</span></span><span class="line"><span class="cl">	unsigned int idx = UINT_MAX;
+</span></span><span class="line"><span class="cl">	unsigned long clk = 0, flags;
+</span></span><span class="line"><span class="cl">	int ret = 0;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	BUG_ON(!timer-&gt;function); //定时器的回调函数必须不为空
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	/*
+</span></span><span class="line"><span class="cl">	 * This is a common optimization triggered by the networking code - if
+</span></span><span class="line"><span class="cl">	 * the timer is re-modified to have the same timeout or ends up in the
+</span></span><span class="line"><span class="cl">	 * same array bucket then just return:
+</span></span><span class="line"><span class="cl">	 */ //定时器是否已经被添加进某个链表中
+</span></span><span class="line"><span class="cl">	if (timer_pending(timer)) {
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * The downside of this optimization is that it can result in
+</span></span><span class="line"><span class="cl">		 * larger granularity than you would get from adding a new
+</span></span><span class="line"><span class="cl">		 * timer with this expiry.
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		long diff = timer-&gt;expires - expires; //计算定时器的到期时间和参数到期时间之间的差值
+</span></span><span class="line"><span class="cl">		//如果两个差值为0即相同则直接返回成功什么都不用做
+</span></span><span class="line"><span class="cl">		if (!diff)
+</span></span><span class="line"><span class="cl">			return 1;
+</span></span><span class="line"><span class="cl">		//如果是要减定时器到期时间但是传入的到期时间比定时器当前的到期时间还大则直接返回成功
+</span></span><span class="line"><span class="cl">		if (options &amp; MOD_TIMER_REDUCE &amp;&amp; diff &lt;= 0)
+</span></span><span class="line"><span class="cl">			return 1;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * We lock timer base and calculate the bucket index right
+</span></span><span class="line"><span class="cl">		 * here. If the timer ends up in the same bucket, then we
+</span></span><span class="line"><span class="cl">		 * just update the expiry time and avoid the whole
+</span></span><span class="line"><span class="cl">		 * dequeue/enqueue dance.
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		base = lock_timer_base(timer, &amp;flags); //找到定时器对应的timer_base结构体并对其上锁
+</span></span><span class="line"><span class="cl">		forward_timer_base(base); //试着更新timer_base中的clk数 
+</span></span><span class="line"><span class="cl">		//如果是要减定时器到期时间但是传入的到期时间比定时器当前的到期时间还大则直接返回成功
+</span></span><span class="line"><span class="cl">		if (timer_pending(timer) &amp;&amp; (options &amp; MOD_TIMER_REDUCE) &amp;&amp;
+</span></span><span class="line"><span class="cl">		    time_before_eq(timer-&gt;expires, expires)) {
+</span></span><span class="line"><span class="cl">			ret = 1;
+</span></span><span class="line"><span class="cl">			goto out_unlock;
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		clk = base-&gt;clk;
+</span></span><span class="line"><span class="cl">		idx = calc_wheel_index(expires, clk); //计算要放置到的桶下标
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * Retrieve and compare the array index of the pending
+</span></span><span class="line"><span class="cl">		 * timer. If it matches set the expiry to the new value so a
+</span></span><span class="line"><span class="cl">		 * subsequent call will exit in the expires check above.
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		if (idx == timer_get_idx(timer)) { //如果定时器修改之后还是放在原来的那个桶下
+</span></span><span class="line"><span class="cl">			if (!(options &amp; MOD_TIMER_REDUCE)) //如果选项不是MOD_TIMER_REDUCE则直接修改定时器的到期时间 
+</span></span><span class="line"><span class="cl">				timer-&gt;expires = expires;
+</span></span><span class="line"><span class="cl">			else if (time_after(timer-&gt;expires, expires)) //如果选项是MOD_TIMER_REDUCE则还要比较新老到期时间再修改 
+</span></span><span class="line"><span class="cl">				timer-&gt;expires = expires;
+</span></span><span class="line"><span class="cl">			ret = 1;
+</span></span><span class="line"><span class="cl">			goto out_unlock;
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">	} else {
+</span></span><span class="line"><span class="cl">		base = lock_timer_base(timer, &amp;flags); //找到定时器对应的timer_base结构体并对其上锁 
+</span></span><span class="line"><span class="cl">		forward_timer_base(base);//试着更新timer_base中的clk数 
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	ret = detach_if_pending(timer, base, false); //将定时器从当前链表中移除 
+</span></span><span class="line"><span class="cl">	//如果定时器不在任何链表中且设置了MOD_TIMER_PENDING_ONLY选项则直接返回
+</span></span><span class="line"><span class="cl">	if (!ret &amp;&amp; (options &amp; MOD_TIMER_PENDING_ONLY))
+</span></span><span class="line"><span class="cl">		goto out_unlock;
+</span></span><span class="line"><span class="cl">	//获得系统指定的最合适的timer_base结构体
+</span></span><span class="line"><span class="cl">	new_base = get_target_base(base, timer-&gt;flags);
+</span></span><span class="line"><span class="cl">	//如果定时器指定的和系统挑选的timer_base结构体不一致则可能需要迁移
+</span></span><span class="line"><span class="cl">	if (base != new_base) { 
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * We are trying to schedule the timer on the new base.
+</span></span><span class="line"><span class="cl">		 * However we can&#39;t change timer&#39;s base while it is running,
+</span></span><span class="line"><span class="cl">		 * otherwise del_timer_sync() can&#39;t detect that the timer&#39;s
+</span></span><span class="line"><span class="cl">		 * handler yet has not finished. This also guarantees that the
+</span></span><span class="line"><span class="cl">		 * timer is serialized wrt itself.
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		if (likely(base-&gt;running_timer != timer)) { //如果定时器不是当前timer_base中正在处理的定时器
+</span></span><span class="line"><span class="cl">			/* See the comment in lock_timer_base() */
+</span></span><span class="line"><span class="cl">			timer-&gt;flags |= TIMER_MIGRATING; //设置TIMER_MIGRATING标记位
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">			raw_spin_unlock(&amp;base-&gt;lock); //释放迁移出的timer_base结构体的自旋锁
+</span></span><span class="line"><span class="cl">			base = new_base;
+</span></span><span class="line"><span class="cl">			raw_spin_lock(&amp;base-&gt;lock); //获取迁移进的timer_base结构体的自旋锁 
+</span></span><span class="line"><span class="cl">			WRITE_ONCE(timer-&gt;flags, 
+</span></span><span class="line"><span class="cl">				   (timer-&gt;flags &amp; ~TIMER_BASEMASK) | base-&gt;cpu); //写入新的CPU号并清除TIMER_MIGRATING标记位 
+</span></span><span class="line"><span class="cl">			forward_timer_base(base); //试着更新timer_base中的clk数
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	debug_activate(timer, expires);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	timer-&gt;expires = expires; //更新定时器的到期时间 
+</span></span><span class="line"><span class="cl">	/*
+</span></span><span class="line"><span class="cl">	 * If &#39;idx&#39; was calculated above and the base time did not advance
+</span></span><span class="line"><span class="cl">	 * between calculating &#39;idx&#39; and possibly switching the base, only
+</span></span><span class="line"><span class="cl">	 * enqueue_timer() and trigger_dyntick_cpu() is required. Otherwise
+</span></span><span class="line"><span class="cl">	 * we need to (re)calculate the wheel index via
+</span></span><span class="line"><span class="cl">	 * internal_add_timer().
+</span></span><span class="line"><span class="cl">	 */
+</span></span><span class="line"><span class="cl">	//如果桶下标已经计算过了且timer_base的clk没变（也意味着桶下标没变）
+</span></span><span class="line"><span class="cl">	if (idx != UINT_MAX &amp;&amp; clk == base-&gt;clk) {
+</span></span><span class="line"><span class="cl">		enqueue_timer(base, timer, idx); // 将定时器加入对应桶中
+</span></span><span class="line"><span class="cl">		trigger_dyntick_cpu(base, timer);
+</span></span><span class="line"><span class="cl">	} else {
+</span></span><span class="line"><span class="cl">		internal_add_timer(base, timer); //重新计算桶下标并添加进去
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">out_unlock:
+</span></span><span class="line"><span class="cl">	//释放timer_base结构体的自旋锁并开中断 
+</span></span><span class="line"><span class="cl">	raw_spin_unlock_irqrestore(&amp;base-&gt;lock, flags);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	return ret;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>首先，可以看到该函数在获得了定时器对应的<code>timer_base</code>结构体后，都需要调用<code>forward_timer_base</code>函数更新<code>timer_base</code>结构体中的<code>clk</code>变量：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static inline void forward_timer_base(struct timer_base *base)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">#ifdef CONFIG_NO_HZ_COMMON
+</span></span><span class="line"><span class="cl">	unsigned long jnow;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	/*
+</span></span><span class="line"><span class="cl">	 * We only forward the base when we are idle or have just come out of
+</span></span><span class="line"><span class="cl">	 * idle (must_forward_clk logic), and have a delta between base clock
+</span></span><span class="line"><span class="cl">	 * and jiffies. In the common case, run_timers will take care of it.
+</span></span><span class="line"><span class="cl">	 */
+</span></span><span class="line"><span class="cl">	if (likely(!base-&gt;must_forward_clk)) //必须设置了must_forward_clk
+</span></span><span class="line"><span class="cl">		return;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	jnow = READ_ONCE(jiffies); //获得当前的jiffies
+</span></span><span class="line"><span class="cl">	base-&gt;must_forward_clk = base-&gt;is_idle;
+</span></span><span class="line"><span class="cl">	//如果当前jiffies和clk变量之间的差值小于2证明当前CPU没有进入空闲模式
+</span></span><span class="line"><span class="cl">	if ((long)(jnow - base-&gt;clk) &lt; 2)
+</span></span><span class="line"><span class="cl">		return;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	/*
+</span></span><span class="line"><span class="cl">	 * If the next expiry value is &gt; jiffies, then we fast forward to
+</span></span><span class="line"><span class="cl">	 * jiffies otherwise we forward to the next expiry value.
+</span></span><span class="line"><span class="cl">	 */
+</span></span><span class="line"><span class="cl">	if (time_after(base-&gt;next_expiry, jnow))
+</span></span><span class="line"><span class="cl">		base-&gt;clk = jnow;
+</span></span><span class="line"><span class="cl">	else
+</span></span><span class="line"><span class="cl">		base-&gt;clk = base-&gt;next_expiry;
+</span></span><span class="line"><span class="cl">#endif
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>forward_timer_base</code>函数只有在内核在编译时打开<code>CONFIG_NO_HZ_COMMON</code>编译选项的时候才有实际的作用。这是因为，如果内核不支持<code>NO_HZ</code>模式的话，那<code>Tick</code>就不会中断，每次<code>Tick</code>到来时，<code>clk</code>都会得到更新，就不需要调用<code>forward_timer_base</code>函数来补了。相反，在支持<code>NO_HZ</code>模式时，<code>CPU</code>如果处于空闲状态，是不会收到任何<code>Tick</code>的，在这段时间内对应<code>CPU</code>的<code>timer_base</code>结构体中的<code>clk</code>就肯定不会得到更新，因此需要调用该函数来补。补的条件有两个，首先必须设置了<code>must_forward_clk</code>（后面会看到在处理定时期到期时会关闭<code>must_forward_clk</code>），还有就是当前的<code>jiffies</code>和<code>clk</code>中记录的已经经过的<code>jiffies</code>相差大于等于<code>2</code>（小于<code>2</code>基本说明还没进空闲模式）。</p>
+<p>最后，如果下一个到期时间在现在的<code>jiffies</code>之后，则将<code>clk</code>设置为当前的<code>jiffies</code>；如果当前的<code>jiffies</code>已经超过了下一个到期时间（某些定时器已经过期了），则将<code>clk</code>设置为下一个到期时间，一般对于可延迟定时器会出现这种情况。</p>
+<p><strong>每次都要补的目的其实是为了尽量提高定时器的精度，前面已经说过了，到期时间距离<code>clk</code>越近，就会将其放到级别越低的桶里面，检查的<code>Tick</code>间隔就会越小，当然精度越高</strong>。如果长期不补<code>clk</code>的值，那即使到期时间只在<code>1</code>个Tick之后，也有可能被放到级别较大的桶内，哪怕是放到级别为<code>1</code>的桶中，都要每<code>8</code>个<code>Tick</code>才会被检查一次，最差情况会延迟<code>7</code>个<code>Tick</code>。</p>
+<p>同时，我们还可以看出，<strong>一个定时器一旦加入了一个桶里之后，除非到期删除或者主动修改了定时器到期时间，否则就再也不会移动了，不会因为时间的流逝，距离到期时间越近而移动到更低级别的桶里面</strong>。</p>
+<p>最后，再提一下，在调用<code>enqueue_timer</code>函数将定时器放到<code>timer_base</code>的某个桶中后，一般还会接着调用<code>trigger_dyntick_cpu</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span>
+</span></span><span class="line"><span class="cl"><span class="nf">trigger_dyntick_cpu</span><span class="p">(</span><span class="k">struct</span> <span class="n">timer_base</span> <span class="o">*</span><span class="n">base</span><span class="p">,</span> <span class="k">struct</span> <span class="n">timer_list</span> <span class="o">*</span><span class="n">timer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">is_timers_nohz_active</span><span class="p">())</span> <span class="c1">//如果没有切换到NO_HZ模式则直接返回 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * TODO: This wants some optimizing similar to the code below, but we
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * will do that when we switch from push to pull for deferrable timers.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">timer</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">TIMER_DEFERRABLE</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="nf">tick_nohz_full_cpu</span><span class="p">(</span><span class="n">base</span><span class="o">-&gt;</span><span class="n">cpu</span><span class="p">))</span> <span class="c1">//没有打开CONFIG_NO_HZ_FULL时该函数永远返回false
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="nf">wake_up_nohz_cpu</span><span class="p">(</span><span class="n">base</span><span class="o">-&gt;</span><span class="n">cpu</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * We might have to IPI the remote CPU if the base is idle and the
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * timer is not deferrable. If the other CPU is on the way to idle
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * then it can&#39;t set base-&gt;is_idle as we hold the base lock:
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">base</span><span class="o">-&gt;</span><span class="n">is_idle</span><span class="p">)</span> <span class="c1">// 如果timer_base对应的CPU不是空闲的则直接返回
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//如果定时器的到期时间晚于timer_base中的到期时间则直接返回
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="cm">/* Check whether this is the new first expiring timer: */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">time_after_eq</span><span class="p">(</span><span class="n">timer</span><span class="o">-&gt;</span><span class="n">expires</span><span class="p">,</span> <span class="n">base</span><span class="o">-&gt;</span><span class="n">next_expiry</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * Set the next expiry time and kick the CPU so it can reevaluate the
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * wheel:
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//将timer_base的到期时间设置为定时器的到期时间
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">base</span><span class="o">-&gt;</span><span class="n">next_expiry</span> <span class="o">=</span> <span class="n">timer</span><span class="o">-&gt;</span><span class="n">expires</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">wake_up_nohz_cpu</span><span class="p">(</span><span class="n">base</span><span class="o">-&gt;</span><span class="n">cpu</span><span class="p">);</span> <span class="c1">//唤醒timer_base对应的CPU 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个函数主要是解决下面这种情况，如果要将定时器插入一个正处于空闲状态的<code>CPU</code>下的<code>timer_base</code>的时候，那个<code>CPU</code>的定时事件设备应该是已经被编程到了所有包含的定时器中最近要到期的那个时刻，这时候恰好要插入的定时器的到期时刻比原来最近的到期时刻还要早的话，那这个新被插入的定时器一定会超时，因为在这之前都不会有<code>Tick</code>到来。对于这种情况，只有调用<code>wake_up_nohz_cpu</code>函数将那个空闲的<code>CPU</code>唤醒，让它重新再检查一遍。</p>
+<h4 id="定时器的迁移">定时器的迁移</h4>
+<p>前面分析<code>__mod_timer</code>函数时已经碰到了定时器迁移的情况，定时器切换发生在定时器指定的<code>CPU</code>上的<code>timer_base</code>和系统调用<code>get_target_base</code>函数挑选的<code>timer_base</code>不一致的情况：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static inline struct timer_base *
+</span></span><span class="line"><span class="cl">get_target_base(struct timer_base *base, unsigned tflags)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">#if defined(CONFIG_SMP) &amp;&amp; defined(CONFIG_NO_HZ_COMMON)
+</span></span><span class="line"><span class="cl">	if (static_branch_likely(&amp;timers_migration_enabled) &amp;&amp;
+</span></span><span class="line"><span class="cl">	    !(tflags &amp; TIMER_PINNED))
+</span></span><span class="line"><span class="cl">		return get_timer_cpu_base(tflags, get_nohz_timer_target());
+</span></span><span class="line"><span class="cl">#endif
+</span></span><span class="line"><span class="cl">	return get_timer_this_cpu_base(tflags);
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果没有配置<code>CONFIG_SMP</code>，那么系统中只有一个<code>CPU</code>，也就无处迁移了。</p>
+<p>而如果内核没有配置<code>CONFIG_NO_HZ_COMMON</code>，则<code>Tick</code>不会中断，只需要返回当前<code>CPU</code>中对应的<code>timer_base</code>结构体就行了。</p>
+<p><code>timers_migration_enabled</code>值将在切换到<code>NO_HZ</code>模式时变成<code>True</code>，而退出<code>NO_HZ</code>模式时变成<code>False</code>。<strong>所以只有在切换到NO_HZ模式下，且定时器没有绑死到某个CPU的情况下，才会选择别的CPU上的timer_base，否则一定是当前CPU上的timer_base</strong>。</p>
+<p><code>get_nohz_timer_target</code>函数会判断当前的CPU是否处于空闲状态，如果不是空闲状态，那还是返回当前的<code>CPU</code>编号，如果真是空闲的话，会找到最近的一个忙的处理器，并返回其编号。所以，一共应该有两种情况会出现要迁移定时器的行为：</p>
+<ul>
+<li>在当前<code>CPU</code>上尝试修改一个没有绑定到当前<code>CPU</code>上的定时器；</li>
+<li>当前<code>CPU</code>空闲的时候，修改任何绑定到当前<code>CPU</code>上的定时器。</li>
+</ul>
+<h4 id="tick到来的处理">Tick到来的处理</h4>
+<p>当一个<code>Tick</code>到来时，无论是<code>Tick</code>层还是<code>Tick</code>模拟层最终都会调用<code>update_process_times</code>通知定时器层：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * Called from the timer interrupt handler to charge one tick to the current
+</span></span><span class="line"><span class="cl"> * process.  user_tick is 1 if the tick is user time, 0 for system.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">void update_process_times(int user_tick)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	struct task_struct *p = current;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	/* Note: this timer irq context must be accounted for as well. */
+</span></span><span class="line"><span class="cl">	account_process_tick(p, user_tick);
+</span></span><span class="line"><span class="cl">	run_local_timers();  //处理当前CPU下的所有定时器
+</span></span><span class="line"><span class="cl">	rcu_check_callbacks(user_tick);
+</span></span><span class="line"><span class="cl">#ifdef CONFIG_IRQ_WORK
+</span></span><span class="line"><span class="cl">	if (in_irq())
+</span></span><span class="line"><span class="cl">		irq_work_tick();
+</span></span><span class="line"><span class="cl">#endif
+</span></span><span class="line"><span class="cl">	scheduler_tick();
+</span></span><span class="line"><span class="cl">	if (IS_ENABLED(CONFIG_POSIX_TIMERS))
+</span></span><span class="line"><span class="cl">		run_posix_cpu_timers(p);
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>除了一些其它功能外，该函数会调用<code>run_local_timers</code>函数处理当前<code>CPU</code>下的所有定时器：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * Called by the local, per-CPU timer interrupt on SMP.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">void run_local_timers(void)
+</span></span><span class="line"><span class="cl">{	//获得当前CPU下BASE_STD下标的timer_base结构体
+</span></span><span class="line"><span class="cl">	struct timer_base *base = this_cpu_ptr(&amp;timer_bases[BASE_STD]);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	hrtimer_run_queues(); //通知高精度定时器
+</span></span><span class="line"><span class="cl">	/* Raise the softirq only if required. */
+</span></span><span class="line"><span class="cl">	//如果当前jiffies小于timer_base的clk值表明还没有任何定时器到期
+</span></span><span class="line"><span class="cl">	if (time_before(jiffies, base-&gt;clk)) {
+</span></span><span class="line"><span class="cl">		if (!IS_ENABLED(CONFIG_NO_HZ_COMMON))
+</span></span><span class="line"><span class="cl">			return;
+</span></span><span class="line"><span class="cl">		/* CPU is awake, so check the deferrable base. */
+</span></span><span class="line"><span class="cl">		//接着查当前CPU下BASE_DEF下标的timer_base结构体
+</span></span><span class="line"><span class="cl">		base++;
+</span></span><span class="line"><span class="cl">		if (time_before(jiffies, base-&gt;clk))
+</span></span><span class="line"><span class="cl">			return;
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">	raise_softirq(TIMER_SOFTIRQ); //发起TIMER_SOFTIRQ软中断 
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数先取出当前<code>CPU</code>下<code>BASE_STD</code>编号的<code>timer_base</code>结构体。如果当前系统的<code>jiffies</code>小于结构体中的<code>clk</code>变量的值，表示该结构体内包含的所有定时器都还没有到期。如果内核没有配置<code>CONFIG_NO_HZ_COMMON</code>编译选项，则直接退出（没有配置<code>NO_HZ</code>模式，也就没有第二个<code>timer_base</code>结构体了）。否则继续检查<code>BASE_DEF</code>标号的<code>timer_base</code>结构体，如果全都没有到期的定时器，就没必要激活软中断继续处理了，直接退出就可以了。如果有可能有任何定时器到期的话，则激活<code>TIMER_SOFTIRQ</code>软中断。这个函数还会调用<code>hrtimer_run_queues</code>函数通知高精度定时器层。所以，在高精度定时器层没有切换到高精度模式前，其定时触发其实是靠精度较低的定时器层驱动的。</p>
+<p><code>TIMER_SOFTIRQ</code>软中断的处理函数是在<code>init_timers</code>函数里面初始化的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">void __init init_timers(void)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	init_timer_cpus();
+</span></span><span class="line"><span class="cl">	open_softirq(TIMER_SOFTIRQ, run_timer_softirq);
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看到<code>TIMER_SOFTIRQ</code>软中断的处理函数是<code>run_timer_softirq</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * This function runs timers and the timer-tq in bottom half context.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">static __latent_entropy void run_timer_softirq(struct softirq_action *h)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	struct timer_base *base = this_cpu_ptr(&amp;timer_bases[BASE_STD]);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	__run_timers(base);
+</span></span><span class="line"><span class="cl">	if (IS_ENABLED(CONFIG_NO_HZ_COMMON))
+</span></span><span class="line"><span class="cl">		__run_timers(this_cpu_ptr(&amp;timer_bases[BASE_DEF]));
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>就是分别调用<code>__run_timers</code>函数处理本<code>CPU</code>下的<code>BASE_STD</code>和<code>BASE_DEF</code>两个<code>timer_base</code>中包含的所有定时器：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/**
+</span></span><span class="line"><span class="cl"> * __run_timers - run all expired timers (if any) on this CPU.
+</span></span><span class="line"><span class="cl"> * @base: the timer vector to be processed.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">static inline void __run_timers(struct timer_base *base)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	struct hlist_head heads[LVL_DEPTH];
+</span></span><span class="line"><span class="cl">	int levels;
+</span></span><span class="line"><span class="cl">	//如果当前时间早于timer_base的clk值表明没有定时器到期
+</span></span><span class="line"><span class="cl">	if (!time_after_eq(jiffies, base-&gt;clk))
+</span></span><span class="line"><span class="cl">		return;
+</span></span><span class="line"><span class="cl">	//获得timer_base的自旋锁并关中断
+</span></span><span class="line"><span class="cl">	raw_spin_lock_irq(&amp;base-&gt;lock);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	/*
+</span></span><span class="line"><span class="cl">	 * timer_base::must_forward_clk must be cleared before running
+</span></span><span class="line"><span class="cl">	 * timers so that any timer functions that call mod_timer() will
+</span></span><span class="line"><span class="cl">	 * not try to forward the base. Idle tracking / clock forwarding
+</span></span><span class="line"><span class="cl">	 * logic is only used with BASE_STD timers.
+</span></span><span class="line"><span class="cl">	 *
+</span></span><span class="line"><span class="cl">	 * The must_forward_clk flag is cleared unconditionally also for
+</span></span><span class="line"><span class="cl">	 * the deferrable base. The deferrable base is not affected by idle
+</span></span><span class="line"><span class="cl">	 * tracking and never forwarded, so clearing the flag is a NOOP.
+</span></span><span class="line"><span class="cl">	 *
+</span></span><span class="line"><span class="cl">	 * The fact that the deferrable base is never forwarded can cause
+</span></span><span class="line"><span class="cl">	 * large variations in granularity for deferrable timers, but they
+</span></span><span class="line"><span class="cl">	 * can be deferred for long periods due to idle anyway.
+</span></span><span class="line"><span class="cl">	 */
+</span></span><span class="line"><span class="cl">	base-&gt;must_forward_clk = false; //在__mod_timer函数中不需要再更新timer_base的clk值 
+</span></span><span class="line"><span class="cl">	//如果当前时间晚于或等于timer_base的clk值循环并递增
+</span></span><span class="line"><span class="cl">	while (time_after_eq(jiffies, base-&gt;clk)) {
+</span></span><span class="line"><span class="cl">		//收集所有已经到期的定时器
+</span></span><span class="line"><span class="cl">		levels = collect_expired_timers(base, heads);
+</span></span><span class="line"><span class="cl">		base-&gt;clk++;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		while (levels--)//按级从高到低处理所有到期定时器
+</span></span><span class="line"><span class="cl">			expire_timers(base, heads + levels);
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">	base-&gt;running_timer = NULL; //设置timer_base的running_timer的值为空
+</span></span><span class="line"><span class="cl">	raw_spin_unlock_irq(&amp;base-&gt;lock); //释放timer_base的自旋锁并开中断
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数其实很简单，基本上就是先调用<code>collect_expired_timers</code>函数获得所有到期定时器，然后调用<code>expire_timers</code>函数处理所有的到期定时器。如果表示当前时间的系统<code>jiffies</code>值等于或晚于<code>timer_base</code>中的<code>clk</code>值，表明确实是经过了一些<code>Tick</code>，这时候就需要一个<code>Tick</code>一个<code>Tick</code>的追查到底有多少个定时器已经到期了，直到追到当前时间为止。</p>
+<p>处理到期定时器的<code>expire_timers</code>函数相对简单，我们先来看看：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static void expire_timers(struct timer_base *base, struct hlist_head *head)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	while (!hlist_empty(head)) { //循环访问所有超时定时器
+</span></span><span class="line"><span class="cl">		struct timer_list *timer;
+</span></span><span class="line"><span class="cl">		void (*fn)(struct timer_list *);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		timer = hlist_entry(head-&gt;first, struct timer_list, entry);
+</span></span><span class="line"><span class="cl">		//更新timer_base的running_timer的值为当前待处理定时器
+</span></span><span class="line"><span class="cl">		base-&gt;running_timer = timer;
+</span></span><span class="line"><span class="cl">		detach_timer(timer, true); //从链表中删除该定时器
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		fn = timer-&gt;function;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		if (timer-&gt;flags &amp; TIMER_IRQSAFE) {
+</span></span><span class="line"><span class="cl">			raw_spin_unlock(&amp;base-&gt;lock);
+</span></span><span class="line"><span class="cl">			call_timer_fn(timer, fn); //调用定时器到期处理函数 
+</span></span><span class="line"><span class="cl">			raw_spin_lock(&amp;base-&gt;lock);
+</span></span><span class="line"><span class="cl">		} else {
+</span></span><span class="line"><span class="cl">			raw_spin_unlock_irq(&amp;base-&gt;lock);
+</span></span><span class="line"><span class="cl">			call_timer_fn(timer, fn); //调用定时器到期处理函数 
+</span></span><span class="line"><span class="cl">			raw_spin_lock_irq(&amp;base-&gt;lock);
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数的第一个参数是对应的<code>timer_base</code>结构体，第二个参数是要处理的到期定时器的列表。如果定时器的标志位设置了<code>TIMER_IRQSAFE</code>标志位，除了加锁和释放锁，还需要同时关闭中断和打开中断。</p>
+<p>收集所有到期定时器是在<code>collect_expired_timers</code>函数中实现的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#ifdef CONFIG_NO_HZ_COMMON
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">static int collect_expired_timers(struct timer_base *base,
+</span></span><span class="line"><span class="cl">				  struct hlist_head *heads)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	/*
+</span></span><span class="line"><span class="cl">	 * NOHZ optimization. After a long idle sleep we need to forward the
+</span></span><span class="line"><span class="cl">	 * base to current jiffies. Avoid a loop by searching the bitfield for
+</span></span><span class="line"><span class="cl">	 * the next expiring timer.
+</span></span><span class="line"><span class="cl">	 */
+</span></span><span class="line"><span class="cl">	//如果当前jiffies和clk变量之间的差值大于2证明当前CPU已经进入过空闲模式
+</span></span><span class="line"><span class="cl">	if ((long)(jiffies - base-&gt;clk) &gt; 2) {
+</span></span><span class="line"><span class="cl">		//搜寻timer_base下最早到期定时器的时间
+</span></span><span class="line"><span class="cl">		unsigned long next = __next_timer_interrupt(base);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * If the next timer is ahead of time forward to current
+</span></span><span class="line"><span class="cl">		 * jiffies, otherwise forward to the next expiry time:
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		if (time_after(next, jiffies)) { //如果最近的到期时间晚于当前的时间
+</span></span><span class="line"><span class="cl">			/*
+</span></span><span class="line"><span class="cl">			 * The call site will increment base-&gt;clk and then
+</span></span><span class="line"><span class="cl">			 * terminate the expiry loop immediately.
+</span></span><span class="line"><span class="cl">			 */
+</span></span><span class="line"><span class="cl">			base-&gt;clk = jiffies; //更新clk的值为当前时间后直接返回 
+</span></span><span class="line"><span class="cl">			return 0;
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">		base-&gt;clk = next; //更新clk的值为最近的到期时间
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">	return __collect_expired_timers(base, heads); //收集所有到期的定时器
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">#else
+</span></span><span class="line"><span class="cl">static inline int collect_expired_timers(struct timer_base *base,
+</span></span><span class="line"><span class="cl">					 struct hlist_head *heads)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	return __collect_expired_timers(base, heads);
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">#endif
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>函数第一个参数是要收集的<code>timer_base</code>结构体，第二个参数是一个输出参数，是一个链表数组，按照级编号。在正式收集之前，会检查是不是刚从空闲模式中出来。在空闲模式下，不会收到<code>Tick</code>，所以就会导致当前时间<code>jiffies</code>和<code>timer_base</code>的<code>clk</code>值之间差距比较大。如果是这样的话，还是像处理普通模式一样一个<code>Tick</code>一个<code>Tick</code>追就太没有效率了，因为理论上在<code>Tick</code>中断期间是没有要到期的定时器的。所以，可以调用<code>__next_timer_interrupt</code>函数找到最近到期定时器的到期时间，并更新<code>clk</code>的值，再去收集。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * Search the first expiring timer in the various clock levels. Caller must
+</span></span><span class="line"><span class="cl"> * hold base-&gt;lock.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">static unsigned long __next_timer_interrupt(struct timer_base *base)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	unsigned long clk, next, adj;
+</span></span><span class="line"><span class="cl">	unsigned lvl, offset = 0;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	next = base-&gt;clk + NEXT_TIMER_MAX_DELTA;
+</span></span><span class="line"><span class="cl">	clk = base-&gt;clk;
+</span></span><span class="line"><span class="cl">	//循环每一个级
+</span></span><span class="line"><span class="cl">	for (lvl = 0; lvl &lt; LVL_DEPTH; lvl++, offset += LVL_SIZE) {
+</span></span><span class="line"><span class="cl">		//在某一级下获得下一个到期桶偏移距离 
+</span></span><span class="line"><span class="cl">		int pos = next_pending_bucket(base, offset, clk &amp; LVL_MASK);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		if (pos &gt;= 0) {//计算对应桶的到期时间
+</span></span><span class="line"><span class="cl">			unsigned long tmp = clk + (unsigned long) pos;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">			tmp &lt;&lt;= LVL_SHIFT(lvl);
+</span></span><span class="line"><span class="cl">			if (time_before(tmp, next)) //找出最小的到期时间 
+</span></span><span class="line"><span class="cl">				next = tmp;
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * Clock for the next level. If the current level clock lower
+</span></span><span class="line"><span class="cl">		 * bits are zero, we look at the next level as is. If not we
+</span></span><span class="line"><span class="cl">		 * need to advance it by one because that&#39;s going to be the
+</span></span><span class="line"><span class="cl">		 * next expiring bucket in that level. base-&gt;clk is the next
+</span></span><span class="line"><span class="cl">		 * expiring jiffie. So in case of:
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * LVL5 LVL4 LVL3 LVL2 LVL1 LVL0
+</span></span><span class="line"><span class="cl">		 *  0    0    0    0    0    0
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * we have to look at all levels @index 0. With
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * LVL5 LVL4 LVL3 LVL2 LVL1 LVL0
+</span></span><span class="line"><span class="cl">		 *  0    0    0    0    0    2
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * LVL0 has the next expiring bucket @index 2. The upper
+</span></span><span class="line"><span class="cl">		 * levels have the next expiring bucket @index 1.
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * In case that the propagation wraps the next level the same
+</span></span><span class="line"><span class="cl">		 * rules apply:
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * LVL5 LVL4 LVL3 LVL2 LVL1 LVL0
+</span></span><span class="line"><span class="cl">		 *  0    0    0    0    F    2
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * So after looking at LVL0 we get:
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * LVL5 LVL4 LVL3 LVL2 LVL1
+</span></span><span class="line"><span class="cl">		 *  0    0    0    1    0
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * So no propagation from LVL1 to LVL2 because that happened
+</span></span><span class="line"><span class="cl">		 * with the add already, but then we need to propagate further
+</span></span><span class="line"><span class="cl">		 * from LVL2 to LVL3.
+</span></span><span class="line"><span class="cl">		 *
+</span></span><span class="line"><span class="cl">		 * So the simple check whether the lower bits of the current
+</span></span><span class="line"><span class="cl">		 * level are 0 or not is sufficient for all cases.
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		//如果当前clk的最低3位不为0，则切换到下一级的时候要加1。
+</span></span><span class="line"><span class="cl">		adj = clk &amp; LVL_CLK_MASK ? 1 : 0;
+</span></span><span class="line"><span class="cl">		//对clk移位切换下一级
+</span></span><span class="line"><span class="cl">		clk &gt;&gt;= LVL_CLK_SHIFT;
+</span></span><span class="line"><span class="cl">		clk += adj;
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">	return next;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数搜寻所有级下面的所有桶中第一个马上要到期定时器的到期时间。<code>clk</code>会在切换到下一级搜索前向右移<code>3</code>位，并且如果最低<code>3</code>位不为<code>0</code>的时候，移位后还需要加<code>1</code>。这是因为这个函数是用来找马上要到期的定时器，不是现在已经到期的，所以应该要找下一级的下一个。</p>
+<p>前面提到过，定时器是不会因为快要到期了而移动位置的，因此有可能在高级别的桶内的到期时间反而早于在低级别桶内的到期时间，所以需要每个级别都要搜索。</p>
+<p><code>next_pending_bucket</code>函数用来获得下一个到期桶的编号：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/*
+</span></span><span class="line"><span class="cl"> * Find the next pending bucket of a level. Search from level start (@offset)
+</span></span><span class="line"><span class="cl"> * + @clk upwards and if nothing there, search from start of the level
+</span></span><span class="line"><span class="cl"> * (@offset) up to @offset + clk.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">static int next_pending_bucket(struct timer_base *base, unsigned offset,
+</span></span><span class="line"><span class="cl">			       unsigned clk)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	unsigned pos, start = offset + clk;
+</span></span><span class="line"><span class="cl">	unsigned end = offset + LVL_SIZE;
+</span></span><span class="line"><span class="cl">	//从start开始到end往后搜 
+</span></span><span class="line"><span class="cl">	pos = find_next_bit(base-&gt;pending_map, end, start);
+</span></span><span class="line"><span class="cl">	if (pos &lt; end)
+</span></span><span class="line"><span class="cl">		return pos - start;
+</span></span><span class="line"><span class="cl">	//从offset开始到到start回过来搜
+</span></span><span class="line"><span class="cl">	pos = find_next_bit(base-&gt;pending_map, start, offset);
+</span></span><span class="line"><span class="cl">	return pos &lt; start ? pos + LVL_SIZE - start : -1;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>注意，参数<code>clk</code>不是<code>timer_base</code>的<code>clk</code>值，而是对应该级的<code>6</code>位。函数返回的数值是在某一个级下的桶偏移距离，也就是编号的范围是<code>0</code>到<code>63</code>，同时还要考虑回滚的情况。这个函数是通过搜索<code>timer_base</code>的<code>pending_map</code>字段查找的，前面提过，在向某个桶中插入定时器的时候会设置<code>pending_map</code>的相应位。这个函数先从当前位置向该级最后一个桶的位置查找，如果找到了那就返回找到的位置和当前位置的距离：</p>
+<p><img src="./next_pending_bucket1.png" alt="">
+如果找不到，还会继续从该级第一个桶的位置向当前位置查找，但最后计算距离的时候，要考虑回滚，也就是当前位置到该级最后一个桶的位置之间的距离加上该级第一个桶的位置到找到的位置之间的距离：</p>
+<p><img src="./next_pending_bucket2.png" alt=""></p>
+<p>在更新完<code>timer_base</code>的<code>clk</code>值之后，<code>collect_expired_timers</code>函数最终会调用<code>__collect_expired_timers</code>函数真正去收集到期的定时器：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static int __collect_expired_timers(struct timer_base *base,
+</span></span><span class="line"><span class="cl">				    struct hlist_head *heads)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	unsigned long clk = base-&gt;clk;
+</span></span><span class="line"><span class="cl">	struct hlist_head *vec;
+</span></span><span class="line"><span class="cl">	int i, levels = 0;
+</span></span><span class="line"><span class="cl">	unsigned int idx;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	for (i = 0; i &lt; LVL_DEPTH; i++) { //按级别从低到高循环
+</span></span><span class="line"><span class="cl">		//找到对应clk值在指定级下面的桶下
+</span></span><span class="line"><span class="cl">		idx = (clk &amp; LVL_MASK) + i * LVL_SIZE;
+</span></span><span class="line"><span class="cl">		//看对应的桶下面有没有定时器
+</span></span><span class="line"><span class="cl">		if (__test_and_clear_bit(idx, base-&gt;pending_map)) { 
+</span></span><span class="line"><span class="cl">			vec = base-&gt;vectors + idx; //获得对应桶链表
+</span></span><span class="line"><span class="cl">			hlist_move_list(vec, heads++); //将桶内所有定时器链表切换到heads参数里
+</span></span><span class="line"><span class="cl">			levels++;
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">		/* Is it time to look at the next level? */
+</span></span><span class="line"><span class="cl">		//如果还没到下一个级的检查周期则跳出循环
+</span></span><span class="line"><span class="cl">		if (clk &amp; LVL_CLK_MASK)
+</span></span><span class="line"><span class="cl">			break;
+</span></span><span class="line"><span class="cl">		//对clk移位切换下一级
+</span></span><span class="line"><span class="cl">		/* Shift clock for the next level granularity */
+</span></span><span class="line"><span class="cl">		clk &gt;&gt;= LVL_CLK_SHIFT;
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">	return levels;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数其实就是根据<code>timer_base</code>的<code>clk</code>值到每个级下的相应桶内查找看有没有到期的定时器。如果下一级的检查粒度还没达到就退出循环，在该级停止。</p>
+<p>所以，总结一下，时间轮不是定时器在滚动，而是到期的位置在不停的移动。定时器的位置在添加的一刹那，根据到期时间距离当前时间的间隔，以及到期时间对应相应级的<code>6</code>位固定好了，而且一旦固定下来就不会移动了。每当<code>Tick</code>到来，都会更新<code>timer_base</code>的<code>clk</code>值，计算所指向桶的位置，然后通过<code>pending_map</code>判断桶里面是不是存在定时器，如果有的话那它们一定已经到期甚至是超时了。同时，只有在相应时刻（粒度对应的<code>3</code>位全为<code>0</code>时）才会检查下一级。</p>
+<h3 id="低精度定时器的应用">低精度定时器的应用</h3>
+<p>在内核中，低精度定时器有很多地方在使用，特别时网络系统和IO系统中，另外，是当前进程睡眠一段时间的内核函数的实现就利用了低精度定时器。
+比如如下函数：</p>
+<ul>
+<li>schedule_timeout</li>
+<li>schedule_timeout_uninterruptible</li>
+<li>schedule_timeout_idle</li>
+<li>schedule_timeout_killable</li>
+<li>schedule_timeout_interruptible</li>
+<li>msleep</li>
+<li>msleep_interruptible</li>
+</ul>
+<p>这里我们主要分析一下<code>schedule_timeout</code>的代码，其它的接口都是对<code>schedule_timeout</code>的封装。
+<code>schedule_timeout</code>接口的作用是使当前线程睡眠<code>timeout</code>这么长的时间，然后继续运行，其代码如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/**
+</span></span><span class="line"><span class="cl"> * schedule_timeout - sleep until timeout
+</span></span><span class="line"><span class="cl"> * @timeout: timeout value in jiffies
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * Make the current task sleep until @timeout jiffies have
+</span></span><span class="line"><span class="cl"> * elapsed. The routine will return immediately unless
+</span></span><span class="line"><span class="cl"> * the current task state has been set (see set_current_state()).
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * You can set the task state as follows -
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * %TASK_UNINTERRUPTIBLE - at least @timeout jiffies are guaranteed to
+</span></span><span class="line"><span class="cl"> * pass before the routine returns unless the current task is explicitly
+</span></span><span class="line"><span class="cl"> * woken up, (e.g. by wake_up_process())&#34;.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * %TASK_INTERRUPTIBLE - the routine may return early if a signal is
+</span></span><span class="line"><span class="cl"> * delivered to the current task or the current task is explicitly woken
+</span></span><span class="line"><span class="cl"> * up.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * The current task state is guaranteed to be TASK_RUNNING when this
+</span></span><span class="line"><span class="cl"> * routine returns.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * Specifying a @timeout value of %MAX_SCHEDULE_TIMEOUT will schedule
+</span></span><span class="line"><span class="cl"> * the CPU away without a bound on the timeout. In this case the return
+</span></span><span class="line"><span class="cl"> * value will be %MAX_SCHEDULE_TIMEOUT.
+</span></span><span class="line"><span class="cl"> *
+</span></span><span class="line"><span class="cl"> * Returns 0 when the timer has expired otherwise the remaining time in
+</span></span><span class="line"><span class="cl"> * jiffies will be returned.  In all cases the return value is guaranteed
+</span></span><span class="line"><span class="cl"> * to be non-negative.
+</span></span><span class="line"><span class="cl"> */
+</span></span><span class="line"><span class="cl">signed long __sched schedule_timeout(signed long timeout)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	struct process_timer timer;
+</span></span><span class="line"><span class="cl">	unsigned long expire;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	switch (timeout)
+</span></span><span class="line"><span class="cl">	{
+</span></span><span class="line"><span class="cl">	case MAX_SCHEDULE_TIMEOUT:
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * These two special cases are useful to be comfortable
+</span></span><span class="line"><span class="cl">		 * in the caller. Nothing more. We could take
+</span></span><span class="line"><span class="cl">		 * MAX_SCHEDULE_TIMEOUT from one of the negative value
+</span></span><span class="line"><span class="cl">		 * but I&#39; d like to return a valid offset (&gt;=0) to allow
+</span></span><span class="line"><span class="cl">		 * the caller to do everything it want with the retval.
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		schedule();
+</span></span><span class="line"><span class="cl">		goto out;
+</span></span><span class="line"><span class="cl">	default:
+</span></span><span class="line"><span class="cl">		/*
+</span></span><span class="line"><span class="cl">		 * Another bit of PARANOID. Note that the retval will be
+</span></span><span class="line"><span class="cl">		 * 0 since no piece of kernel is supposed to do a check
+</span></span><span class="line"><span class="cl">		 * for a negative retval of schedule_timeout() (since it
+</span></span><span class="line"><span class="cl">		 * should never happens anyway). You just have the printk()
+</span></span><span class="line"><span class="cl">		 * that will tell you if something is gone wrong and where.
+</span></span><span class="line"><span class="cl">		 */
+</span></span><span class="line"><span class="cl">		if (timeout &lt; 0) {
+</span></span><span class="line"><span class="cl">			printk(KERN_ERR &#34;schedule_timeout: wrong timeout &#34;
+</span></span><span class="line"><span class="cl">				&#34;value %lx\n&#34;, timeout);
+</span></span><span class="line"><span class="cl">			dump_stack();
+</span></span><span class="line"><span class="cl">			current-&gt;state = TASK_RUNNING;
+</span></span><span class="line"><span class="cl">			goto out;
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	expire = timeout + jiffies;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	timer.task = current;
+</span></span><span class="line"><span class="cl">	timer_setup_on_stack(&amp;timer.timer, process_timeout, 0);
+</span></span><span class="line"><span class="cl">	__mod_timer(&amp;timer.timer, expire, 0);
+</span></span><span class="line"><span class="cl">	schedule();
+</span></span><span class="line"><span class="cl">	del_singleshot_timer_sync(&amp;timer.timer);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	/* Remove the timer from the object tracker */
+</span></span><span class="line"><span class="cl">	destroy_timer_on_stack(&amp;timer.timer);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	timeout = expire - jiffies;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"> out:
+</span></span><span class="line"><span class="cl">	return timeout &lt; 0 ? 0 : timeout;
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">EXPORT_SYMBOL(schedule_timeout);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数只有一个参数<code>timeout</code>，当其值有两个特殊的值：</p>
+<ul>
+<li>当<code>timeout</code>的值为<code>MAX_SCHEDULE_TIMEOUT</code>时，发生一次调度，该函数返回<code>MAX_SCHEDULE_TIMEOUT</code>；</li>
+<li>当<code>timeout</code>的值小于<code>0</code>时，直接打印告警，并不进行任何睡眠操作，函数返回<code>0</code>。</li>
+</ul>
+<p>正常情况下，当<code>timeout</code>大于等于<code>0</code>且小于<code>MAX_SCHEDULE_TIMEOUT</code>是，会启动一个定时器，设置其超时时间为当前时间<code>jiffies</code>加上<code>timeout</code>的时间。并触发一下调度。</p>
+<p>当该定时器到期时，其回调函数为<code>process_timeout</code>，代码如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static void process_timeout(struct timer_list *t)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	struct process_timer *timeout = from_timer(timeout, t, timer);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	wake_up_process(timeout-&gt;task);
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该函数很简单，只是唤醒睡眠的函数。</p>
+<p>注意，<code>schedule_timeout*</code>系列函数睡眠的最小粒度为一个jiffies，即一个Tick。在HZ为1000的机器上，就是1ms。</p>
+<h3 id="参考文章">参考文章</h3>
+<ul>
+<li><a href="https://blog.csdn.net/Roland_Sun/article/details/105775145">https://blog.csdn.net/Roland_Sun/article/details/105775145</a></li>
+</ul>
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+        2020-08-29
+        
+    </span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/kernel/linux-timer/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+<footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/kernel/">kernel</a>
+          <a href="/tags/linux/">linux</a>
+          </div>
+      <nav class="post-nav">
+        <a class="prev" href="/kernel/linux-kprobe/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Linux内核跟踪技术之——kprobe技术</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        <a class="next" href="/kernel/how-to-user-__kernel__/">
+            <span class="next-text nav-default">__KERNEL__宏的作用是什么呢？该如何使用呢？</span>
+            <span class="next-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
+  </span>
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex: {
+        }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-mml-chtml.js" integrity="sha256-HGLuEfFcsUJGhvB8cQ8nr0gai9EucOOaIxFw7qxmd+w=" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

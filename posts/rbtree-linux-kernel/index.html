@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本文介绍了红黑树在linux kernel中实现，使用的内核版本为：centos 3.10.0-693.11.6
-" />
-<meta name="keywords" content="rbtree" />
+<meta name="author" content="laoqinren" /><meta name="description" content="本文介绍了红黑树在linux kernel中实现，使用的内核版本为：centos 3.10.0-693.11.6
+" /><meta name="keywords" content="rbtree" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/rbtree-linux-kernel/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,32 +36,21 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="红黑树(二)——linux 内核的设计实现" />
 <meta property="og:description" content="本文介绍了红黑树在linux kernel中实现，使用的内核版本为：centos 3.10.0-693.11.6" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/rbtree-linux-kernel/" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/rbtree-linux-kernel/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2018-08-06T16:10:14+08:00" />
 <meta property="article:modified_time" content="2018-08-06T16:10:14+08:00" />
 <meta itemprop="name" content="红黑树(二)——linux 内核的设计实现">
-<meta itemprop="description" content="本文介绍了红黑树在linux kernel中实现，使用的内核版本为：centos 3.10.0-693.11.6">
-<meta itemprop="datePublished" content="2018-08-06T16:10:14+08:00" />
+<meta itemprop="description" content="本文介绍了红黑树在linux kernel中实现，使用的内核版本为：centos 3.10.0-693.11.6"><meta itemprop="datePublished" content="2018-08-06T16:10:14+08:00" />
 <meta itemprop="dateModified" content="2018-08-06T16:10:14+08:00" />
-<meta itemprop="wordCount" content="1637">
-
-
-
-<meta itemprop="keywords" content="" />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="1680">
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="红黑树(二)——linux 内核的设计实现"/>
 <meta name="twitter:description" content="本文介绍了红黑树在linux kernel中实现，使用的内核版本为：centos 3.10.0-693.11.6"/>
 
@@ -108,12 +93,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -134,6 +128,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -147,64 +142,83 @@
       <div class="post-meta">
         <span class="post-time"> 2018-08-06 </span>
         <div class="post-category">
-            
-              <a href="/categories/algorithm/"> algorithm </a>
-            
-              <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
-            
-          </div>
-        <span class="more-meta"> 1637 words </span>
-        <span class="more-meta"> 4 mins read </span>
+            <a href="/categories/algorithm/"> algorithm </a>
+            <a href="/categories/%E7%AE%97%E6%B3%95/"> 算法 </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#内核中的实现">内核中的实现</a>
+    <li>
       <ul>
-        <li><a href="#源码位置">源码位置</a></li>
-        <li><a href="#rb_node">rb_node</a></li>
-        <li><a href="#rb_parent_color-相关的宏">rb_parent_color 相关的宏</a></li>
-        <li><a href="#基本接口">基本接口</a></li>
-        <li><a href="#用于遍历的接口">用于遍历的接口</a></li>
-        <li><a href="#其他接口">其他接口</a></li>
+        <li><a href="#内核中的实现">内核中的实现</a>
+          <ul>
+            <li><a href="#源码位置">源码位置</a></li>
+            <li><a href="#rb_node">rb_node</a></li>
+            <li><a href="#rb_parent_color-相关的宏">rb_parent_color 相关的宏</a></li>
+            <li><a href="#基本接口">基本接口</a></li>
+            <li><a href="#用于遍历的接口">用于遍历的接口</a></li>
+            <li><a href="#其他接口">其他接口</a></li>
+          </ul>
+        </li>
+        <li><a href="#内核或者模块中红黑树的使用方法">内核或者模块中红黑树的使用方法</a></li>
       </ul>
     </li>
-    <li><a href="#内核或者模块中红黑树的使用方法">内核或者模块中红黑树的使用方法</a></li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本文介绍了红黑树在linux kernel中实现，使用的内核版本为：<a href="http://vault.centos.org/7.4.1708/updates/Source/SPackages/kernel-3.10.0-693.11.6.el7.src.rpm">centos 3.10.0-693.11.6</a></p>
 <h2 id="内核中的实现">内核中的实现</h2>
 <h3 id="源码位置">源码位置</h3>
 <p>内核中关于红黑树的文件如下：</p>
-<pre><code>include/linux/rbtree_augmented.h
-include/linux/rbtree.h
-lib/rbtree.c 
-lib/rbtree_test.c 
-Documentation/rbtree.txt
-</code></pre><h3 id="rb_node">rb_node</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">include/linux/rbtree_augmented.h
+</span></span><span class="line"><span class="cl">include/linux/rbtree.h
+</span></span><span class="line"><span class="cl">lib/rbtree.c 
+</span></span><span class="line"><span class="cl">lib/rbtree_test.c 
+</span></span><span class="line"><span class="cl">Documentation/rbtree.txt
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="rb_node">rb_node</h3>
 <p>先说说红黑树的基本数据结构吧：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">//本结构体四字节对齐，因而其地址中低位两个bit永远是0
-</span><span style="color:#75715e">//内核中用其中一个空闲的位来存储颜色信息
-</span><span style="color:#75715e">//__rb_parent_color成员实际上包含了父节点指针和自己的颜色信息
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> rb_node {
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>  __rb_parent_color; <span style="color:#75715e">//保存父节点的指针值（父节点的地址）同时保存节点的color
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb_right;
-        <span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb_left;
-} __attribute__((aligned(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">long</span>))));
-</code></pre></div><p><code>rb_node</code>结构体描述了红黑树中的一个结点，但在<code>linux</code>的实现中没有<code>key</code>域，这是<code>linux</code>数据结构的一大特色，就是结构不包括数据，而是由数据和基本结构被包括在同一个<code>struct</code>中，就像<code>list_head</code>中没有<code>data</code>域，需要用链表的<code>struct</code>中要包含<code>list_head</code>域一样。（由结构体获取数据信息是通过<code>container_of</code>这个宏来实现的，它利用了一些编译器的特性，有兴趣的可以参考<code>Linux的链表</code>源码。）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="c1">//本结构体四字节对齐，因而其地址中低位两个bit永远是0
+</span></span></span><span class="line"><span class="cl"><span class="c1">//内核中用其中一个空闲的位来存储颜色信息
+</span></span></span><span class="line"><span class="cl"><span class="c1">//__rb_parent_color成员实际上包含了父节点指针和自己的颜色信息
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">struct</span> <span class="n">rb_node</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span>  <span class="n">__rb_parent_color</span><span class="p">;</span> <span class="c1">//保存父节点的指针值（父节点的地址）同时保存节点的color
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">rb_right</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">rb_left</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="nf">__attribute__</span><span class="p">((</span><span class="nf">aligned</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="p">))));</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>rb_node</code>结构体描述了红黑树中的一个结点，但在<code>linux</code>的实现中没有<code>key</code>域，这是<code>linux</code>数据结构的一大特色，就是结构不包括数据，而是由数据和基本结构被包括在同一个<code>struct</code>中，就像<code>list_head</code>中没有<code>data</code>域，需要用链表的<code>struct</code>中要包含<code>list_head</code>域一样。（由结构体获取数据信息是通过<code>container_of</code>这个宏来实现的，它利用了一些编译器的特性，有兴趣的可以参考<code>Linux的链表</code>源码。）</p>
 <p><code>rb_node</code>结构体，被一个<code>__attribute__((aligned(sizeof(long))))</code>所包装(非常重要，技巧就在这!)，
 <code>__attribute__((aligned(sizeof(long))))</code>的意思是把结构体的地址按<code>sizeof(long)</code>对齐，对于<code>32</code>位机,<code>sizeof(long)</code>为<code>4</code>(即结构体内的数据类型的地址为4的倍数) ,对于<code>64</code>位机，<code>sizeof(long)</code>为<code>8</code>(即结构体内的数据类型的地址为8的倍数)。</p>
 <p>所以以4（或8）为倍数的地址以二进制表示的特点是：以4为倍数(字节对齐)的地址（32位机器）最后两位肯定为零(看好了是存储变量的地址，而不是变量)，对于<strong>64位机器是后三位肯定为零</strong>。</p>
@@ -215,37 +229,73 @@ Documentation/rbtree.txt
 </ul>
 <h3 id="rb_parent_color-相关的宏">rb_parent_color 相关的宏</h3>
 <p><code>rb_parent_color</code> 成员保存了上提到的两个重要的信息，<code>include/linux/rbtree_augmented.h</code>和<code>include/linux/rbtree.h</code>有些与其相关的宏：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"> <span style="color:#75715e">//获得父结点的地址
-</span><span style="color:#75715e"></span><span style="color:#75715e">#define rb_parent(r)   ((struct rb_node *)((r)-&gt;__rb_parent_color &amp; ~3))
-</span><span style="color:#75715e">#define __rb_parent(pc)    ((struct rb_node *)(pc &amp; ~3))
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">// 判断结点的颜色
-</span><span style="color:#75715e"></span><span style="color:#75715e">#define __rb_color(pc)     ((pc) &amp; 1)
-</span><span style="color:#75715e">#define __rb_is_black(pc)  __rb_color(pc)
-</span><span style="color:#75715e">#define __rb_is_red(pc)    (!__rb_color(pc))
-</span><span style="color:#75715e">#define rb_color(rb)       __rb_color((rb)-&gt;__rb_parent_color)
-</span><span style="color:#75715e">#define rb_is_red(rb)      __rb_is_red((rb)-&gt;__rb_parent_color)
-</span><span style="color:#75715e">#define rb_is_black(rb)    __rb_is_black((rb)-&gt;__rb_parent_color)
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">// 设置结点的父结点
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">rb_set_parent</span>(<span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb, <span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>p) 
-{
-        rb<span style="color:#f92672">-&gt;</span>__rb_parent_color <span style="color:#f92672">=</span> rb_color(rb) <span style="color:#f92672">|</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)p;
-}
-
-<span style="color:#75715e">// 设置结点的父结点和颜色
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">rb_set_parent_color</span>(<span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb,
-                                       <span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>p, <span style="color:#66d9ef">int</span> color)
-{
-        rb<span style="color:#f92672">-&gt;</span>__rb_parent_color <span style="color:#f92672">=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)p <span style="color:#f92672">|</span> color;
-}
-
-<span style="color:#75715e">//设置结点颜色为黑色
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">rb_set_black</span>(<span style="color:#66d9ef">struct</span> rb_node <span style="color:#f92672">*</span>rb)
-{
-        rb<span style="color:#f92672">-&gt;</span>__rb_parent_color <span style="color:#f92672">|=</span> RB_BLACK;
-}
-</code></pre></div><h3 id="基本接口">基本接口</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"> <span class="c1">//获得父结点的地址
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#define rb_parent(r)   ((struct rb_node *)((r)-&gt;__rb_parent_color &amp; ~3))
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define __rb_parent(pc)    ((struct rb_node *)(pc &amp; ~3))
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 判断结点的颜色
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#define __rb_color(pc)     ((pc) &amp; 1)
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define __rb_is_black(pc)  __rb_color(pc)
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define __rb_is_red(pc)    (!__rb_color(pc))
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define rb_color(rb)       __rb_color((rb)-&gt;__rb_parent_color)
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define rb_is_red(rb)      __rb_is_red((rb)-&gt;__rb_parent_color)
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define rb_is_black(rb)    __rb_is_black((rb)-&gt;__rb_parent_color)
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 设置结点的父结点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="nf">rb_set_parent</span><span class="p">(</span><span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">rb</span><span class="p">,</span> <span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span> 
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">rb</span><span class="o">-&gt;</span><span class="n">__rb_parent_color</span> <span class="o">=</span> <span class="nf">rb_color</span><span class="p">(</span><span class="n">rb</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span><span class="n">p</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 设置结点的父结点和颜色
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="nf">rb_set_parent_color</span><span class="p">(</span><span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">rb</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                       <span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">int</span> <span class="n">color</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">rb</span><span class="o">-&gt;</span><span class="n">__rb_parent_color</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span><span class="n">p</span> <span class="o">|</span> <span class="n">color</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">//设置结点颜色为黑色
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="nf">rb_set_black</span><span class="p">(</span><span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">rb</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">rb</span><span class="o">-&gt;</span><span class="n">__rb_parent_color</span> <span class="o">|=</span> <span class="n">RB_BLACK</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="基本接口">基本接口</h3>
 <ul>
 <li><code>rb_erase</code>： 删除结点</li>
 <li><code>rb_insert_color</code>： 插入结点</li>
@@ -270,7 +320,6 @@ Documentation/rbtree.txt
 <p>另外，内核中的红黑树实现了增强的接口，称之为<code>Augmented rbtrees</code>，具体信息，请参阅：https://elixir.bootlin.com/linux/v4.17/source/Documentation/rbtree.txt#L229</p>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -278,7 +327,10 @@ Documentation/rbtree.txt
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-08-06</span>
+    <span class="item-content">
+        2018-08-06
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -286,33 +338,24 @@ Documentation/rbtree.txt
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
-      
-
+<footer class="post-footer">
       
       <nav class="post-nav">
-        
-          <a class="prev" href="/posts/reuse-linux-kernel-rbtree/">
+        <a class="prev" href="/posts/reuse-linux-kernel-rbtree/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">红黑树(三)—— 在应用中复用linux的代码实现</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/posts/process_resource/">
+        <a class="next" href="/posts/process_resource/">
             <span class="next-text nav-default">Process Resource</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -326,6 +369,11 @@ Documentation/rbtree.txt
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -350,26 +398,24 @@ Documentation/rbtree.txt
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

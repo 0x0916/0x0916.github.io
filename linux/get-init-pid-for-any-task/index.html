@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本文题目为『获取容器中init进程的pid』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的pid namespace中，而我们有时需要在顶级的pid namespace中获取其init进程对应的在顶级pid namespace的pid。
+<meta name="author" content="laoqinren" /><meta name="description" content="本文题目为『获取容器中init进程的pid』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的pid namespace中，而我们有时需要在顶级的pid namespace中获取其init进程对应的在顶级pid namespace的pid。
 本文简要介绍了完成这个任务的一种方法。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/get-init-pid-for-any-task/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,34 +37,23 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="获取容器中init进程的pid" />
 <meta property="og:description" content="本文题目为『获取容器中init进程的pid』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的pid namespace中，而我们有时需要在顶级的pid namespace中获取其init进程对应的在顶级pid namespace的pid。
 本文简要介绍了完成这个任务的一种方法。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/linux/get-init-pid-for-any-task/" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/get-init-pid-for-any-task/" /><meta property="article:section" content="linux" />
 <meta property="article:published_time" content="2018-10-08T14:26:43+08:00" />
 <meta property="article:modified_time" content="2018-10-08T14:26:43+08:00" />
 <meta itemprop="name" content="获取容器中init进程的pid">
 <meta itemprop="description" content="本文题目为『获取容器中init进程的pid』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的pid namespace中，而我们有时需要在顶级的pid namespace中获取其init进程对应的在顶级pid namespace的pid。
-本文简要介绍了完成这个任务的一种方法。">
-<meta itemprop="datePublished" content="2018-10-08T14:26:43+08:00" />
+本文简要介绍了完成这个任务的一种方法。"><meta itemprop="datePublished" content="2018-10-08T14:26:43+08:00" />
 <meta itemprop="dateModified" content="2018-10-08T14:26:43+08:00" />
-<meta itemprop="wordCount" content="1458">
-
-
-
-<meta itemprop="keywords" content="kernel,linux," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="1818">
+<meta itemprop="keywords" content="kernel,linux," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="获取容器中init进程的pid"/>
 <meta name="twitter:description" content="本文题目为『获取容器中init进程的pid』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的pid namespace中，而我们有时需要在顶级的pid namespace中获取其init进程对应的在顶级pid namespace的pid。
 本文简要介绍了完成这个任务的一种方法。"/>
@@ -112,12 +97,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -138,6 +132,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -151,49 +146,55 @@
       <div class="post-meta">
         <span class="post-time"> 2018-10-08 </span>
         <div class="post-category">
-            
-              <a href="/categories/linux/"> linux </a>
-            
-          </div>
-        <span class="more-meta"> 1458 words </span>
-        <span class="more-meta"> 3 mins read </span>
+            <a href="/categories/linux/"> linux </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#实现方法">实现方法</a></li>
-        <li><a href="#代码实现">代码实现</a></li>
-        <li><a href="#编译运行">编译运行</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#实现方法">实现方法</a></li>
+            <li><a href="#代码实现">代码实现</a></li>
+            <li><a href="#编译运行">编译运行</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本文题目为『<strong>获取容器中init进程的pid</strong>』，其实说的还不够详细。其实容器中的进程都单独运行在一个独立的<code>pid namespace</code>中，而我们有时需要在顶级的<code>pid namespace</code>中获取其<code>init</code>进程对应的在顶级<code>pid namespace</code>的<code>pid</code>。</p>
 <p>本文简要介绍了完成这个任务的一种方法。</p>
 <h3 id="实现方法">实现方法</h3>
 <p>我们注意到<a href="http://man7.org/linux/man-pages/man7/pid_namespaces.7.html">man 7 pid_namespaces</a>有如下一段描述：</p>
-<pre><code>   Miscellaneous
-       When a process ID is passed over a UNIX domain socket to a process in
-       a different PID namespace (see the description of SCM_CREDENTIALS in
-       unix(7)), it is translated into the corresponding PID value in the
-       receiving process's PID namespace.
-</code></pre><p>什么意思呢？简单翻译一下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">   Miscellaneous
+</span></span><span class="line"><span class="cl">       When a process ID is passed over a UNIX domain socket to a process in
+</span></span><span class="line"><span class="cl">       a different PID namespace (see the description of SCM_CREDENTIALS in
+</span></span><span class="line"><span class="cl">       unix(7)), it is translated into the corresponding PID value in the
+</span></span><span class="line"><span class="cl">       receiving process&#39;s PID namespace.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>什么意思呢？简单翻译一下：</p>
 <p>当通过<code>Unix domain socket</code>进行发送<code>UNIX credentials</code>到不同的<code>pid namespace</code>中的进程时，对应的pid号会被转换成再接受进程所在的<code>pid namespace</code>中的进程号。</p>
 <p>所以，我们可以使用如下办法完成任务：</p>
 <ul>
@@ -203,361 +204,718 @@
 <li>A解析出收到的pid号就是我们想要的</li>
 </ul>
 <h3 id="代码实现">代码实现</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define _GNU_SOURCE
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/socket.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;errno.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdbool.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/epoll.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;wait.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#define SEND_CREDS_OK 0
-</span><span style="color:#75715e">#define SEND_CREDS_NOTSK 1
-</span><span style="color:#75715e">#define SEND_CREDS_FAIL 2
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">recv_creds</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">struct</span> ucred <span style="color:#f92672">*</span>cred, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>v);
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">wait_for_pid</span>(pid_t pid);
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_creds</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">struct</span> ucred <span style="color:#f92672">*</span>cred, <span style="color:#66d9ef">char</span> v, <span style="color:#66d9ef">bool</span> pingfirst);
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_creds_clone_wrapper</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg);
-
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_creds_clone_wrapper</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg)
-{
-	<span style="color:#66d9ef">struct</span> ucred cred;
-	<span style="color:#66d9ef">char</span> v;
-	<span style="color:#66d9ef">int</span> sock <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span>)arg;
-
-	cred.uid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-	cred.gid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-	cred.pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-
-	v <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1&#39;</span>;
-	<span style="color:#66d9ef">if</span> (send_creds(sock, <span style="color:#f92672">&amp;</span>cred, v, true) <span style="color:#f92672">!=</span> SEND_CREDS_OK)
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">wait_for_pid</span>(pid_t pid)
-{
-	<span style="color:#66d9ef">int</span> status, ret;
-
-	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-
-again:
-	ret <span style="color:#f92672">=</span> waitpid(pid, <span style="color:#f92672">&amp;</span>status, <span style="color:#ae81ff">0</span>);
-	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
-		<span style="color:#66d9ef">if</span> (errno <span style="color:#f92672">=</span> EINTR)
-			<span style="color:#66d9ef">goto</span> again;
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-	}
-
-	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">!=</span> pid)
-		<span style="color:#66d9ef">goto</span> again;
-
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>WIFEXITED(status) <span style="color:#f92672">||</span> WEXITSTATUS(status) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-<span style="color:#75715e">/*
-</span><span style="color:#75715e"> * clone a task which switches to @task&#39;s namespace and writes &#39;1&#39;.
-</span><span style="color:#75715e"> * over a unix sock so we can read the task&#39;s reaper&#39;s pid in our
-</span><span style="color:#75715e"> * namespace
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * Note: glibc&#39;s fork() does not respect pidns, which can lead to failed
-</span><span style="color:#75715e"> * assertions inside glibc (and thus failed forks) if the child&#39;s pid in
-</span><span style="color:#75715e"> * the pidns and the parent pid outside are identical. Using clone prevents
-</span><span style="color:#75715e"> * this issue.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">write_task_init_pid_exit</span>(<span style="color:#66d9ef">int</span> sock, pid_t target)
-{
-	<span style="color:#66d9ef">char</span> fnam[<span style="color:#ae81ff">100</span>];
-	pid_t pid;
-	<span style="color:#66d9ef">int</span> fd, ret;
-	size_t stack_size <span style="color:#f92672">=</span> sysconf(_SC_PAGESIZE);
-	<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>stack <span style="color:#f92672">=</span> alloca(stack_size);
-
-	ret <span style="color:#f92672">=</span> snprintf(fnam, <span style="color:#66d9ef">sizeof</span>(fnam), <span style="color:#e6db74">&#34;/proc/%d/ns/pid&#34;</span>, (<span style="color:#66d9ef">int</span>)target);
-	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> ret <span style="color:#f92672">&gt;=</span> <span style="color:#66d9ef">sizeof</span>(fnam))
-		_exit(<span style="color:#ae81ff">1</span>);
-
-	fd <span style="color:#f92672">=</span> open(fnam, O_RDONLY);
-	<span style="color:#66d9ef">if</span> (fd <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-		perror(<span style="color:#e6db74">&#34;write_task_init_pid_exit open of ns/pid&#34;</span> );
-		_exit(<span style="color:#ae81ff">1</span>);
-	}
-
-	<span style="color:#66d9ef">if</span> (setns(fd, <span style="color:#ae81ff">0</span>)) {
-		perror(<span style="color:#e6db74">&#34;write_task_init_pid_exit setns 1&#34;</span>);
-		close(fd);
-		_exit(<span style="color:#ae81ff">1</span>);
-	}
-
-	pid <span style="color:#f92672">=</span> clone(send_creds_clone_wrapper, stack<span style="color:#f92672">+</span>stack_size, SIGCHLD, <span style="color:#f92672">&amp;</span>sock);
-	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-		_exit(<span style="color:#ae81ff">1</span>);
-
-	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
-		<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>wait_for_pid(pid))
-			_exit(<span style="color:#ae81ff">1</span>);
-		_exit(<span style="color:#ae81ff">0</span>);
-	}
-}
-
-<span style="color:#66d9ef">static</span> pid_t <span style="color:#a6e22e">get_init_pid_for_task</span>(pid_t task)
-{
-	<span style="color:#66d9ef">int</span> sock[<span style="color:#ae81ff">2</span>];
-	pid_t pid;
-	pid_t ret <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-	<span style="color:#66d9ef">char</span> v <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0&#39;</span>;
-	<span style="color:#66d9ef">struct</span> ucred cred;
-
-	<span style="color:#66d9ef">if</span> (socketpair(AF_UNIX, SOCK_DGRAM, <span style="color:#ae81ff">0</span>, sock) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> ) {
-		perror(<span style="color:#e6db74">&#34;socketpair&#34;</span>);
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-	}
-
-	pid <span style="color:#f92672">=</span> fork();
-
-	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-		<span style="color:#66d9ef">goto</span> out;
-
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>pid) {
-		<span style="color:#75715e">// Child process
-</span><span style="color:#75715e"></span>		close(sock[<span style="color:#ae81ff">1</span>]);
-		write_task_init_pid_exit(sock[<span style="color:#ae81ff">0</span>], task);
-		_exit(<span style="color:#ae81ff">0</span>);
-	}
-
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>recv_creds(sock[<span style="color:#ae81ff">1</span>], <span style="color:#f92672">&amp;</span>cred, <span style="color:#f92672">&amp;</span>v))
-		<span style="color:#66d9ef">goto</span> out;
-
-	ret <span style="color:#f92672">=</span> cred.pid;
-
-out:
-	close(sock[<span style="color:#ae81ff">0</span>]);
-	close(sock[<span style="color:#ae81ff">1</span>]);
-
-	<span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>)
-		wait_for_pid(pid);
-
-	<span style="color:#66d9ef">return</span> ret;
-}
-
-<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">usage</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
-{
-	printf(<span style="color:#e6db74">&#34;Usage:</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-	printf(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">%s pid</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">1</span>]);
-}
-
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
-{
-	pid_t result;
-	pid_t target;
-
-	<span style="color:#66d9ef">if</span> (argc <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span>) {
-		usage(argc, argv);
-		exit(<span style="color:#ae81ff">0</span>);
-	}
-
-	target <span style="color:#f92672">=</span> (pid_t)atoi(argv[<span style="color:#ae81ff">1</span>]);
-	result <span style="color:#f92672">=</span> get_init_pid_for_task(target);
-
-	printf(<span style="color:#e6db74">&#34;pid %d &#39;s init pid is %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, (<span style="color:#66d9ef">int</span>)target, (<span style="color:#66d9ef">int</span>)result);
-}
-
-
-
-<span style="color:#75715e">#define POLLIN_SET ( EPOLLIN | EPOLLHUP | EPOLLRDHUP )
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">wait_for_sock</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">int</span> timeout)
-{
-	<span style="color:#66d9ef">struct</span> epoll_event ev;
-	<span style="color:#66d9ef">int</span> epfd, ret, now, starttime, deltatime, saved_errno;
-
-	<span style="color:#66d9ef">if</span> ((starttime <span style="color:#f92672">=</span> time(NULL)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-		<span style="color:#66d9ef">return</span> false;
-
-	<span style="color:#66d9ef">if</span> ((epfd <span style="color:#f92672">=</span> epoll_create(<span style="color:#ae81ff">1</span>)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-		printf(<span style="color:#e6db74">&#34;%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#e6db74">&#34;Failed to create epoll socket: %m.&#34;</span>);
-		<span style="color:#66d9ef">return</span> false;
-	}
-
-	ev.events <span style="color:#f92672">=</span> POLLIN_SET;
-	ev.data.fd <span style="color:#f92672">=</span> sock;
-	<span style="color:#66d9ef">if</span> (epoll_ctl(epfd, EPOLL_CTL_ADD, sock, <span style="color:#f92672">&amp;</span>ev) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-		printf(<span style="color:#e6db74">&#34;%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#e6db74">&#34;Failed adding socket to epoll: %m.&#34;</span>);
-		close(epfd);
-		<span style="color:#66d9ef">return</span> false;
-	}
-
-again:
-	<span style="color:#66d9ef">if</span> ((now <span style="color:#f92672">=</span> time(NULL)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-		close(epfd);
-		<span style="color:#66d9ef">return</span> false;
-	}
-
-	deltatime <span style="color:#f92672">=</span> (starttime <span style="color:#f92672">+</span> timeout) <span style="color:#f92672">-</span> now;
-	<span style="color:#66d9ef">if</span> (deltatime <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) { <span style="color:#75715e">// timeout
-</span><span style="color:#75715e"></span>		errno <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-		close(epfd);
-		<span style="color:#66d9ef">return</span> false;
-	}
-	ret <span style="color:#f92672">=</span> epoll_wait(epfd, <span style="color:#f92672">&amp;</span>ev, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1000</span><span style="color:#f92672">*</span>deltatime <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
-	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> errno <span style="color:#f92672">==</span> EINTR)
-		<span style="color:#66d9ef">goto</span> again;
-	saved_errno <span style="color:#f92672">=</span> errno;
-	close(epfd);
-
-	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>) {
-		errno <span style="color:#f92672">=</span> saved_errno;
-		<span style="color:#66d9ef">return</span> false;
-	}
-	<span style="color:#66d9ef">return</span> true;
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">msgrecv</span>(<span style="color:#66d9ef">int</span> sockfd, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>buf, size_t len)
-{
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>wait_for_sock(sockfd, <span style="color:#ae81ff">2</span>))
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-	<span style="color:#66d9ef">return</span> recv(sockfd, buf, len, MSG_DONTWAIT);
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_creds</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">struct</span> ucred <span style="color:#f92672">*</span>cred, <span style="color:#66d9ef">char</span> v, <span style="color:#66d9ef">bool</span> pingfirst)
-{
-	<span style="color:#66d9ef">struct</span> msghdr msg <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0</span> };
-	<span style="color:#66d9ef">struct</span> iovec iov;
-	<span style="color:#66d9ef">struct</span> cmsghdr <span style="color:#f92672">*</span>cmsg;
-	<span style="color:#66d9ef">char</span> cmsgbuf[CMSG_SPACE(<span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>cred))];
-	<span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">1</span>];
-	buf[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;p&#39;</span>;
-
-	<span style="color:#66d9ef">if</span> (pingfirst) {
-		<span style="color:#66d9ef">if</span> (msgrecv(sock, buf, <span style="color:#ae81ff">1</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>) {
-			printf(<span style="color:#e6db74">&#34;%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#e6db74">&#34;Error getting reply from server over socketpair.&#34;</span>);
-			<span style="color:#66d9ef">return</span> SEND_CREDS_FAIL;
-		}
-	}
-
-	msg.msg_control <span style="color:#f92672">=</span> cmsgbuf;
-	msg.msg_controllen <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(cmsgbuf);
-
-	cmsg <span style="color:#f92672">=</span> CMSG_FIRSTHDR(<span style="color:#f92672">&amp;</span>msg);
-	cmsg<span style="color:#f92672">-&gt;</span>cmsg_len <span style="color:#f92672">=</span> CMSG_LEN(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> ucred));
-	cmsg<span style="color:#f92672">-&gt;</span>cmsg_level <span style="color:#f92672">=</span> SOL_SOCKET;
-	cmsg<span style="color:#f92672">-&gt;</span>cmsg_type <span style="color:#f92672">=</span> SCM_CREDENTIALS;
-	memcpy(CMSG_DATA(cmsg), cred, <span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>cred));
-
-	msg.msg_name <span style="color:#f92672">=</span> NULL;
-	msg.msg_namelen <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-
-	buf[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> v;
-	iov.iov_base <span style="color:#f92672">=</span> buf;
-	iov.iov_len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(buf);
-	msg.msg_iov <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>iov;
-	msg.msg_iovlen <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-
-	<span style="color:#66d9ef">if</span> (sendmsg(sock, <span style="color:#f92672">&amp;</span>msg, <span style="color:#ae81ff">0</span>) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-		printf(<span style="color:#e6db74">&#34;Failed at sendmsg: %s.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,strerror(errno));
-		<span style="color:#66d9ef">if</span> (errno <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>)
-			<span style="color:#66d9ef">return</span> SEND_CREDS_NOTSK;
-		<span style="color:#66d9ef">return</span> SEND_CREDS_FAIL;
-	}
-
-	<span style="color:#66d9ef">return</span> SEND_CREDS_OK;
-}
-
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">recv_creds</span>(<span style="color:#66d9ef">int</span> sock, <span style="color:#66d9ef">struct</span> ucred <span style="color:#f92672">*</span>cred, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>v)
-{
-	<span style="color:#66d9ef">struct</span> msghdr msg <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0</span> };
-	<span style="color:#66d9ef">struct</span> iovec iov;
-	<span style="color:#66d9ef">struct</span> cmsghdr <span style="color:#f92672">*</span>cmsg;
-	<span style="color:#66d9ef">char</span> cmsgbuf[CMSG_SPACE(<span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>cred))];
-	<span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">1</span>];
-	<span style="color:#66d9ef">int</span> ret;
-	<span style="color:#66d9ef">int</span> optval <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-
-	<span style="color:#f92672">*</span>v <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1&#39;</span>;
-
-	cred<span style="color:#f92672">-&gt;</span>pid <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-	cred<span style="color:#f92672">-&gt;</span>uid <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-	cred<span style="color:#f92672">-&gt;</span>gid <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-
-	<span style="color:#66d9ef">if</span> (setsockopt(sock, SOL_SOCKET, SO_PASSCRED, <span style="color:#f92672">&amp;</span>optval, <span style="color:#66d9ef">sizeof</span>(optval)) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
-		printf(<span style="color:#e6db74">&#34;Failed to set passcred: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
-		<span style="color:#66d9ef">return</span> false;
-	}
-	buf[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1&#39;</span>;
-	<span style="color:#66d9ef">if</span> (write(sock, buf, <span style="color:#ae81ff">1</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>) {
-		printf(<span style="color:#e6db74">&#34;Failed to start write on scm fd: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
-		<span style="color:#66d9ef">return</span> false;
-	}
-
-	msg.msg_name <span style="color:#f92672">=</span> NULL;
-	msg.msg_namelen <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-	msg.msg_control <span style="color:#f92672">=</span> cmsgbuf;
-	msg.msg_controllen <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(cmsgbuf);
-
-	iov.iov_base <span style="color:#f92672">=</span> buf;
-	iov.iov_len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(buf);
-	msg.msg_iov <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>iov;
-	msg.msg_iovlen <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>wait_for_sock(sock, <span style="color:#ae81ff">2</span>)) {
-		printf(<span style="color:#e6db74">&#34;Timed out waiting for scm_cred: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
-		<span style="color:#66d9ef">return</span> false;
-	}
-	ret <span style="color:#f92672">=</span> recvmsg(sock, <span style="color:#f92672">&amp;</span>msg, MSG_DONTWAIT);
-	<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
-		printf(<span style="color:#e6db74">&#34;Failed to receive scm_cred: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, strerror(errno));
-		<span style="color:#66d9ef">return</span> false;
-	}
-
-	cmsg <span style="color:#f92672">=</span> CMSG_FIRSTHDR(<span style="color:#f92672">&amp;</span>msg);
-
-	<span style="color:#66d9ef">if</span> (cmsg <span style="color:#f92672">&amp;&amp;</span> cmsg<span style="color:#f92672">-&gt;</span>cmsg_len <span style="color:#f92672">==</span> CMSG_LEN(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> ucred)) <span style="color:#f92672">&amp;&amp;</span>
-			cmsg<span style="color:#f92672">-&gt;</span>cmsg_level <span style="color:#f92672">==</span> SOL_SOCKET <span style="color:#f92672">&amp;&amp;</span>
-			cmsg<span style="color:#f92672">-&gt;</span>cmsg_type <span style="color:#f92672">==</span> SCM_CREDENTIALS) {
-		memcpy(cred, CMSG_DATA(cmsg), <span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>cred));
-	}
-	<span style="color:#f92672">*</span>v <span style="color:#f92672">=</span> buf[<span style="color:#ae81ff">0</span>];
-
-	<span style="color:#66d9ef">return</span> true;
-}
-</code></pre></div><h3 id="编译运行">编译运行</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># # 将源码保存为main.c</span>
-<span style="color:#75715e"># gcc -o get_init_pid  main.c </span>
-<span style="color:#75715e"># docker top 9ce36bf4bb30</span>
-UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
-root                <span style="color:#ae81ff">3244</span>                <span style="color:#ae81ff">3228</span>                <span style="color:#ae81ff">0</span>                   14:22               pts/1               00:00:00            /bin/bash
-root                <span style="color:#ae81ff">3312</span>                <span style="color:#ae81ff">3286</span>                <span style="color:#ae81ff">0</span>                   14:22               ?                   00:00:00            sleep <span style="color:#ae81ff">3400</span>
-root                <span style="color:#ae81ff">3313</span>                <span style="color:#ae81ff">3286</span>                <span style="color:#ae81ff">0</span>                   14:22               ?                   00:00:00            sleep <span style="color:#ae81ff">3400</span>
-root                <span style="color:#ae81ff">3314</span>                <span style="color:#ae81ff">3286</span>                <span style="color:#ae81ff">0</span>                   14:22               ?                   00:00:00            sleep <span style="color:#ae81ff">3400</span>
-root                <span style="color:#ae81ff">3315</span>                <span style="color:#ae81ff">3286</span>                <span style="color:#ae81ff">0</span>                   14:22               ?                   00:00:00            sleep <span style="color:#ae81ff">3400</span>
-<span style="color:#75715e"># ./get_init_pid 3312</span>
-pid <span style="color:#ae81ff">3312</span> <span style="color:#e6db74">&#39;s init pid is 3244
-</span><span style="color:#e6db74"># ./get_init_pid 3315
-</span><span style="color:#e6db74">pid 3315 &#39;</span>s init pid is <span style="color:#ae81ff">3244</span>
-<span style="color:#75715e"># ./get_init_pid 3244</span>
-pid <span style="color:#ae81ff">3244</span> <span style="color:#e6db74">&#39;s init pid is 3244
-</span><span style="color:#e6db74"># ./get_init_pid 1
-</span><span style="color:#e6db74">pid 1 &#39;</span>s init pid is <span style="color:#ae81ff">1</span>
-<span style="color:#75715e"># ./get_init_pid 2</span>
-pid <span style="color:#ae81ff">2</span> <span style="color:#960050;background-color:#1e0010">&#39;</span>s init pid is <span style="color:#ae81ff">1</span>
-</code></pre></div><h3 id="参考文章">参考文章</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span><span class="lnt">155
+</span><span class="lnt">156
+</span><span class="lnt">157
+</span><span class="lnt">158
+</span><span class="lnt">159
+</span><span class="lnt">160
+</span><span class="lnt">161
+</span><span class="lnt">162
+</span><span class="lnt">163
+</span><span class="lnt">164
+</span><span class="lnt">165
+</span><span class="lnt">166
+</span><span class="lnt">167
+</span><span class="lnt">168
+</span><span class="lnt">169
+</span><span class="lnt">170
+</span><span class="lnt">171
+</span><span class="lnt">172
+</span><span class="lnt">173
+</span><span class="lnt">174
+</span><span class="lnt">175
+</span><span class="lnt">176
+</span><span class="lnt">177
+</span><span class="lnt">178
+</span><span class="lnt">179
+</span><span class="lnt">180
+</span><span class="lnt">181
+</span><span class="lnt">182
+</span><span class="lnt">183
+</span><span class="lnt">184
+</span><span class="lnt">185
+</span><span class="lnt">186
+</span><span class="lnt">187
+</span><span class="lnt">188
+</span><span class="lnt">189
+</span><span class="lnt">190
+</span><span class="lnt">191
+</span><span class="lnt">192
+</span><span class="lnt">193
+</span><span class="lnt">194
+</span><span class="lnt">195
+</span><span class="lnt">196
+</span><span class="lnt">197
+</span><span class="lnt">198
+</span><span class="lnt">199
+</span><span class="lnt">200
+</span><span class="lnt">201
+</span><span class="lnt">202
+</span><span class="lnt">203
+</span><span class="lnt">204
+</span><span class="lnt">205
+</span><span class="lnt">206
+</span><span class="lnt">207
+</span><span class="lnt">208
+</span><span class="lnt">209
+</span><span class="lnt">210
+</span><span class="lnt">211
+</span><span class="lnt">212
+</span><span class="lnt">213
+</span><span class="lnt">214
+</span><span class="lnt">215
+</span><span class="lnt">216
+</span><span class="lnt">217
+</span><span class="lnt">218
+</span><span class="lnt">219
+</span><span class="lnt">220
+</span><span class="lnt">221
+</span><span class="lnt">222
+</span><span class="lnt">223
+</span><span class="lnt">224
+</span><span class="lnt">225
+</span><span class="lnt">226
+</span><span class="lnt">227
+</span><span class="lnt">228
+</span><span class="lnt">229
+</span><span class="lnt">230
+</span><span class="lnt">231
+</span><span class="lnt">232
+</span><span class="lnt">233
+</span><span class="lnt">234
+</span><span class="lnt">235
+</span><span class="lnt">236
+</span><span class="lnt">237
+</span><span class="lnt">238
+</span><span class="lnt">239
+</span><span class="lnt">240
+</span><span class="lnt">241
+</span><span class="lnt">242
+</span><span class="lnt">243
+</span><span class="lnt">244
+</span><span class="lnt">245
+</span><span class="lnt">246
+</span><span class="lnt">247
+</span><span class="lnt">248
+</span><span class="lnt">249
+</span><span class="lnt">250
+</span><span class="lnt">251
+</span><span class="lnt">252
+</span><span class="lnt">253
+</span><span class="lnt">254
+</span><span class="lnt">255
+</span><span class="lnt">256
+</span><span class="lnt">257
+</span><span class="lnt">258
+</span><span class="lnt">259
+</span><span class="lnt">260
+</span><span class="lnt">261
+</span><span class="lnt">262
+</span><span class="lnt">263
+</span><span class="lnt">264
+</span><span class="lnt">265
+</span><span class="lnt">266
+</span><span class="lnt">267
+</span><span class="lnt">268
+</span><span class="lnt">269
+</span><span class="lnt">270
+</span><span class="lnt">271
+</span><span class="lnt">272
+</span><span class="lnt">273
+</span><span class="lnt">274
+</span><span class="lnt">275
+</span><span class="lnt">276
+</span><span class="lnt">277
+</span><span class="lnt">278
+</span><span class="lnt">279
+</span><span class="lnt">280
+</span><span class="lnt">281
+</span><span class="lnt">282
+</span><span class="lnt">283
+</span><span class="lnt">284
+</span><span class="lnt">285
+</span><span class="lnt">286
+</span><span class="lnt">287
+</span><span class="lnt">288
+</span><span class="lnt">289
+</span><span class="lnt">290
+</span><span class="lnt">291
+</span><span class="lnt">292
+</span><span class="lnt">293
+</span><span class="lnt">294
+</span><span class="lnt">295
+</span><span class="lnt">296
+</span><span class="lnt">297
+</span><span class="lnt">298
+</span><span class="lnt">299
+</span><span class="lnt">300
+</span><span class="lnt">301
+</span><span class="lnt">302
+</span><span class="lnt">303
+</span><span class="lnt">304
+</span><span class="lnt">305
+</span><span class="lnt">306
+</span><span class="lnt">307
+</span><span class="lnt">308
+</span><span class="lnt">309
+</span><span class="lnt">310
+</span><span class="lnt">311
+</span><span class="lnt">312
+</span><span class="lnt">313
+</span><span class="lnt">314
+</span><span class="lnt">315
+</span><span class="lnt">316
+</span><span class="lnt">317
+</span><span class="lnt">318
+</span><span class="lnt">319
+</span><span class="lnt">320
+</span><span class="lnt">321
+</span><span class="lnt">322
+</span><span class="lnt">323
+</span><span class="lnt">324
+</span><span class="lnt">325
+</span><span class="lnt">326
+</span><span class="lnt">327
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define _GNU_SOURCE
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/socket.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;errno.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdbool.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/epoll.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;wait.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define SEND_CREDS_OK 0
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define SEND_CREDS_NOTSK 1
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define SEND_CREDS_FAIL 2
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">recv_creds</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">,</span> <span class="k">struct</span> <span class="n">ucred</span> <span class="o">*</span><span class="n">cred</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">v</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">wait_for_pid</span><span class="p">(</span><span class="kt">pid_t</span> <span class="n">pid</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">send_creds</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">,</span> <span class="k">struct</span> <span class="n">ucred</span> <span class="o">*</span><span class="n">cred</span><span class="p">,</span> <span class="kt">char</span> <span class="n">v</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">pingfirst</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">send_creds_clone_wrapper</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">send_creds_clone_wrapper</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">ucred</span> <span class="n">cred</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">char</span> <span class="n">v</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">sock</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">cred</span><span class="p">.</span><span class="n">uid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cred</span><span class="p">.</span><span class="n">gid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cred</span><span class="p">.</span><span class="n">pid</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">v</span> <span class="o">=</span> <span class="sc">&#39;1&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">send_creds</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cred</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="nb">true</span><span class="p">)</span> <span class="o">!=</span> <span class="n">SEND_CREDS_OK</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">wait_for_pid</span><span class="p">(</span><span class="kt">pid_t</span> <span class="n">pid</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">status</span><span class="p">,</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nl">again</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="n">ret</span> <span class="o">=</span> <span class="nf">waitpid</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">status</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">errno</span> <span class="o">=</span> <span class="n">EINTR</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="k">goto</span> <span class="n">again</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">!=</span> <span class="n">pid</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">again</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">WIFEXITED</span><span class="p">(</span><span class="n">status</span><span class="p">)</span> <span class="o">||</span> <span class="nf">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * clone a task which switches to @task&#39;s namespace and writes &#39;1&#39;.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * over a unix sock so we can read the task&#39;s reaper&#39;s pid in our
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * namespace
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Note: glibc&#39;s fork() does not respect pidns, which can lead to failed
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * assertions inside glibc (and thus failed forks) if the child&#39;s pid in
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * the pidns and the parent pid outside are identical. Using clone prevents
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * this issue.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="nf">write_task_init_pid_exit</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">,</span> <span class="kt">pid_t</span> <span class="n">target</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">char</span> <span class="n">fnam</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">pid_t</span> <span class="n">pid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">fd</span><span class="p">,</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">size_t</span> <span class="n">stack_size</span> <span class="o">=</span> <span class="nf">sysconf</span><span class="p">(</span><span class="n">_SC_PAGESIZE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">void</span> <span class="o">*</span><span class="n">stack</span> <span class="o">=</span> <span class="nf">alloca</span><span class="p">(</span><span class="n">stack_size</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">ret</span> <span class="o">=</span> <span class="nf">snprintf</span><span class="p">(</span><span class="n">fnam</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">fnam</span><span class="p">),</span> <span class="s">&#34;/proc/%d/ns/pid&#34;</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">target</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">ret</span> <span class="o">&gt;=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">fnam</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">_exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">fd</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="n">fnam</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">perror</span><span class="p">(</span><span class="s">&#34;write_task_init_pid_exit open of ns/pid&#34;</span> <span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">_exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">setns</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">perror</span><span class="p">(</span><span class="s">&#34;write_task_init_pid_exit setns 1&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">_exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">pid</span> <span class="o">=</span> <span class="nf">clone</span><span class="p">(</span><span class="n">send_creds_clone_wrapper</span><span class="p">,</span> <span class="n">stack</span><span class="o">+</span><span class="n">stack_size</span><span class="p">,</span> <span class="n">SIGCHLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">sock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">_exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">wait_for_pid</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">_exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">_exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">pid_t</span> <span class="nf">get_init_pid_for_task</span><span class="p">(</span><span class="kt">pid_t</span> <span class="n">task</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">sock</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">pid_t</span> <span class="n">pid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">pid_t</span> <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">char</span> <span class="n">v</span> <span class="o">=</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">ucred</span> <span class="n">cred</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">socketpair</span><span class="p">(</span><span class="n">AF_UNIX</span><span class="p">,</span> <span class="n">SOCK_DGRAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sock</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">perror</span><span class="p">(</span><span class="s">&#34;socketpair&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">pid</span> <span class="o">=</span> <span class="nf">fork</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">pid</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="c1">// Child process
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nf">close</span><span class="p">(</span><span class="n">sock</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">write_task_init_pid_exit</span><span class="p">(</span><span class="n">sock</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">task</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">_exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">recv_creds</span><span class="p">(</span><span class="n">sock</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">cred</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">ret</span> <span class="o">=</span> <span class="n">cred</span><span class="p">.</span><span class="n">pid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nl">out</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">close</span><span class="p">(</span><span class="n">sock</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">close</span><span class="p">(</span><span class="n">sock</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">wait_for_pid</span><span class="p">(</span><span class="n">pid</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">usage</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Usage:</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\t</span><span class="s">%s pid</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">pid_t</span> <span class="n">result</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">pid_t</span> <span class="n">target</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">usage</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="kt">pid_t</span><span class="p">)</span><span class="nf">atoi</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">result</span> <span class="o">=</span> <span class="nf">get_init_pid_for_task</span><span class="p">(</span><span class="n">target</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;pid %d &#39;s init pid is %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">target</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">result</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#define POLLIN_SET ( EPOLLIN | EPOLLHUP | EPOLLRDHUP )
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">bool</span> <span class="nf">wait_for_sock</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">,</span> <span class="kt">int</span> <span class="n">timeout</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">ev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">epfd</span><span class="p">,</span> <span class="n">ret</span><span class="p">,</span> <span class="n">now</span><span class="p">,</span> <span class="n">starttime</span><span class="p">,</span> <span class="n">deltatime</span><span class="p">,</span> <span class="n">saved_errno</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">((</span><span class="n">starttime</span> <span class="o">=</span> <span class="nf">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">((</span><span class="n">epfd</span> <span class="o">=</span> <span class="nf">epoll_create</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="s">&#34;Failed to create epoll socket: %m.&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">ev</span><span class="p">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">POLLIN_SET</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">ev</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">sock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">epoll_ctl</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">EPOLL_CTL_ADD</span><span class="p">,</span> <span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ev</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="s">&#34;Failed adding socket to epoll: %m.&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">close</span><span class="p">(</span><span class="n">epfd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nl">again</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">((</span><span class="n">now</span> <span class="o">=</span> <span class="nf">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">close</span><span class="p">(</span><span class="n">epfd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">deltatime</span> <span class="o">=</span> <span class="p">(</span><span class="n">starttime</span> <span class="o">+</span> <span class="n">timeout</span><span class="p">)</span> <span class="o">-</span> <span class="n">now</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">deltatime</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// timeout
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="n">errno</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">close</span><span class="p">(</span><span class="n">epfd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="n">ret</span> <span class="o">=</span> <span class="nf">epoll_wait</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ev</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="o">*</span><span class="n">deltatime</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">errno</span> <span class="o">==</span> <span class="n">EINTR</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">again</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">saved_errno</span> <span class="o">=</span> <span class="n">errno</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">close</span><span class="p">(</span><span class="n">epfd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="n">errno</span> <span class="o">=</span> <span class="n">saved_errno</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">msgrecv</span><span class="p">(</span><span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">len</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">wait_for_sock</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">recv</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">len</span><span class="p">,</span> <span class="n">MSG_DONTWAIT</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">send_creds</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">,</span> <span class="k">struct</span> <span class="n">ucred</span> <span class="o">*</span><span class="n">cred</span><span class="p">,</span> <span class="kt">char</span> <span class="n">v</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">pingfirst</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">msghdr</span> <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">};</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">iovec</span> <span class="n">iov</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cmsghdr</span> <span class="o">*</span><span class="n">cmsg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">char</span> <span class="n">cmsgbuf</span><span class="p">[</span><span class="nf">CMSG_SPACE</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">cred</span><span class="p">))];</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">	<span class="n">buf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;p&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">pingfirst</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="nf">msgrecv</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="s">&#34;Error getting reply from server over socketpair.&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="n">SEND_CREDS_FAIL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_control</span> <span class="o">=</span> <span class="n">cmsgbuf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_controllen</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">cmsgbuf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">cmsg</span> <span class="o">=</span> <span class="nf">CMSG_FIRSTHDR</span><span class="p">(</span><span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_len</span> <span class="o">=</span> <span class="nf">CMSG_LEN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">ucred</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_level</span> <span class="o">=</span> <span class="n">SOL_SOCKET</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_type</span> <span class="o">=</span> <span class="n">SCM_CREDENTIALS</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">memcpy</span><span class="p">(</span><span class="nf">CMSG_DATA</span><span class="p">(</span><span class="n">cmsg</span><span class="p">),</span> <span class="n">cred</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">cred</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_name</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_namelen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">buf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">iov</span><span class="p">.</span><span class="n">iov_base</span> <span class="o">=</span> <span class="n">buf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">iov</span><span class="p">.</span><span class="n">iov_len</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_iov</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">iov</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_iovlen</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">sendmsg</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Failed at sendmsg: %s.</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span><span class="nf">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">errno</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="n">SEND_CREDS_NOTSK</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="n">SEND_CREDS_FAIL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">SEND_CREDS_OK</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">bool</span> <span class="nf">recv_creds</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">,</span> <span class="k">struct</span> <span class="n">ucred</span> <span class="o">*</span><span class="n">cred</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">v</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">msghdr</span> <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">};</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">iovec</span> <span class="n">iov</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cmsghdr</span> <span class="o">*</span><span class="n">cmsg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">char</span> <span class="n">cmsgbuf</span><span class="p">[</span><span class="nf">CMSG_SPACE</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">cred</span><span class="p">))];</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">optval</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="o">*</span><span class="n">v</span> <span class="o">=</span> <span class="sc">&#39;1&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">cred</span><span class="o">-&gt;</span><span class="n">pid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cred</span><span class="o">-&gt;</span><span class="n">uid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cred</span><span class="o">-&gt;</span><span class="n">gid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">setsockopt</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">SOL_SOCKET</span><span class="p">,</span> <span class="n">SO_PASSCRED</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">optval</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">optval</span><span class="p">))</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Failed to set passcred: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="n">buf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;1&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">write</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Failed to start write on scm fd: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_name</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_namelen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_control</span> <span class="o">=</span> <span class="n">cmsgbuf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_controllen</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">cmsgbuf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">iov</span><span class="p">.</span><span class="n">iov_base</span> <span class="o">=</span> <span class="n">buf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">iov</span><span class="p">.</span><span class="n">iov_len</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_iov</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">iov</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">msg</span><span class="p">.</span><span class="n">msg_iovlen</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">wait_for_sock</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Timed out waiting for scm_cred: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="n">ret</span> <span class="o">=</span> <span class="nf">recvmsg</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">,</span> <span class="n">MSG_DONTWAIT</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Failed to receive scm_cred: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">cmsg</span> <span class="o">=</span> <span class="nf">CMSG_FIRSTHDR</span><span class="p">(</span><span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">cmsg</span> <span class="o">&amp;&amp;</span> <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_len</span> <span class="o">==</span> <span class="nf">CMSG_LEN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">ucred</span><span class="p">))</span> <span class="o">&amp;&amp;</span>
+</span></span><span class="line"><span class="cl">			<span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_level</span> <span class="o">==</span> <span class="n">SOL_SOCKET</span> <span class="o">&amp;&amp;</span>
+</span></span><span class="line"><span class="cl">			<span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_type</span> <span class="o">==</span> <span class="n">SCM_CREDENTIALS</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">memcpy</span><span class="p">(</span><span class="n">cred</span><span class="p">,</span> <span class="nf">CMSG_DATA</span><span class="p">(</span><span class="n">cmsg</span><span class="p">),</span> <span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">cred</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="o">*</span><span class="n">v</span> <span class="o">=</span> <span class="n">buf</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="编译运行">编译运行</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># # 将源码保存为main.c</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># gcc -o get_init_pid  main.c </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># docker top 9ce36bf4bb30</span>
+</span></span><span class="line"><span class="cl">UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+</span></span><span class="line"><span class="cl">root                <span class="m">3244</span>                <span class="m">3228</span>                <span class="m">0</span>                   14:22               pts/1               00:00:00            /bin/bash
+</span></span><span class="line"><span class="cl">root                <span class="m">3312</span>                <span class="m">3286</span>                <span class="m">0</span>                   14:22               ?                   00:00:00            sleep <span class="m">3400</span>
+</span></span><span class="line"><span class="cl">root                <span class="m">3313</span>                <span class="m">3286</span>                <span class="m">0</span>                   14:22               ?                   00:00:00            sleep <span class="m">3400</span>
+</span></span><span class="line"><span class="cl">root                <span class="m">3314</span>                <span class="m">3286</span>                <span class="m">0</span>                   14:22               ?                   00:00:00            sleep <span class="m">3400</span>
+</span></span><span class="line"><span class="cl">root                <span class="m">3315</span>                <span class="m">3286</span>                <span class="m">0</span>                   14:22               ?                   00:00:00            sleep <span class="m">3400</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ./get_init_pid 3312</span>
+</span></span><span class="line"><span class="cl">pid <span class="m">3312</span> <span class="s1">&#39;s init pid is 3244
+</span></span></span><span class="line"><span class="cl"><span class="s1"># ./get_init_pid 3315
+</span></span></span><span class="line"><span class="cl"><span class="s1">pid 3315 &#39;</span>s init pid is <span class="m">3244</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ./get_init_pid 3244</span>
+</span></span><span class="line"><span class="cl">pid <span class="m">3244</span> <span class="s1">&#39;s init pid is 3244
+</span></span></span><span class="line"><span class="cl"><span class="s1"># ./get_init_pid 1
+</span></span></span><span class="line"><span class="cl"><span class="s1">pid 1 &#39;</span>s init pid is <span class="m">1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ./get_init_pid 2</span>
+</span></span><span class="line"><span class="cl">pid <span class="m">2</span> <span class="err">&#39;</span>s init pid is <span class="m">1</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="http://man7.org/linux/man-pages/man7/unix.7.html">http://man7.org/linux/man-pages/man7/unix.7.html</a></li>
 <li><a href="http://man7.org/linux/man-pages/man7/pid_namespaces.7.html">http://man7.org/linux/man-pages/man7/pid_namespaces.7.html</a></li>
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -565,7 +923,10 @@ pid <span style="color:#ae81ff">2</span> <span style="color:#960050;background-c
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-10-08</span>
+    <span class="item-content">
+        2018-10-08
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -573,39 +934,27 @@ pid <span style="color:#ae81ff">2</span> <span style="color:#960050;background-c
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/linux/proc-memory/">
+        <a class="prev" href="/linux/proc-memory/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">内核中内存信息的展示</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/linux/passing-file-descriptors/">
+        <a class="next" href="/linux/passing-file-descriptors/">
             <span class="next-text nav-default">传递文件描述符</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -619,6 +968,11 @@ pid <span style="color:#ae81ff">2</span> <span style="color:#960050;background-c
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -643,26 +997,24 @@ pid <span style="color:#ae81ff">2</span> <span style="color:#960050;background-c
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

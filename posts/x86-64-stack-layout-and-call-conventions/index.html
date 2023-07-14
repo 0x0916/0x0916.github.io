@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="在内核panic时，会打印出出问题的调用栈信息，同时也可以通过kdump结合crash进行更深入的分析定位问题。
+<meta name="author" content="laoqinren" /><meta name="description" content="在内核panic时，会打印出出问题的调用栈信息，同时也可以通过kdump结合crash进行更深入的分析定位问题。
 本文分析了x86-64的栈帧结构，为分析问题提供帮助。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,34 +37,23 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="关于x86-64的栈布局和函数调用约定" />
 <meta property="og:description" content="在内核panic时，会打印出出问题的调用栈信息，同时也可以通过kdump结合crash进行更深入的分析定位问题。
 本文分析了x86-64的栈帧结构，为分析问题提供帮助。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/" />
+<meta property="og:url" content="http://linux.laoqinren.net/posts/x86-64-stack-layout-and-call-conventions/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-07-28T16:03:59+08:00" />
 <meta property="article:modified_time" content="2020-07-28T16:03:59+08:00" />
 <meta itemprop="name" content="关于x86-64的栈布局和函数调用约定">
 <meta itemprop="description" content="在内核panic时，会打印出出问题的调用栈信息，同时也可以通过kdump结合crash进行更深入的分析定位问题。
-本文分析了x86-64的栈帧结构，为分析问题提供帮助。">
-<meta itemprop="datePublished" content="2020-07-28T16:03:59+08:00" />
+本文分析了x86-64的栈帧结构，为分析问题提供帮助。"><meta itemprop="datePublished" content="2020-07-28T16:03:59+08:00" />
 <meta itemprop="dateModified" content="2020-07-28T16:03:59+08:00" />
-<meta itemprop="wordCount" content="3857">
-
-
-
-<meta itemprop="keywords" content="" />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="4402">
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="关于x86-64的栈布局和函数调用约定"/>
 <meta name="twitter:description" content="在内核panic时，会打印出出问题的调用栈信息，同时也可以通过kdump结合crash进行更深入的分析定位问题。
 本文分析了x86-64的栈帧结构，为分析问题提供帮助。"/>
@@ -112,12 +97,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -138,6 +132,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -151,61 +146,96 @@
       <div class="post-meta">
         <span class="post-time"> 2020-07-28 </span>
         
-        <span class="more-meta"> 3857 words </span>
-        <span class="more-meta"> 8 mins read </span>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#关于x86架构下栈的基础知识">关于x86架构下栈的基础知识</a></li>
-        <li><a href="#x86_64通用寄存器">x86_64通用寄存器</a></li>
-        <li><a href="#x86_64函数调用传递参数使用的寄存器">x86_64函数调用传递参数使用的寄存器</a></li>
-        <li><a href="#red-zone">red zone</a></li>
-        <li><a href="#-fomit-frame-pointer">-fomit-frame-pointer</a></li>
-        <li><a href="#对于浮点数">对于浮点数</a></li>
-        <li><a href="#参考文档">参考文档：</a></li>
+        <li>
+          <ul>
+            <li><a href="#关于x86架构下栈的基础知识">关于x86架构下栈的基础知识</a></li>
+            <li><a href="#x86_64通用寄存器">x86_64通用寄存器</a></li>
+            <li><a href="#x86_64函数调用传递参数使用的寄存器">x86_64函数调用传递参数使用的寄存器</a></li>
+            <li><a href="#red-zone">red zone</a></li>
+            <li><a href="#-fomit-frame-pointer">-fomit-frame-pointer</a></li>
+            <li><a href="#对于浮点数">对于浮点数</a></li>
+            <li><a href="#参考文档">参考文档：</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>在内核<code>panic</code>时，会打印出出问题的调用栈信息，同时也可以通过<code>kdump</code>结合<code>crash</code>进行更深入的分析定位问题。</p>
 <p>本文分析了<code>x86-64</code>的栈帧结构，为分析问题提供帮助。</p>
 <h3 id="关于x86架构下栈的基础知识">关于x86架构下栈的基础知识</h3>
 <p>英特尔的 <code>x86</code>架构把它的栈<strong>头朝下</strong>。它从某个地址开始，逐渐发展到一个较低的地址。下面是它的样子:</p>
-<!-- raw HTML omitted -->
+<center>
+![][1]
+</center>
 <p>因此，当我们说 <code>x86</code>上的<strong>栈顶部</strong>时，我们实际上指的是栈占用的内存区域中的最低地址。</p>
 <p><code>x86</code>架构保留了一个特殊的寄存器——<code>ESP (Extended Stack Pointer)</code>，来指向栈的顶部。</p>
-<!-- raw HTML omitted -->
+<center>
+![][2]
+</center>
 <p>如上图所示，地址<code>0x9080ABCC</code>是栈的顶部，ESP寄存器保存了指向栈顶的地址<code>0x9080ABCC</code>。</p>
 <p>我们使用<code>push</code>指令将新数据放入栈中，<code>push</code>所做的首先递减<code>ESP（ESP-4）</code>，然后将其操作数放到<code>ESP</code>指向的位置，所以</p>
-<pre><code>push eax
-</code></pre><p>等价于</p>
-<pre><code>sub esp 4
-mov [esp], exa
-</code></pre><p>假设<code>exa</code>保存的值为<code>0xDEADBEEF</code>，那么<code>push</code>后，栈就会变成如下：</p>
-<!-- raw HTML omitted -->
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">push eax
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>等价于</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sub esp 4
+</span></span><span class="line"><span class="cl">mov [esp], exa
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>假设<code>exa</code>保存的值为<code>0xDEADBEEF</code>，那么<code>push</code>后，栈就会变成如下：</p>
+<center>
+![][3]
+</center>
 <p>类似的，<code>pop</code>指令从栈顶获取一个值将其放到操作数中，然后增加<code>ESP（ESP+4</code>），也就是说</p>
-<pre><code>pop eax
-</code></pre><p>等价于</p>
-<pre><code>mov eax, [esp]
-add esp + 4
-</code></pre><p><code>pop exa</code>执行后，栈的情况如下：</p>
-<!-- raw HTML omitted -->
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">pop eax
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>等价于</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">mov eax, [esp]
+</span></span><span class="line"><span class="cl">add esp + 4
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>pop exa</code>执行后，栈的情况如下：</p>
+<center>
+![][4]
+</center>
 <p>值<code>0xDEADBEEF</code> 将被写入<code> eax</code>。注意，<code>0xDEADBEEF</code> 也保留在地址<code>0x9080ABC8</code>，因为我们还没有覆盖它。</p>
 <blockquote>
 <p>注意：上面主要以x86架构，介绍了关于栈的基础知识，下面会以x86-64架构，来介绍函数参数的传递约定。</p>
@@ -215,556 +245,1140 @@ add esp + 4
 <h3 id="x86_64函数调用传递参数使用的寄存器">x86_64函数调用传递参数使用的寄存器</h3>
 <p><code>x86_64</code>了提高性能速度，将前<code>6</code>个参数通过寄存器传递，其顺序为<code>rdi</code>、<code>rsi</code>、<code>rdx</code>、<code>rcx</code>、<code>r8</code>、<code>r9</code>，第<code>7</code>个及以后的参数通过栈进行传递。</p>
 <p>考虑如下的代码：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">utilfunc</span>(<span style="color:#66d9ef">long</span> a, <span style="color:#66d9ef">long</span> b, <span style="color:#66d9ef">long</span> c)
-{
-	<span style="color:#66d9ef">long</span> xx <span style="color:#f92672">=</span> a <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>;
-	<span style="color:#66d9ef">long</span> yy <span style="color:#f92672">=</span> b <span style="color:#f92672">+</span> <span style="color:#ae81ff">3</span>;
-	<span style="color:#66d9ef">long</span> zz <span style="color:#f92672">=</span> c <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span>;
-	<span style="color:#66d9ef">long</span> sum <span style="color:#f92672">=</span> xx <span style="color:#f92672">+</span> yy <span style="color:#f92672">+</span> zz;
-
-	<span style="color:#66d9ef">return</span> xx <span style="color:#f92672">*</span> yy <span style="color:#f92672">*</span> zz <span style="color:#f92672">+</span> sum;
-}
-
-<span style="color:#66d9ef">long</span> <span style="color:#a6e22e">myfunc</span>(<span style="color:#66d9ef">long</span> a, <span style="color:#66d9ef">long</span> b, <span style="color:#66d9ef">long</span> c, <span style="color:#66d9ef">long</span> d,
-            <span style="color:#66d9ef">long</span> e, <span style="color:#66d9ef">long</span> f, <span style="color:#66d9ef">long</span> g, <span style="color:#66d9ef">long</span> h)
-{
-	<span style="color:#66d9ef">long</span> xx <span style="color:#f92672">=</span> a <span style="color:#f92672">*</span> b <span style="color:#f92672">*</span> c <span style="color:#f92672">*</span> d <span style="color:#f92672">*</span> e <span style="color:#f92672">*</span> f <span style="color:#f92672">*</span> g <span style="color:#f92672">*</span> h;
-	<span style="color:#66d9ef">long</span> yy <span style="color:#f92672">=</span> a <span style="color:#f92672">+</span> b <span style="color:#f92672">+</span> c <span style="color:#f92672">+</span> d <span style="color:#f92672">+</span> e <span style="color:#f92672">+</span> f <span style="color:#f92672">+</span> g <span style="color:#f92672">+</span> h;
-	<span style="color:#66d9ef">long</span> zz <span style="color:#f92672">=</span> utilfunc(xx, yy, xx <span style="color:#f92672">%</span> yy);
-
-	<span style="color:#66d9ef">return</span> zz <span style="color:#f92672">+</span> <span style="color:#ae81ff">20</span>;
-}
-
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv) {
-	myfunc(<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4</span>,<span style="color:#ae81ff">5</span>,<span style="color:#ae81ff">6</span>,<span style="color:#ae81ff">7</span>,<span style="color:#ae81ff">8</span>);
-
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-</code></pre></div><p>编译</p>
-<pre><code># gcc -o a.out -g  main.c 
-</code></pre><p>调用函数<code>myfunc</code>时，其栈如下：</p>
-<!-- raw HTML omitted -->
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">long</span> <span class="nf">utilfunc</span><span class="p">(</span><span class="kt">long</span> <span class="n">a</span><span class="p">,</span> <span class="kt">long</span> <span class="n">b</span><span class="p">,</span> <span class="kt">long</span> <span class="n">c</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">xx</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="mi">3</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">zz</span> <span class="o">=</span> <span class="n">c</span> <span class="o">+</span> <span class="mi">4</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">xx</span> <span class="o">+</span> <span class="n">yy</span> <span class="o">+</span> <span class="n">zz</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span> <span class="o">*</span> <span class="n">zz</span> <span class="o">+</span> <span class="n">sum</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">long</span> <span class="nf">myfunc</span><span class="p">(</span><span class="kt">long</span> <span class="n">a</span><span class="p">,</span> <span class="kt">long</span> <span class="n">b</span><span class="p">,</span> <span class="kt">long</span> <span class="n">c</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="kt">long</span> <span class="n">e</span><span class="p">,</span> <span class="kt">long</span> <span class="n">f</span><span class="p">,</span> <span class="kt">long</span> <span class="n">g</span><span class="p">,</span> <span class="kt">long</span> <span class="n">h</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">xx</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span> <span class="o">*</span> <span class="n">d</span> <span class="o">*</span> <span class="n">e</span> <span class="o">*</span> <span class="n">f</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">h</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="n">d</span> <span class="o">+</span> <span class="n">e</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="n">g</span> <span class="o">+</span> <span class="n">h</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">zz</span> <span class="o">=</span> <span class="nf">utilfunc</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">xx</span> <span class="o">%</span> <span class="n">yy</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">zz</span> <span class="o">+</span> <span class="mi">20</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">myfunc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>编译</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># gcc -o a.out -g  main.c 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>调用函数<code>myfunc</code>时，其栈如下：</p>
+<center>
+![][5]
+</center>
 <p>使用gdb调试如下：</p>
-<pre><code>[root@localhost stack]# gdb a.out 
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
-and &quot;show warranty&quot; for details.
-This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
-For bug reporting instructions, please see:
-&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
-Reading symbols from /root/work/stack/a.out...done.
-//查看代码行数信息
-(gdb) l
-16	{
-17		long xx = a * b * c * d * e * f * g * h;
-18		long yy = a + b + c + d + e + f + g + h;
-19		long zz = utilfunc(xx, yy, xx % yy);
-20	
-21		return zz + 20;
-22	}
-23	
-24	int main(int argc, char **argv) {
-25		myfunc(1,2,3,4,5,6,7,8);
-//在myfunc入口处设置断点
-(gdb) b 25
-Breakpoint 1 at 0x4005ef: file main.c, line 25.
-(gdb) r
-Starting program: /root/work/stack/a.out 
-
-Breakpoint 1, main (argc=1, argv=0x7fffffffe358) at main.c:25
-25		myfunc(1,2,3,4,5,6,7,8);
-Missing separate debuginfos, use: debuginfo-install glibc-2.17-307.el7.1.x86_64
-//进入到myfunc的入口处
-(gdb) s 
-myfunc (a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8) at main.c:17
-17		long xx = a * b * c * d * e * f * g * h;
-(gdb) bt
-#0  myfunc (a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8) at main.c:17
-#1  0x0000000000400625 in main (argc=1, argv=0x7fffffffe358) at main.c:25
-//此时查看寄存器的值，rdi、rsi、rdx、rcx、r8、r9分别用于传递前6个参数。
-(gdb) info reg
-rax            0x4005e0	4195808
-rbx            0x0	0
-rcx            0x4	4
-rdx            0x3	3
-rsi            0x2	2
-rdi            0x1	1
-rbp            0x7fffffffe240	0x7fffffffe240
-rsp            0x7fffffffe1f0	0x7fffffffe1f0
-r8             0x5	5
-r9             0x6	6
-r10            0x7fffffffdda0	140737488346528
-r11            0x7ffff7a2f460	140737348039776
-r12            0x4003e0	4195296
-r13            0x7fffffffe350	140737488347984
-r14            0x0	0
-r15            0x0	0
-rip            0x400551	0x400551 &lt;myfunc+32&gt;
-eflags         0x206	[ PF IF ]
-cs             0x33	51
-ss             0x2b	43
-ds             0x0	0
-es             0x0	0
-fs             0x0	0
-gs             0x0	0
-//第7、8个参数通过栈来传递，
-(gdb) x/40g $rbp
-0x7fffffffe240:	0x00007fffffffe270	0x0000000000400625
-0x7fffffffe250:	0x0000000000000007	0x0000000000000008 //第七个、第八个参数
-0x7fffffffe260:	0x00007fffffffe358	0x0000000100000000
-0x7fffffffe270:	0x0000000000000000	0x00007ffff7a2f555
-0x7fffffffe280:	0x0000000000000000	0x00007fffffffe358
-0x7fffffffe290:	0x0000000100000000	0x00000000004005e0
-0x7fffffffe2a0:	0x0000000000000000	0xa8f1c884e4a0e964
-0x7fffffffe2b0:	0x00000000004003e0	0x00007fffffffe350
-0x7fffffffe2c0:	0x0000000000000000	0x0000000000000000
-0x7fffffffe2d0:	0x570e377b21a0e964	0x570e27c10ebae964
-0x7fffffffe2e0:	0x0000000000000000	0x0000000000000000
-0x7fffffffe2f0:	0x0000000000000000	0x0000000000000000
-0x7fffffffe300:	0x00007ffff7ffe150	0x0000000000000003
-0x7fffffffe310:	0x0000000000000000	0x0000000000000000
-0x7fffffffe320:	0x00000000004003e0	0x00007fffffffe350
-0x7fffffffe330:	0x0000000000000000	0x0000000000400409
-0x7fffffffe340:	0x00007fffffffe348	0x000000000000001c
-0x7fffffffe350:	0x0000000000000001	0x00007fffffffe5c9
-0x7fffffffe360:	0x0000000000000000	0x00007fffffffe5e0
-0x7fffffffe370:	0x00007fffffffe5f1	0x00007fffffffe610
-(gdb) x/40g $rsp
-0x7fffffffe1f0:	0x0000000000000006	0x0000000000000005
-0x7fffffffe200:	0x0000000000000004	0x0000000000000003
-0x7fffffffe210:	0x0000000000000002	0x0000000000000001
-0x7fffffffe220:	0x0000000000000000	0x0000000000000000
-0x7fffffffe230:	0x0000000000000001	0x000000000040067d
-0x7fffffffe240:	0x00007fffffffe270	0x0000000000400625
-0x7fffffffe250:	0x0000000000000007	0x0000000000000008
-0x7fffffffe260:	0x00007fffffffe358	0x0000000100000000
-0x7fffffffe270:	0x0000000000000000	0x00007ffff7a2f555
-0x7fffffffe280:	0x0000000000000000	0x00007fffffffe358
-0x7fffffffe290:	0x0000000100000000	0x00000000004005e0
-0x7fffffffe2a0:	0x0000000000000000	0xa8f1c884e4a0e964
-0x7fffffffe2b0:	0x00000000004003e0	0x00007fffffffe350
-0x7fffffffe2c0:	0x0000000000000000	0x0000000000000000
-0x7fffffffe2d0:	0x570e377b21a0e964	0x570e27c10ebae964
-0x7fffffffe2e0:	0x0000000000000000	0x0000000000000000
-0x7fffffffe2f0:	0x0000000000000000	0x0000000000000000
-0x7fffffffe300:	0x00007ffff7ffe150	0x0000000000000003
-0x7fffffffe310:	0x0000000000000000	0x0000000000000000
-0x7fffffffe320:	0x00000000004003e0	0x00007fffffffe350
-(gdb) disas myfunc
-Dump of assembler code for function myfunc:
-   0x0000000000400531 &lt;+0&gt;:	push   %rbp
-   0x0000000000400532 &lt;+1&gt;:	mov    %rsp,%rbp
-   0x0000000000400535 &lt;+4&gt;:	sub    $0x50,%rsp
-   0x0000000000400539 &lt;+8&gt;:	mov    %rdi,-0x28(%rbp)
-   0x000000000040053d &lt;+12&gt;:	mov    %rsi,-0x30(%rbp)
-   0x0000000000400541 &lt;+16&gt;:	mov    %rdx,-0x38(%rbp)
-   0x0000000000400545 &lt;+20&gt;:	mov    %rcx,-0x40(%rbp)
-   0x0000000000400549 &lt;+24&gt;:	mov    %r8,-0x48(%rbp)
-   0x000000000040054d &lt;+28&gt;:	mov    %r9,-0x50(%rbp)
-=&gt; 0x0000000000400551 &lt;+32&gt;:	mov    -0x28(%rbp),%rax //还没有执行
-   0x0000000000400555 &lt;+36&gt;:	imul   -0x30(%rbp),%rax
-   0x000000000040055a &lt;+41&gt;:	imul   -0x38(%rbp),%rax
-   0x000000000040055f &lt;+46&gt;:	imul   -0x40(%rbp),%rax
-   0x0000000000400564 &lt;+51&gt;:	imul   -0x48(%rbp),%rax
-   0x0000000000400569 &lt;+56&gt;:	imul   -0x50(%rbp),%rax
-   0x000000000040056e &lt;+61&gt;:	imul   0x10(%rbp),%rax
-   0x0000000000400573 &lt;+66&gt;:	imul   0x18(%rbp),%rax
-   0x0000000000400578 &lt;+71&gt;:	mov    %rax,-0x8(%rbp)
-   0x000000000040057c &lt;+75&gt;:	mov    -0x30(%rbp),%rax
-   0x0000000000400580 &lt;+79&gt;:	mov    -0x28(%rbp),%rdx
-   0x0000000000400584 &lt;+83&gt;:	add    %rax,%rdx
-   0x0000000000400587 &lt;+86&gt;:	mov    -0x38(%rbp),%rax
-   0x000000000040058b &lt;+90&gt;:	add    %rax,%rdx
-   0x000000000040058e &lt;+93&gt;:	mov    -0x40(%rbp),%rax
-   0x0000000000400592 &lt;+97&gt;:	add    %rax,%rdx
-   0x0000000000400595 &lt;+100&gt;:	mov    -0x48(%rbp),%rax
-   0x0000000000400599 &lt;+104&gt;:	add    %rax,%rdx
-   0x000000000040059c &lt;+107&gt;:	mov    -0x50(%rbp),%rax
-   0x00000000004005a0 &lt;+111&gt;:	add    %rax,%rdx
-   0x00000000004005a3 &lt;+114&gt;:	mov    0x10(%rbp),%rax
-   0x00000000004005a7 &lt;+118&gt;:	add    %rax,%rdx
-   0x00000000004005aa &lt;+121&gt;:	mov    0x18(%rbp),%rax
-   0x00000000004005ae &lt;+125&gt;:	add    %rdx,%rax
-   0x00000000004005b1 &lt;+128&gt;:	mov    %rax,-0x10(%rbp)
-   0x00000000004005b5 &lt;+132&gt;:	mov    -0x8(%rbp),%rax
-   0x00000000004005b9 &lt;+136&gt;:	cqto   
-   0x00000000004005bb &lt;+138&gt;:	idivq  -0x10(%rbp)
-   0x00000000004005bf &lt;+142&gt;:	mov    -0x10(%rbp),%rcx
-   0x00000000004005c3 &lt;+146&gt;:	mov    -0x8(%rbp),%rax
-   0x00000000004005c7 &lt;+150&gt;:	mov    %rcx,%rsi
-   0x00000000004005ca &lt;+153&gt;:	mov    %rax,%rdi
-   0x00000000004005cd &lt;+156&gt;:	callq  0x4004cd &lt;utilfunc&gt;
-   0x00000000004005d2 &lt;+161&gt;:	mov    %rax,-0x18(%rbp)
-   0x00000000004005d6 &lt;+165&gt;:	mov    -0x18(%rbp),%rax
-   0x00000000004005da &lt;+169&gt;:	add    $0x14,%rax
-   0x00000000004005de &lt;+173&gt;:	leaveq 
-   0x00000000004005df &lt;+174&gt;:	retq   
-End of assembler dump.
-</code></pre><h3 id="red-zone">red zone</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span><span class="lnt">155
+</span><span class="lnt">156
+</span><span class="lnt">157
+</span><span class="lnt">158
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[root@localhost stack]# gdb a.out 
+</span></span><span class="line"><span class="cl">GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
+</span></span><span class="line"><span class="cl">Copyright (C) 2013 Free Software Foundation, Inc.
+</span></span><span class="line"><span class="cl">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+</span></span><span class="line"><span class="cl">This is free software: you are free to change and redistribute it.
+</span></span><span class="line"><span class="cl">There is NO WARRANTY, to the extent permitted by law.  Type &#34;show copying&#34;
+</span></span><span class="line"><span class="cl">and &#34;show warranty&#34; for details.
+</span></span><span class="line"><span class="cl">This GDB was configured as &#34;x86_64-redhat-linux-gnu&#34;.
+</span></span><span class="line"><span class="cl">For bug reporting instructions, please see:
+</span></span><span class="line"><span class="cl">&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+</span></span><span class="line"><span class="cl">Reading symbols from /root/work/stack/a.out...done.
+</span></span><span class="line"><span class="cl">//查看代码行数信息
+</span></span><span class="line"><span class="cl">(gdb) l
+</span></span><span class="line"><span class="cl">16	{
+</span></span><span class="line"><span class="cl">17		long xx = a * b * c * d * e * f * g * h;
+</span></span><span class="line"><span class="cl">18		long yy = a + b + c + d + e + f + g + h;
+</span></span><span class="line"><span class="cl">19		long zz = utilfunc(xx, yy, xx % yy);
+</span></span><span class="line"><span class="cl">20	
+</span></span><span class="line"><span class="cl">21		return zz + 20;
+</span></span><span class="line"><span class="cl">22	}
+</span></span><span class="line"><span class="cl">23	
+</span></span><span class="line"><span class="cl">24	int main(int argc, char **argv) {
+</span></span><span class="line"><span class="cl">25		myfunc(1,2,3,4,5,6,7,8);
+</span></span><span class="line"><span class="cl">//在myfunc入口处设置断点
+</span></span><span class="line"><span class="cl">(gdb) b 25
+</span></span><span class="line"><span class="cl">Breakpoint 1 at 0x4005ef: file main.c, line 25.
+</span></span><span class="line"><span class="cl">(gdb) r
+</span></span><span class="line"><span class="cl">Starting program: /root/work/stack/a.out 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Breakpoint 1, main (argc=1, argv=0x7fffffffe358) at main.c:25
+</span></span><span class="line"><span class="cl">25		myfunc(1,2,3,4,5,6,7,8);
+</span></span><span class="line"><span class="cl">Missing separate debuginfos, use: debuginfo-install glibc-2.17-307.el7.1.x86_64
+</span></span><span class="line"><span class="cl">//进入到myfunc的入口处
+</span></span><span class="line"><span class="cl">(gdb) s 
+</span></span><span class="line"><span class="cl">myfunc (a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8) at main.c:17
+</span></span><span class="line"><span class="cl">17		long xx = a * b * c * d * e * f * g * h;
+</span></span><span class="line"><span class="cl">(gdb) bt
+</span></span><span class="line"><span class="cl">#0  myfunc (a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8) at main.c:17
+</span></span><span class="line"><span class="cl">#1  0x0000000000400625 in main (argc=1, argv=0x7fffffffe358) at main.c:25
+</span></span><span class="line"><span class="cl">//此时查看寄存器的值，rdi、rsi、rdx、rcx、r8、r9分别用于传递前6个参数。
+</span></span><span class="line"><span class="cl">(gdb) info reg
+</span></span><span class="line"><span class="cl">rax            0x4005e0	4195808
+</span></span><span class="line"><span class="cl">rbx            0x0	0
+</span></span><span class="line"><span class="cl">rcx            0x4	4
+</span></span><span class="line"><span class="cl">rdx            0x3	3
+</span></span><span class="line"><span class="cl">rsi            0x2	2
+</span></span><span class="line"><span class="cl">rdi            0x1	1
+</span></span><span class="line"><span class="cl">rbp            0x7fffffffe240	0x7fffffffe240
+</span></span><span class="line"><span class="cl">rsp            0x7fffffffe1f0	0x7fffffffe1f0
+</span></span><span class="line"><span class="cl">r8             0x5	5
+</span></span><span class="line"><span class="cl">r9             0x6	6
+</span></span><span class="line"><span class="cl">r10            0x7fffffffdda0	140737488346528
+</span></span><span class="line"><span class="cl">r11            0x7ffff7a2f460	140737348039776
+</span></span><span class="line"><span class="cl">r12            0x4003e0	4195296
+</span></span><span class="line"><span class="cl">r13            0x7fffffffe350	140737488347984
+</span></span><span class="line"><span class="cl">r14            0x0	0
+</span></span><span class="line"><span class="cl">r15            0x0	0
+</span></span><span class="line"><span class="cl">rip            0x400551	0x400551 &lt;myfunc+32&gt;
+</span></span><span class="line"><span class="cl">eflags         0x206	[ PF IF ]
+</span></span><span class="line"><span class="cl">cs             0x33	51
+</span></span><span class="line"><span class="cl">ss             0x2b	43
+</span></span><span class="line"><span class="cl">ds             0x0	0
+</span></span><span class="line"><span class="cl">es             0x0	0
+</span></span><span class="line"><span class="cl">fs             0x0	0
+</span></span><span class="line"><span class="cl">gs             0x0	0
+</span></span><span class="line"><span class="cl">//第7、8个参数通过栈来传递，
+</span></span><span class="line"><span class="cl">(gdb) x/40g $rbp
+</span></span><span class="line"><span class="cl">0x7fffffffe240:	0x00007fffffffe270	0x0000000000400625
+</span></span><span class="line"><span class="cl">0x7fffffffe250:	0x0000000000000007	0x0000000000000008 //第七个、第八个参数
+</span></span><span class="line"><span class="cl">0x7fffffffe260:	0x00007fffffffe358	0x0000000100000000
+</span></span><span class="line"><span class="cl">0x7fffffffe270:	0x0000000000000000	0x00007ffff7a2f555
+</span></span><span class="line"><span class="cl">0x7fffffffe280:	0x0000000000000000	0x00007fffffffe358
+</span></span><span class="line"><span class="cl">0x7fffffffe290:	0x0000000100000000	0x00000000004005e0
+</span></span><span class="line"><span class="cl">0x7fffffffe2a0:	0x0000000000000000	0xa8f1c884e4a0e964
+</span></span><span class="line"><span class="cl">0x7fffffffe2b0:	0x00000000004003e0	0x00007fffffffe350
+</span></span><span class="line"><span class="cl">0x7fffffffe2c0:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe2d0:	0x570e377b21a0e964	0x570e27c10ebae964
+</span></span><span class="line"><span class="cl">0x7fffffffe2e0:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe2f0:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe300:	0x00007ffff7ffe150	0x0000000000000003
+</span></span><span class="line"><span class="cl">0x7fffffffe310:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe320:	0x00000000004003e0	0x00007fffffffe350
+</span></span><span class="line"><span class="cl">0x7fffffffe330:	0x0000000000000000	0x0000000000400409
+</span></span><span class="line"><span class="cl">0x7fffffffe340:	0x00007fffffffe348	0x000000000000001c
+</span></span><span class="line"><span class="cl">0x7fffffffe350:	0x0000000000000001	0x00007fffffffe5c9
+</span></span><span class="line"><span class="cl">0x7fffffffe360:	0x0000000000000000	0x00007fffffffe5e0
+</span></span><span class="line"><span class="cl">0x7fffffffe370:	0x00007fffffffe5f1	0x00007fffffffe610
+</span></span><span class="line"><span class="cl">(gdb) x/40g $rsp
+</span></span><span class="line"><span class="cl">0x7fffffffe1f0:	0x0000000000000006	0x0000000000000005
+</span></span><span class="line"><span class="cl">0x7fffffffe200:	0x0000000000000004	0x0000000000000003
+</span></span><span class="line"><span class="cl">0x7fffffffe210:	0x0000000000000002	0x0000000000000001
+</span></span><span class="line"><span class="cl">0x7fffffffe220:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe230:	0x0000000000000001	0x000000000040067d
+</span></span><span class="line"><span class="cl">0x7fffffffe240:	0x00007fffffffe270	0x0000000000400625
+</span></span><span class="line"><span class="cl">0x7fffffffe250:	0x0000000000000007	0x0000000000000008
+</span></span><span class="line"><span class="cl">0x7fffffffe260:	0x00007fffffffe358	0x0000000100000000
+</span></span><span class="line"><span class="cl">0x7fffffffe270:	0x0000000000000000	0x00007ffff7a2f555
+</span></span><span class="line"><span class="cl">0x7fffffffe280:	0x0000000000000000	0x00007fffffffe358
+</span></span><span class="line"><span class="cl">0x7fffffffe290:	0x0000000100000000	0x00000000004005e0
+</span></span><span class="line"><span class="cl">0x7fffffffe2a0:	0x0000000000000000	0xa8f1c884e4a0e964
+</span></span><span class="line"><span class="cl">0x7fffffffe2b0:	0x00000000004003e0	0x00007fffffffe350
+</span></span><span class="line"><span class="cl">0x7fffffffe2c0:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe2d0:	0x570e377b21a0e964	0x570e27c10ebae964
+</span></span><span class="line"><span class="cl">0x7fffffffe2e0:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe2f0:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe300:	0x00007ffff7ffe150	0x0000000000000003
+</span></span><span class="line"><span class="cl">0x7fffffffe310:	0x0000000000000000	0x0000000000000000
+</span></span><span class="line"><span class="cl">0x7fffffffe320:	0x00000000004003e0	0x00007fffffffe350
+</span></span><span class="line"><span class="cl">(gdb) disas myfunc
+</span></span><span class="line"><span class="cl">Dump of assembler code for function myfunc:
+</span></span><span class="line"><span class="cl">   0x0000000000400531 &lt;+0&gt;:	push   %rbp
+</span></span><span class="line"><span class="cl">   0x0000000000400532 &lt;+1&gt;:	mov    %rsp,%rbp
+</span></span><span class="line"><span class="cl">   0x0000000000400535 &lt;+4&gt;:	sub    $0x50,%rsp
+</span></span><span class="line"><span class="cl">   0x0000000000400539 &lt;+8&gt;:	mov    %rdi,-0x28(%rbp)
+</span></span><span class="line"><span class="cl">   0x000000000040053d &lt;+12&gt;:	mov    %rsi,-0x30(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400541 &lt;+16&gt;:	mov    %rdx,-0x38(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400545 &lt;+20&gt;:	mov    %rcx,-0x40(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400549 &lt;+24&gt;:	mov    %r8,-0x48(%rbp)
+</span></span><span class="line"><span class="cl">   0x000000000040054d &lt;+28&gt;:	mov    %r9,-0x50(%rbp)
+</span></span><span class="line"><span class="cl">=&gt; 0x0000000000400551 &lt;+32&gt;:	mov    -0x28(%rbp),%rax //还没有执行
+</span></span><span class="line"><span class="cl">   0x0000000000400555 &lt;+36&gt;:	imul   -0x30(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040055a &lt;+41&gt;:	imul   -0x38(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040055f &lt;+46&gt;:	imul   -0x40(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400564 &lt;+51&gt;:	imul   -0x48(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400569 &lt;+56&gt;:	imul   -0x50(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040056e &lt;+61&gt;:	imul   0x10(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400573 &lt;+66&gt;:	imul   0x18(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400578 &lt;+71&gt;:	mov    %rax,-0x8(%rbp)
+</span></span><span class="line"><span class="cl">   0x000000000040057c &lt;+75&gt;:	mov    -0x30(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400580 &lt;+79&gt;:	mov    -0x28(%rbp),%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400584 &lt;+83&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400587 &lt;+86&gt;:	mov    -0x38(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040058b &lt;+90&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x000000000040058e &lt;+93&gt;:	mov    -0x40(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400592 &lt;+97&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400595 &lt;+100&gt;:	mov    -0x48(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400599 &lt;+104&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x000000000040059c &lt;+107&gt;:	mov    -0x50(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005a0 &lt;+111&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005a3 &lt;+114&gt;:	mov    0x10(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005a7 &lt;+118&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005aa &lt;+121&gt;:	mov    0x18(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005ae &lt;+125&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005b1 &lt;+128&gt;:	mov    %rax,-0x10(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004005b5 &lt;+132&gt;:	mov    -0x8(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005b9 &lt;+136&gt;:	cqto   
+</span></span><span class="line"><span class="cl">   0x00000000004005bb &lt;+138&gt;:	idivq  -0x10(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004005bf &lt;+142&gt;:	mov    -0x10(%rbp),%rcx
+</span></span><span class="line"><span class="cl">   0x00000000004005c3 &lt;+146&gt;:	mov    -0x8(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005c7 &lt;+150&gt;:	mov    %rcx,%rsi
+</span></span><span class="line"><span class="cl">   0x00000000004005ca &lt;+153&gt;:	mov    %rax,%rdi
+</span></span><span class="line"><span class="cl">   0x00000000004005cd &lt;+156&gt;:	callq  0x4004cd &lt;utilfunc&gt;
+</span></span><span class="line"><span class="cl">   0x00000000004005d2 &lt;+161&gt;:	mov    %rax,-0x18(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004005d6 &lt;+165&gt;:	mov    -0x18(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005da &lt;+169&gt;:	add    $0x14,%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005de &lt;+173&gt;:	leaveq 
+</span></span><span class="line"><span class="cl">   0x00000000004005df &lt;+174&gt;:	retq   
+</span></span><span class="line"><span class="cl">End of assembler dump.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="red-zone">red zone</h3>
 <p>对于<code>leaf function</code>，<code>x86</code>下有一个优化，其特性依赖于 <code>red zone</code>,其官方解释为：</p>
-<pre><code>The 128-byte area beyond the location pointed to by %rsp is considered
-to be reserved and shall not be modified by signal or interrupt handlers.
-Therefore, functions may use this area for temporary data that is not
-needed across function calls. In particular, leaf functions may use this
-area for their entire stack frame, rather than adjusting the stack pointer
-in the prologue and epilogue. This area is known as the red zone.
-</code></pre><p><code>leaf function</code>就是不会再调用其它函数的函数，上面的例子中，<code>utilfunc</code>就是一个<code>leaf function</code>。对于<code>leaf function</code>函数，由于它不会在调用其他函数，所以就不需要更改其<code>rsp</code>寄存器，免得函数返回时还要恢复<code>rsp</code>寄存器。</p>
-<pre><code>[root@localhost stack]# gdb a.out 
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
-and &quot;show warranty&quot; for details.
-This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
-For bug reporting instructions, please see:
-&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
-Reading symbols from /root/work/stack/a.out...done.
-(gdb) l 1
-1	#include &lt;stdio.h&gt;
-2	
-3	long utilfunc(long a, long b, long c)
-4	{
-5		long xx = a + 2;
-6		long yy = b + 3;
-7		long zz = c + 4;
-8		long sum = xx + yy + zz;
-9	
-10		return xx * yy * zz + sum;
-(gdb) b 3
-Breakpoint 1 at 0x4004dd: file main.c, line 3.
-(gdb) r
-Starting program: /root/work/stack/a.out 
-
-Breakpoint 1, utilfunc (a=40320, b=36, c=0) at main.c:5
-5		long xx = a + 2;
-Missing separate debuginfos, use: debuginfo-install glibc-2.17-307.el7.1.x86_64
-//通过rdi、rsi、rdx传递函数的三个参数
-(gdb) info reg
-rax            0x9d80	40320
-rbx            0x0	0
-rcx            0x24	36
-rdx            0x0	0
-rsi            0x24	36
-rdi            0x9d80	40320
-rbp            0x7fffffffe1e0	0x7fffffffe1e0
-rsp            0x7fffffffe1e0	0x7fffffffe1e0
-r8             0x5	5
-r9             0x6	6
-r10            0x7fffffffdda0	140737488346528
-r11            0x7ffff7a2f460	140737348039776
-r12            0x4003e0	4195296
-r13            0x7fffffffe350	140737488347984
-r14            0x0	0
-r15            0x0	0
-rip            0x4004dd	0x4004dd &lt;utilfunc+16&gt;
-eflags         0x216	[ PF AF IF ]
-cs             0x33	51
-ss             0x2b	43
-ds             0x0	0
-es             0x0	0
-fs             0x0	0
-gs             0x0	0
-//可以看到起汇编代码中没有用到rsp寄存器
-(gdb) disas utilfunc
-Dump of assembler code for function utilfunc:
-   0x00000000004004cd &lt;+0&gt;:	push   %rbp
-   0x00000000004004ce &lt;+1&gt;:	mov    %rsp,%rbp
-   0x00000000004004d1 &lt;+4&gt;:	mov    %rdi,-0x28(%rbp)
-   0x00000000004004d5 &lt;+8&gt;:	mov    %rsi,-0x30(%rbp)
-   0x00000000004004d9 &lt;+12&gt;:	mov    %rdx,-0x38(%rbp)
-=&gt; 0x00000000004004dd &lt;+16&gt;:	mov    -0x28(%rbp),%rax
-   0x00000000004004e1 &lt;+20&gt;:	add    $0x2,%rax
-   0x00000000004004e5 &lt;+24&gt;:	mov    %rax,-0x8(%rbp)
-   0x00000000004004e9 &lt;+28&gt;:	mov    -0x30(%rbp),%rax
-   0x00000000004004ed &lt;+32&gt;:	add    $0x3,%rax
-   0x00000000004004f1 &lt;+36&gt;:	mov    %rax,-0x10(%rbp)
-   0x00000000004004f5 &lt;+40&gt;:	mov    -0x38(%rbp),%rax
-   0x00000000004004f9 &lt;+44&gt;:	add    $0x4,%rax
-   0x00000000004004fd &lt;+48&gt;:	mov    %rax,-0x18(%rbp)
-   0x0000000000400501 &lt;+52&gt;:	mov    -0x10(%rbp),%rax
-   0x0000000000400505 &lt;+56&gt;:	mov    -0x8(%rbp),%rdx
-   0x0000000000400509 &lt;+60&gt;:	add    %rax,%rdx
-   0x000000000040050c &lt;+63&gt;:	mov    -0x18(%rbp),%rax
-   0x0000000000400510 &lt;+67&gt;:	add    %rdx,%rax
-   0x0000000000400513 &lt;+70&gt;:	mov    %rax,-0x20(%rbp)
-   0x0000000000400517 &lt;+74&gt;:	mov    -0x8(%rbp),%rax
-   0x000000000040051b &lt;+78&gt;:	imul   -0x10(%rbp),%rax
-   0x0000000000400520 &lt;+83&gt;:	imul   -0x18(%rbp),%rax
-   0x0000000000400525 &lt;+88&gt;:	mov    %rax,%rdx
-   0x0000000000400528 &lt;+91&gt;:	mov    -0x20(%rbp),%rax
-   0x000000000040052c &lt;+95&gt;:	add    %rdx,%rax
-   0x000000000040052f &lt;+98&gt;:	pop    %rbp
-   0x0000000000400530 &lt;+99&gt;:	retq   
-End of assembler dump.
-</code></pre><p>当调用该叶子函数时，其栈如下：</p>
-<!-- raw HTML omitted -->
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">The 128-byte area beyond the location pointed to by %rsp is considered
+</span></span><span class="line"><span class="cl">to be reserved and shall not be modified by signal or interrupt handlers.
+</span></span><span class="line"><span class="cl">Therefore, functions may use this area for temporary data that is not
+</span></span><span class="line"><span class="cl">needed across function calls. In particular, leaf functions may use this
+</span></span><span class="line"><span class="cl">area for their entire stack frame, rather than adjusting the stack pointer
+</span></span><span class="line"><span class="cl">in the prologue and epilogue. This area is known as the red zone.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>leaf function</code>就是不会再调用其它函数的函数，上面的例子中，<code>utilfunc</code>就是一个<code>leaf function</code>。对于<code>leaf function</code>函数，由于它不会在调用其他函数，所以就不需要更改其<code>rsp</code>寄存器，免得函数返回时还要恢复<code>rsp</code>寄存器。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span><span class="lnt">83
+</span><span class="lnt">84
+</span><span class="lnt">85
+</span><span class="lnt">86
+</span><span class="lnt">87
+</span><span class="lnt">88
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[root@localhost stack]# gdb a.out 
+</span></span><span class="line"><span class="cl">GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
+</span></span><span class="line"><span class="cl">Copyright (C) 2013 Free Software Foundation, Inc.
+</span></span><span class="line"><span class="cl">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+</span></span><span class="line"><span class="cl">This is free software: you are free to change and redistribute it.
+</span></span><span class="line"><span class="cl">There is NO WARRANTY, to the extent permitted by law.  Type &#34;show copying&#34;
+</span></span><span class="line"><span class="cl">and &#34;show warranty&#34; for details.
+</span></span><span class="line"><span class="cl">This GDB was configured as &#34;x86_64-redhat-linux-gnu&#34;.
+</span></span><span class="line"><span class="cl">For bug reporting instructions, please see:
+</span></span><span class="line"><span class="cl">&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+</span></span><span class="line"><span class="cl">Reading symbols from /root/work/stack/a.out...done.
+</span></span><span class="line"><span class="cl">(gdb) l 1
+</span></span><span class="line"><span class="cl">1	#include &lt;stdio.h&gt;
+</span></span><span class="line"><span class="cl">2	
+</span></span><span class="line"><span class="cl">3	long utilfunc(long a, long b, long c)
+</span></span><span class="line"><span class="cl">4	{
+</span></span><span class="line"><span class="cl">5		long xx = a + 2;
+</span></span><span class="line"><span class="cl">6		long yy = b + 3;
+</span></span><span class="line"><span class="cl">7		long zz = c + 4;
+</span></span><span class="line"><span class="cl">8		long sum = xx + yy + zz;
+</span></span><span class="line"><span class="cl">9	
+</span></span><span class="line"><span class="cl">10		return xx * yy * zz + sum;
+</span></span><span class="line"><span class="cl">(gdb) b 3
+</span></span><span class="line"><span class="cl">Breakpoint 1 at 0x4004dd: file main.c, line 3.
+</span></span><span class="line"><span class="cl">(gdb) r
+</span></span><span class="line"><span class="cl">Starting program: /root/work/stack/a.out 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Breakpoint 1, utilfunc (a=40320, b=36, c=0) at main.c:5
+</span></span><span class="line"><span class="cl">5		long xx = a + 2;
+</span></span><span class="line"><span class="cl">Missing separate debuginfos, use: debuginfo-install glibc-2.17-307.el7.1.x86_64
+</span></span><span class="line"><span class="cl">//通过rdi、rsi、rdx传递函数的三个参数
+</span></span><span class="line"><span class="cl">(gdb) info reg
+</span></span><span class="line"><span class="cl">rax            0x9d80	40320
+</span></span><span class="line"><span class="cl">rbx            0x0	0
+</span></span><span class="line"><span class="cl">rcx            0x24	36
+</span></span><span class="line"><span class="cl">rdx            0x0	0
+</span></span><span class="line"><span class="cl">rsi            0x24	36
+</span></span><span class="line"><span class="cl">rdi            0x9d80	40320
+</span></span><span class="line"><span class="cl">rbp            0x7fffffffe1e0	0x7fffffffe1e0
+</span></span><span class="line"><span class="cl">rsp            0x7fffffffe1e0	0x7fffffffe1e0
+</span></span><span class="line"><span class="cl">r8             0x5	5
+</span></span><span class="line"><span class="cl">r9             0x6	6
+</span></span><span class="line"><span class="cl">r10            0x7fffffffdda0	140737488346528
+</span></span><span class="line"><span class="cl">r11            0x7ffff7a2f460	140737348039776
+</span></span><span class="line"><span class="cl">r12            0x4003e0	4195296
+</span></span><span class="line"><span class="cl">r13            0x7fffffffe350	140737488347984
+</span></span><span class="line"><span class="cl">r14            0x0	0
+</span></span><span class="line"><span class="cl">r15            0x0	0
+</span></span><span class="line"><span class="cl">rip            0x4004dd	0x4004dd &lt;utilfunc+16&gt;
+</span></span><span class="line"><span class="cl">eflags         0x216	[ PF AF IF ]
+</span></span><span class="line"><span class="cl">cs             0x33	51
+</span></span><span class="line"><span class="cl">ss             0x2b	43
+</span></span><span class="line"><span class="cl">ds             0x0	0
+</span></span><span class="line"><span class="cl">es             0x0	0
+</span></span><span class="line"><span class="cl">fs             0x0	0
+</span></span><span class="line"><span class="cl">gs             0x0	0
+</span></span><span class="line"><span class="cl">//可以看到起汇编代码中没有用到rsp寄存器
+</span></span><span class="line"><span class="cl">(gdb) disas utilfunc
+</span></span><span class="line"><span class="cl">Dump of assembler code for function utilfunc:
+</span></span><span class="line"><span class="cl">   0x00000000004004cd &lt;+0&gt;:	push   %rbp
+</span></span><span class="line"><span class="cl">   0x00000000004004ce &lt;+1&gt;:	mov    %rsp,%rbp
+</span></span><span class="line"><span class="cl">   0x00000000004004d1 &lt;+4&gt;:	mov    %rdi,-0x28(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004004d5 &lt;+8&gt;:	mov    %rsi,-0x30(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004004d9 &lt;+12&gt;:	mov    %rdx,-0x38(%rbp)
+</span></span><span class="line"><span class="cl">=&gt; 0x00000000004004dd &lt;+16&gt;:	mov    -0x28(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004004e1 &lt;+20&gt;:	add    $0x2,%rax
+</span></span><span class="line"><span class="cl">   0x00000000004004e5 &lt;+24&gt;:	mov    %rax,-0x8(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004004e9 &lt;+28&gt;:	mov    -0x30(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004004ed &lt;+32&gt;:	add    $0x3,%rax
+</span></span><span class="line"><span class="cl">   0x00000000004004f1 &lt;+36&gt;:	mov    %rax,-0x10(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004004f5 &lt;+40&gt;:	mov    -0x38(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004004f9 &lt;+44&gt;:	add    $0x4,%rax
+</span></span><span class="line"><span class="cl">   0x00000000004004fd &lt;+48&gt;:	mov    %rax,-0x18(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400501 &lt;+52&gt;:	mov    -0x10(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400505 &lt;+56&gt;:	mov    -0x8(%rbp),%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400509 &lt;+60&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x000000000040050c &lt;+63&gt;:	mov    -0x18(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400510 &lt;+67&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400513 &lt;+70&gt;:	mov    %rax,-0x20(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400517 &lt;+74&gt;:	mov    -0x8(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040051b &lt;+78&gt;:	imul   -0x10(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400520 &lt;+83&gt;:	imul   -0x18(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400525 &lt;+88&gt;:	mov    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400528 &lt;+91&gt;:	mov    -0x20(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040052c &lt;+95&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x000000000040052f &lt;+98&gt;:	pop    %rbp
+</span></span><span class="line"><span class="cl">   0x0000000000400530 &lt;+99&gt;:	retq   
+</span></span><span class="line"><span class="cl">End of assembler dump.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>当调用该叶子函数时，其栈如下：</p>
+<center>
+![][6]
+</center>
 <h3 id="-fomit-frame-pointer">-fomit-frame-pointer</h3>
 <p>实际上<code>rbp</code>不是必须的，如果编译器进行了优化，代码中就不会使用<code>rbp</code>寄存器了。</p>
-<pre><code>~/work/stack  # gcc -g -fomit-frame-pointer main.c  -o omit-frame-pointer
-root@127.0.0.1::[08:18:07]::[Exit Code: 0] -&gt;
-~/work/stack  # gdb omit-frame-pointer 
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
-and &quot;show warranty&quot; for details.
-This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
-For bug reporting instructions, please see:
-&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
-Reading symbols from /root/work/stack/omit-frame-pointer...done.
-(gdb) l
-15	            long e, long f, long g, long h)
-16	{
-17		long xx = a * b * c * d * e * f * g * h;
-18		long yy = a + b + c + d + e + f + g + h;
-19		long zz = utilfunc(xx, yy, xx % yy);
-20	
-21		return zz + 20;
-22	}
-23	
-24	int main(int argc, char **argv) {
-//通过传递-fomit-frame-pointer编译器参数，汇编代码中就不会用到rbp寄存器了。
-(gdb) disas myfunc
-Dump of assembler code for function myfunc:
-   0x000000000040055d &lt;+0&gt;:	sub    $0x50,%rsp
-   0x0000000000400561 &lt;+4&gt;:	mov    %rdi,0x28(%rsp)
-   0x0000000000400566 &lt;+9&gt;:	mov    %rsi,0x20(%rsp)
-   0x000000000040056b &lt;+14&gt;:	mov    %rdx,0x18(%rsp)
-   0x0000000000400570 &lt;+19&gt;:	mov    %rcx,0x10(%rsp)
-   0x0000000000400575 &lt;+24&gt;:	mov    %r8,0x8(%rsp)
-   0x000000000040057a &lt;+29&gt;:	mov    %r9,(%rsp)
-   0x000000000040057e &lt;+33&gt;:	mov    0x28(%rsp),%rax
-   0x0000000000400583 &lt;+38&gt;:	imul   0x20(%rsp),%rax
-   0x0000000000400589 &lt;+44&gt;:	imul   0x18(%rsp),%rax
-   0x000000000040058f &lt;+50&gt;:	imul   0x10(%rsp),%rax
-   0x0000000000400595 &lt;+56&gt;:	imul   0x8(%rsp),%rax
-   0x000000000040059b &lt;+62&gt;:	imul   (%rsp),%rax
-   0x00000000004005a0 &lt;+67&gt;:	imul   0x58(%rsp),%rax
-   0x00000000004005a6 &lt;+73&gt;:	imul   0x60(%rsp),%rax
-   0x00000000004005ac &lt;+79&gt;:	mov    %rax,0x48(%rsp)
-   0x00000000004005b1 &lt;+84&gt;:	mov    0x20(%rsp),%rax
-   0x00000000004005b6 &lt;+89&gt;:	mov    0x28(%rsp),%rdx
-   0x00000000004005bb &lt;+94&gt;:	add    %rax,%rdx
-   0x00000000004005be &lt;+97&gt;:	mov    0x18(%rsp),%rax
-   0x00000000004005c3 &lt;+102&gt;:	add    %rax,%rdx
-   0x00000000004005c6 &lt;+105&gt;:	mov    0x10(%rsp),%rax
-   0x00000000004005cb &lt;+110&gt;:	add    %rax,%rdx
-   0x00000000004005ce &lt;+113&gt;:	mov    0x8(%rsp),%rax
-   0x00000000004005d3 &lt;+118&gt;:	add    %rax,%rdx
-   0x00000000004005d6 &lt;+121&gt;:	mov    (%rsp),%rax
-   0x00000000004005da &lt;+125&gt;:	add    %rax,%rdx
-   0x00000000004005dd &lt;+128&gt;:	mov    0x58(%rsp),%rax
-   0x00000000004005e2 &lt;+133&gt;:	add    %rax,%rdx
-   0x00000000004005e5 &lt;+136&gt;:	mov    0x60(%rsp),%rax
-   0x00000000004005ea &lt;+141&gt;:	add    %rdx,%rax
-   0x00000000004005ed &lt;+144&gt;:	mov    %rax,0x40(%rsp)
-   0x00000000004005f2 &lt;+149&gt;:	mov    0x48(%rsp),%rax
-   0x00000000004005f7 &lt;+154&gt;:	cqto   
-   0x00000000004005f9 &lt;+156&gt;:	idivq  0x40(%rsp)
-   0x00000000004005fe &lt;+161&gt;:	mov    0x40(%rsp),%rcx
-   0x0000000000400603 &lt;+166&gt;:	mov    0x48(%rsp),%rax
-   0x0000000000400608 &lt;+171&gt;:	mov    %rcx,%rsi
-   0x000000000040060b &lt;+174&gt;:	mov    %rax,%rdi
-   0x000000000040060e &lt;+177&gt;:	callq  0x4004ed &lt;utilfunc&gt;
-   0x0000000000400613 &lt;+182&gt;:	mov    %rax,0x38(%rsp)
-   0x0000000000400618 &lt;+187&gt;:	mov    0x38(%rsp),%rax
-   0x000000000040061d &lt;+192&gt;:	add    $0x14,%rax
-   0x0000000000400621 &lt;+196&gt;:	add    $0x50,%rsp
-   0x0000000000400625 &lt;+200&gt;:	retq   
-End of assembler dump.
-(gdb) disas utilfunc
-Dump of assembler code for function utilfunc:
-   0x00000000004004ed &lt;+0&gt;:	mov    %rdi,-0x28(%rsp)
-   0x00000000004004f2 &lt;+5&gt;:	mov    %rsi,-0x30(%rsp)
-   0x00000000004004f7 &lt;+10&gt;:	mov    %rdx,-0x38(%rsp)
-   0x00000000004004fc &lt;+15&gt;:	mov    -0x28(%rsp),%rax
-   0x0000000000400501 &lt;+20&gt;:	add    $0x2,%rax
-   0x0000000000400505 &lt;+24&gt;:	mov    %rax,-0x8(%rsp)
-   0x000000000040050a &lt;+29&gt;:	mov    -0x30(%rsp),%rax
-   0x000000000040050f &lt;+34&gt;:	add    $0x3,%rax
-   0x0000000000400513 &lt;+38&gt;:	mov    %rax,-0x10(%rsp)
-   0x0000000000400518 &lt;+43&gt;:	mov    -0x38(%rsp),%rax
-   0x000000000040051d &lt;+48&gt;:	add    $0x4,%rax
-   0x0000000000400521 &lt;+52&gt;:	mov    %rax,-0x18(%rsp)
-   0x0000000000400526 &lt;+57&gt;:	mov    -0x10(%rsp),%rax
-   0x000000000040052b &lt;+62&gt;:	mov    -0x8(%rsp),%rdx
-   0x0000000000400530 &lt;+67&gt;:	add    %rax,%rdx
-   0x0000000000400533 &lt;+70&gt;:	mov    -0x18(%rsp),%rax
-   0x0000000000400538 &lt;+75&gt;:	add    %rdx,%rax
-   0x000000000040053b &lt;+78&gt;:	mov    %rax,-0x20(%rsp)
-   0x0000000000400540 &lt;+83&gt;:	mov    -0x8(%rsp),%rax
-   0x0000000000400545 &lt;+88&gt;:	imul   -0x10(%rsp),%rax
-   0x000000000040054b &lt;+94&gt;:	imul   -0x18(%rsp),%rax
-   0x0000000000400551 &lt;+100&gt;:	mov    %rax,%rdx
-   0x0000000000400554 &lt;+103&gt;:	mov    -0x20(%rsp),%rax
-   0x0000000000400559 &lt;+108&gt;:	add    %rdx,%rax
-   0x000000000040055c &lt;+111&gt;:	retq   
-End of assembler dump.
-</code></pre><h3 id="对于浮点数">对于浮点数</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">~/work/stack  # gcc -g -fomit-frame-pointer main.c  -o omit-frame-pointer
+</span></span><span class="line"><span class="cl">root@127.0.0.1::[08:18:07]::[Exit Code: 0] -&gt;
+</span></span><span class="line"><span class="cl">~/work/stack  # gdb omit-frame-pointer 
+</span></span><span class="line"><span class="cl">GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7
+</span></span><span class="line"><span class="cl">Copyright (C) 2013 Free Software Foundation, Inc.
+</span></span><span class="line"><span class="cl">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+</span></span><span class="line"><span class="cl">This is free software: you are free to change and redistribute it.
+</span></span><span class="line"><span class="cl">There is NO WARRANTY, to the extent permitted by law.  Type &#34;show copying&#34;
+</span></span><span class="line"><span class="cl">and &#34;show warranty&#34; for details.
+</span></span><span class="line"><span class="cl">This GDB was configured as &#34;x86_64-redhat-linux-gnu&#34;.
+</span></span><span class="line"><span class="cl">For bug reporting instructions, please see:
+</span></span><span class="line"><span class="cl">&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+</span></span><span class="line"><span class="cl">Reading symbols from /root/work/stack/omit-frame-pointer...done.
+</span></span><span class="line"><span class="cl">(gdb) l
+</span></span><span class="line"><span class="cl">15	            long e, long f, long g, long h)
+</span></span><span class="line"><span class="cl">16	{
+</span></span><span class="line"><span class="cl">17		long xx = a * b * c * d * e * f * g * h;
+</span></span><span class="line"><span class="cl">18		long yy = a + b + c + d + e + f + g + h;
+</span></span><span class="line"><span class="cl">19		long zz = utilfunc(xx, yy, xx % yy);
+</span></span><span class="line"><span class="cl">20	
+</span></span><span class="line"><span class="cl">21		return zz + 20;
+</span></span><span class="line"><span class="cl">22	}
+</span></span><span class="line"><span class="cl">23	
+</span></span><span class="line"><span class="cl">24	int main(int argc, char **argv) {
+</span></span><span class="line"><span class="cl">//通过传递-fomit-frame-pointer编译器参数，汇编代码中就不会用到rbp寄存器了。
+</span></span><span class="line"><span class="cl">(gdb) disas myfunc
+</span></span><span class="line"><span class="cl">Dump of assembler code for function myfunc:
+</span></span><span class="line"><span class="cl">   0x000000000040055d &lt;+0&gt;:	sub    $0x50,%rsp
+</span></span><span class="line"><span class="cl">   0x0000000000400561 &lt;+4&gt;:	mov    %rdi,0x28(%rsp)
+</span></span><span class="line"><span class="cl">   0x0000000000400566 &lt;+9&gt;:	mov    %rsi,0x20(%rsp)
+</span></span><span class="line"><span class="cl">   0x000000000040056b &lt;+14&gt;:	mov    %rdx,0x18(%rsp)
+</span></span><span class="line"><span class="cl">   0x0000000000400570 &lt;+19&gt;:	mov    %rcx,0x10(%rsp)
+</span></span><span class="line"><span class="cl">   0x0000000000400575 &lt;+24&gt;:	mov    %r8,0x8(%rsp)
+</span></span><span class="line"><span class="cl">   0x000000000040057a &lt;+29&gt;:	mov    %r9,(%rsp)
+</span></span><span class="line"><span class="cl">   0x000000000040057e &lt;+33&gt;:	mov    0x28(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400583 &lt;+38&gt;:	imul   0x20(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400589 &lt;+44&gt;:	imul   0x18(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040058f &lt;+50&gt;:	imul   0x10(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400595 &lt;+56&gt;:	imul   0x8(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040059b &lt;+62&gt;:	imul   (%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005a0 &lt;+67&gt;:	imul   0x58(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005a6 &lt;+73&gt;:	imul   0x60(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005ac &lt;+79&gt;:	mov    %rax,0x48(%rsp)
+</span></span><span class="line"><span class="cl">   0x00000000004005b1 &lt;+84&gt;:	mov    0x20(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005b6 &lt;+89&gt;:	mov    0x28(%rsp),%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005bb &lt;+94&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005be &lt;+97&gt;:	mov    0x18(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005c3 &lt;+102&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005c6 &lt;+105&gt;:	mov    0x10(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005cb &lt;+110&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005ce &lt;+113&gt;:	mov    0x8(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005d3 &lt;+118&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005d6 &lt;+121&gt;:	mov    (%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005da &lt;+125&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005dd &lt;+128&gt;:	mov    0x58(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005e2 &lt;+133&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005e5 &lt;+136&gt;:	mov    0x60(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005ea &lt;+141&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005ed &lt;+144&gt;:	mov    %rax,0x40(%rsp)
+</span></span><span class="line"><span class="cl">   0x00000000004005f2 &lt;+149&gt;:	mov    0x48(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005f7 &lt;+154&gt;:	cqto   
+</span></span><span class="line"><span class="cl">   0x00000000004005f9 &lt;+156&gt;:	idivq  0x40(%rsp)
+</span></span><span class="line"><span class="cl">   0x00000000004005fe &lt;+161&gt;:	mov    0x40(%rsp),%rcx
+</span></span><span class="line"><span class="cl">   0x0000000000400603 &lt;+166&gt;:	mov    0x48(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400608 &lt;+171&gt;:	mov    %rcx,%rsi
+</span></span><span class="line"><span class="cl">   0x000000000040060b &lt;+174&gt;:	mov    %rax,%rdi
+</span></span><span class="line"><span class="cl">   0x000000000040060e &lt;+177&gt;:	callq  0x4004ed &lt;utilfunc&gt;
+</span></span><span class="line"><span class="cl">   0x0000000000400613 &lt;+182&gt;:	mov    %rax,0x38(%rsp)
+</span></span><span class="line"><span class="cl">   0x0000000000400618 &lt;+187&gt;:	mov    0x38(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040061d &lt;+192&gt;:	add    $0x14,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400621 &lt;+196&gt;:	add    $0x50,%rsp
+</span></span><span class="line"><span class="cl">   0x0000000000400625 &lt;+200&gt;:	retq   
+</span></span><span class="line"><span class="cl">End of assembler dump.
+</span></span><span class="line"><span class="cl">(gdb) disas utilfunc
+</span></span><span class="line"><span class="cl">Dump of assembler code for function utilfunc:
+</span></span><span class="line"><span class="cl">   0x00000000004004ed &lt;+0&gt;:	mov    %rdi,-0x28(%rsp)
+</span></span><span class="line"><span class="cl">   0x00000000004004f2 &lt;+5&gt;:	mov    %rsi,-0x30(%rsp)
+</span></span><span class="line"><span class="cl">   0x00000000004004f7 &lt;+10&gt;:	mov    %rdx,-0x38(%rsp)
+</span></span><span class="line"><span class="cl">   0x00000000004004fc &lt;+15&gt;:	mov    -0x28(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400501 &lt;+20&gt;:	add    $0x2,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400505 &lt;+24&gt;:	mov    %rax,-0x8(%rsp)
+</span></span><span class="line"><span class="cl">   0x000000000040050a &lt;+29&gt;:	mov    -0x30(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040050f &lt;+34&gt;:	add    $0x3,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400513 &lt;+38&gt;:	mov    %rax,-0x10(%rsp)
+</span></span><span class="line"><span class="cl">   0x0000000000400518 &lt;+43&gt;:	mov    -0x38(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040051d &lt;+48&gt;:	add    $0x4,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400521 &lt;+52&gt;:	mov    %rax,-0x18(%rsp)
+</span></span><span class="line"><span class="cl">   0x0000000000400526 &lt;+57&gt;:	mov    -0x10(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040052b &lt;+62&gt;:	mov    -0x8(%rsp),%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400530 &lt;+67&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400533 &lt;+70&gt;:	mov    -0x18(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400538 &lt;+75&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x000000000040053b &lt;+78&gt;:	mov    %rax,-0x20(%rsp)
+</span></span><span class="line"><span class="cl">   0x0000000000400540 &lt;+83&gt;:	mov    -0x8(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400545 &lt;+88&gt;:	imul   -0x10(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040054b &lt;+94&gt;:	imul   -0x18(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400551 &lt;+100&gt;:	mov    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400554 &lt;+103&gt;:	mov    -0x20(%rsp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400559 &lt;+108&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x000000000040055c &lt;+111&gt;:	retq   
+</span></span><span class="line"><span class="cl">End of assembler dump.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="对于浮点数">对于浮点数</h3>
 <p>函数参数中有浮点数的情况下，对于浮点数使用<code>xmm0</code>,<code>xmm1</code>,<code>xmm2</code>,<code>xmm3</code>到<code>xmm7</code>来传递。</p>
 <p>考虑如下函数</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#f92672">~/</span>work<span style="color:#f92672">/</span>stack  <span style="color:#960050;background-color:#1e0010">#</span> cat <span style="color:#66d9ef">float</span>.c 
-<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">long</span> myfunc(<span style="color:#66d9ef">long</span> a, <span style="color:#66d9ef">long</span> b, <span style="color:#66d9ef">long</span> c,
-	<span style="color:#66d9ef">double</span> d, <span style="color:#66d9ef">long</span> e, <span style="color:#66d9ef">long</span> f, <span style="color:#66d9ef">double</span> g, <span style="color:#66d9ef">long</span> h, <span style="color:#66d9ef">long</span> i, <span style="color:#66d9ef">long</span> j)
-{
-	<span style="color:#66d9ef">long</span> xx <span style="color:#f92672">=</span> a <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">+</span> e;
-	<span style="color:#66d9ef">long</span> yy <span style="color:#f92672">=</span> b <span style="color:#f92672">+</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">+</span> f;
-	<span style="color:#66d9ef">long</span> zz <span style="color:#f92672">=</span> c <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">+</span> h;
-	<span style="color:#66d9ef">long</span> ww <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> j;
-	<span style="color:#66d9ef">double</span> vv <span style="color:#f92672">=</span> d <span style="color:#f92672">+</span> g;
-	<span style="color:#66d9ef">long</span> sum <span style="color:#f92672">=</span> xx <span style="color:#f92672">+</span> yy <span style="color:#f92672">+</span> zz <span style="color:#f92672">+</span> ww <span style="color:#f92672">+</span> vv;
-
-	<span style="color:#66d9ef">return</span> xx <span style="color:#f92672">*</span> yy <span style="color:#f92672">*</span> zz <span style="color:#f92672">+</span> sum;
-}
-
-<span style="color:#66d9ef">int</span> main(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv) {
-	myfunc(<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4.0</span>,<span style="color:#ae81ff">5</span>,<span style="color:#ae81ff">6</span>,<span style="color:#ae81ff">7.0</span>,<span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>, <span style="color:#ae81ff">10</span>);
-
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-r
-</code></pre></div><p>gdb 效果如下：</p>
-<pre><code>~/work/stack  # gcc float.c -o float -g
-root@127.0.0.1::[08:30:35]::[Exit Code: 0] -&gt;
-~/work/stack  # gdb float
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
-and &quot;show warranty&quot; for details.
-This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
-For bug reporting instructions, please see:
-&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
-Reading symbols from /root/work/stack/float...done.
-(gdb) l
-8		long zz = c + 4 + h;
-9		long ww = i + j;
-10		double vv = d + g;
-11		long sum = xx + yy + zz + ww + vv;
-12	
-13		return xx * yy * zz + sum;
-14	}
-15	
-16	int main(int argc, char **argv) {
-17		myfunc(1,2,3,4.0,5,6,7.0,8, 9, 10);
-(gdb) l
-18	
-19		return 0;
-20	}
-(gdb) b myfunc
-Breakpoint 1 at 0x400513: file float.c, line 6.
-(gdb) r
-Starting program: /root/work/stack/float 
-
-Breakpoint 1, myfunc (a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10) at float.c:6
-6		long xx = a + 2 + e;
-Missing separate debuginfos, use: debuginfo-install glibc-2.17-196.el7.x86_64
-可以看出rdi、rsi、rdx、rcx、r8、r9分别传递了前8个非浮点类型的参数。
-(gdb) info reg
-rax            0x4010000000000000	4616189618054758400
-rbx            0x0	0
-rcx            0x5	5
-rdx            0x3	3
-rsi            0x2	2
-rdi            0x1	1
-rbp            0x7fffffffe2f8	0x7fffffffe2f8
-rsp            0x7fffffffe2f8	0x7fffffffe2f8
-r8             0x6	6
-r9             0x8	8
-r10            0x7fffffffe110	140737488347408
-r11            0x7ffff7a39b10	140737348082448
-r12            0x400400	4195328
-r13            0x7fffffffe410	140737488348176
-r14            0x0	0
-r15            0x0	0
-rip            0x400513	0x400513 &lt;myfunc+38&gt;
-eflags         0x212	[ AF IF ]
-cs             0x33	51
-ss             0x2b	43
-ds             0x0	0
-es             0x0	0
-fs             0x0	0
-gs             0x0	0
-//而第四个参数和第七个参数为浮点数类型，他们分别通过寄存器xmm0和xmm1来传递。
-(gdb) p /x $xmm0
-$2 = {v4_float = {0x0, 0x2, 0x0, 0x0}, v2_double = {0x4, 0x0}, v16_int8 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x10, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 
-    0x0, 0x0, 0x0}, v8_int16 = {0x0, 0x0, 0x0, 0x4010, 0x0, 0x0, 0x0, 0x0}, v4_int32 = {0x0, 0x40100000, 0x0, 0x0}, v2_int64 = {
-    0x4010000000000000, 0x0}, uint128 = 0x00000000000000004010000000000000}
-(gdb) p /x $xmm1
-$3 = {v4_float = {0x0, 0x2, 0x0, 0x0}, v2_double = {0x7, 0x0}, v16_int8 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1c, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 
-    0x0, 0x0, 0x0}, v8_int16 = {0x0, 0x0, 0x0, 0x401c, 0x0, 0x0, 0x0, 0x0}, v4_int32 = {0x0, 0x401c0000, 0x0, 0x0}, v2_int64 = {
-    0x401c000000000000, 0x0}, uint128 = 0x0000000000000000401c000000000000}
-(gdb) p /x $xmm2
-$4 = {v4_float = {0x0, 0x0, 0x0, 0x0}, v2_double = {0x0, 0x0}, v16_int8 = {0x0 &lt;repeats 16 times&gt;}, v8_int16 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
-    0x0, 0x0}, v4_int32 = {0x0, 0x0, 0x0, 0x0}, v2_int64 = {0x0, 0x0}, uint128 = 0x00000000000000000000000000000000}
-(gdb) p /x $xmm3
-$5 = {v4_float = {0x0, 0x0, 0x0, 0x0}, v2_double = {0x0, 0x8000000000000000}, v16_int8 = {0x0 &lt;repeats 15 times&gt;, 0xff}, v8_int16 = {0x0, 
-    0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xff00}, v4_int32 = {0x0, 0x0, 0x0, 0xff000000}, v2_int64 = {0x0, 0xff00000000000000}, 
-  uint128 = 0xff000000000000000000000000000000}
-(gdb) disas myfunc
-Dump of assembler code for function myfunc:
-   0x00000000004004ed &lt;+0&gt;:	push   %rbp
-   0x00000000004004ee &lt;+1&gt;:	mov    %rsp,%rbp
-   0x00000000004004f1 &lt;+4&gt;:	mov    %rdi,-0x38(%rbp)
-   0x00000000004004f5 &lt;+8&gt;:	mov    %rsi,-0x40(%rbp)
-   0x00000000004004f9 &lt;+12&gt;:	mov    %rdx,-0x48(%rbp)
-   0x00000000004004fd &lt;+16&gt;:	movsd  %xmm0,-0x50(%rbp)
-   0x0000000000400502 &lt;+21&gt;:	mov    %rcx,-0x58(%rbp)
-   0x0000000000400506 &lt;+25&gt;:	mov    %r8,-0x60(%rbp)
-   0x000000000040050a &lt;+29&gt;:	movsd  %xmm1,-0x68(%rbp)
-   0x000000000040050f &lt;+34&gt;:	mov    %r9,-0x70(%rbp)
-=&gt; 0x0000000000400513 &lt;+38&gt;:	mov    -0x38(%rbp),%rax
-   0x0000000000400517 &lt;+42&gt;:	lea    0x2(%rax),%rdx
-   0x000000000040051b &lt;+46&gt;:	mov    -0x58(%rbp),%rax
-   0x000000000040051f &lt;+50&gt;:	add    %rdx,%rax
-   0x0000000000400522 &lt;+53&gt;:	mov    %rax,-0x8(%rbp)
-   0x0000000000400526 &lt;+57&gt;:	mov    -0x40(%rbp),%rax
-   0x000000000040052a &lt;+61&gt;:	lea    0x3(%rax),%rdx
-   0x000000000040052e &lt;+65&gt;:	mov    -0x60(%rbp),%rax
-   0x0000000000400532 &lt;+69&gt;:	add    %rdx,%rax
-   0x0000000000400535 &lt;+72&gt;:	mov    %rax,-0x10(%rbp)
-   0x0000000000400539 &lt;+76&gt;:	mov    -0x48(%rbp),%rax
-   0x000000000040053d &lt;+80&gt;:	lea    0x4(%rax),%rdx
-   0x0000000000400541 &lt;+84&gt;:	mov    -0x70(%rbp),%rax
-   0x0000000000400545 &lt;+88&gt;:	add    %rdx,%rax
-   0x0000000000400548 &lt;+91&gt;:	mov    %rax,-0x18(%rbp)
-   0x000000000040054c &lt;+95&gt;:	mov    0x18(%rbp),%rax
-   0x0000000000400550 &lt;+99&gt;:	mov    0x10(%rbp),%rdx
-   0x0000000000400554 &lt;+103&gt;:	add    %rdx,%rax
-   0x0000000000400557 &lt;+106&gt;:	mov    %rax,-0x20(%rbp)
-   0x000000000040055b &lt;+110&gt;:	movsd  -0x50(%rbp),%xmm0
-   0x0000000000400560 &lt;+115&gt;:	addsd  -0x68(%rbp),%xmm0
-   0x0000000000400565 &lt;+120&gt;:	movsd  %xmm0,-0x28(%rbp)
-   0x000000000040056a &lt;+125&gt;:	mov    -0x10(%rbp),%rax
-   0x000000000040056e &lt;+129&gt;:	mov    -0x8(%rbp),%rdx
-   0x0000000000400572 &lt;+133&gt;:	add    %rax,%rdx
-   0x0000000000400575 &lt;+136&gt;:	mov    -0x18(%rbp),%rax
-   0x0000000000400579 &lt;+140&gt;:	add    %rax,%rdx
-   0x000000000040057c &lt;+143&gt;:	mov    -0x20(%rbp),%rax
-   0x0000000000400580 &lt;+147&gt;:	add    %rdx,%rax
-   0x0000000000400583 &lt;+150&gt;:	cvtsi2sd %rax,%xmm0
-   0x0000000000400588 &lt;+155&gt;:	addsd  -0x28(%rbp),%xmm0
-   0x000000000040058d &lt;+160&gt;:	cvttsd2si %xmm0,%rax
-   0x0000000000400592 &lt;+165&gt;:	mov    %rax,-0x30(%rbp)
-   0x0000000000400596 &lt;+169&gt;:	mov    -0x8(%rbp),%rax
-   0x000000000040059a &lt;+173&gt;:	imul   -0x10(%rbp),%rax
-   0x000000000040059f &lt;+178&gt;:	imul   -0x18(%rbp),%rax
-   0x00000000004005a4 &lt;+183&gt;:	mov    %rax,%rdx
-   0x00000000004005a7 &lt;+186&gt;:	mov    -0x30(%rbp),%rax
-   0x00000000004005ab &lt;+190&gt;:	add    %rdx,%rax
-   0x00000000004005ae &lt;+193&gt;:	pop    %rbp
-   0x00000000004005af &lt;+194&gt;:	retq   
-End of assembler dump.
-
-</code></pre><h3 id="参考文档">参考文档：</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="o">~/</span><span class="n">work</span><span class="o">/</span><span class="n">stack</span>  <span class="err">#</span> <span class="n">cat</span> <span class="kt">float</span><span class="p">.</span><span class="n">c</span> 
+</span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">long</span> <span class="nf">myfunc</span><span class="p">(</span><span class="kt">long</span> <span class="n">a</span><span class="p">,</span> <span class="kt">long</span> <span class="n">b</span><span class="p">,</span> <span class="kt">long</span> <span class="n">c</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">double</span> <span class="n">d</span><span class="p">,</span> <span class="kt">long</span> <span class="n">e</span><span class="p">,</span> <span class="kt">long</span> <span class="n">f</span><span class="p">,</span> <span class="kt">double</span> <span class="n">g</span><span class="p">,</span> <span class="kt">long</span> <span class="n">h</span><span class="p">,</span> <span class="kt">long</span> <span class="n">i</span><span class="p">,</span> <span class="kt">long</span> <span class="n">j</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">xx</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">e</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">f</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">zz</span> <span class="o">=</span> <span class="n">c</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">h</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">ww</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">double</span> <span class="n">vv</span> <span class="o">=</span> <span class="n">d</span> <span class="o">+</span> <span class="n">g</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">long</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">xx</span> <span class="o">+</span> <span class="n">yy</span> <span class="o">+</span> <span class="n">zz</span> <span class="o">+</span> <span class="n">ww</span> <span class="o">+</span> <span class="n">vv</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span> <span class="o">*</span> <span class="n">zz</span> <span class="o">+</span> <span class="n">sum</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">myfunc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">4.0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mf">7.0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="n">r</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>gdb 效果如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">~/work/stack  # gcc float.c -o float -g
+</span></span><span class="line"><span class="cl">root@127.0.0.1::[08:30:35]::[Exit Code: 0] -&gt;
+</span></span><span class="line"><span class="cl">~/work/stack  # gdb float
+</span></span><span class="line"><span class="cl">GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7
+</span></span><span class="line"><span class="cl">Copyright (C) 2013 Free Software Foundation, Inc.
+</span></span><span class="line"><span class="cl">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+</span></span><span class="line"><span class="cl">This is free software: you are free to change and redistribute it.
+</span></span><span class="line"><span class="cl">There is NO WARRANTY, to the extent permitted by law.  Type &#34;show copying&#34;
+</span></span><span class="line"><span class="cl">and &#34;show warranty&#34; for details.
+</span></span><span class="line"><span class="cl">This GDB was configured as &#34;x86_64-redhat-linux-gnu&#34;.
+</span></span><span class="line"><span class="cl">For bug reporting instructions, please see:
+</span></span><span class="line"><span class="cl">&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+</span></span><span class="line"><span class="cl">Reading symbols from /root/work/stack/float...done.
+</span></span><span class="line"><span class="cl">(gdb) l
+</span></span><span class="line"><span class="cl">8		long zz = c + 4 + h;
+</span></span><span class="line"><span class="cl">9		long ww = i + j;
+</span></span><span class="line"><span class="cl">10		double vv = d + g;
+</span></span><span class="line"><span class="cl">11		long sum = xx + yy + zz + ww + vv;
+</span></span><span class="line"><span class="cl">12	
+</span></span><span class="line"><span class="cl">13		return xx * yy * zz + sum;
+</span></span><span class="line"><span class="cl">14	}
+</span></span><span class="line"><span class="cl">15	
+</span></span><span class="line"><span class="cl">16	int main(int argc, char **argv) {
+</span></span><span class="line"><span class="cl">17		myfunc(1,2,3,4.0,5,6,7.0,8, 9, 10);
+</span></span><span class="line"><span class="cl">(gdb) l
+</span></span><span class="line"><span class="cl">18	
+</span></span><span class="line"><span class="cl">19		return 0;
+</span></span><span class="line"><span class="cl">20	}
+</span></span><span class="line"><span class="cl">(gdb) b myfunc
+</span></span><span class="line"><span class="cl">Breakpoint 1 at 0x400513: file float.c, line 6.
+</span></span><span class="line"><span class="cl">(gdb) r
+</span></span><span class="line"><span class="cl">Starting program: /root/work/stack/float 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Breakpoint 1, myfunc (a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10) at float.c:6
+</span></span><span class="line"><span class="cl">6		long xx = a + 2 + e;
+</span></span><span class="line"><span class="cl">Missing separate debuginfos, use: debuginfo-install glibc-2.17-196.el7.x86_64
+</span></span><span class="line"><span class="cl">可以看出rdi、rsi、rdx、rcx、r8、r9分别传递了前8个非浮点类型的参数。
+</span></span><span class="line"><span class="cl">(gdb) info reg
+</span></span><span class="line"><span class="cl">rax            0x4010000000000000	4616189618054758400
+</span></span><span class="line"><span class="cl">rbx            0x0	0
+</span></span><span class="line"><span class="cl">rcx            0x5	5
+</span></span><span class="line"><span class="cl">rdx            0x3	3
+</span></span><span class="line"><span class="cl">rsi            0x2	2
+</span></span><span class="line"><span class="cl">rdi            0x1	1
+</span></span><span class="line"><span class="cl">rbp            0x7fffffffe2f8	0x7fffffffe2f8
+</span></span><span class="line"><span class="cl">rsp            0x7fffffffe2f8	0x7fffffffe2f8
+</span></span><span class="line"><span class="cl">r8             0x6	6
+</span></span><span class="line"><span class="cl">r9             0x8	8
+</span></span><span class="line"><span class="cl">r10            0x7fffffffe110	140737488347408
+</span></span><span class="line"><span class="cl">r11            0x7ffff7a39b10	140737348082448
+</span></span><span class="line"><span class="cl">r12            0x400400	4195328
+</span></span><span class="line"><span class="cl">r13            0x7fffffffe410	140737488348176
+</span></span><span class="line"><span class="cl">r14            0x0	0
+</span></span><span class="line"><span class="cl">r15            0x0	0
+</span></span><span class="line"><span class="cl">rip            0x400513	0x400513 &lt;myfunc+38&gt;
+</span></span><span class="line"><span class="cl">eflags         0x212	[ AF IF ]
+</span></span><span class="line"><span class="cl">cs             0x33	51
+</span></span><span class="line"><span class="cl">ss             0x2b	43
+</span></span><span class="line"><span class="cl">ds             0x0	0
+</span></span><span class="line"><span class="cl">es             0x0	0
+</span></span><span class="line"><span class="cl">fs             0x0	0
+</span></span><span class="line"><span class="cl">gs             0x0	0
+</span></span><span class="line"><span class="cl">//而第四个参数和第七个参数为浮点数类型，他们分别通过寄存器xmm0和xmm1来传递。
+</span></span><span class="line"><span class="cl">(gdb) p /x $xmm0
+</span></span><span class="line"><span class="cl">$2 = {v4_float = {0x0, 0x2, 0x0, 0x0}, v2_double = {0x4, 0x0}, v16_int8 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x10, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 
+</span></span><span class="line"><span class="cl">    0x0, 0x0, 0x0}, v8_int16 = {0x0, 0x0, 0x0, 0x4010, 0x0, 0x0, 0x0, 0x0}, v4_int32 = {0x0, 0x40100000, 0x0, 0x0}, v2_int64 = {
+</span></span><span class="line"><span class="cl">    0x4010000000000000, 0x0}, uint128 = 0x00000000000000004010000000000000}
+</span></span><span class="line"><span class="cl">(gdb) p /x $xmm1
+</span></span><span class="line"><span class="cl">$3 = {v4_float = {0x0, 0x2, 0x0, 0x0}, v2_double = {0x7, 0x0}, v16_int8 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1c, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 
+</span></span><span class="line"><span class="cl">    0x0, 0x0, 0x0}, v8_int16 = {0x0, 0x0, 0x0, 0x401c, 0x0, 0x0, 0x0, 0x0}, v4_int32 = {0x0, 0x401c0000, 0x0, 0x0}, v2_int64 = {
+</span></span><span class="line"><span class="cl">    0x401c000000000000, 0x0}, uint128 = 0x0000000000000000401c000000000000}
+</span></span><span class="line"><span class="cl">(gdb) p /x $xmm2
+</span></span><span class="line"><span class="cl">$4 = {v4_float = {0x0, 0x0, 0x0, 0x0}, v2_double = {0x0, 0x0}, v16_int8 = {0x0 &lt;repeats 16 times&gt;}, v8_int16 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
+</span></span><span class="line"><span class="cl">    0x0, 0x0}, v4_int32 = {0x0, 0x0, 0x0, 0x0}, v2_int64 = {0x0, 0x0}, uint128 = 0x00000000000000000000000000000000}
+</span></span><span class="line"><span class="cl">(gdb) p /x $xmm3
+</span></span><span class="line"><span class="cl">$5 = {v4_float = {0x0, 0x0, 0x0, 0x0}, v2_double = {0x0, 0x8000000000000000}, v16_int8 = {0x0 &lt;repeats 15 times&gt;, 0xff}, v8_int16 = {0x0, 
+</span></span><span class="line"><span class="cl">    0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xff00}, v4_int32 = {0x0, 0x0, 0x0, 0xff000000}, v2_int64 = {0x0, 0xff00000000000000}, 
+</span></span><span class="line"><span class="cl">  uint128 = 0xff000000000000000000000000000000}
+</span></span><span class="line"><span class="cl">(gdb) disas myfunc
+</span></span><span class="line"><span class="cl">Dump of assembler code for function myfunc:
+</span></span><span class="line"><span class="cl">   0x00000000004004ed &lt;+0&gt;:	push   %rbp
+</span></span><span class="line"><span class="cl">   0x00000000004004ee &lt;+1&gt;:	mov    %rsp,%rbp
+</span></span><span class="line"><span class="cl">   0x00000000004004f1 &lt;+4&gt;:	mov    %rdi,-0x38(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004004f5 &lt;+8&gt;:	mov    %rsi,-0x40(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004004f9 &lt;+12&gt;:	mov    %rdx,-0x48(%rbp)
+</span></span><span class="line"><span class="cl">   0x00000000004004fd &lt;+16&gt;:	movsd  %xmm0,-0x50(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400502 &lt;+21&gt;:	mov    %rcx,-0x58(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400506 &lt;+25&gt;:	mov    %r8,-0x60(%rbp)
+</span></span><span class="line"><span class="cl">   0x000000000040050a &lt;+29&gt;:	movsd  %xmm1,-0x68(%rbp)
+</span></span><span class="line"><span class="cl">   0x000000000040050f &lt;+34&gt;:	mov    %r9,-0x70(%rbp)
+</span></span><span class="line"><span class="cl">=&gt; 0x0000000000400513 &lt;+38&gt;:	mov    -0x38(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400517 &lt;+42&gt;:	lea    0x2(%rax),%rdx
+</span></span><span class="line"><span class="cl">   0x000000000040051b &lt;+46&gt;:	mov    -0x58(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040051f &lt;+50&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400522 &lt;+53&gt;:	mov    %rax,-0x8(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400526 &lt;+57&gt;:	mov    -0x40(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040052a &lt;+61&gt;:	lea    0x3(%rax),%rdx
+</span></span><span class="line"><span class="cl">   0x000000000040052e &lt;+65&gt;:	mov    -0x60(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400532 &lt;+69&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400535 &lt;+72&gt;:	mov    %rax,-0x10(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400539 &lt;+76&gt;:	mov    -0x48(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040053d &lt;+80&gt;:	lea    0x4(%rax),%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400541 &lt;+84&gt;:	mov    -0x70(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400545 &lt;+88&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400548 &lt;+91&gt;:	mov    %rax,-0x18(%rbp)
+</span></span><span class="line"><span class="cl">   0x000000000040054c &lt;+95&gt;:	mov    0x18(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400550 &lt;+99&gt;:	mov    0x10(%rbp),%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400554 &lt;+103&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400557 &lt;+106&gt;:	mov    %rax,-0x20(%rbp)
+</span></span><span class="line"><span class="cl">   0x000000000040055b &lt;+110&gt;:	movsd  -0x50(%rbp),%xmm0
+</span></span><span class="line"><span class="cl">   0x0000000000400560 &lt;+115&gt;:	addsd  -0x68(%rbp),%xmm0
+</span></span><span class="line"><span class="cl">   0x0000000000400565 &lt;+120&gt;:	movsd  %xmm0,-0x28(%rbp)
+</span></span><span class="line"><span class="cl">   0x000000000040056a &lt;+125&gt;:	mov    -0x10(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040056e &lt;+129&gt;:	mov    -0x8(%rbp),%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400572 &lt;+133&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x0000000000400575 &lt;+136&gt;:	mov    -0x18(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400579 &lt;+140&gt;:	add    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x000000000040057c &lt;+143&gt;:	mov    -0x20(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400580 &lt;+147&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400583 &lt;+150&gt;:	cvtsi2sd %rax,%xmm0
+</span></span><span class="line"><span class="cl">   0x0000000000400588 &lt;+155&gt;:	addsd  -0x28(%rbp),%xmm0
+</span></span><span class="line"><span class="cl">   0x000000000040058d &lt;+160&gt;:	cvttsd2si %xmm0,%rax
+</span></span><span class="line"><span class="cl">   0x0000000000400592 &lt;+165&gt;:	mov    %rax,-0x30(%rbp)
+</span></span><span class="line"><span class="cl">   0x0000000000400596 &lt;+169&gt;:	mov    -0x8(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040059a &lt;+173&gt;:	imul   -0x10(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x000000000040059f &lt;+178&gt;:	imul   -0x18(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005a4 &lt;+183&gt;:	mov    %rax,%rdx
+</span></span><span class="line"><span class="cl">   0x00000000004005a7 &lt;+186&gt;:	mov    -0x30(%rbp),%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005ab &lt;+190&gt;:	add    %rdx,%rax
+</span></span><span class="line"><span class="cl">   0x00000000004005ae &lt;+193&gt;:	pop    %rbp
+</span></span><span class="line"><span class="cl">   0x00000000004005af &lt;+194&gt;:	retq   
+</span></span><span class="line"><span class="cl">End of assembler dump.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文档">参考文档：</h3>
 <ul>
 <li>
 <p><a href="https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64/">https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64/</a></p>
@@ -775,7 +1389,6 @@ End of assembler dump.
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -783,7 +1396,10 @@ End of assembler dump.
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2020-07-28</span>
+    <span class="item-content">
+        2020-07-28
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -791,33 +1407,24 @@ End of assembler dump.
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
-      
-
+<footer class="post-footer">
       
       <nav class="post-nav">
-        
-          <a class="prev" href="/posts/do-while-zero/">
+        <a class="prev" href="/posts/do-while-zero/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">do{}while(0)为什么要这样写呢？</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/posts/hierarchy-without-controller-group/">
+        <a class="next" href="/posts/hierarchy-without-controller-group/">
             <span class="next-text nav-default">Cgroup之不绑定任何subsystem</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -831,6 +1438,11 @@ End of assembler dump.
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -855,26 +1467,24 @@ End of assembler dump.
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

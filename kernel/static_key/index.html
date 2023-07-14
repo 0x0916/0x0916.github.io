@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本节介绍了static_key这个内核基础设施。
-" />
-<meta name="keywords" content="static_key, 基础设施" />
+<meta name="author" content="laoqinren" /><meta name="description" content="本节介绍了static_key这个内核基础设施。
+" /><meta name="keywords" content="static_key, 基础设施" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/static_key/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,32 +36,21 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="内核基础设施——static_key" />
 <meta property="og:description" content="本节介绍了static_key这个内核基础设施。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/static_key/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/static_key/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2019-08-05T19:43:48+08:00" />
 <meta property="article:modified_time" content="2019-08-05T19:43:48+08:00" />
 <meta itemprop="name" content="内核基础设施——static_key">
-<meta itemprop="description" content="本节介绍了static_key这个内核基础设施。">
-<meta itemprop="datePublished" content="2019-08-05T19:43:48+08:00" />
+<meta itemprop="description" content="本节介绍了static_key这个内核基础设施。"><meta itemprop="datePublished" content="2019-08-05T19:43:48+08:00" />
 <meta itemprop="dateModified" content="2019-08-05T19:43:48+08:00" />
-<meta itemprop="wordCount" content="2386">
-
-
-
-<meta itemprop="keywords" content="kernel,linux," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="2455">
+<meta itemprop="keywords" content="kernel,linux," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="内核基础设施——static_key"/>
 <meta name="twitter:description" content="本节介绍了static_key这个内核基础设施。"/>
 
@@ -108,12 +93,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -134,6 +128,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -147,77 +142,131 @@
       <div class="post-meta">
         <span class="post-time"> 2019-08-05 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-          </div>
-        <span class="more-meta"> 2386 words </span>
-        <span class="more-meta"> 5 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#理解问题">理解问题</a></li>
-        <li><a href="#static_key机制">static_key机制</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#理解问题">理解问题</a></li>
+            <li><a href="#static_key机制">static_key机制</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本节介绍了<code>static_key</code>这个内核基础设施。</p>
 <p><img src="pic.jpg" alt="" title=""></p>
 <h3 id="理解问题">理解问题</h3>
 <p>在<code>linux</code>内核中，<code>control cgroup</code>是实现容器的核心技术之一，在<code>control cgroup</code>中有一个叫做<code>cpu cgroup</code>的子系统，它用来限制一组进程的<code>cpu</code>使用量。为了达到限制的目的，就需要对进程单位时间内使用的<code>cpu</code>时间进行统计，而统计会耗费一定的代价，所以内核设计者为了减少系统损耗，只有当系统启用了<code>cpu cgroup</code>且被设置了<code>cpu</code>限制时，采用执行统计<code>cpu</code>时间信息的代码。</p>
 <p>内核中有一个全局的变量<code>__cfs_bandwidth_used</code>，初始化时，其值为<code>0</code>，</p>
-<pre><code>crash&gt; p __cfs_bandwidth_used
-__cfs_bandwidth_used = $1 = {
-  enabled = {
-    counter = 0
-  }, 
-  entries = 0xffffffffa9521640, 
-  next = 0x0
-}
-crash&gt; 
-</code></pre><p>当创建了一个新的<code>cpu cgroup</code>,并且设置<code>cpu quota</code>，其值加<code>1</code>:</p>
-<pre><code># cd /sys/fs/cgroup/cpu
-# mkdir test
-# echo 100000 &gt; test/cpu.cfs_quota_us 
-</code></pre><p>查看<code>__cfs_bandwidth_used</code>的值</p>
-<pre><code>crash&gt; p __cfs_bandwidth_used
-__cfs_bandwidth_used = $2 = {
-  enabled = {
-    counter = 1
-  }, 
-  entries = 0xffffffffa9521640, 
-  next = 0x0
-}
-</code></pre><p>当取消对该<code>cpu cgoup</code>的<code>cpu</code>限制时，该值减少<code>1</code></p>
-<pre><code># echo -1 &gt; test/cpu.cfs_quota_us 
-</code></pre><p>查看<code>__cfs_bandwidth_used</code>的值</p>
-<pre><code>crash&gt; p __cfs_bandwidth_used
-__cfs_bandwidth_used = $3 = {
-  enabled = {
-    counter = 0
-  }, 
-  entries = 0xffffffffa9521640, 
-  next = 0x0
-}
-</code></pre><p>在内核代码中，就是通过判断<code>__cfs_bandwidth_used</code>的值是否为<code>0</code>，来决定是否需要执行相关<code>cpu</code>时间的统计代码。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; p __cfs_bandwidth_used
+</span></span><span class="line"><span class="cl">__cfs_bandwidth_used = $1 = {
+</span></span><span class="line"><span class="cl">  enabled = {
+</span></span><span class="line"><span class="cl">    counter = 0
+</span></span><span class="line"><span class="cl">  }, 
+</span></span><span class="line"><span class="cl">  entries = 0xffffffffa9521640, 
+</span></span><span class="line"><span class="cl">  next = 0x0
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">crash&gt; 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>当创建了一个新的<code>cpu cgroup</code>,并且设置<code>cpu quota</code>，其值加<code>1</code>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># cd /sys/fs/cgroup/cpu
+</span></span><span class="line"><span class="cl"># mkdir test
+</span></span><span class="line"><span class="cl"># echo 100000 &gt; test/cpu.cfs_quota_us 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>查看<code>__cfs_bandwidth_used</code>的值</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; p __cfs_bandwidth_used
+</span></span><span class="line"><span class="cl">__cfs_bandwidth_used = $2 = {
+</span></span><span class="line"><span class="cl">  enabled = {
+</span></span><span class="line"><span class="cl">    counter = 1
+</span></span><span class="line"><span class="cl">  }, 
+</span></span><span class="line"><span class="cl">  entries = 0xffffffffa9521640, 
+</span></span><span class="line"><span class="cl">  next = 0x0
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>当取消对该<code>cpu cgoup</code>的<code>cpu</code>限制时，该值减少<code>1</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># echo -1 &gt; test/cpu.cfs_quota_us 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>查看<code>__cfs_bandwidth_used</code>的值</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">crash&gt; p __cfs_bandwidth_used
+</span></span><span class="line"><span class="cl">__cfs_bandwidth_used = $3 = {
+</span></span><span class="line"><span class="cl">  enabled = {
+</span></span><span class="line"><span class="cl">    counter = 0
+</span></span><span class="line"><span class="cl">  }, 
+</span></span><span class="line"><span class="cl">  entries = 0xffffffffa9521640, 
+</span></span><span class="line"><span class="cl">  next = 0x0
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在内核代码中，就是通过判断<code>__cfs_bandwidth_used</code>的值是否为<code>0</code>，来决定是否需要执行相关<code>cpu</code>时间的统计代码。</p>
 <ul>
 <li><code>__cfs_bandwidth_used</code>的值为0， 不执行时间统计相关代码</li>
 <li><code>__cfs_bandwidth_used</code>的值为非0，执行时间统计相关代码</li>
@@ -226,21 +275,48 @@ __cfs_bandwidth_used = $3 = {
 <h3 id="static_key机制">static_key机制</h3>
 <p>简单来说，如果你对代码性能很敏感，而且大多数情况下分支路径是确定的，可以考虑使用<code>static keys</code>。<code>static keys</code>可以代替普通的变量进行分支判断，目的是用来优化频繁使用<code>if-else</code>判断的问题，这里涉及到指令分支预取的一下问题。简单地说，现代<code>cpu</code>都有预测功能，变量的判断有可能会造成硬件预测失败，影响流水线性能。虽然有<code>likely</code>和<code>unlikely</code>，但还是会有小概率的预测失败。</p>
 <h4 id="定义一个static_key">定义一个static_key</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> static_key key <span style="color:#f92672">=</span> STATIC_KEY_INIT_FALSE; 
-</code></pre></div><p>注意：这个<code>key</code>及其初始值必须是静态存在的，不能定义为局部变量或者使用动态分配的内存。通常为全局变量或者静态变量。
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">static_key</span> <span class="n">key</span> <span class="o">=</span> <span class="n">STATIC_KEY_INIT_FALSE</span><span class="p">;</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>注意：这个<code>key</code>及其初始值必须是静态存在的，不能定义为局部变量或者使用动态分配的内存。通常为全局变量或者静态变量。
 其中的<code>STATIC_KEY_INIT_FALSE</code>表示这个<code>key</code>的默认值为<code>false</code>，对应的分支默认不进入，如果是需要默认进入的，用<code>STATIC_KEY_INIT_TRUE</code>，这里如果不赋值，系统默认为<code>STATIC_KEY_INIT_FALSE</code>，在代码运行中不能再用<code>STATIC_KEY_INIT_FALSE/STATIC_KEY_INIT_TRUE</code>进行赋值。</p>
 <h4 id="判断语句">判断语句</h4>
 <p>对于默认为<code>false（STATIC_KEY_INIT_FALSE）</code>的，使用</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">if</span> (static_key_false(<span style="color:#f92672">&amp;</span>key))
-	<span style="color:#66d9ef">do</span> unlikely code
-<span style="color:#66d9ef">else</span>
-	<span style="color:#66d9ef">do</span> likely code
-</code></pre></div><p>对于默认为<code>true（STATIC_KEY_INIT_TRUE）</code>的，使用</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">if</span> (static_key_true((<span style="color:#f92672">&amp;</span>static_key))) 
-	<span style="color:#66d9ef">do</span> the likely work; 
-<span style="color:#66d9ef">else</span> 
-	<span style="color:#66d9ef">do</span> unlikely work
-</code></pre></div><h4 id="修改判断条件">修改判断条件</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="nf">static_key_false</span><span class="p">(</span><span class="o">&amp;</span><span class="n">key</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">	<span class="k">do</span> <span class="n">unlikely</span> <span class="n">code</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span>
+</span></span><span class="line"><span class="cl">	<span class="k">do</span> <span class="n">likely</span> <span class="n">code</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>对于默认为<code>true（STATIC_KEY_INIT_TRUE）</code>的，使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="nf">static_key_true</span><span class="p">((</span><span class="o">&amp;</span><span class="n">static_key</span><span class="p">)))</span> 
+</span></span><span class="line"><span class="cl">	<span class="k">do</span> <span class="n">the</span> <span class="n">likely</span> <span class="n">work</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="k">else</span> 
+</span></span><span class="line"><span class="cl">	<span class="k">do</span> <span class="n">unlikely</span> <span class="n">work</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="修改判断条件">修改判断条件</h4>
 <p>使用<code>static_key_slow_inc</code>让分支条件变成<code>true</code>，使用<code>static_key_slow_dec</code>让分支条件变成<code>false</code>，与其初始的默认值无关。该接口是带计数的， 也就是：</p>
 <ul>
 <li>初始值为<code>STATIC_KEY_INIT_FALSE</code>的，那么： <code>static_key_slow_inc; static_key_slow_inc; static_key_slow_dec</code> 那么
@@ -252,25 +328,49 @@ __cfs_bandwidth_used = $3 = {
 <h4 id="static-key的内核实现">static-key的内核实现</h4>
 <p><code>static_key_false</code>的实现：</p>
 <p>对<code>X86</code>场景其实现如下，其它架构下的实现类似。</p>
-<pre><code>static __always_inline bool static_key_false(struct static_key *key)
-{
-        return arch_static_branch(key);
-}
-
-static __always_inline bool arch_static_branch(struct static_key *key)                                               
-{                                                                                                                    
-        asm_volatile_goto(&quot;1:&quot;                                                                                       
-                &quot;.byte &quot; __stringify(STATIC_KEY_INIT_NOP) &quot;\n\t&quot;                                                     
-                &quot;.pushsection __jump_table,  \&quot;aw\&quot; \n\t&quot;                                                            
-                _ASM_ALIGN &quot;\n\t&quot;
-                _ASM_PTR &quot;1b, %l[l_yes], %c0 \n\t&quot;
-                &quot;.popsection \n\t&quot;
-                : :  &quot;i&quot; (key) : : l_yes);
-        return false;
-l_yes:
-        return true;
-}
-</code></pre><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static __always_inline bool static_key_false(struct static_key *key)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">        return arch_static_branch(key);
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">static __always_inline bool arch_static_branch(struct static_key *key)                                               
+</span></span><span class="line"><span class="cl">{                                                                                                                    
+</span></span><span class="line"><span class="cl">        asm_volatile_goto(&#34;1:&#34;                                                                                       
+</span></span><span class="line"><span class="cl">                &#34;.byte &#34; __stringify(STATIC_KEY_INIT_NOP) &#34;\n\t&#34;                                                     
+</span></span><span class="line"><span class="cl">                &#34;.pushsection __jump_table,  \&#34;aw\&#34; \n\t&#34;                                                            
+</span></span><span class="line"><span class="cl">                _ASM_ALIGN &#34;\n\t&#34;
+</span></span><span class="line"><span class="cl">                _ASM_PTR &#34;1b, %l[l_yes], %c0 \n\t&#34;
+</span></span><span class="line"><span class="cl">                &#34;.popsection \n\t&#34;
+</span></span><span class="line"><span class="cl">                : :  &#34;i&#34; (key) : : l_yes);
+</span></span><span class="line"><span class="cl">        return false;
+</span></span><span class="line"><span class="cl">l_yes:
+</span></span><span class="line"><span class="cl">        return true;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>其中的<code>asm_volatile_goto</code>宏 使用了<code>asm goto</code>，是<code>gcc</code>的特性，其允许在嵌入式汇编中<code>jump</code>到一个<code>C</code>语言的<code>label</code>，详见<code>gcc</code>的<code>manual</code>(<a href="https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html">https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html</a>)， 但是本处其作用只是将<code>C</code>语言的<code>label “l_yes”</code>传递到嵌入式汇编中。</li>
 <li><code> STATIC_KEY_INITIAL_NOP</code>其实就是<code>NOP</code>指令</li>
 <li><code> .pushsection __jump_table</code>是通知编译器，以下的内容写入到段<code>“__jump_table”</code></li>
@@ -278,30 +378,60 @@ l_yes:
 <li><code> .popsection</code>表示以下的内容回到之前的段，其实多半就是<code>.text</code>段。</li>
 </ul>
 <p>可见，以上代码的作用就是：执行<code>NOP</code>指令后返回<code>false</code>，同时把<code>NOP</code>指令的地址、代码<code>”return true”</code>对应地址、<code>struct static_key *key</code>的地址写入到段<code>“__jump_table”</code>。由于固定返回为<code>false</code>且为<code>always inline</code>，编译器会把</p>
-<pre><code>if (static_key_false((&amp;static_key))) 
-do the unlikely work; 
-else 
-do likely work 
-</code></pre><p>优化为：</p>
-<pre><code>nop 
-do likely work 
-retq 
-l_yes: 
-do the unlikely work; 
-</code></pre><p>正常场景，就没有判断了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">if (static_key_false((&amp;static_key))) 
+</span></span><span class="line"><span class="cl">do the unlikely work; 
+</span></span><span class="line"><span class="cl">else 
+</span></span><span class="line"><span class="cl">do likely work 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>优化为：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">nop 
+</span></span><span class="line"><span class="cl">do likely work 
+</span></span><span class="line"><span class="cl">retq 
+</span></span><span class="line"><span class="cl">l_yes: 
+</span></span><span class="line"><span class="cl">do the unlikely work; 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>正常场景，就没有判断了。</p>
 <p><code>static_key_true</code>的实现：</p>
-<pre><code>static __always_inline bool static_key_true(struct static_key *key)                                               
-{                                    
-        return !static_key_false(key);                                                                               
-}
-</code></pre><p>执行<code>static_key_slow_inc(&amp;key)</code>后，底层通过<code>gcc</code>提供的<code>goto</code>功能，再结合<code>c</code>代码编写的动态修改内存功能，就可以让使用<code>key</code>的代码从执行<code>false</code>分支变成执行<code>true</code>分支。当然这个更改代价时比较昂贵的，不是所有的情况都适用。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static __always_inline bool static_key_true(struct static_key *key)                                               
+</span></span><span class="line"><span class="cl">{                                    
+</span></span><span class="line"><span class="cl">        return !static_key_false(key);                                                                               
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>执行<code>static_key_slow_inc(&amp;key)</code>后，底层通过<code>gcc</code>提供的<code>goto</code>功能，再结合<code>c</code>代码编写的动态修改内存功能，就可以让使用<code>key</code>的代码从执行<code>false</code>分支变成执行<code>true</code>分支。当然这个更改代价时比较昂贵的，不是所有的情况都适用。</p>
 <h3 id="参考文章">参考文章</h3>
 <ul>
 <li><a href="https://blog.csdn.net/phenix_lord/article/details/49232297">https://blog.csdn.net/phenix_lord/article/details/49232297</a></li>
 </ul>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -309,7 +439,10 @@ do the unlikely work;
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2019-08-05</span>
+    <span class="item-content">
+        2019-08-05
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -317,39 +450,27 @@ do the unlikely work;
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/percpu-var/">
+        <a class="prev" href="/kernel/percpu-var/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">内核基础设施——per cpu变量</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/kernel-dynamic-debug/">
+        <a class="next" href="/kernel/kernel-dynamic-debug/">
             <span class="next-text nav-default">内核调试——dyndbg特性</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -363,6 +484,11 @@ do the unlikely work;
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -387,26 +513,24 @@ do the unlikely work;
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

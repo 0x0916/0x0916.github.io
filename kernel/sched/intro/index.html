@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="调度器作为操作系统的核心子系统，具有非常重要的意义。linux的调度器随着内核的更新也不断的进行着更新。 本文通过redhat的kernel（linux-3.10.0-862）源码进行调度器的学习和分析，一步一步将调度器的细节展示出来。 相信大家通过对本文的学习，能够轻松的分析其它内核版本的调度器源码。
-" />
-<meta name="keywords" content="sched, 调度" />
+<meta name="author" content="laoqinren" /><meta name="description" content="调度器作为操作系统的核心子系统，具有非常重要的意义。linux的调度器随着内核的更新也不断的进行着更新。 本文通过redhat的kernel（linux-3.10.0-862）源码进行调度器的学习和分析，一步一步将调度器的细节展示出来。 相信大家通过对本文的学习，能够轻松的分析其它内核版本的调度器源码。
+" /><meta name="keywords" content="sched, 调度" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/sched/intro/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,14 +36,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="Linux调度——概述" />
@@ -55,21 +45,16 @@
 本文通过redhat的kernel（linux-3.10.0-862）源码进行调度器的学习和分析，一步一步将调度器的细节展示出来。
 相信大家通过对本文的学习，能够轻松的分析其它内核版本的调度器源码。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/sched/intro/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/sched/intro/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2019-11-17T19:52:36+08:00" />
 <meta property="article:modified_time" content="2019-11-17T19:52:36+08:00" />
 <meta itemprop="name" content="Linux调度——概述">
 <meta itemprop="description" content="调度器作为操作系统的核心子系统，具有非常重要的意义。linux的调度器随着内核的更新也不断的进行着更新。
 本文通过redhat的kernel（linux-3.10.0-862）源码进行调度器的学习和分析，一步一步将调度器的细节展示出来。
-相信大家通过对本文的学习，能够轻松的分析其它内核版本的调度器源码。">
-<meta itemprop="datePublished" content="2019-11-17T19:52:36+08:00" />
+相信大家通过对本文的学习，能够轻松的分析其它内核版本的调度器源码。"><meta itemprop="datePublished" content="2019-11-17T19:52:36+08:00" />
 <meta itemprop="dateModified" content="2019-11-17T19:52:36+08:00" />
-<meta itemprop="wordCount" content="2314">
-
-
-
-<meta itemprop="keywords" content="kernel,linux," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="2324">
+<meta itemprop="keywords" content="kernel,linux," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux调度——概述"/>
 <meta name="twitter:description" content="调度器作为操作系统的核心子系统，具有非常重要的意义。linux的调度器随着内核的更新也不断的进行着更新。
 本文通过redhat的kernel（linux-3.10.0-862）源码进行调度器的学习和分析，一步一步将调度器的细节展示出来。
@@ -114,12 +99,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -140,6 +134,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -153,38 +148,33 @@
       <div class="post-meta">
         <span class="post-time"> 2019-11-17 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-          </div>
-        <span class="more-meta"> 2314 words </span>
-        <span class="more-meta"> 5 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#调度器介绍">调度器介绍</a></li>
-        <li><a href="#进程">进程</a></li>
-        <li><a href="#调度策略">调度策略</a></li>
-        <li><a href="#调度">调度</a></li>
+        <li>
+          <ul>
+            <li><a href="#调度器介绍">调度器介绍</a></li>
+            <li><a href="#进程">进程</a></li>
+            <li><a href="#调度策略">调度策略</a></li>
+            <li><a href="#调度">调度</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>调度器作为操作系统的核心子系统，具有非常重要的意义。<code>linux</code>的调度器随着内核的更新也不断的进行着更新。
 本文通过<code>redhat</code>的<code>kernel</code>（<code>linux-3.10.0-862</code>）源码进行调度器的学习和分析，一步一步将调度器的细节展示出来。
@@ -218,17 +208,33 @@
 <li><strong>SCHED_DEADLINE</strong>：</li>
 </ul>
 <p>内核源码中，调度策略的定义存在于文件<code>include/uapi/linux/sched.h</code>:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * Scheduling policies
-</span><span style="color:#75715e"> */</span>
-<span style="color:#75715e">#define SCHED_NORMAL            0
-</span><span style="color:#75715e">#define SCHED_FIFO              1
-</span><span style="color:#75715e">#define SCHED_RR                2
-</span><span style="color:#75715e">#define SCHED_BATCH             3
-</span><span style="color:#75715e"></span><span style="color:#75715e">/* SCHED_ISO: reserved but not implemented yet */</span>
-<span style="color:#75715e">#define SCHED_IDLE              5
-</span><span style="color:#75715e">#define SCHED_DEADLINE          6
-</span></code></pre></div><h3 id="调度">调度</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Scheduling policies
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define SCHED_NORMAL            0
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define SCHED_FIFO              1
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define SCHED_RR                2
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define SCHED_BATCH             3
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="cm">/* SCHED_ISO: reserved but not implemented yet */</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define SCHED_IDLE              5
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define SCHED_DEADLINE          6
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="调度">调度</h3>
 <p>内核中<code>__schedule</code>函数是调度器的核心函数，其作用是<strong>让调度器选择和切换到一个合适进程运行</strong>。</p>
 <p>首先，我们需要清楚，什么样的进程会进入调度器进行选择，就是处于<code>TASK_RUNNING</code>状态的进程，而其他状态下的进程都不会进入调度器进行调度。系统发生调度的时机是什么呢？大致可以分为以下几种：
 （1）阻塞操作：互斥量(<code>mutex</code>)，信号量(<code>semaphore</code>)，等待队列(<code>waitqueue</code>)等。
@@ -258,7 +264,6 @@
 <p>系统并不是每时每刻都允许调度的发生，当处于硬中断期间的时候，调度是被系统禁止的，之后硬中断过后才重新允许调度。而对于异常，系统并不会禁止调度，也就是在异常上下文中，系统是有可能发生调度的。</p>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -266,7 +271,10 @@
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2019-11-17</span>
+    <span class="item-content">
+        2019-11-17
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -274,39 +282,27 @@
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/xarray/">
+        <a class="prev" href="/kernel/xarray/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">内核基础设施——XArray</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/sched/sched-rq/">
+        <a class="next" href="/kernel/sched/sched-rq/">
             <span class="next-text nav-default">Linux调度——CPU运行队列</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -320,6 +316,11 @@
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -344,26 +345,24 @@
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

@@ -16,22 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本文介绍了Linux调度中的CPU运行队列。
-" />
-<meta name="keywords" content="sched, 调度" />
+<meta name="author" content="laoqinren" /><meta name="description" content="本文介绍了Linux调度中的CPU运行队列。
+" /><meta name="keywords" content="sched, 调度" />
 
 
 
 
 
 
-
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/sched/sched-rq/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -40,32 +36,21 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="Linux调度——CPU运行队列" />
 <meta property="og:description" content="本文介绍了Linux调度中的CPU运行队列。" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/sched/sched-rq/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/sched/sched-rq/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2019-11-17T19:39:29+08:00" />
 <meta property="article:modified_time" content="2019-11-17T19:39:29+08:00" />
 <meta itemprop="name" content="Linux调度——CPU运行队列">
-<meta itemprop="description" content="本文介绍了Linux调度中的CPU运行队列。">
-<meta itemprop="datePublished" content="2019-11-17T19:39:29+08:00" />
+<meta itemprop="description" content="本文介绍了Linux调度中的CPU运行队列。"><meta itemprop="datePublished" content="2019-11-17T19:39:29+08:00" />
 <meta itemprop="dateModified" content="2019-11-17T19:39:29+08:00" />
-<meta itemprop="wordCount" content="1354">
-
-
-
-<meta itemprop="keywords" content="kernel,linux," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="1517">
+<meta itemprop="keywords" content="kernel,linux," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux调度——CPU运行队列"/>
 <meta name="twitter:description" content="本文介绍了Linux调度中的CPU运行队列。"/>
 
@@ -108,12 +93,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -134,6 +128,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -147,201 +142,370 @@
       <div class="post-meta">
         <span class="post-time"> 2019-11-17 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-          </div>
-        <span class="more-meta"> 1354 words </span>
-        <span class="more-meta"> 3 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents"></nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本文介绍了Linux调度中的CPU运行队列。</p>
 <p>每个<code>CPU</code>都有自己的 <code>struct rq</code> 结构，其用于描述在此<code>CPU</code>上所运行的所有进程，其包括一个<strong>实时进程队列</strong>和一个<strong>根CFS</strong>运行队列，在调度时，调度器首先会先去实时进程队列找是否有实时进程需要运行，如果没有才会去<code>CFS</code>运行队列是否有进行需要运行，这就是为什么常说的实时进程优先级比普通进程高，不仅仅体现在<code>prio</code>优先级上，还体现在调度器的设计上。</p>
 <blockquote>
 <p>注意： 在该版本的内核中，<code>struct rq</code>中还包括一个<code>Deadline</code>调度类需要的队列<code>dl_rq</code></p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">//CPU运行队列，每个CPU包含一个struct rq 
-</span><span style="color:#75715e"></span><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * This is the main, per-CPU runqueue data structure.
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * Locking rule: those places that want to lock multiple runqueues
-</span><span style="color:#75715e"> * (such as the load balancing or the thread migration code), lock
-</span><span style="color:#75715e"> * acquire operations must be ordered by ascending &amp;runqueue.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">struct</span> rq {
-        <span style="color:#75715e">/* runqueue lock: */</span>
-        raw_spinlock_t lock;
-
-        <span style="color:#75715e">/*
-</span><span style="color:#75715e">         * nr_running and cpu_load should be in the same cacheline because
-</span><span style="color:#75715e">         * remote CPUs use both these fields when doing load calculation.
-</span><span style="color:#75715e">         */</span>
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> nr_running; <span style="color:#75715e">//此CPU上总共就绪的进程数，包括cfs，rt和正在运行的 
-</span><span style="color:#75715e"></span><span style="color:#75715e">#ifdef CONFIG_NUMA_BALANCING
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> nr_numa_running;
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> nr_preferred_running;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">#define CPU_LOAD_IDX_MAX 5
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> cpu_load[CPU_LOAD_IDX_MAX]; <span style="color:#75715e">//根据CPU历史情况计算的负载，cpu_load[0]一直等于load.weight，当达到负载平衡时，cpu_load[1]和cpu_load[2]都应该等于load.weight
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> last_load_update_tick; <span style="color:#75715e">//最后一次更新 cpu_load 的时间
-</span><span style="color:#75715e"></span><span style="color:#75715e">#ifdef CONFIG_NO_HZ_COMMON
-</span><span style="color:#75715e"></span>        u64 nohz_stamp;
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> nohz_flags;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e">#ifdef CONFIG_NO_HZ_FULL
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> last_sched_tick;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> skip_clock_update; <span style="color:#75715e">//是否需要更新rq的运行时
-</span><span style="color:#75715e"></span>
-        <span style="color:#75715e">/* capture load from *all* tasks on this cpu: */</span>
-        <span style="color:#66d9ef">struct</span> load_weight load; <span style="color:#75715e">//CPU负载，该CPU上所有可运行进程的load之和，nr_running更新时这个值也必须更新
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> nr_load_updates;
-        u64 nr_switches; <span style="color:#75715e">//进行上下文切换次数，只有proc会使用这个
-</span><span style="color:#75715e"></span>
-        <span style="color:#66d9ef">struct</span> cfs_rq cfs; <span style="color:#75715e">//cfs调度运行队列，包含红黑树的根
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> rt_rq rt; <span style="color:#75715e">//实时调度运行队列
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#ifdef CONFIG_FAIR_GROUP_SCHED
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">/* list of leaf cfs_rq on this cpu: */</span>
-        <span style="color:#66d9ef">struct</span> list_head leaf_cfs_rq_list;
-<span style="color:#75715e">#ifdef CONFIG_SMP
-</span><span style="color:#75715e"></span>        RH_KABI_DEPRECATE(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>, h_load_throttle)
-<span style="color:#75715e">#endif </span><span style="color:#75715e">/* CONFIG_SMP */</span><span style="color:#75715e">
-</span><span style="color:#75715e">#endif </span><span style="color:#75715e">/* CONFIG_FAIR_GROUP_SCHED */</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#ifdef CONFIG_RT_GROUP_SCHED
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> list_head leaf_rt_rq_list;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>
-        <span style="color:#75715e">/*
-</span><span style="color:#75715e">         * This is part of a global counter where only the total sum
-</span><span style="color:#75715e">         * over all CPUs matters. A task can increase this counter on
-</span><span style="color:#75715e">         * one CPU and if it got migrated afterwards it may decrease
-</span><span style="color:#75715e">         * it on another CPU. Always updated under the runqueue lock:
-</span><span style="color:#75715e">         */</span>
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> nr_uninterruptible; <span style="color:#75715e">//曾经处于队列但现在处于TASK_UNINTERRUPTIBLE状态的进程数量
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">//curr: 当前正在此CPU上运行的进程
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">//idle: 当前CPU上idle进程的指针，idle进程用于当CPU没事做的时候调用，它什么都不执行 
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>curr, <span style="color:#f92672">*</span>idle, <span style="color:#f92672">*</span>stop;
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> next_balance; <span style="color:#75715e">//下次进行负载平衡执行时间
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> mm_struct <span style="color:#f92672">*</span>prev_mm; <span style="color:#75715e">//在进程切换时用来存放换出进程的内存描述符地址
-</span><span style="color:#75715e"></span>
-        u64 clock; <span style="color:#75715e">//rq运行时间
-</span><span style="color:#75715e"></span>        u64 clock_task;
-
-        atomic_t nr_iowait;
-
-<span style="color:#75715e">#ifdef CONFIG_SMP
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> root_domain <span style="color:#f92672">*</span>rd;
-        <span style="color:#75715e">// 当前CPU所在基本调度域，每个调度域包含一个或多个CPU组，每个CPU组包含该调度域中一个或多个CPU子集，负载均衡都是在调度域中的组之间完成的，不能跨域进行负载均衡
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> sched_domain <span style="color:#f92672">*</span>sd;
-
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> cpu_power;
-
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> idle_balance;
-        <span style="color:#75715e">/* For active balancing */</span>
-        <span style="color:#66d9ef">int</span> post_schedule;
-        <span style="color:#66d9ef">int</span> active_balance; <span style="color:#75715e">//如果需要把进程迁移到其他运行队列，就需要设置这个位
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> push_cpu;
-        <span style="color:#66d9ef">struct</span> cpu_stop_work active_balance_work;
-        <span style="color:#75715e">/* cpu of this runqueue: */</span>
-        <span style="color:#66d9ef">int</span> cpu; <span style="color:#75715e">//该运行队列所属CPU 
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> online;
-
-        <span style="color:#66d9ef">struct</span> list_head cfs_tasks;
-
-        u64 rt_avg;
-        <span style="color:#75715e">//该运行队列存活时间
-</span><span style="color:#75715e"></span>        u64 age_stamp;
-        u64 idle_stamp;
-        u64 avg_idle;
-
-        <span style="color:#75715e">/* This is used to determine avg_idle&#39;s max value */</span>
-        u64 max_idle_balance_cost;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#ifdef CONFIG_IRQ_TIME_ACCOUNTING
-</span><span style="color:#75715e"></span>        u64 prev_irq_time;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e">#ifdef CONFIG_PARAVIRT
-</span><span style="color:#75715e"></span>        u64 prev_steal_time;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e">#ifdef CONFIG_PARAVIRT_TIME_ACCOUNTING
-</span><span style="color:#75715e"></span>        u64 prev_steal_time_rq;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>
-        <span style="color:#75715e">/* calc_load related fields */</span>
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> calc_load_update; <span style="color:#75715e">//用于负载均衡
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">long</span> calc_load_active;
-
-<span style="color:#75715e">#ifdef CONFIG_SCHED_HRTICK
-</span><span style="color:#75715e">#ifdef CONFIG_SMP
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> hrtick_csd_pending;
-        <span style="color:#66d9ef">struct</span> call_single_data hrtick_csd;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> hrtimer hrtick_timer; <span style="color:#75715e">//调度使用的高精度定时
-</span><span style="color:#75715e"></span><span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#ifdef CONFIG_SMP
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">struct</span> llist_head wake_list;
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>
-        <span style="color:#66d9ef">struct</span> sched_avg avg;
-
-        RH_KABI_EXTEND(<span style="color:#66d9ef">struct</span> dl_rq dl)
-
-<span style="color:#75715e">#ifndef __GENKSYMS__
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">/* CONFIG_SCHEDSTATS */</span>
-        <span style="color:#75715e">/* latency stats */</span>
-        <span style="color:#66d9ef">struct</span> sched_info rq_sched_info;
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> rq_cpu_time;
-        <span style="color:#75715e">/* could above be rq-&gt;cfs_rq.exec_clock + rq-&gt;rt_rq.rt_runtime ? */</span>
-
-        <span style="color:#75715e">/* sys_sched_yield() stats */</span>
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> yld_count;
-
-        <span style="color:#75715e">/* schedule() stats */</span>
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> sched_count;
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> sched_goidle;
-
-        <span style="color:#75715e">/* try_to_wake_up() stats */</span>
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> ttwu_count;
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> ttwu_local;
-
-        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> cpu_capacity_orig;
-<span style="color:#75715e">#endif </span><span style="color:#75715e">/* __GENKSYMS__ */</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>};
-</code></pre></div><p>内核中定义了<code>runqueues</code>这个每cpu变量，来描述系统上的所运行的所有进程：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">DECLARE_PER_CPU(<span style="color:#66d9ef">struct</span> rq, runqueues);
-DEFINE_PER_CPU_SHARED_ALIGNED(<span style="color:#66d9ef">struct</span> rq, runqueues);
-</code></pre></div><p>以一个有<code>4</code>个逻辑<code>cpu</code>的虚拟机为例，通过<code>crash</code>查看<code>runqueues</code>这个<code>每cpu变量</code>如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">crash&gt; p runqueues
-PER-CPU DATA TYPE:
-  struct rq runqueues;
-PER-CPU ADDRESSES:
-  <span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>: ffff9236dfc18b80
-  <span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>: ffff9236dfc98b80
-  <span style="color:#f92672">[</span>2<span style="color:#f92672">]</span>: ffff9236dfd18b80
-  <span style="color:#f92672">[</span>3<span style="color:#f92672">]</span>: ffff9236dfd98b80
-</code></pre></div><p><code>struct rq</code>和各个调度算法的运行队列的关系如下图：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="c1">//CPU运行队列，每个CPU包含一个struct rq 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * This is the main, per-CPU runqueue data structure.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Locking rule: those places that want to lock multiple runqueues
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * (such as the load balancing or the thread migration code), lock
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * acquire operations must be ordered by ascending &amp;runqueue.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">rq</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* runqueue lock: */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">raw_spinlock_t</span> <span class="n">lock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * nr_running and cpu_load should be in the same cacheline because
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * remote CPUs use both these fields when doing load calculation.
+</span></span></span><span class="line"><span class="cl"><span class="cm">         */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">nr_running</span><span class="p">;</span> <span class="c1">//此CPU上总共就绪的进程数，包括cfs，rt和正在运行的 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#ifdef CONFIG_NUMA_BALANCING
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">nr_numa_running</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">nr_preferred_running</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="cp">#define CPU_LOAD_IDX_MAX 5
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">cpu_load</span><span class="p">[</span><span class="n">CPU_LOAD_IDX_MAX</span><span class="p">];</span> <span class="c1">//根据CPU历史情况计算的负载，cpu_load[0]一直等于load.weight，当达到负载平衡时，cpu_load[1]和cpu_load[2]都应该等于load.weight
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">last_load_update_tick</span><span class="p">;</span> <span class="c1">//最后一次更新 cpu_load 的时间
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#ifdef CONFIG_NO_HZ_COMMON
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="n">u64</span> <span class="n">nohz_stamp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">nohz_flags</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_NO_HZ_FULL
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">last_sched_tick</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="kt">int</span> <span class="n">skip_clock_update</span><span class="p">;</span> <span class="c1">//是否需要更新rq的运行时
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* capture load from *all* tasks on this cpu: */</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">load_weight</span> <span class="n">load</span><span class="p">;</span> <span class="c1">//CPU负载，该CPU上所有可运行进程的load之和，nr_running更新时这个值也必须更新
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">nr_load_updates</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">u64</span> <span class="n">nr_switches</span><span class="p">;</span> <span class="c1">//进行上下文切换次数，只有proc会使用这个
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">cfs_rq</span> <span class="n">cfs</span><span class="p">;</span> <span class="c1">//cfs调度运行队列，包含红黑树的根
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">struct</span> <span class="n">rt_rq</span> <span class="n">rt</span><span class="p">;</span> <span class="c1">//实时调度运行队列
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_FAIR_GROUP_SCHED
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="cm">/* list of leaf cfs_rq on this cpu: */</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">list_head</span> <span class="n">leaf_cfs_rq_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_SMP
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="nf">RH_KABI_DEPRECATE</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">,</span> <span class="n">h_load_throttle</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif </span><span class="cm">/* CONFIG_SMP */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#endif </span><span class="cm">/* CONFIG_FAIR_GROUP_SCHED */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_RT_GROUP_SCHED
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="k">struct</span> <span class="n">list_head</span> <span class="n">leaf_rt_rq_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * This is part of a global counter where only the total sum
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * over all CPUs matters. A task can increase this counter on
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * one CPU and if it got migrated afterwards it may decrease
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * it on another CPU. Always updated under the runqueue lock:
+</span></span></span><span class="line"><span class="cl"><span class="cm">         */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">nr_uninterruptible</span><span class="p">;</span> <span class="c1">//曾经处于队列但现在处于TASK_UNINTERRUPTIBLE状态的进程数量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">//curr: 当前正在此CPU上运行的进程
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">//idle: 当前CPU上idle进程的指针，idle进程用于当CPU没事做的时候调用，它什么都不执行 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">curr</span><span class="p">,</span> <span class="o">*</span><span class="n">idle</span><span class="p">,</span> <span class="o">*</span><span class="n">stop</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">next_balance</span><span class="p">;</span> <span class="c1">//下次进行负载平衡执行时间
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">struct</span> <span class="n">mm_struct</span> <span class="o">*</span><span class="n">prev_mm</span><span class="p">;</span> <span class="c1">//在进程切换时用来存放换出进程的内存描述符地址
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">        <span class="n">u64</span> <span class="n">clock</span><span class="p">;</span> <span class="c1">//rq运行时间
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">u64</span> <span class="n">clock_task</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kt">atomic_t</span> <span class="n">nr_iowait</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_SMP
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="k">struct</span> <span class="n">root_domain</span> <span class="o">*</span><span class="n">rd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// 当前CPU所在基本调度域，每个调度域包含一个或多个CPU组，每个CPU组包含该调度域中一个或多个CPU子集，负载均衡都是在调度域中的组之间完成的，不能跨域进行负载均衡
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">struct</span> <span class="n">sched_domain</span> <span class="o">*</span><span class="n">sd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">cpu_power</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">idle_balance</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* For active balancing */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">post_schedule</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">active_balance</span><span class="p">;</span> <span class="c1">//如果需要把进程迁移到其他运行队列，就需要设置这个位
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="kt">int</span> <span class="n">push_cpu</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">cpu_stop_work</span> <span class="n">active_balance_work</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* cpu of this runqueue: */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">cpu</span><span class="p">;</span> <span class="c1">//该运行队列所属CPU 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="kt">int</span> <span class="n">online</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">list_head</span> <span class="n">cfs_tasks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">u64</span> <span class="n">rt_avg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">//该运行队列存活时间
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">u64</span> <span class="n">age_stamp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">u64</span> <span class="n">idle_stamp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">u64</span> <span class="n">avg_idle</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* This is used to determine avg_idle&#39;s max value */</span>
+</span></span><span class="line"><span class="cl">        <span class="n">u64</span> <span class="n">max_idle_balance_cost</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_IRQ_TIME_ACCOUNTING
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="n">u64</span> <span class="n">prev_irq_time</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_PARAVIRT
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="n">u64</span> <span class="n">prev_steal_time</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_PARAVIRT_TIME_ACCOUNTING
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="n">u64</span> <span class="n">prev_steal_time_rq</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* calc_load related fields */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">calc_load_update</span><span class="p">;</span> <span class="c1">//用于负载均衡
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="kt">long</span> <span class="n">calc_load_active</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_SCHED_HRTICK
+</span></span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_SMP
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="kt">int</span> <span class="n">hrtick_csd_pending</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">call_single_data</span> <span class="n">hrtick_csd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="k">struct</span> <span class="n">hrtimer</span> <span class="n">hrtick_timer</span><span class="p">;</span> <span class="c1">//调度使用的高精度定时
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_SMP
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="k">struct</span> <span class="n">llist_head</span> <span class="n">wake_list</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">sched_avg</span> <span class="n">avg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">RH_KABI_EXTEND</span><span class="p">(</span><span class="k">struct</span> <span class="n">dl_rq</span> <span class="n">dl</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#ifndef __GENKSYMS__
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>        <span class="cm">/* CONFIG_SCHEDSTATS */</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* latency stats */</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">sched_info</span> <span class="n">rq_sched_info</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span> <span class="n">rq_cpu_time</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* could above be rq-&gt;cfs_rq.exec_clock + rq-&gt;rt_rq.rt_runtime ? */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* sys_sched_yield() stats */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">yld_count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* schedule() stats */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sched_count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sched_goidle</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* try_to_wake_up() stats */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">ttwu_count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">ttwu_local</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">cpu_capacity_orig</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif </span><span class="cm">/* __GENKSYMS__ */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>内核中定义了<code>runqueues</code>这个每cpu变量，来描述系统上的所运行的所有进程：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="nf">DECLARE_PER_CPU</span><span class="p">(</span><span class="k">struct</span> <span class="n">rq</span><span class="p">,</span> <span class="n">runqueues</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">DEFINE_PER_CPU_SHARED_ALIGNED</span><span class="p">(</span><span class="k">struct</span> <span class="n">rq</span><span class="p">,</span> <span class="n">runqueues</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>以一个有<code>4</code>个逻辑<code>cpu</code>的虚拟机为例，通过<code>crash</code>查看<code>runqueues</code>这个<code>每cpu变量</code>如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">crash&gt; p runqueues
+</span></span><span class="line"><span class="cl">PER-CPU DATA TYPE:
+</span></span><span class="line"><span class="cl">  struct rq runqueues<span class="p">;</span>
+</span></span><span class="line"><span class="cl">PER-CPU ADDRESSES:
+</span></span><span class="line"><span class="cl">  <span class="o">[</span>0<span class="o">]</span>: ffff9236dfc18b80
+</span></span><span class="line"><span class="cl">  <span class="o">[</span>1<span class="o">]</span>: ffff9236dfc98b80
+</span></span><span class="line"><span class="cl">  <span class="o">[</span>2<span class="o">]</span>: ffff9236dfd18b80
+</span></span><span class="line"><span class="cl">  <span class="o">[</span>3<span class="o">]</span>: ffff9236dfd98b80
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>struct rq</code>和各个调度算法的运行队列的关系如下图：</p>
 <p><img src="./runqueues.svg" alt="" title=""></p>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -349,7 +513,10 @@ PER-CPU ADDRESSES:
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2019-11-17</span>
+    <span class="item-content">
+        2019-11-17
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -357,39 +524,27 @@ PER-CPU ADDRESSES:
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/sched/intro/">
+        <a class="prev" href="/kernel/sched/intro/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">Linux调度——概述</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/sched/current/">
+        <a class="next" href="/kernel/sched/current/">
             <span class="next-text nav-default">Linux调度——神奇的current</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -403,6 +558,11 @@ PER-CPU ADDRESSES:
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -427,26 +587,24 @@ PER-CPU ADDRESSES:
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

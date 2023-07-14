@@ -16,24 +16,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="cgroup的debug子系统其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核cgroup框架的使用方法，同时也展示了cgroup框架中各个数据结构之间的关系。
+<meta name="author" content="laoqinren" /><meta name="description" content="cgroup的debug子系统其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核cgroup框架的使用方法，同时也展示了cgroup框架中各个数据结构之间的关系。
 本文就通过研究debug子系统，来展示cgroup框架中各个数据结构的关系。
- 注意: 内核代码采用linux-3.10.0-862.9.1.el7
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+注意: 内核代码采用linux-3.10.0-862.9.1.el7
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-debug/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -42,14 +38,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="cgroup之debug子系统" />
@@ -59,7 +49,7 @@
 注意: 内核代码采用linux-3.10.0-862.9.1.el7
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-debug/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-debug/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2018-08-09T22:46:11+08:00" />
 <meta property="article:modified_time" content="2018-08-09T22:46:11+08:00" />
 <meta itemprop="name" content="cgroup之debug子系统">
@@ -67,15 +57,10 @@
 本文就通过研究debug子系统，来展示cgroup框架中各个数据结构的关系。
 
 注意: 内核代码采用linux-3.10.0-862.9.1.el7
-">
-<meta itemprop="datePublished" content="2018-08-09T22:46:11+08:00" />
+"><meta itemprop="datePublished" content="2018-08-09T22:46:11+08:00" />
 <meta itemprop="dateModified" content="2018-08-09T22:46:11+08:00" />
-<meta itemprop="wordCount" content="2174">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,cgroup,debug," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="2378">
+<meta itemprop="keywords" content="kernel,linux,cgroup,debug," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="cgroup之debug子系统"/>
 <meta name="twitter:description" content="cgroup的debug子系统其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核cgroup框架的使用方法，同时也展示了cgroup框架中各个数据结构之间的关系。
 本文就通过研究debug子系统，来展示cgroup框架中各个数据结构的关系。
@@ -122,12 +107,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -148,6 +142,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -161,44 +156,38 @@
       <div class="post-meta">
         <span class="post-time"> 2018-08-09 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-              <a href="/categories/cgroup/"> cgroup </a>
-            
-          </div>
-        <span class="more-meta"> 2174 words </span>
-        <span class="more-meta"> 5 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            <a href="/categories/cgroup/"> cgroup </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#使能debug子系统">使能debug子系统</a></li>
-        <li><a href="#debugcgroup_refcount">debug.cgroup_refcount</a></li>
-        <li><a href="#debugtaskcount">debug.taskcount</a></li>
-        <li><a href="#debugcurrent_css_set">debug.current_css_set</a></li>
-        <li><a href="#debugcurrent_css_set_refcount">debug.current_css_set_refcount</a></li>
-        <li><a href="#debugcurrent_css_set_cg_links">debug.current_css_set_cg_links</a></li>
-        <li><a href="#debugcgroup_css_links">debug.cgroup_css_links</a></li>
-        <li><a href="#debugreleaseable">debug.releaseable</a></li>
+        <li>
+          <ul>
+            <li><a href="#使能debug子系统">使能debug子系统</a></li>
+            <li><a href="#debugcgroup_refcount">debug.cgroup_refcount</a></li>
+            <li><a href="#debugtaskcount">debug.taskcount</a></li>
+            <li><a href="#debugcurrent_css_set">debug.current_css_set</a></li>
+            <li><a href="#debugcurrent_css_set_refcount">debug.current_css_set_refcount</a></li>
+            <li><a href="#debugcurrent_css_set_cg_links">debug.current_css_set_cg_links</a></li>
+            <li><a href="#debugcgroup_css_links">debug.cgroup_css_links</a></li>
+            <li><a href="#debugreleaseable">debug.releaseable</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p><code>cgroup</code>的<code>debug子系统</code>其实没有什么用处，要说作用的话，其实它就是一个示例子系统，给内核的开发者展示了内核<code>cgroup</code>框架的使用方法，同时也展示了<code>cgroup</code>框架中各个数据结构之间的关系。</p>
 <p>本文就通过研究<code>debug</code>子系统，来展示<code>cgroup</code>框架中各个数据结构的关系。</p>
@@ -208,26 +197,51 @@
 <h3 id="使能debug子系统">使能debug子系统</h3>
 <p>默认情况下，<code>debug</code>子系统是未使能的，使能它的话，需要打开内核配置选项<code>CONFIG_CGROUP_DEBUG</code>。</p>
 <p>重新编译内核、安装并重启后，<code>debug</code>子系统会自动挂载到<code>/sys/fs/cgroup/debug</code>目录下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/sys/fs/cgroup/debug  <span style="color:#75715e"># pwd</span>
-/sys/fs/cgroup/debug
-root@127.0.0.1::<span style="color:#f92672">[</span>04:21:37<span style="color:#f92672">]</span>::<span style="color:#f92672">[</span>Exit Code: 0<span style="color:#f92672">]</span> -&gt;
-/sys/fs/cgroup/debug  <span style="color:#75715e"># ls -l</span>
-total <span style="color:#ae81ff">0</span>
--rw-r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 cgroup.clone_children
---w--w--w-. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 cgroup.event_control
--rw-r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 cgroup.procs
--r--r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 cgroup.sane_behavior
--r--r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 debug.cgroup_css_links
--r--r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 debug.cgroup_refcount
--r--r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 debug.current_css_set
--r--r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 debug.current_css_set_cg_links
--r--r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 debug.current_css_set_refcount
--r--r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 debug.releasable
--r--r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 debug.taskcount
--rw-r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 notify_on_release
--rw-r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 release_agent
--rw-r--r--. <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">0</span> Sep  <span style="color:#ae81ff">8</span> 20:49 tasks
-</code></pre></div><p>除了<code>cgroup</code>中基本的文件外，<code>debug</code>子系统特有的文件包括如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># pwd</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug
+</span></span><span class="line"><span class="cl">root@127.0.0.1::<span class="o">[</span>04:21:37<span class="o">]</span>::<span class="o">[</span>Exit Code: 0<span class="o">]</span> -&gt;
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># ls -l</span>
+</span></span><span class="line"><span class="cl">total <span class="m">0</span>
+</span></span><span class="line"><span class="cl">-rw-r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 cgroup.clone_children
+</span></span><span class="line"><span class="cl">--w--w--w-. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 cgroup.event_control
+</span></span><span class="line"><span class="cl">-rw-r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 cgroup.procs
+</span></span><span class="line"><span class="cl">-r--r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 cgroup.sane_behavior
+</span></span><span class="line"><span class="cl">-r--r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 debug.cgroup_css_links
+</span></span><span class="line"><span class="cl">-r--r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 debug.cgroup_refcount
+</span></span><span class="line"><span class="cl">-r--r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 debug.current_css_set
+</span></span><span class="line"><span class="cl">-r--r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 debug.current_css_set_cg_links
+</span></span><span class="line"><span class="cl">-r--r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 debug.current_css_set_refcount
+</span></span><span class="line"><span class="cl">-r--r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 debug.releasable
+</span></span><span class="line"><span class="cl">-r--r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 debug.taskcount
+</span></span><span class="line"><span class="cl">-rw-r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 notify_on_release
+</span></span><span class="line"><span class="cl">-rw-r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 release_agent
+</span></span><span class="line"><span class="cl">-rw-r--r--. <span class="m">1</span> root root <span class="m">0</span> Sep  <span class="m">8</span> 20:49 tasks
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>除了<code>cgroup</code>中基本的文件外，<code>debug</code>子系统特有的文件包括如下：</p>
 <ul>
 <li>debug.taskcount</li>
 <li>debug.releaseable</li>
@@ -240,220 +254,476 @@ total <span style="color:#ae81ff">0</span>
 <p>下面我们就通过研究这个几个文件的实现，来学习<code>cgroup</code>框架中的基本数据结构的关系。</p>
 <h3 id="debugcgroup_refcount">debug.cgroup_refcount</h3>
 <p>该文件输出当前<code>cgroup</code>引用计数，注意，这个计数不是该<code>cgroup</code>中<code>tasks</code>的个数。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> cgroup {
-	...
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * count users of this cgroup. &gt;0 means busy, but doesn&#39;t
-</span><span style="color:#75715e">	 * necessarily indicate the number of tasks in the cgroup
-</span><span style="color:#75715e">	 */</span>
-	atomic_t count;
-	...
-}
-</code></pre></div><p>通过下面的shell操作，我们可以看出，顶级<code>debug cgroup</code>中，其引用计数为<code>44</code>，而新建一个<code>debug cgroup</code>后，其引用计数为<code>0</code>。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/sys/fs/cgroup/debug  <span style="color:#75715e"># # the top debug subsystem</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># cat debug.cgroup_refcount </span>
-<span style="color:#ae81ff">44</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># # create a new debug cgroup</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># mkdir test</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># cd test/</span>
-/sys/fs/cgroup/debug/test  <span style="color:#75715e"># # the new debug cgroup&#39;s refcount should be zero</span>
-/sys/fs/cgroup/debug/test  <span style="color:#75715e"># cat debug.cgroup_refcount </span>
-<span style="color:#ae81ff">0</span>
-</code></pre></div><p>这里的<code>44</code>说明，目前系统上有<code>44</code>个<code>css_set</code>中引用了该<code>debug cgroup</code>，而新创建的<code>cgroup</code>，目前还没有进程引用它。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">cgroup</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * count users of this cgroup. &gt;0 means busy, but doesn&#39;t
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * necessarily indicate the number of tasks in the cgroup
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">atomic_t</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>通过下面的shell操作，我们可以看出，顶级<code>debug cgroup</code>中，其引用计数为<code>44</code>，而新建一个<code>debug cgroup</code>后，其引用计数为<code>0</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># # the top debug subsystem</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat debug.cgroup_refcount </span>
+</span></span><span class="line"><span class="cl"><span class="m">44</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># # create a new debug cgroup</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># mkdir test</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cd test/</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug/test  <span class="c1"># # the new debug cgroup&#39;s refcount should be zero</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug/test  <span class="c1"># cat debug.cgroup_refcount </span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里的<code>44</code>说明，目前系统上有<code>44</code>个<code>css_set</code>中引用了该<code>debug cgroup</code>，而新创建的<code>cgroup</code>，目前还没有进程引用它。</p>
 <h3 id="debugtaskcount">debug.taskcount</h3>
 <p>该文件输出加入到当前<code>cgroup</code>中的<code>task</code>的数量。其实现方式时通过调用函数<code>int cgroup_task_count(const struct cgroup *cgrp);</code>得到进程的数量。</p>
 <p>其实现代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
-</span><span style="color:#75715e"> * cgroup_task_count - count the number of tasks in a cgroup.
-</span><span style="color:#75715e"> * @cgrp: the cgroup in question
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * Return the number of tasks in the cgroup.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_task_count</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp)
-{
-	<span style="color:#66d9ef">int</span> count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-	<span style="color:#66d9ef">struct</span> cg_cgroup_link <span style="color:#f92672">*</span>link;
-
-	read_lock(<span style="color:#f92672">&amp;</span>css_set_lock);
-	list_for_each_entry(link, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>css_sets, cgrp_link_list) {
-		count <span style="color:#f92672">+=</span> atomic_read(<span style="color:#f92672">&amp;</span>link<span style="color:#f92672">-&gt;</span>cg<span style="color:#f92672">-&gt;</span>refcount);
-	}
-	read_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
-	<span style="color:#66d9ef">return</span> count;
-}
-</code></pre></div><p>该段代码很简单，通过<code>cgroup</code>可以得到所有的<code>cg_cgroup_link</code>，继而得到所有的<code>css_set</code>，而<code>css_set</code>的<code>refcount</code>则保存了引用该<code>css_set</code>的进程数量。所以通过对该<code>cgroup</code>对应的所有的<code>css_set</code>的<code>refcount</code>求和，其结果就是该<code>cgroup</code>中的进程的数量。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * cgroup_task_count - count the number of tasks in a cgroup.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @cgrp: the cgroup in question
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Return the number of tasks in the cgroup.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">cgroup_task_count</span><span class="p">(</span><span class="k">const</span> <span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cg_cgroup_link</span> <span class="o">*</span><span class="n">link</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">read_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">list_for_each_entry</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">css_sets</span><span class="p">,</span> <span class="n">cgrp_link_list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="n">count</span> <span class="o">+=</span> <span class="nf">atomic_read</span><span class="p">(</span><span class="o">&amp;</span><span class="n">link</span><span class="o">-&gt;</span><span class="n">cg</span><span class="o">-&gt;</span><span class="n">refcount</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">read_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该段代码很简单，通过<code>cgroup</code>可以得到所有的<code>cg_cgroup_link</code>，继而得到所有的<code>css_set</code>，而<code>css_set</code>的<code>refcount</code>则保存了引用该<code>css_set</code>的进程数量。所以通过对该<code>cgroup</code>对应的所有的<code>css_set</code>的<code>refcount</code>求和，其结果就是该<code>cgroup</code>中的进程的数量。</p>
 <h3 id="debugcurrent_css_set">debug.current_css_set</h3>
 <p>该文件输出了当前进程对应的<code>task_struct-&gt;cgroups</code>的地址：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> u64 <span style="color:#a6e22e">current_css_set_read</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cont, <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft)
-{
-	<span style="color:#66d9ef">return</span> (u64)(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)current<span style="color:#f92672">-&gt;</span>cgroups;
-}
-</code></pre></div><p>从下面的输出来看，不管输出的是哪一个<code>cgroup</code>的文件，其输出结果都一样。这是为什么呢？因为其输出都是当前进程对应的<code>task_struct-&gt;cgroups</code>的地址，而当前进程<code>cat</code>默认属于顶级<code>debug</code> 的<code>cgroup</code>，其对应的<code>css_set</code>的地址就是<code>18446612137015537216</code>。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/sys/fs/cgroup/debug  <span style="color:#75715e"># cat debug.current_css_set</span>
-<span style="color:#ae81ff">18446612137015537216</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># cat test/debug.current_css_set</span>
-<span style="color:#ae81ff">18446612137015537216</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># mkdir test1</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># cat test1/debug.current_css_set</span>
-<span style="color:#ae81ff">18446612137015537216</span>
-</code></pre></div><h3 id="debugcurrent_css_set_refcount">debug.current_css_set_refcount</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="n">u64</span> <span class="nf">current_css_set_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cont</span><span class="p">,</span> <span class="k">struct</span> <span class="n">cftype</span> <span class="o">*</span><span class="n">cft</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="p">(</span><span class="n">u64</span><span class="p">)(</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">cgroups</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>从下面的输出来看，不管输出的是哪一个<code>cgroup</code>的文件，其输出结果都一样。这是为什么呢？因为其输出都是当前进程对应的<code>task_struct-&gt;cgroups</code>的地址，而当前进程<code>cat</code>默认属于顶级<code>debug</code> 的<code>cgroup</code>，其对应的<code>css_set</code>的地址就是<code>18446612137015537216</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat debug.current_css_set</span>
+</span></span><span class="line"><span class="cl"><span class="m">18446612137015537216</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat test/debug.current_css_set</span>
+</span></span><span class="line"><span class="cl"><span class="m">18446612137015537216</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># mkdir test1</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat test1/debug.current_css_set</span>
+</span></span><span class="line"><span class="cl"><span class="m">18446612137015537216</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="debugcurrent_css_set_refcount">debug.current_css_set_refcount</h3>
 <p>该文件输出了当前进程的对应的<code>css_set</code>的引用计数。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> u64 <span style="color:#a6e22e">current_css_set_refcount_read</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cont,
-					   <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft)
-{
-	u64 count;
-
-	rcu_read_lock();
-	count <span style="color:#f92672">=</span> atomic_read(<span style="color:#f92672">&amp;</span>current<span style="color:#f92672">-&gt;</span>cgroups<span style="color:#f92672">-&gt;</span>refcount);
-	rcu_read_unlock();
-	<span style="color:#66d9ef">return</span> count;
-}
-</code></pre></div><p>跟<code>debug.current_css_set</code>类似，不管输出的是哪一个<code>cgroup</code>的文件，其输出结果都一样，因为当前进程都是<code>cat</code>。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/sys/fs/cgroup/debug  <span style="color:#75715e"># cat debug.current_css_set_refcount </span>
-<span style="color:#ae81ff">3</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># cat test/debug.current_css_set_refcount </span>
-<span style="color:#ae81ff">3</span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># cat test1/debug.current_css_set_refcount </span>
-<span style="color:#ae81ff">3</span>
-</code></pre></div><h3 id="debugcurrent_css_set_cg_links">debug.current_css_set_cg_links</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="n">u64</span> <span class="nf">current_css_set_refcount_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cont</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">					   <span class="k">struct</span> <span class="n">cftype</span> <span class="o">*</span><span class="n">cft</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="n">u64</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">rcu_read_lock</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">	<span class="n">count</span> <span class="o">=</span> <span class="nf">atomic_read</span><span class="p">(</span><span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">cgroups</span><span class="o">-&gt;</span><span class="n">refcount</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">rcu_read_unlock</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>跟<code>debug.current_css_set</code>类似，不管输出的是哪一个<code>cgroup</code>的文件，其输出结果都一样，因为当前进程都是<code>cat</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat debug.current_css_set_refcount </span>
+</span></span><span class="line"><span class="cl"><span class="m">3</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat test/debug.current_css_set_refcount </span>
+</span></span><span class="line"><span class="cl"><span class="m">3</span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat test1/debug.current_css_set_refcount </span>
+</span></span><span class="line"><span class="cl"><span class="m">3</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="debugcurrent_css_set_cg_links">debug.current_css_set_cg_links</h3>
 <p>该文件输出了当前进程所有的<code>cgroup</code>子系统信息：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">current_css_set_cg_links_read</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cont,
-					 <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft,
-					 <span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>seq)
-{
-	<span style="color:#66d9ef">struct</span> cg_cgroup_link <span style="color:#f92672">*</span>link;
-	<span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>cg;
-
-	read_lock(<span style="color:#f92672">&amp;</span>css_set_lock);
-	rcu_read_lock();
-	cg <span style="color:#f92672">=</span> rcu_dereference(current<span style="color:#f92672">-&gt;</span>cgroups);
-	list_for_each_entry(link, <span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>cg_links, cg_link_list) {
-		<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>c <span style="color:#f92672">=</span> link<span style="color:#f92672">-&gt;</span>cgrp;
-		<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>name;
-
-		<span style="color:#66d9ef">if</span> (c<span style="color:#f92672">-&gt;</span>dentry)
-			name <span style="color:#f92672">=</span> c<span style="color:#f92672">-&gt;</span>dentry<span style="color:#f92672">-&gt;</span>d_name.name;
-		<span style="color:#66d9ef">else</span>
-			name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;?&#34;</span>;
-		seq_printf(seq, <span style="color:#e6db74">&#34;Root %d group %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
-			   c<span style="color:#f92672">-&gt;</span>root<span style="color:#f92672">-&gt;</span>hierarchy_id, name);
-	}
-	rcu_read_unlock();
-	read_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-</code></pre></div><p>其实现如上，也很简单。通过<code>current</code>指针，可以找到当前进程对应的<code>css_set</code>，而<code>css_set</code>中的<code>cg_links</code>将所有的<code>cg_cgroup_link</code>链接到了一起，而每个<code>cg_cgroup_link</code>中都记录其关连的<code>cgroup</code>的地址。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">current_css_set_cg_links_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cont</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">					 <span class="k">struct</span> <span class="n">cftype</span> <span class="o">*</span><span class="n">cft</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">					 <span class="k">struct</span> <span class="n">seq_file</span> <span class="o">*</span><span class="n">seq</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cg_cgroup_link</span> <span class="o">*</span><span class="n">link</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">css_set</span> <span class="o">*</span><span class="n">cg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">read_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">rcu_read_lock</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cg</span> <span class="o">=</span> <span class="nf">rcu_dereference</span><span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">cgroups</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">list_for_each_entry</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cg</span><span class="o">-&gt;</span><span class="n">cg_links</span><span class="p">,</span> <span class="n">cg_link_list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">c</span> <span class="o">=</span> <span class="n">link</span><span class="o">-&gt;</span><span class="n">cgrp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">c</span><span class="o">-&gt;</span><span class="n">dentry</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="n">name</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">dentry</span><span class="o">-&gt;</span><span class="n">d_name</span><span class="p">.</span><span class="n">name</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">else</span>
+</span></span><span class="line"><span class="cl">			<span class="n">name</span> <span class="o">=</span> <span class="s">&#34;?&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">seq_printf</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="s">&#34;Root %d group %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			   <span class="n">c</span><span class="o">-&gt;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">hierarchy_id</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">rcu_read_unlock</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">read_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其实现如上，也很简单。通过<code>current</code>指针，可以找到当前进程对应的<code>css_set</code>，而<code>css_set</code>中的<code>cg_links</code>将所有的<code>cg_cgroup_link</code>链接到了一起，而每个<code>cg_cgroup_link</code>中都记录其关连的<code>cgroup</code>的地址。</p>
 <p>输出示例如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/sys/fs/cgroup/debug  <span style="color:#75715e"># cat debug.current_css_set_cg_links </span>
-Root <span style="color:#ae81ff">0</span> group ?
-Root <span style="color:#ae81ff">1</span> group session-55.scope
-Root <span style="color:#ae81ff">2</span> group user.slice
-Root <span style="color:#ae81ff">3</span> group /
-Root <span style="color:#ae81ff">4</span> group /
-Root <span style="color:#ae81ff">5</span> group user.slice
-Root <span style="color:#ae81ff">6</span> group user.slice
-Root <span style="color:#ae81ff">7</span> group /
-Root <span style="color:#ae81ff">8</span> group /
-Root <span style="color:#ae81ff">9</span> group /
-Root <span style="color:#ae81ff">10</span> group user.slice
-Root <span style="color:#ae81ff">11</span> group /
-/sys/fs/cgroup/debug  <span style="color:#75715e"># cat test/debug.current_css_set_cg_links </span>
-Root <span style="color:#ae81ff">0</span> group ?
-Root <span style="color:#ae81ff">1</span> group session-55.scope
-Root <span style="color:#ae81ff">2</span> group user.slice
-Root <span style="color:#ae81ff">3</span> group /
-Root <span style="color:#ae81ff">4</span> group /
-Root <span style="color:#ae81ff">5</span> group user.slice
-Root <span style="color:#ae81ff">6</span> group user.slice
-Root <span style="color:#ae81ff">7</span> group /
-Root <span style="color:#ae81ff">8</span> group /
-Root <span style="color:#ae81ff">9</span> group /
-Root <span style="color:#ae81ff">10</span> group user.slice
-Root <span style="color:#ae81ff">11</span> group /
-</code></pre></div><blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat debug.current_css_set_cg_links </span>
+</span></span><span class="line"><span class="cl">Root <span class="m">0</span> group ?
+</span></span><span class="line"><span class="cl">Root <span class="m">1</span> group session-55.scope
+</span></span><span class="line"><span class="cl">Root <span class="m">2</span> group user.slice
+</span></span><span class="line"><span class="cl">Root <span class="m">3</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">4</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">5</span> group user.slice
+</span></span><span class="line"><span class="cl">Root <span class="m">6</span> group user.slice
+</span></span><span class="line"><span class="cl">Root <span class="m">7</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">8</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">9</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">10</span> group user.slice
+</span></span><span class="line"><span class="cl">Root <span class="m">11</span> group /
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat test/debug.current_css_set_cg_links </span>
+</span></span><span class="line"><span class="cl">Root <span class="m">0</span> group ?
+</span></span><span class="line"><span class="cl">Root <span class="m">1</span> group session-55.scope
+</span></span><span class="line"><span class="cl">Root <span class="m">2</span> group user.slice
+</span></span><span class="line"><span class="cl">Root <span class="m">3</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">4</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">5</span> group user.slice
+</span></span><span class="line"><span class="cl">Root <span class="m">6</span> group user.slice
+</span></span><span class="line"><span class="cl">Root <span class="m">7</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">8</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">9</span> group /
+</span></span><span class="line"><span class="cl">Root <span class="m">10</span> group user.slice
+</span></span><span class="line"><span class="cl">Root <span class="m">11</span> group /
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
 <p>注意： 第一个<code>cgroup</code>输出的名称为？，说明其<code>name</code>字段为空，这个<code>cgroup</code>到底是什么呢？第一个<code>cgroup</code>就是<code>dummytop</code>这个<code>cgroup</code>。</p>
 </blockquote>
 <h3 id="debugcgroup_css_links">debug.cgroup_css_links</h3>
 <p>该文件输出了当前<code>cgroup</code>中所有进程对应的进程<code>ID</code>。该文件的输出，跟<code>cgroup</code>中基本文件<strong>tasks</strong>的作用类似。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define MAX_TASKS_SHOWN_PER_CSS 25
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_css_links_read</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cont,
-				 <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft,
-				 <span style="color:#66d9ef">struct</span> seq_file <span style="color:#f92672">*</span>seq)
-{
-	<span style="color:#66d9ef">struct</span> cg_cgroup_link <span style="color:#f92672">*</span>link;
-
-	read_lock(<span style="color:#f92672">&amp;</span>css_set_lock);
-	list_for_each_entry(link, <span style="color:#f92672">&amp;</span>cont<span style="color:#f92672">-&gt;</span>css_sets, cgrp_link_list) {
-		<span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>cg <span style="color:#f92672">=</span> link<span style="color:#f92672">-&gt;</span>cg;
-		<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>task;
-		<span style="color:#66d9ef">int</span> count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-		seq_printf(seq, <span style="color:#e6db74">&#34;css_set %p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, cg);
-		list_for_each_entry(task, <span style="color:#f92672">&amp;</span>cg<span style="color:#f92672">-&gt;</span>tasks, cg_list) {
-			<span style="color:#66d9ef">if</span> (count<span style="color:#f92672">++</span> <span style="color:#f92672">&gt;</span> MAX_TASKS_SHOWN_PER_CSS) {
-				seq_puts(seq, <span style="color:#e6db74">&#34;  ...</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-				<span style="color:#66d9ef">break</span>;
-			} <span style="color:#66d9ef">else</span> {
-				seq_printf(seq, <span style="color:#e6db74">&#34;  task %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
-					   task_pid_vnr(task));
-			}
-		}
-	}
-	read_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-</code></pre></div><p><code>cgroup</code>的<code>css_sets</code>成员通过<code>cg_cgroup_link</code>将该<code>cgroup</code>中进程对应的<code>css_set</code>链接到了一起，通过遍历该链表，可以找到跟该<code>cgroup</code>相关的所有的<code>css_set</code>，而<code>css_set</code>中的成员<code>tasks</code>将引用给<code>css_set</code>的进程链接到了一起。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define MAX_TASKS_SHOWN_PER_CSS 25
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">cgroup_css_links_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cont</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">				 <span class="k">struct</span> <span class="n">cftype</span> <span class="o">*</span><span class="n">cft</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">				 <span class="k">struct</span> <span class="n">seq_file</span> <span class="o">*</span><span class="n">seq</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cg_cgroup_link</span> <span class="o">*</span><span class="n">link</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">read_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">list_for_each_entry</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cont</span><span class="o">-&gt;</span><span class="n">css_sets</span><span class="p">,</span> <span class="n">cgrp_link_list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">css_set</span> <span class="o">*</span><span class="n">cg</span> <span class="o">=</span> <span class="n">link</span><span class="o">-&gt;</span><span class="n">cg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">task</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">seq_printf</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="s">&#34;css_set %p</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">cg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">list_for_each_entry</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cg</span><span class="o">-&gt;</span><span class="n">tasks</span><span class="p">,</span> <span class="n">cg_list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">if</span> <span class="p">(</span><span class="n">count</span><span class="o">++</span> <span class="o">&gt;</span> <span class="n">MAX_TASKS_SHOWN_PER_CSS</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">seq_puts</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="s">&#34;  ...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">				<span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">seq_printf</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="s">&#34;  task %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">					   <span class="nf">task_pid_vnr</span><span class="p">(</span><span class="n">task</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">			<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">read_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>cgroup</code>的<code>css_sets</code>成员通过<code>cg_cgroup_link</code>将该<code>cgroup</code>中进程对应的<code>css_set</code>链接到了一起，通过遍历该链表，可以找到跟该<code>cgroup</code>相关的所有的<code>css_set</code>，而<code>css_set</code>中的成员<code>tasks</code>将引用给<code>css_set</code>的进程链接到了一起。</p>
 <p>其输出示例如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/sys/fs/cgroup/debug  <span style="color:#75715e"># cat test/debug.cgroup_css_links </span>
-/sys/fs/cgroup/debug  <span style="color:#75715e"># cat debug.cgroup_css_links </span>
-css_set ffff880118386e40
-  task <span style="color:#ae81ff">9268</span>
-  task <span style="color:#ae81ff">8084</span>
-  task <span style="color:#ae81ff">8078</span>
-css_set ffff8800c9248780
-  task <span style="color:#ae81ff">2782</span>
-  task <span style="color:#ae81ff">2781</span>
-  task <span style="color:#ae81ff">2765</span>
-  task <span style="color:#ae81ff">2760</span>
-  task <span style="color:#ae81ff">2759</span>
-css_set ffff8800c2cfb000
-  task <span style="color:#ae81ff">2727</span>
-  task <span style="color:#ae81ff">2726</span>
-  task <span style="color:#ae81ff">2725</span>
-css_set ffff8800c2cfb9c0
-  task <span style="color:#ae81ff">2712</span>
-css_set ffff8800d0b430c0
-  task <span style="color:#ae81ff">2531</span>
-  task <span style="color:#ae81ff">2530</span>
-  task <span style="color:#ae81ff">2525</span>
-css_set ffff880035d08480
-  task <span style="color:#ae81ff">2522</span>
-  task <span style="color:#ae81ff">2520</span>
-  task <span style="color:#ae81ff">2510</span>
-css_set ffff8800ccee2900
-  task <span style="color:#ae81ff">2427</span>
-  task <span style="color:#ae81ff">2422</span>
-  task <span style="color:#ae81ff">2415</span>
-css_set ffff8800d0a39e40
-  task <span style="color:#ae81ff">2851</span>
-  task <span style="color:#ae81ff">2850</span>
-  task <span style="color:#ae81ff">2849</span>
-  task <span style="color:#ae81ff">2833</span>
-  task <span style="color:#ae81ff">2832</span>
-  task <span style="color:#ae81ff">2831</span>
-  task <span style="color:#ae81ff">2829</span>
-  task <span style="color:#ae81ff">2827</span>
-  task <span style="color:#ae81ff">2826</span>
-  ...
-</code></pre></div><h3 id="debugreleaseable">debug.releaseable</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat test/debug.cgroup_css_links </span>
+</span></span><span class="line"><span class="cl">/sys/fs/cgroup/debug  <span class="c1"># cat debug.cgroup_css_links </span>
+</span></span><span class="line"><span class="cl">css_set ffff880118386e40
+</span></span><span class="line"><span class="cl">  task <span class="m">9268</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">8084</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">8078</span>
+</span></span><span class="line"><span class="cl">css_set ffff8800c9248780
+</span></span><span class="line"><span class="cl">  task <span class="m">2782</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2781</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2765</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2760</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2759</span>
+</span></span><span class="line"><span class="cl">css_set ffff8800c2cfb000
+</span></span><span class="line"><span class="cl">  task <span class="m">2727</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2726</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2725</span>
+</span></span><span class="line"><span class="cl">css_set ffff8800c2cfb9c0
+</span></span><span class="line"><span class="cl">  task <span class="m">2712</span>
+</span></span><span class="line"><span class="cl">css_set ffff8800d0b430c0
+</span></span><span class="line"><span class="cl">  task <span class="m">2531</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2530</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2525</span>
+</span></span><span class="line"><span class="cl">css_set ffff880035d08480
+</span></span><span class="line"><span class="cl">  task <span class="m">2522</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2520</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2510</span>
+</span></span><span class="line"><span class="cl">css_set ffff8800ccee2900
+</span></span><span class="line"><span class="cl">  task <span class="m">2427</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2422</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2415</span>
+</span></span><span class="line"><span class="cl">css_set ffff8800d0a39e40
+</span></span><span class="line"><span class="cl">  task <span class="m">2851</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2850</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2849</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2833</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2832</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2831</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2829</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2827</span>
+</span></span><span class="line"><span class="cl">  task <span class="m">2826</span>
+</span></span><span class="line"><span class="cl">  ...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="debugreleaseable">debug.releaseable</h3>
 <p>该文件输出了指定<code>cgroup</code>的标记<code>CGRP_RELEASABLE</code>是否设置了：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> u64 <span style="color:#a6e22e">releasable_read</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, <span style="color:#66d9ef">struct</span> cftype <span style="color:#f92672">*</span>cft)
-{
-	<span style="color:#66d9ef">return</span> test_bit(CGRP_RELEASABLE, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>flags);
-}
-</code></pre></div>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="n">u64</span> <span class="nf">releasable_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span><span class="p">,</span> <span class="k">struct</span> <span class="n">cftype</span> <span class="o">*</span><span class="n">cft</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">test_bit</span><span class="p">(</span><span class="n">CGRP_RELEASABLE</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -461,7 +731,10 @@ css_set ffff8800d0a39e40
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-08-09</span>
+    <span class="item-content">
+        2018-08-09
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -469,43 +742,29 @@ css_set ffff8800d0a39e40
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/cgroup/">cgroup</a>
-          
           <a href="/tags/debug/">debug</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/cgroup-source-css_set-and-cgroup/">
+        <a class="prev" href="/kernel/cgroup-source-css_set-and-cgroup/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">cgroup源码分析1—— css_set和cgroup的关系</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/list/">
+        <a class="next" href="/kernel/list/">
             <span class="next-text nav-default">内核基础设施——list_head结构解析</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -519,6 +778,11 @@ css_set ffff8800d0a39e40
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -543,26 +807,24 @@ css_set ffff8800d0a39e40
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

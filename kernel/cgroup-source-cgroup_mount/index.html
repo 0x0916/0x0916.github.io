@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
- 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+<meta name="author" content="laoqinren" /><meta name="description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
+注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,14 +37,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="cgroup源码分析3——cgroup层级的mount流程" />
@@ -57,22 +47,17 @@
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/" />
+<meta property="og:url" content="http://linux.laoqinren.net/kernel/cgroup-source-cgroup_mount/" /><meta property="article:section" content="kernel" />
 <meta property="article:published_time" content="2018-08-25T10:54:09+08:00" />
 <meta property="article:modified_time" content="2018-08-25T10:54:09+08:00" />
 <meta itemprop="name" content="cgroup源码分析3——cgroup层级的mount流程">
 <meta itemprop="description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
 
 注意：本文基于3.10.0-862.el7.x86_64版本kernel进行分析。
-">
-<meta itemprop="datePublished" content="2018-08-25T10:54:09+08:00" />
+"><meta itemprop="datePublished" content="2018-08-25T10:54:09+08:00" />
 <meta itemprop="dateModified" content="2018-08-25T10:54:09+08:00" />
-<meta itemprop="wordCount" content="4327">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,cgroup," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="4889">
+<meta itemprop="keywords" content="kernel,linux,cgroup," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="cgroup源码分析3——cgroup层级的mount流程"/>
 <meta name="twitter:description" content="本文继续该系列文章，分析了cgroup各个子系统的mount流程，当然也包括umount/remount流程。
 
@@ -118,12 +103,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -144,6 +138,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -157,42 +152,36 @@
       <div class="post-meta">
         <span class="post-time"> 2018-08-25 </span>
         <div class="post-category">
-            
-              <a href="/categories/kernel/"> kernel </a>
-            
-              <a href="/categories/cgroup/"> cgroup </a>
-            
-          </div>
-        <span class="more-meta"> 4327 words </span>
-        <span class="more-meta"> 9 mins read </span>
+            <a href="/categories/kernel/"> kernel </a>
+            <a href="/categories/cgroup/"> cgroup </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
     <li>
       <ul>
-        <li><a href="#mount流程整体流程介绍">mount流程整体流程介绍</a></li>
-        <li><a href="#mount中的一些细节">mount中的一些细节</a></li>
-        <li><a href="#rebind_subsystem">rebind_subsystem</a></li>
-        <li><a href="#remount的一些限制">remount的一些限制</a></li>
-        <li><a href="#umount">umount</a></li>
-        <li><a href="#参考文章">参考文章</a></li>
+        <li>
+          <ul>
+            <li><a href="#mount流程整体流程介绍">mount流程整体流程介绍</a></li>
+            <li><a href="#mount中的一些细节">mount中的一些细节</a></li>
+            <li><a href="#rebind_subsystem">rebind_subsystem</a></li>
+            <li><a href="#remount的一些限制">remount的一些限制</a></li>
+            <li><a href="#umount">umount</a></li>
+            <li><a href="#参考文章">参考文章</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>本文继续该系列文章，分析了<code>cgroup</code>各个子系统的<code>mount</code>流程，当然也包括<code>umount/remount</code>流程。</p>
 <blockquote>
@@ -200,9 +189,17 @@
 </blockquote>
 <h3 id="mount流程整体流程介绍">mount流程整体流程介绍</h3>
 <p>当我们mount <code>cgroup</code>文件系统时，一般输入命令如下：</p>
-<pre><code># mount -t cgroup -o cpu,cpuacct   none  /sys/fs/cgroup/cpu,cpuacct
-# mount -t cgroup -o pids none /sysfs/cgroup/cpu,cpuacct
-</code></pre><p>在内核中，执行的函数为<code>cgroup_mount</code>，其主要完成了如下工作：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># mount -t cgroup -o cpu,cpuacct   none  /sys/fs/cgroup/cpu,cpuacct
+</span></span><span class="line"><span class="cl"># mount -t cgroup -o pids none /sysfs/cgroup/cpu,cpuacct
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在内核中，执行的函数为<code>cgroup_mount</code>，其主要完成了如下工作：</p>
 <ul>
 <li>执行<code>parse_cgroupfs_options</code> 解析<code>mount</code>时的<code>options</code>选项</li>
 <li>执行<code>cgroup_root_from_opts</code> 分配一个新的<code>cgroupfs_root</code></li>
@@ -218,162 +215,321 @@
 <li>根据该层级的配置，使用<code>cgroup_populate_dir</code>创建对应的<code>cgroup</code>控制文件</li>
 </ul>
 <p>代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> dentry <span style="color:#f92672">*</span><span style="color:#a6e22e">cgroup_mount</span>(<span style="color:#66d9ef">struct</span> file_system_type <span style="color:#f92672">*</span>fs_type,
-			 <span style="color:#66d9ef">int</span> flags, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>unused_dev_name,
-			 <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>data)
-{
-	<span style="color:#66d9ef">struct</span> cgroup_sb_opts opts;
-	<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root;
-	<span style="color:#66d9ef">int</span> ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-	<span style="color:#66d9ef">struct</span> super_block <span style="color:#f92672">*</span>sb;
-	<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>new_root;
-	<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>inode;
-
-	<span style="color:#75715e">/* First find the desired set of subsystems */</span>
-	mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-	ret <span style="color:#f92672">=</span> parse_cgroupfs_options(data, <span style="color:#f92672">&amp;</span>opts);
-	mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-	<span style="color:#66d9ef">if</span> (ret)
-		<span style="color:#66d9ef">goto</span> out_err;
-
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * Allocate a new cgroup root. We may not need it if we&#39;re
-</span><span style="color:#75715e">	 * reusing an existing hierarchy.
-</span><span style="color:#75715e">	 */</span>
-	new_root <span style="color:#f92672">=</span> cgroup_root_from_opts(<span style="color:#f92672">&amp;</span>opts); <span style="color:#75715e">// 解析mount时的options选项
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (IS_ERR(new_root)) {
-		ret <span style="color:#f92672">=</span> PTR_ERR(new_root);
-		<span style="color:#66d9ef">goto</span> drop_modules;
-	}
-	opts.new_root <span style="color:#f92672">=</span> new_root;
-
-	<span style="color:#75715e">/* Locate an existing or new sb for this hierarchy */</span><span style="color:#75715e">// 分配一个新的cgroupfs_root
-</span><span style="color:#75715e"></span>	sb <span style="color:#f92672">=</span> sget(fs_type, cgroup_test_super, cgroup_set_super, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>opts);
-	<span style="color:#66d9ef">if</span> (IS_ERR(sb)) {
-		ret <span style="color:#f92672">=</span> PTR_ERR(sb);
-		cgroup_drop_root(opts.new_root);
-		<span style="color:#66d9ef">goto</span> drop_modules;
-	}
-
-	root <span style="color:#f92672">=</span> sb<span style="color:#f92672">-&gt;</span>s_fs_info;
-	BUG_ON(<span style="color:#f92672">!</span>root);
-	<span style="color:#66d9ef">if</span> (root <span style="color:#f92672">==</span> opts.new_root) { <span style="color:#75715e">// 新的挂载，说明这是一个新的层级
-</span><span style="color:#75715e"></span>		<span style="color:#75715e">/* We used the new root structure, so this is a new hierarchy */</span>
-		<span style="color:#66d9ef">struct</span> list_head tmp_cg_links;
-		<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>root_cgrp <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>top_cgroup;
-		<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>existing_root;
-		<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> cred <span style="color:#f92672">*</span>cred;
-		<span style="color:#66d9ef">int</span> i;
-		<span style="color:#66d9ef">struct</span> css_set <span style="color:#f92672">*</span>cg;
-
-		BUG_ON(sb<span style="color:#f92672">-&gt;</span>s_root <span style="color:#f92672">!=</span> NULL);
-		<span style="color:#75715e">// 获取挂载点的inode
-</span><span style="color:#75715e"></span>		ret <span style="color:#f92672">=</span> cgroup_get_rootdir(sb);
-		<span style="color:#66d9ef">if</span> (ret)
-			<span style="color:#66d9ef">goto</span> drop_new_super;
-		inode <span style="color:#f92672">=</span> sb<span style="color:#f92672">-&gt;</span>s_root<span style="color:#f92672">-&gt;</span>d_inode;
-
-		mutex_lock(<span style="color:#f92672">&amp;</span>inode<span style="color:#f92672">-&gt;</span>i_mutex);
-		mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-		mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_root_mutex);
-
-		<span style="color:#75715e">/* Check for name clashes with existing mounts */</span>
-		ret <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>EBUSY;
-		<span style="color:#66d9ef">if</span> (strlen(root<span style="color:#f92672">-&gt;</span>name))
-			for_each_active_root(existing_root)
-				<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>strcmp(existing_root<span style="color:#f92672">-&gt;</span>name, root<span style="color:#f92672">-&gt;</span>name))
-					<span style="color:#66d9ef">goto</span> unlock_drop;
-
-		<span style="color:#75715e">/*
-</span><span style="color:#75715e">		 * We&#39;re accessing css_set_count without locking
-</span><span style="color:#75715e">		 * css_set_lock here, but that&#39;s OK - it can only be
-</span><span style="color:#75715e">		 * increased by someone holding cgroup_lock, and
-</span><span style="color:#75715e">		 * that&#39;s us. The worst that can happen is that we
-</span><span style="color:#75715e">		 * have some link structures left over
-</span><span style="color:#75715e">		 */</span><span style="color:#75715e">// 分配css_set_count个cg_cgroup_link结构
-</span><span style="color:#75715e"></span>		ret <span style="color:#f92672">=</span> allocate_cg_links(css_set_count, <span style="color:#f92672">&amp;</span>tmp_cg_links);
-		<span style="color:#66d9ef">if</span> (ret)
-			<span style="color:#66d9ef">goto</span> unlock_drop;
-
-		ret <span style="color:#f92672">=</span> rebind_subsystems(root, root<span style="color:#f92672">-&gt;</span>subsys_mask);
-		<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">==</span> <span style="color:#f92672">-</span>EBUSY) {
-			free_cg_links(<span style="color:#f92672">&amp;</span>tmp_cg_links);
-			<span style="color:#66d9ef">goto</span> unlock_drop;
-		}
-		<span style="color:#75715e">/*
-</span><span style="color:#75715e">		 * There must be no failure case after here, since rebinding
-</span><span style="color:#75715e">		 * takes care of subsystems&#39; refcounts, which are explicitly
-</span><span style="color:#75715e">		 * dropped in the failure exit path.
-</span><span style="color:#75715e">		 */</span>
-
-		<span style="color:#75715e">/* EBUSY should be the only error here */</span>
-		BUG_ON(ret);
-		<span style="color:#75715e">// 将该cgroupfs_root添加到链表roots中
-</span><span style="color:#75715e"></span>		list_add(<span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>root_list, <span style="color:#f92672">&amp;</span>roots);
-		root_count<span style="color:#f92672">++</span>;
-
-		sb<span style="color:#f92672">-&gt;</span>s_root<span style="color:#f92672">-&gt;</span>d_fsdata <span style="color:#f92672">=</span> root_cgrp;
-		root<span style="color:#f92672">-&gt;</span>top_cgroup.dentry <span style="color:#f92672">=</span> sb<span style="color:#f92672">-&gt;</span>s_root;
-
-		<span style="color:#75715e">/* Link the top cgroup in this hierarchy into all
-</span><span style="color:#75715e">		 * the css_set objects */</span>
-		write_lock(<span style="color:#f92672">&amp;</span>css_set_lock);
-		hash_for_each(css_set_table, i, cg, hlist)
-			link_css_set(<span style="color:#f92672">&amp;</span>tmp_cg_links, cg, root_cgrp);
-		write_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
-
-		free_cg_links(<span style="color:#f92672">&amp;</span>tmp_cg_links);
-
-		BUG_ON(<span style="color:#f92672">!</span>list_empty(<span style="color:#f92672">&amp;</span>root_cgrp<span style="color:#f92672">-&gt;</span>children));
-		BUG_ON(root<span style="color:#f92672">-&gt;</span>number_of_cgroups <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>);
-
-		cred <span style="color:#f92672">=</span> override_creds(<span style="color:#f92672">&amp;</span>init_cred);
-		<span style="color:#75715e">// 创建对应的cgroup控制文件
-</span><span style="color:#75715e"></span>		cgroup_populate_dir(root_cgrp, true, root<span style="color:#f92672">-&gt;</span>subsys_mask);
-		revert_creds(cred);
-		mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_root_mutex);
-		mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-		mutex_unlock(<span style="color:#f92672">&amp;</span>inode<span style="color:#f92672">-&gt;</span>i_mutex);
-	} <span style="color:#66d9ef">else</span> { <span style="color:#75715e">// 已经挂载了，不需要做什么
-</span><span style="color:#75715e"></span>		<span style="color:#75715e">/*
-</span><span style="color:#75715e">		 * We re-used an existing hierarchy - the new root (if
-</span><span style="color:#75715e">		 * any) is not needed
-</span><span style="color:#75715e">		 */</span>
-		cgroup_drop_root(opts.new_root);
-
-		<span style="color:#66d9ef">if</span> (root<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">!=</span> opts.flags) {
-			<span style="color:#66d9ef">if</span> ((root<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">|</span> opts.flags) <span style="color:#f92672">&amp;</span> CGRP_ROOT_SANE_BEHAVIOR) {
-				pr_err(<span style="color:#e6db74">&#34;cgroup: sane_behavior: new mount options should match the existing superblock</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-				ret <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>EINVAL;
-				<span style="color:#66d9ef">goto</span> drop_new_super;
-			} <span style="color:#66d9ef">else</span> {
-				pr_warning(<span style="color:#e6db74">&#34;cgroup: new mount options do not match the existing superblock, will be ignored</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-			}
-		}
-
-		<span style="color:#75715e">/* no subsys rebinding, so refcounts don&#39;t change */</span>
-		drop_parsed_module_refcounts(opts.subsys_mask);
-	}
-
-	kfree(opts.release_agent);
-	kfree(opts.name);
-	<span style="color:#66d9ef">return</span> dget(sb<span style="color:#f92672">-&gt;</span>s_root);
-
- unlock_drop:
-	mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_root_mutex);
-	mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-	mutex_unlock(<span style="color:#f92672">&amp;</span>inode<span style="color:#f92672">-&gt;</span>i_mutex);
- drop_new_super:
-	deactivate_locked_super(sb);
- drop_modules:
-	drop_parsed_module_refcounts(opts.subsys_mask);
- out_err:
-	kfree(opts.release_agent);
-	kfree(opts.name);
-	<span style="color:#66d9ef">return</span> ERR_PTR(ret);
-}
-
-</code></pre></div><p>在<code>centos 7 </code>系统启动时，默认会挂载所有的<code>cgroup</code>子系统，这些子系统是由<code>systemd</code>来负责挂载的，其代码为：<a href="https://github.com/systemd/systemd/blob/v219/src/core/mount-setup.c#L222L316">mount_cgroup_controllers</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">dentry</span> <span class="o">*</span><span class="nf">cgroup_mount</span><span class="p">(</span><span class="k">struct</span> <span class="n">file_system_type</span> <span class="o">*</span><span class="n">fs_type</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			 <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">unused_dev_name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			 <span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup_sb_opts</span> <span class="n">opts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">super_block</span> <span class="o">*</span><span class="n">sb</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">new_root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* First find the desired set of subsystems */</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">ret</span> <span class="o">=</span> <span class="nf">parse_cgroupfs_options</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">opts</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">out_err</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * Allocate a new cgroup root. We may not need it if we&#39;re
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * reusing an existing hierarchy.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="n">new_root</span> <span class="o">=</span> <span class="nf">cgroup_root_from_opts</span><span class="p">(</span><span class="o">&amp;</span><span class="n">opts</span><span class="p">);</span> <span class="c1">// 解析mount时的options选项
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="nf">IS_ERR</span><span class="p">(</span><span class="n">new_root</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="n">ret</span> <span class="o">=</span> <span class="nf">PTR_ERR</span><span class="p">(</span><span class="n">new_root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">drop_modules</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="n">opts</span><span class="p">.</span><span class="n">new_root</span> <span class="o">=</span> <span class="n">new_root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Locate an existing or new sb for this hierarchy */</span><span class="c1">// 分配一个新的cgroupfs_root
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">sb</span> <span class="o">=</span> <span class="nf">sget</span><span class="p">(</span><span class="n">fs_type</span><span class="p">,</span> <span class="n">cgroup_test_super</span><span class="p">,</span> <span class="n">cgroup_set_super</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">opts</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="nf">IS_ERR</span><span class="p">(</span><span class="n">sb</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="n">ret</span> <span class="o">=</span> <span class="nf">PTR_ERR</span><span class="p">(</span><span class="n">sb</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">cgroup_drop_root</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">new_root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">drop_modules</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">root</span> <span class="o">=</span> <span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_fs_info</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">BUG_ON</span><span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">root</span> <span class="o">==</span> <span class="n">opts</span><span class="p">.</span><span class="n">new_root</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 新的挂载，说明这是一个新的层级
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="cm">/* We used the new root structure, so this is a new hierarchy */</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">list_head</span> <span class="n">tmp_cg_links</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">root_cgrp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">top_cgroup</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">existing_root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">const</span> <span class="k">struct</span> <span class="n">cred</span> <span class="o">*</span><span class="n">cred</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">css_set</span> <span class="o">*</span><span class="n">cg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_root</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="c1">// 获取挂载点的inode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="n">ret</span> <span class="o">=</span> <span class="nf">cgroup_get_rootdir</span><span class="p">(</span><span class="n">sb</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="k">goto</span> <span class="n">drop_new_super</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="n">inode</span> <span class="o">=</span> <span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_root</span><span class="o">-&gt;</span><span class="n">d_inode</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_root_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="cm">/* Check for name clashes with existing mounts */</span>
+</span></span><span class="line"><span class="cl">		<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EBUSY</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="nf">strlen</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">for_each_active_root</span><span class="p">(</span><span class="n">existing_root</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">				<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">strcmp</span><span class="p">(</span><span class="n">existing_root</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">					<span class="k">goto</span> <span class="n">unlock_drop</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * We&#39;re accessing css_set_count without locking
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * css_set_lock here, but that&#39;s OK - it can only be
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * increased by someone holding cgroup_lock, and
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * that&#39;s us. The worst that can happen is that we
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * have some link structures left over
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 */</span><span class="c1">// 分配css_set_count个cg_cgroup_link结构
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="n">ret</span> <span class="o">=</span> <span class="nf">allocate_cg_links</span><span class="p">(</span><span class="n">css_set_count</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tmp_cg_links</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="k">goto</span> <span class="n">unlock_drop</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="n">ret</span> <span class="o">=</span> <span class="nf">rebind_subsystems</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">subsys_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">==</span> <span class="o">-</span><span class="n">EBUSY</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">free_cg_links</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmp_cg_links</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="k">goto</span> <span class="n">unlock_drop</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * There must be no failure case after here, since rebinding
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * takes care of subsystems&#39; refcounts, which are explicitly
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * dropped in the failure exit path.
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="cm">/* EBUSY should be the only error here */</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">ret</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="c1">// 将该cgroupfs_root添加到链表roots中
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nf">list_add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">root_list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">roots</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="n">root_count</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_root</span><span class="o">-&gt;</span><span class="n">d_fsdata</span> <span class="o">=</span> <span class="n">root_cgrp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="n">root</span><span class="o">-&gt;</span><span class="n">top_cgroup</span><span class="p">.</span><span class="n">dentry</span> <span class="o">=</span> <span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="cm">/* Link the top cgroup in this hierarchy into all
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * the css_set objects */</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">write_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">hash_for_each</span><span class="p">(</span><span class="n">css_set_table</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">cg</span><span class="p">,</span> <span class="n">hlist</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">link_css_set</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmp_cg_links</span><span class="p">,</span> <span class="n">cg</span><span class="p">,</span> <span class="n">root_cgrp</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">write_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="nf">free_cg_links</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmp_cg_links</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="nf">BUG_ON</span><span class="p">(</span><span class="o">!</span><span class="nf">list_empty</span><span class="p">(</span><span class="o">&amp;</span><span class="n">root_cgrp</span><span class="o">-&gt;</span><span class="n">children</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">number_of_cgroups</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="n">cred</span> <span class="o">=</span> <span class="nf">override_creds</span><span class="p">(</span><span class="o">&amp;</span><span class="n">init_cred</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="c1">// 创建对应的cgroup控制文件
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nf">cgroup_populate_dir</span><span class="p">(</span><span class="n">root_cgrp</span><span class="p">,</span> <span class="nb">true</span><span class="p">,</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">subsys_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">revert_creds</span><span class="p">(</span><span class="n">cred</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_root_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="c1">// 已经挂载了，不需要做什么
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * We re-used an existing hierarchy - the new root (if
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * any) is not needed
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 */</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">cgroup_drop_root</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">new_root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">!=</span> <span class="n">opts</span><span class="p">.</span><span class="n">flags</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">if</span> <span class="p">((</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">|</span> <span class="n">opts</span><span class="p">.</span><span class="n">flags</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">CGRP_ROOT_SANE_BEHAVIOR</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">pr_err</span><span class="p">(</span><span class="s">&#34;cgroup: sane_behavior: new mount options should match the existing superblock</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">				<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">				<span class="k">goto</span> <span class="n">drop_new_super</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">pr_warning</span><span class="p">(</span><span class="s">&#34;cgroup: new mount options do not match the existing superblock, will be ignored</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="cm">/* no subsys rebinding, so refcounts don&#39;t change */</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">drop_parsed_module_refcounts</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">subsys_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">kfree</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">release_agent</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">kfree</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">dget</span><span class="p">(</span><span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"> <span class="nl">unlock_drop</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_root_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"> <span class="nl">drop_new_super</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">deactivate_locked_super</span><span class="p">(</span><span class="n">sb</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"> <span class="nl">drop_modules</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">drop_parsed_module_refcounts</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">subsys_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"> <span class="nl">out_err</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">kfree</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">release_agent</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">kfree</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">ERR_PTR</span><span class="p">(</span><span class="n">ret</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>centos 7 </code>系统启动时，默认会挂载所有的<code>cgroup</code>子系统，这些子系统是由<code>systemd</code>来负责挂载的，其代码为：<a href="https://github.com/systemd/systemd/blob/v219/src/core/mount-setup.c#L222L316">mount_cgroup_controllers</a></p>
 <h3 id="mount中的一些细节">mount中的一些细节</h3>
 <h4 id="解析mount选项">解析mount选项</h4>
 <p><code>parse_cgroupfs_options</code> 函数对mount时的options进行了解析，最后将结果保存到了一个cgroup_sb_opts类型的结构，并返回。</p>
@@ -402,124 +558,265 @@
 <p>在<code>parse_cgroupfs_options</code>的最后，会将这些需要挂载的<code>cgroup</code>控制器的模块引用计数<strong>加1</strong>，防止被别人意外卸载。</p>
 <h4 id="init_root_id-获取分配的层级的id">init_root_id 获取分配的层级的id</h4>
 <p><code>cgroup_root_from_opts</code>函数根据挂载选项的要求，创建新的<code>cgroupfs_root</code>结构，如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span><span style="color:#a6e22e">cgroup_root_from_opts</span>(<span style="color:#66d9ef">struct</span> cgroup_sb_opts <span style="color:#f92672">*</span>opts)
-{
-	<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root;
-
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>opts<span style="color:#f92672">-&gt;</span>subsys_mask <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>opts<span style="color:#f92672">-&gt;</span>none)
-		<span style="color:#66d9ef">return</span> NULL;
-
-	root <span style="color:#f92672">=</span> kzalloc(<span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>root), GFP_KERNEL);
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>root)
-		<span style="color:#66d9ef">return</span> ERR_PTR(<span style="color:#f92672">-</span>ENOMEM);
-
-	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>init_root_id(root)) { <span style="color:#75715e">// 重点
-</span><span style="color:#75715e"></span>		kfree(root);
-		<span style="color:#66d9ef">return</span> ERR_PTR(<span style="color:#f92672">-</span>ENOMEM);
-	}
-	init_cgroup_root(root);
-
-	root<span style="color:#f92672">-&gt;</span>subsys_mask <span style="color:#f92672">=</span> opts<span style="color:#f92672">-&gt;</span>subsys_mask;
-	root<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">=</span> opts<span style="color:#f92672">-&gt;</span>flags;
-	ida_init(<span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>cgroup_ida);
-	<span style="color:#66d9ef">if</span> (opts<span style="color:#f92672">-&gt;</span>release_agent)
-		strcpy(root<span style="color:#f92672">-&gt;</span>release_agent_path, opts<span style="color:#f92672">-&gt;</span>release_agent);
-	<span style="color:#66d9ef">if</span> (opts<span style="color:#f92672">-&gt;</span>name)
-		strcpy(root<span style="color:#f92672">-&gt;</span>name, opts<span style="color:#f92672">-&gt;</span>name);
-	<span style="color:#66d9ef">if</span> (opts<span style="color:#f92672">-&gt;</span>cpuset_clone_children)
-		set_bit(CGRP_CPUSET_CLONE_CHILDREN, <span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>top_cgroup.flags);
-	<span style="color:#66d9ef">return</span> root;
-}
-</code></pre></div><p><code>init_root_id</code> 用来为该<code>cgroupfs_root</code>分配一个唯一的id。其利用了内核基础设置<code>IDA</code>机制，对应到cgroup里有以下几个全局变量：</p>
-<pre><code>static DEFINE_IDA(hierarchy_ida);
-static int next_hierarchy_id;
-static DEFINE_SPINLOCK(hierarchy_id_lock);
-</code></pre><p><code>hierarchy_id_lock</code> 用来包含对<code>next_hierarchy_id</code> 和 <code>hierarchy_ida</code>的访问，<code>next_hierarchy_id</code>表示下一次需要分配的<code>id</code>号。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">init_root_id</span>(<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root)
-{
-	<span style="color:#66d9ef">int</span> ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-
-	<span style="color:#66d9ef">do</span> {
-		<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>ida_pre_get(<span style="color:#f92672">&amp;</span>hierarchy_ida, GFP_KERNEL))
-			<span style="color:#66d9ef">return</span> false;
-		spin_lock(<span style="color:#f92672">&amp;</span>hierarchy_id_lock);
-		<span style="color:#75715e">/* Try to allocate the next unused ID */</span>
-		ret <span style="color:#f92672">=</span> ida_get_new_above(<span style="color:#f92672">&amp;</span>hierarchy_ida, next_hierarchy_id,
-					<span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>hierarchy_id);
-		<span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">==</span> <span style="color:#f92672">-</span>ENOSPC)
-			<span style="color:#75715e">/* Try again starting from 0 */</span>
-			ret <span style="color:#f92672">=</span> ida_get_new(<span style="color:#f92672">&amp;</span>hierarchy_ida, <span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>hierarchy_id);
-		<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>ret) {
-			next_hierarchy_id <span style="color:#f92672">=</span> root<span style="color:#f92672">-&gt;</span>hierarchy_id <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
-		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span>EAGAIN) {
-			<span style="color:#75715e">/* Can only get here if the 31-bit IDR is full ... */</span>
-			BUG_ON(ret);
-		}
-		spin_unlock(<span style="color:#f92672">&amp;</span>hierarchy_id_lock);
-	} <span style="color:#66d9ef">while</span> (ret);
-	<span style="color:#66d9ef">return</span> true;
-}
-</code></pre></div><h4 id="sget-查找对应的super_block是否存在">sget 查找对应的super_block是否存在</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="nf">cgroup_root_from_opts</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup_sb_opts</span> <span class="o">*</span><span class="n">opts</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">subsys_mask</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">none</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">root</span> <span class="o">=</span> <span class="nf">kzalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">root</span><span class="p">),</span> <span class="n">GFP_KERNEL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nf">ERR_PTR</span><span class="p">(</span><span class="o">-</span><span class="n">ENOMEM</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">init_root_id</span><span class="p">(</span><span class="n">root</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// 重点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nf">kfree</span><span class="p">(</span><span class="n">root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nf">ERR_PTR</span><span class="p">(</span><span class="o">-</span><span class="n">ENOMEM</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">init_cgroup_root</span><span class="p">(</span><span class="n">root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">root</span><span class="o">-&gt;</span><span class="n">subsys_mask</span> <span class="o">=</span> <span class="n">opts</span><span class="o">-&gt;</span><span class="n">subsys_mask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">root</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">=</span> <span class="n">opts</span><span class="o">-&gt;</span><span class="n">flags</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">ida_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">cgroup_ida</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">release_agent</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">strcpy</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">release_agent_path</span><span class="p">,</span> <span class="n">opts</span><span class="o">-&gt;</span><span class="n">release_agent</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">strcpy</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="n">opts</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">cpuset_clone_children</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">set_bit</span><span class="p">(</span><span class="n">CGRP_CPUSET_CLONE_CHILDREN</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">top_cgroup</span><span class="p">.</span><span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>init_root_id</code> 用来为该<code>cgroupfs_root</code>分配一个唯一的id。其利用了内核基础设置<code>IDA</code>机制，对应到cgroup里有以下几个全局变量：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static DEFINE_IDA(hierarchy_ida);
+</span></span><span class="line"><span class="cl">static int next_hierarchy_id;
+</span></span><span class="line"><span class="cl">static DEFINE_SPINLOCK(hierarchy_id_lock);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>hierarchy_id_lock</code> 用来包含对<code>next_hierarchy_id</code> 和 <code>hierarchy_ida</code>的访问，<code>next_hierarchy_id</code>表示下一次需要分配的<code>id</code>号。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">bool</span> <span class="nf">init_root_id</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">root</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">do</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">ida_pre_get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hierarchy_ida</span><span class="p">,</span> <span class="n">GFP_KERNEL</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">spin_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hierarchy_id_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="cm">/* Try to allocate the next unused ID */</span>
+</span></span><span class="line"><span class="cl">		<span class="n">ret</span> <span class="o">=</span> <span class="nf">ida_get_new_above</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hierarchy_ida</span><span class="p">,</span> <span class="n">next_hierarchy_id</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">					<span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">hierarchy_id</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">==</span> <span class="o">-</span><span class="n">ENOSPC</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* Try again starting from 0 */</span>
+</span></span><span class="line"><span class="cl">			<span class="n">ret</span> <span class="o">=</span> <span class="nf">ida_get_new</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hierarchy_ida</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">hierarchy_id</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ret</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="n">next_hierarchy_id</span> <span class="o">=</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">hierarchy_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">!=</span> <span class="o">-</span><span class="n">EAGAIN</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* Can only get here if the 31-bit IDR is full ... */</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">ret</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">spin_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hierarchy_id_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">ret</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="sget-查找对应的super_block是否存在">sget 查找对应的super_block是否存在</h4>
 <p>sget 查找对应的super_block是否存时，用到了两个方法<code>cgroup_test_super</code>和<code>cgroup_set_super</code>:</p>
 <ul>
 <li><code>cgroup_test_super</code>用于判断super_block是否相等</li>
 </ul>
 <p>当有name时，name必须相等，此外cgroupfs_root上挂载的cgroup子系统也完全相同时，这两个super_block才相等</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_test_super</span>(<span style="color:#66d9ef">struct</span> super_block <span style="color:#f92672">*</span>sb, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>data)
-{
-	<span style="color:#66d9ef">struct</span> cgroup_sb_opts <span style="color:#f92672">*</span>opts <span style="color:#f92672">=</span> data;
-	<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root <span style="color:#f92672">=</span> sb<span style="color:#f92672">-&gt;</span>s_fs_info;
-
-	<span style="color:#75715e">/* If we asked for a name then it must match */</span>
-	<span style="color:#66d9ef">if</span> (opts<span style="color:#f92672">-&gt;</span>name <span style="color:#f92672">&amp;&amp;</span> strcmp(opts<span style="color:#f92672">-&gt;</span>name, root<span style="color:#f92672">-&gt;</span>name))
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * If we asked for subsystems (or explicitly for no
-</span><span style="color:#75715e">	 * subsystems) then they must match
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">if</span> ((opts<span style="color:#f92672">-&gt;</span>subsys_mask <span style="color:#f92672">||</span> opts<span style="color:#f92672">-&gt;</span>none)
-	    <span style="color:#f92672">&amp;&amp;</span> (opts<span style="color:#f92672">-&gt;</span>subsys_mask <span style="color:#f92672">!=</span> root<span style="color:#f92672">-&gt;</span>subsys_mask))
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-}
-</code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">cgroup_test_super</span><span class="p">(</span><span class="k">struct</span> <span class="n">super_block</span> <span class="o">*</span><span class="n">sb</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup_sb_opts</span> <span class="o">*</span><span class="n">opts</span> <span class="o">=</span> <span class="n">data</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">root</span> <span class="o">=</span> <span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_fs_info</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* If we asked for a name then it must match */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">&amp;&amp;</span> <span class="nf">strcmp</span><span class="p">(</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * If we asked for subsystems (or explicitly for no
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * subsystems) then they must match
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">((</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">subsys_mask</span> <span class="o">||</span> <span class="n">opts</span><span class="o">-&gt;</span><span class="n">none</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	    <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">opts</span><span class="o">-&gt;</span><span class="n">subsys_mask</span> <span class="o">!=</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">subsys_mask</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><code>cgroup_set_super</code>的目的是设置新创建的<code>super_block</code>的一些属性</li>
 </ul>
-<pre><code>static int cgroup_set_super(struct super_block *sb, void *data)
-{
-	int ret;
-	struct cgroup_sb_opts *opts = data;
-
-	/* If we don't have a new root, we can't set up a new sb */
-	if (!opts-&gt;new_root)
-		return -EINVAL;
-
-	BUG_ON(!opts-&gt;subsys_mask &amp;&amp; !opts-&gt;none);
-
-	ret = set_anon_super(sb, NULL);
-	if (ret)
-		return ret;
-
-	sb-&gt;s_fs_info = opts-&gt;new_root;
-	opts-&gt;new_root-&gt;sb = sb;
-
-	sb-&gt;s_blocksize = PAGE_CACHE_SIZE;
-	sb-&gt;s_blocksize_bits = PAGE_CACHE_SHIFT;
-	sb-&gt;s_magic = CGROUP_SUPER_MAGIC;
-	sb-&gt;s_op = &amp;cgroup_ops;
-
-	return 0;
-}
-</code></pre><p>看这里的<code>cgroup_ops</code>：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> super_operations cgroup_ops <span style="color:#f92672">=</span> {
-	.statfs <span style="color:#f92672">=</span> simple_statfs,
-	.drop_inode <span style="color:#f92672">=</span> generic_delete_inode,
-	.show_options <span style="color:#f92672">=</span> cgroup_show_options,
-	.remount_fs <span style="color:#f92672">=</span> cgroup_remount,
-};
-</code></pre></div><p>后续remount操作时，调用的就是这里的钩子函数<code>cgroup_remount</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">static int cgroup_set_super(struct super_block *sb, void *data)
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">	int ret;
+</span></span><span class="line"><span class="cl">	struct cgroup_sb_opts *opts = data;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	/* If we don&#39;t have a new root, we can&#39;t set up a new sb */
+</span></span><span class="line"><span class="cl">	if (!opts-&gt;new_root)
+</span></span><span class="line"><span class="cl">		return -EINVAL;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	BUG_ON(!opts-&gt;subsys_mask &amp;&amp; !opts-&gt;none);
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	ret = set_anon_super(sb, NULL);
+</span></span><span class="line"><span class="cl">	if (ret)
+</span></span><span class="line"><span class="cl">		return ret;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	sb-&gt;s_fs_info = opts-&gt;new_root;
+</span></span><span class="line"><span class="cl">	opts-&gt;new_root-&gt;sb = sb;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	sb-&gt;s_blocksize = PAGE_CACHE_SIZE;
+</span></span><span class="line"><span class="cl">	sb-&gt;s_blocksize_bits = PAGE_CACHE_SHIFT;
+</span></span><span class="line"><span class="cl">	sb-&gt;s_magic = CGROUP_SUPER_MAGIC;
+</span></span><span class="line"><span class="cl">	sb-&gt;s_op = &amp;cgroup_ops;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	return 0;
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>看这里的<code>cgroup_ops</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">super_operations</span> <span class="n">cgroup_ops</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="n">statfs</span> <span class="o">=</span> <span class="n">simple_statfs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="n">drop_inode</span> <span class="o">=</span> <span class="n">generic_delete_inode</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="n">show_options</span> <span class="o">=</span> <span class="n">cgroup_show_options</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">.</span><span class="n">remount_fs</span> <span class="o">=</span> <span class="n">cgroup_remount</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>后续remount操作时，调用的就是这里的钩子函数<code>cgroup_remount</code>。</p>
 <h3 id="rebind_subsystem">rebind_subsystem</h3>
 <p><code>rebind_subsystem</code>比较关键，其实现的功能时：</p>
 <ul>
@@ -535,320 +832,648 @@ static DEFINE_SPINLOCK(hierarchy_id_lock);
 <li>其他：不做任何操作</li>
 </ul>
 <p>当然，在添加和删除<code>cgroup子系统</code>时，会调整一下<code>cgroup_subsys</code>的<code>root</code>成员的值和<code>root cgroup</code>的成员<code>subsys</code>的值。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * Call with cgroup_mutex held. Drops reference counts on modules, including
-</span><span style="color:#75715e"> * any duplicate ones that parse_cgroupfs_options took. If this function
-</span><span style="color:#75715e"> * returns an error, no reference counts are touched.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">rebind_subsystems</span>(<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root,
-			      <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> final_subsys_mask)
-{
-	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> added_mask, removed_mask;
-	<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>top_cgroup;
-	<span style="color:#66d9ef">int</span> i;
-
-	BUG_ON(<span style="color:#f92672">!</span>mutex_is_locked(<span style="color:#f92672">&amp;</span>cgroup_mutex));
-	BUG_ON(<span style="color:#f92672">!</span>mutex_is_locked(<span style="color:#f92672">&amp;</span>cgroup_root_mutex));
-
-	removed_mask <span style="color:#f92672">=</span> root<span style="color:#f92672">-&gt;</span>actual_subsys_mask <span style="color:#f92672">&amp;</span> <span style="color:#f92672">~</span>final_subsys_mask;
-	added_mask <span style="color:#f92672">=</span> final_subsys_mask <span style="color:#f92672">&amp;</span> <span style="color:#f92672">~</span>root<span style="color:#f92672">-&gt;</span>actual_subsys_mask;
-	<span style="color:#75715e">/* Check that any added subsystems are currently free */</span>
-	<span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> CGROUP_SUBSYS_COUNT; i<span style="color:#f92672">++</span>) {
-		<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> bit <span style="color:#f92672">=</span> <span style="color:#ae81ff">1UL</span> <span style="color:#f92672">&lt;&lt;</span> i;
-		<span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss <span style="color:#f92672">=</span> subsys[i];
-		<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>(bit <span style="color:#f92672">&amp;</span> added_mask))
-			<span style="color:#66d9ef">continue</span>;
-		<span style="color:#75715e">/*
-</span><span style="color:#75715e">		 * Nobody should tell us to do a subsys that doesn&#39;t exist:
-</span><span style="color:#75715e">		 * parse_cgroupfs_options should catch that case and refcounts
-</span><span style="color:#75715e">		 * ensure that subsystems won&#39;t disappear once selected.
-</span><span style="color:#75715e">		 */</span>
-		BUG_ON(ss <span style="color:#f92672">==</span> NULL);
-		<span style="color:#66d9ef">if</span> (ss<span style="color:#f92672">-&gt;</span>root <span style="color:#f92672">!=</span> <span style="color:#f92672">&amp;</span>rootnode) {
-			<span style="color:#75715e">/* Subsystem isn&#39;t free */</span>
-			<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>EBUSY;
-		}
-	}
-
-	<span style="color:#75715e">/* Currently we don&#39;t handle adding/removing subsystems when
-</span><span style="color:#75715e">	 * any child cgroups exist. This is theoretically supportable
-</span><span style="color:#75715e">	 * but involves complex error handling, so it&#39;s being left until
-</span><span style="color:#75715e">	 * later */</span>
-	<span style="color:#66d9ef">if</span> (root<span style="color:#f92672">-&gt;</span>number_of_cgroups <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>EBUSY;
-
-	<span style="color:#75715e">/* Process each subsystem */</span>
-	<span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> CGROUP_SUBSYS_COUNT; i<span style="color:#f92672">++</span>) {
-		<span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss <span style="color:#f92672">=</span> subsys[i];
-		<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> bit <span style="color:#f92672">=</span> <span style="color:#ae81ff">1UL</span> <span style="color:#f92672">&lt;&lt;</span> i;
-		<span style="color:#66d9ef">if</span> (bit <span style="color:#f92672">&amp;</span> added_mask) {
-			<span style="color:#75715e">/* We&#39;re binding this subsystem to this hierarchy */</span>
-			BUG_ON(ss <span style="color:#f92672">==</span> NULL);
-			BUG_ON(cgrp<span style="color:#f92672">-&gt;</span>subsys[i]);
-			BUG_ON(<span style="color:#f92672">!</span>dummytop<span style="color:#f92672">-&gt;</span>subsys[i]);
-			BUG_ON(dummytop<span style="color:#f92672">-&gt;</span>subsys[i]<span style="color:#f92672">-&gt;</span>cgroup <span style="color:#f92672">!=</span> dummytop);
-			cgrp<span style="color:#f92672">-&gt;</span>subsys[i] <span style="color:#f92672">=</span> dummytop<span style="color:#f92672">-&gt;</span>subsys[i];
-			cgrp<span style="color:#f92672">-&gt;</span>subsys[i]<span style="color:#f92672">-&gt;</span>cgroup <span style="color:#f92672">=</span> cgrp;
-			list_move(<span style="color:#f92672">&amp;</span>ss<span style="color:#f92672">-&gt;</span>sibling, <span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>subsys_list);
-			ss<span style="color:#f92672">-&gt;</span>root <span style="color:#f92672">=</span> root;
-			<span style="color:#66d9ef">if</span> (ss<span style="color:#f92672">-&gt;</span>bind)
-				ss<span style="color:#f92672">-&gt;</span>bind(cgrp);
-			<span style="color:#75715e">/* refcount was already taken, and we&#39;re keeping it */</span>
-		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (bit <span style="color:#f92672">&amp;</span> removed_mask) {
-			<span style="color:#75715e">/* We&#39;re removing this subsystem */</span>
-			BUG_ON(ss <span style="color:#f92672">==</span> NULL);
-			BUG_ON(cgrp<span style="color:#f92672">-&gt;</span>subsys[i] <span style="color:#f92672">!=</span> dummytop<span style="color:#f92672">-&gt;</span>subsys[i]);
-			BUG_ON(cgrp<span style="color:#f92672">-&gt;</span>subsys[i]<span style="color:#f92672">-&gt;</span>cgroup <span style="color:#f92672">!=</span> cgrp);
-			<span style="color:#66d9ef">if</span> (ss<span style="color:#f92672">-&gt;</span>bind)
-				ss<span style="color:#f92672">-&gt;</span>bind(dummytop);
-			dummytop<span style="color:#f92672">-&gt;</span>subsys[i]<span style="color:#f92672">-&gt;</span>cgroup <span style="color:#f92672">=</span> dummytop;
-			cgrp<span style="color:#f92672">-&gt;</span>subsys[i] <span style="color:#f92672">=</span> NULL;
-			subsys[i]<span style="color:#f92672">-&gt;</span>root <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>rootnode;
-			list_move(<span style="color:#f92672">&amp;</span>ss<span style="color:#f92672">-&gt;</span>sibling, <span style="color:#f92672">&amp;</span>rootnode.subsys_list);
-			<span style="color:#75715e">/* subsystem is now free - drop reference on module */</span>
-			module_put(ss<span style="color:#f92672">-&gt;</span>module);
-		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (bit <span style="color:#f92672">&amp;</span> final_subsys_mask) {
-			<span style="color:#75715e">/* Subsystem state should already exist */</span>
-			BUG_ON(ss <span style="color:#f92672">==</span> NULL);
-			BUG_ON(<span style="color:#f92672">!</span>cgrp<span style="color:#f92672">-&gt;</span>subsys[i]);
-			<span style="color:#75715e">/*
-</span><span style="color:#75715e">			 * a refcount was taken, but we already had one, so
-</span><span style="color:#75715e">			 * drop the extra reference.
-</span><span style="color:#75715e">			 */</span>
-			module_put(ss<span style="color:#f92672">-&gt;</span>module);
-<span style="color:#75715e">#ifdef CONFIG_MODULE_UNLOAD
-</span><span style="color:#75715e"></span>			BUG_ON(ss<span style="color:#f92672">-&gt;</span>module <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>module_refcount(ss<span style="color:#f92672">-&gt;</span>module));
-<span style="color:#75715e">#endif
-</span><span style="color:#75715e"></span>		} <span style="color:#66d9ef">else</span> {
-			<span style="color:#75715e">/* Subsystem state shouldn&#39;t exist */</span>
-			BUG_ON(cgrp<span style="color:#f92672">-&gt;</span>subsys[i]);
-		}
-	}
-	root<span style="color:#f92672">-&gt;</span>subsys_mask <span style="color:#f92672">=</span> root<span style="color:#f92672">-&gt;</span>actual_subsys_mask <span style="color:#f92672">=</span> final_subsys_mask;
-
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-
-</code></pre></div><h4 id="创建对应的cgroup控制文件">创建对应的cgroup控制文件</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span><span class="lnt">83
+</span><span class="lnt">84
+</span><span class="lnt">85
+</span><span class="lnt">86
+</span><span class="lnt">87
+</span><span class="lnt">88
+</span><span class="lnt">89
+</span><span class="lnt">90
+</span><span class="lnt">91
+</span><span class="lnt">92
+</span><span class="lnt">93
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Call with cgroup_mutex held. Drops reference counts on modules, including
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * any duplicate ones that parse_cgroupfs_options took. If this function
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * returns an error, no reference counts are touched.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">rebind_subsystems</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">root</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			      <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">final_subsys_mask</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">added_mask</span><span class="p">,</span> <span class="n">removed_mask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">top_cgroup</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">BUG_ON</span><span class="p">(</span><span class="o">!</span><span class="nf">mutex_is_locked</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">BUG_ON</span><span class="p">(</span><span class="o">!</span><span class="nf">mutex_is_locked</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_root_mutex</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">removed_mask</span> <span class="o">=</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">actual_subsys_mask</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">final_subsys_mask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">added_mask</span> <span class="o">=</span> <span class="n">final_subsys_mask</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">actual_subsys_mask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Check that any added subsystems are currently free */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">CGROUP_SUBSYS_COUNT</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">bit</span> <span class="o">=</span> <span class="mi">1UL</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">cgroup_subsys</span> <span class="o">*</span><span class="n">ss</span> <span class="o">=</span> <span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">bit</span> <span class="o">&amp;</span> <span class="n">added_mask</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">			<span class="k">continue</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * Nobody should tell us to do a subsys that doesn&#39;t exist:
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * parse_cgroupfs_options should catch that case and refcounts
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * ensure that subsystems won&#39;t disappear once selected.
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 */</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">ss</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">root</span> <span class="o">!=</span> <span class="o">&amp;</span><span class="n">rootnode</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* Subsystem isn&#39;t free */</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="o">-</span><span class="n">EBUSY</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Currently we don&#39;t handle adding/removing subsystems when
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * any child cgroups exist. This is theoretically supportable
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * but involves complex error handling, so it&#39;s being left until
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * later */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">number_of_cgroups</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="n">EBUSY</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Process each subsystem */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">CGROUP_SUBSYS_COUNT</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">cgroup_subsys</span> <span class="o">*</span><span class="n">ss</span> <span class="o">=</span> <span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">		<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">bit</span> <span class="o">=</span> <span class="mi">1UL</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">bit</span> <span class="o">&amp;</span> <span class="n">added_mask</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* We&#39;re binding this subsystem to this hierarchy */</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">ss</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="o">!</span><span class="n">dummytop</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">dummytop</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">cgroup</span> <span class="o">!=</span> <span class="n">dummytop</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dummytop</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">			<span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">cgroup</span> <span class="o">=</span> <span class="n">cgrp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">list_move</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">sibling</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">subsys_list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="n">ss</span><span class="o">-&gt;</span><span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="k">if</span> <span class="p">(</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">				<span class="n">ss</span><span class="o">-&gt;</span><span class="nf">bind</span><span class="p">(</span><span class="n">cgrp</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* refcount was already taken, and we&#39;re keeping it */</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">bit</span> <span class="o">&amp;</span> <span class="n">removed_mask</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* We&#39;re removing this subsystem */</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">ss</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">dummytop</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">cgroup</span> <span class="o">!=</span> <span class="n">cgrp</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="k">if</span> <span class="p">(</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">bind</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">				<span class="n">ss</span><span class="o">-&gt;</span><span class="nf">bind</span><span class="p">(</span><span class="n">dummytop</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="n">dummytop</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">cgroup</span> <span class="o">=</span> <span class="n">dummytop</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">root</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">rootnode</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">list_move</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">sibling</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rootnode</span><span class="p">.</span><span class="n">subsys_list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* subsystem is now free - drop reference on module */</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">module_put</span><span class="p">(</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">module</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">bit</span> <span class="o">&amp;</span> <span class="n">final_subsys_mask</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* Subsystem state should already exist */</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">ss</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="o">!</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">			 * a refcount was taken, but we already had one, so
+</span></span></span><span class="line"><span class="cl"><span class="cm">			 * drop the extra reference.
+</span></span></span><span class="line"><span class="cl"><span class="cm">			 */</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">module_put</span><span class="p">(</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">module</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#ifdef CONFIG_MODULE_UNLOAD
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">module</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nf">module_refcount</span><span class="p">(</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">module</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="cm">/* Subsystem state shouldn&#39;t exist */</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="n">root</span><span class="o">-&gt;</span><span class="n">subsys_mask</span> <span class="o">=</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">actual_subsys_mask</span> <span class="o">=</span> <span class="n">final_subsys_mask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="创建对应的cgroup控制文件">创建对应的cgroup控制文件</h4>
 <p><code>cgroup_populate_dir</code>用来创建对应的cgroup控制文件。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
-</span><span style="color:#75715e"> * cgroup_populate_dir - selectively creation of files in a directory
-</span><span style="color:#75715e"> * @cgrp: target cgroup
-</span><span style="color:#75715e"> * @base_files: true if the base files should be added
-</span><span style="color:#75715e"> * @subsys_mask: mask of the subsystem ids whose files should be added
-</span><span style="color:#75715e"> */</span>
-<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_populate_dir</span>(<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp, <span style="color:#66d9ef">bool</span> base_files,
-			       <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> subsys_mask)
-{
-	<span style="color:#66d9ef">int</span> err;
-	<span style="color:#66d9ef">struct</span> cgroup_subsys <span style="color:#f92672">*</span>ss;
-
-	<span style="color:#66d9ef">if</span> (base_files) { <span style="color:#75715e">// files 定义了cgroup的基本文件, true代表添加文件
-</span><span style="color:#75715e"></span>		err <span style="color:#f92672">=</span> cgroup_addrm_files(cgrp, NULL, files, true);
-		<span style="color:#66d9ef">if</span> (err <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-			<span style="color:#66d9ef">return</span> err;
-	}
-
-	<span style="color:#75715e">/* process cftsets of each subsystem */</span>
-	for_each_subsys(cgrp<span style="color:#f92672">-&gt;</span>root, ss) { <span style="color:#75715e">// 对于该层级上挂载的每一个cgroup子系统，创建控制文件
-</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">struct</span> cftype_set <span style="color:#f92672">*</span>set;
-		<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>test_bit(ss<span style="color:#f92672">-&gt;</span>subsys_id, <span style="color:#f92672">&amp;</span>subsys_mask))
-			<span style="color:#66d9ef">continue</span>;
-
-		list_for_each_entry(set, <span style="color:#f92672">&amp;</span>ss<span style="color:#f92672">-&gt;</span>cftsets, node)
-			cgroup_addrm_files(cgrp, ss, set<span style="color:#f92672">-&gt;</span>cfts, true);
-	}
-
-	<span style="color:#75715e">/* This cgroup is ready now */</span>
-	for_each_subsys(cgrp<span style="color:#f92672">-&gt;</span>root, ss) {
-		<span style="color:#66d9ef">struct</span> cgroup_subsys_state <span style="color:#f92672">*</span>css <span style="color:#f92672">=</span> cgrp<span style="color:#f92672">-&gt;</span>subsys[ss<span style="color:#f92672">-&gt;</span>subsys_id];
-		<span style="color:#75715e">/*
-</span><span style="color:#75715e">		 * Update id-&gt;css pointer and make this css visible from
-</span><span style="color:#75715e">		 * CSS ID functions. This pointer will be dereferened
-</span><span style="color:#75715e">		 * from RCU-read-side without locks.
-</span><span style="color:#75715e">		 */</span>
-		<span style="color:#66d9ef">if</span> (css<span style="color:#f92672">-&gt;</span>id)
-			rcu_assign_pointer(css<span style="color:#f92672">-&gt;</span>id<span style="color:#f92672">-&gt;</span>css, css);
-	}
-
-	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-}
-</code></pre></div><p><code>err = cgroup_addrm_files(cgrp, NULL, files, true);</code>创建cgroup基本的控制文件，这些文件的信息定义在一个<code>files</code>的全局变量中。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/*
-</span><span style="color:#75715e"> * for the common functions, &#39;private&#39; gives the type of file
-</span><span style="color:#75715e"> */</span>
-<span style="color:#75715e">/* for hysterical raisins, we can&#39;t put this on the older files */</span>
-<span style="color:#75715e">#define CGROUP_FILE_GENERIC_PREFIX &#34;cgroup.&#34;
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> cftype files[] <span style="color:#f92672">=</span> {
-	{
-		.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;tasks&#34;</span>,
-		.open <span style="color:#f92672">=</span> cgroup_tasks_open,
-		.write_u64 <span style="color:#f92672">=</span> cgroup_tasks_write,
-		.release <span style="color:#f92672">=</span> cgroup_pidlist_release,
-		.mode <span style="color:#f92672">=</span> S_IRUGO <span style="color:#f92672">|</span> S_IWUSR,
-	},
-	{
-		.name <span style="color:#f92672">=</span> CGROUP_FILE_GENERIC_PREFIX <span style="color:#e6db74">&#34;procs&#34;</span>,
-		.open <span style="color:#f92672">=</span> cgroup_procs_open,
-		.write_u64 <span style="color:#f92672">=</span> cgroup_procs_write,
-		.release <span style="color:#f92672">=</span> cgroup_pidlist_release,
-		.mode <span style="color:#f92672">=</span> S_IRUGO <span style="color:#f92672">|</span> S_IWUSR,
-	},
-	{
-		.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;notify_on_release&#34;</span>,
-		.read_u64 <span style="color:#f92672">=</span> cgroup_read_notify_on_release,
-		.write_u64 <span style="color:#f92672">=</span> cgroup_write_notify_on_release,
-	},
-	{
-		.name <span style="color:#f92672">=</span> CGROUP_FILE_GENERIC_PREFIX <span style="color:#e6db74">&#34;event_control&#34;</span>,
-		.write_string <span style="color:#f92672">=</span> cgroup_write_event_control,
-		.mode <span style="color:#f92672">=</span> S_IWUGO,
-	},
-	{
-		.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;cgroup.clone_children&#34;</span>,
-		.flags <span style="color:#f92672">=</span> CFTYPE_INSANE,
-		.read_u64 <span style="color:#f92672">=</span> cgroup_clone_children_read,
-		.write_u64 <span style="color:#f92672">=</span> cgroup_clone_children_write,
-	},
-	{
-		.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;cgroup.sane_behavior&#34;</span>,
-		.flags <span style="color:#f92672">=</span> CFTYPE_ONLY_ON_ROOT,
-		.read_seq_string <span style="color:#f92672">=</span> cgroup_sane_behavior_show,
-	},
-	{
-		.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;release_agent&#34;</span>,
-		.flags <span style="color:#f92672">=</span> CFTYPE_ONLY_ON_ROOT,
-		.read_seq_string <span style="color:#f92672">=</span> cgroup_release_agent_show,
-		.write_string <span style="color:#f92672">=</span> cgroup_release_agent_write,
-		.max_write_len <span style="color:#f92672">=</span> PATH_MAX,
-	},
-	{ }	<span style="color:#75715e">/* terminate */</span>
-};
-</code></pre></div><h3 id="remount的一些限制">remount的一些限制</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * cgroup_populate_dir - selectively creation of files in a directory
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @cgrp: target cgroup
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @base_files: true if the base files should be added
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @subsys_mask: mask of the subsystem ids whose files should be added
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">cgroup_populate_dir</span><span class="p">(</span><span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">base_files</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			       <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">subsys_mask</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">err</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup_subsys</span> <span class="o">*</span><span class="n">ss</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">base_files</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// files 定义了cgroup的基本文件, true代表添加文件
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="n">err</span> <span class="o">=</span> <span class="nf">cgroup_addrm_files</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">err</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="n">err</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* process cftsets of each subsystem */</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">for_each_subsys</span><span class="p">(</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">root</span><span class="p">,</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 对于该层级上挂载的每一个cgroup子系统，创建控制文件
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="k">struct</span> <span class="n">cftype_set</span> <span class="o">*</span><span class="n">set</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">test_bit</span><span class="p">(</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">subsys_id</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">subsys_mask</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">			<span class="k">continue</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="nf">list_for_each_entry</span><span class="p">(</span><span class="n">set</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">cftsets</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">cgroup_addrm_files</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="n">ss</span><span class="p">,</span> <span class="n">set</span><span class="o">-&gt;</span><span class="n">cfts</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* This cgroup is ready now */</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">for_each_subsys</span><span class="p">(</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">root</span><span class="p">,</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">struct</span> <span class="n">cgroup_subsys_state</span> <span class="o">*</span><span class="n">css</span> <span class="o">=</span> <span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">subsys</span><span class="p">[</span><span class="n">ss</span><span class="o">-&gt;</span><span class="n">subsys_id</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">		<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * Update id-&gt;css pointer and make this css visible from
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * CSS ID functions. This pointer will be dereferened
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 * from RCU-read-side without locks.
+</span></span></span><span class="line"><span class="cl"><span class="cm">		 */</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">css</span><span class="o">-&gt;</span><span class="n">id</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">rcu_assign_pointer</span><span class="p">(</span><span class="n">css</span><span class="o">-&gt;</span><span class="n">id</span><span class="o">-&gt;</span><span class="n">css</span><span class="p">,</span> <span class="n">css</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>err = cgroup_addrm_files(cgrp, NULL, files, true);</code>创建cgroup基本的控制文件，这些文件的信息定义在一个<code>files</code>的全局变量中。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * for the common functions, &#39;private&#39; gives the type of file
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="cm">/* for hysterical raisins, we can&#39;t put this on the older files */</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define CGROUP_FILE_GENERIC_PREFIX &#34;cgroup.&#34;
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="k">static</span> <span class="k">struct</span> <span class="n">cftype</span> <span class="n">files</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;tasks&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">open</span> <span class="o">=</span> <span class="n">cgroup_tasks_open</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">write_u64</span> <span class="o">=</span> <span class="n">cgroup_tasks_write</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">release</span> <span class="o">=</span> <span class="n">cgroup_pidlist_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">S_IRUGO</span> <span class="o">|</span> <span class="n">S_IWUSR</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">CGROUP_FILE_GENERIC_PREFIX</span> <span class="s">&#34;procs&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">open</span> <span class="o">=</span> <span class="n">cgroup_procs_open</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">write_u64</span> <span class="o">=</span> <span class="n">cgroup_procs_write</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">release</span> <span class="o">=</span> <span class="n">cgroup_pidlist_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">S_IRUGO</span> <span class="o">|</span> <span class="n">S_IWUSR</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;notify_on_release&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">read_u64</span> <span class="o">=</span> <span class="n">cgroup_read_notify_on_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">write_u64</span> <span class="o">=</span> <span class="n">cgroup_write_notify_on_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">CGROUP_FILE_GENERIC_PREFIX</span> <span class="s">&#34;event_control&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">write_string</span> <span class="o">=</span> <span class="n">cgroup_write_event_control</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">S_IWUGO</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;cgroup.clone_children&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">flags</span> <span class="o">=</span> <span class="n">CFTYPE_INSANE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">read_u64</span> <span class="o">=</span> <span class="n">cgroup_clone_children_read</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">write_u64</span> <span class="o">=</span> <span class="n">cgroup_clone_children_write</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;cgroup.sane_behavior&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">flags</span> <span class="o">=</span> <span class="n">CFTYPE_ONLY_ON_ROOT</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">read_seq_string</span> <span class="o">=</span> <span class="n">cgroup_sane_behavior_show</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;release_agent&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">flags</span> <span class="o">=</span> <span class="n">CFTYPE_ONLY_ON_ROOT</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">read_seq_string</span> <span class="o">=</span> <span class="n">cgroup_release_agent_show</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">write_string</span> <span class="o">=</span> <span class="n">cgroup_release_agent_write</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">max_write_len</span> <span class="o">=</span> <span class="n">PATH_MAX</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span> <span class="p">}</span>	<span class="cm">/* terminate */</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="remount的一些限制">remount的一些限制</h3>
 <p><code>cgroup_remount</code>执行对cgroup挂载点remount的操作：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cgroup_remount</span>(<span style="color:#66d9ef">struct</span> super_block <span style="color:#f92672">*</span>sb, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>flags, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>data)
-{
-	<span style="color:#66d9ef">int</span> ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-	<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root <span style="color:#f92672">=</span> sb<span style="color:#f92672">-&gt;</span>s_fs_info;
-	<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>top_cgroup;
-	<span style="color:#66d9ef">struct</span> cgroup_sb_opts opts;
-	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> added_mask, removed_mask;
-	<span style="color:#75715e">// __DEVEL__sane_behavior 指定后，不允许进行remount操作
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (root<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">&amp;</span> CGRP_ROOT_SANE_BEHAVIOR) {
-		pr_err(<span style="color:#e6db74">&#34;cgroup: sane_behavior: remount is not allowed</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>EINVAL;
-	}
-
-	mutex_lock(<span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>dentry<span style="color:#f92672">-&gt;</span>d_inode<span style="color:#f92672">-&gt;</span>i_mutex);
-	mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-	mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_root_mutex);
-
-	<span style="color:#75715e">/* See what subsystems are wanted */</span> <span style="color:#75715e">// 解析remount的选项
-</span><span style="color:#75715e"></span>	ret <span style="color:#f92672">=</span> parse_cgroupfs_options(data, <span style="color:#f92672">&amp;</span>opts);
-	<span style="color:#66d9ef">if</span> (ret)
-		<span style="color:#66d9ef">goto</span> out_unlock;
-	<span style="color:#75715e">// 不建议remount时修改层级的子系统或者其他选项，该功能已经废弃
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (opts.subsys_mask <span style="color:#f92672">!=</span> root<span style="color:#f92672">-&gt;</span>actual_subsys_mask <span style="color:#f92672">||</span> opts.release_agent)
-		pr_warning(<span style="color:#e6db74">&#34;cgroup: option changes via remount are deprecated (pid=%d comm=%s)</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
-			   task_tgid_nr(current), current<span style="color:#f92672">-&gt;</span>comm);
-
-	added_mask <span style="color:#f92672">=</span> opts.subsys_mask <span style="color:#f92672">&amp;</span> <span style="color:#f92672">~</span>root<span style="color:#f92672">-&gt;</span>subsys_mask;
-	removed_mask <span style="color:#f92672">=</span> root<span style="color:#f92672">-&gt;</span>subsys_mask <span style="color:#f92672">&amp;</span> <span style="color:#f92672">~</span>opts.subsys_mask;
-
-	<span style="color:#75715e">// flags和name在remount时不允许改变
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">/* Don&#39;t allow flags or name to change at remount */</span>
-	<span style="color:#66d9ef">if</span> (opts.flags <span style="color:#f92672">!=</span> root<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">||</span>
-	    (opts.name <span style="color:#f92672">&amp;&amp;</span> strcmp(opts.name, root<span style="color:#f92672">-&gt;</span>name))) {
-		ret <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>EINVAL;
-		drop_parsed_module_refcounts(opts.subsys_mask);
-		<span style="color:#66d9ef">goto</span> out_unlock;
-	}
-
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * Clear out the files of subsystems that should be removed, do
-</span><span style="color:#75715e">	 * this before rebind_subsystems, since rebind_subsystems may
-</span><span style="color:#75715e">	 * change this hierarchy&#39;s subsys_list.
-</span><span style="color:#75715e">	 */</span><span style="color:#75715e">//删除 要删除的cgroup子系统的控制文件
-</span><span style="color:#75715e"></span>	cgroup_clear_directory(cgrp<span style="color:#f92672">-&gt;</span>dentry, false, removed_mask);
-
-	ret <span style="color:#f92672">=</span> rebind_subsystems(root, opts.subsys_mask);
-	<span style="color:#66d9ef">if</span> (ret) {
-		<span style="color:#75715e">/* rebind_subsystems failed, re-populate the removed files */</span>
-		cgroup_populate_dir(cgrp, false, removed_mask);
-		drop_parsed_module_refcounts(opts.subsys_mask);
-		<span style="color:#66d9ef">goto</span> out_unlock;
-	}
-
-	<span style="color:#75715e">/* re-populate subsystem files */</span>
-	<span style="color:#75715e">// 添加 要添加的cgroup子系统的控制文件
-</span><span style="color:#75715e"></span>	cgroup_populate_dir(cgrp, false, added_mask);
-
-	<span style="color:#66d9ef">if</span> (opts.release_agent)
-		strcpy(root<span style="color:#f92672">-&gt;</span>release_agent_path, opts.release_agent);
- out_unlock:
-	kfree(opts.release_agent);
-	kfree(opts.name);
-	mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_root_mutex);
-	mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-	mutex_unlock(<span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>dentry<span style="color:#f92672">-&gt;</span>d_inode<span style="color:#f92672">-&gt;</span>i_mutex);
-	<span style="color:#66d9ef">return</span> ret;
-}
-
-</code></pre></div><h3 id="umount">umount</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">cgroup_remount</span><span class="p">(</span><span class="k">struct</span> <span class="n">super_block</span> <span class="o">*</span><span class="n">sb</span><span class="p">,</span> <span class="kt">int</span> <span class="o">*</span><span class="n">flags</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">root</span> <span class="o">=</span> <span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_fs_info</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">top_cgroup</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup_sb_opts</span> <span class="n">opts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">added_mask</span><span class="p">,</span> <span class="n">removed_mask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// __DEVEL__sane_behavior 指定后，不允许进行remount操作
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">CGRP_ROOT_SANE_BEHAVIOR</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">pr_err</span><span class="p">(</span><span class="s">&#34;cgroup: sane_behavior: remount is not allowed</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">dentry</span><span class="o">-&gt;</span><span class="n">d_inode</span><span class="o">-&gt;</span><span class="n">i_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_root_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* See what subsystems are wanted */</span> <span class="c1">// 解析remount的选项
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">ret</span> <span class="o">=</span> <span class="nf">parse_cgroupfs_options</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">opts</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">out_unlock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// 不建议remount时修改层级的子系统或者其他选项，该功能已经废弃
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">subsys_mask</span> <span class="o">!=</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">actual_subsys_mask</span> <span class="o">||</span> <span class="n">opts</span><span class="p">.</span><span class="n">release_agent</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">pr_warning</span><span class="p">(</span><span class="s">&#34;cgroup: option changes via remount are deprecated (pid=%d comm=%s)</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			   <span class="nf">task_tgid_nr</span><span class="p">(</span><span class="n">current</span><span class="p">),</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">comm</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">added_mask</span> <span class="o">=</span> <span class="n">opts</span><span class="p">.</span><span class="n">subsys_mask</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">subsys_mask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">removed_mask</span> <span class="o">=</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">subsys_mask</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">opts</span><span class="p">.</span><span class="n">subsys_mask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// flags和name在remount时不允许改变
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="cm">/* Don&#39;t allow flags or name to change at remount */</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">flags</span> <span class="o">!=</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">||</span>
+</span></span><span class="line"><span class="cl">	    <span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">name</span> <span class="o">&amp;&amp;</span> <span class="nf">strcmp</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">)))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">drop_parsed_module_refcounts</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">subsys_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">out_unlock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * Clear out the files of subsystems that should be removed, do
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * this before rebind_subsystems, since rebind_subsystems may
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * change this hierarchy&#39;s subsys_list.
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span><span class="c1">//删除 要删除的cgroup子系统的控制文件
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">cgroup_clear_directory</span><span class="p">(</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">dentry</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="n">removed_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">ret</span> <span class="o">=</span> <span class="nf">rebind_subsystems</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">opts</span><span class="p">.</span><span class="n">subsys_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="cm">/* rebind_subsystems failed, re-populate the removed files */</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">cgroup_populate_dir</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="n">removed_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">drop_parsed_module_refcounts</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">subsys_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">goto</span> <span class="n">out_unlock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* re-populate subsystem files */</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// 添加 要添加的cgroup子系统的控制文件
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">cgroup_populate_dir</span><span class="p">(</span><span class="n">cgrp</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="n">added_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">release_agent</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">strcpy</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">release_agent_path</span><span class="p">,</span> <span class="n">opts</span><span class="p">.</span><span class="n">release_agent</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"> <span class="nl">out_unlock</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">kfree</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">release_agent</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">kfree</span><span class="p">(</span><span class="n">opts</span><span class="p">.</span><span class="n">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_root_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">dentry</span><span class="o">-&gt;</span><span class="n">d_inode</span><span class="o">-&gt;</span><span class="n">i_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="umount">umount</h3>
 <p><code>cgroup_kill_sb</code>是执行umount <code>cgroup</code>文件系统的内核方法：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">cgroup_kill_sb</span>(<span style="color:#66d9ef">struct</span> super_block <span style="color:#f92672">*</span>sb) {
-	<span style="color:#66d9ef">struct</span> cgroupfs_root <span style="color:#f92672">*</span>root <span style="color:#f92672">=</span> sb<span style="color:#f92672">-&gt;</span>s_fs_info;
-	<span style="color:#66d9ef">struct</span> cgroup <span style="color:#f92672">*</span>cgrp <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>top_cgroup;
-	<span style="color:#66d9ef">int</span> ret;
-	<span style="color:#66d9ef">struct</span> cg_cgroup_link <span style="color:#f92672">*</span>link;
-	<span style="color:#66d9ef">struct</span> cg_cgroup_link <span style="color:#f92672">*</span>saved_link;
-
-	BUG_ON(<span style="color:#f92672">!</span>root);
-	<span style="color:#75715e">// umount时，该层级上的cgroup个数必须为1
-</span><span style="color:#75715e"></span>	BUG_ON(root<span style="color:#f92672">-&gt;</span>number_of_cgroups <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>);
-	<span style="color:#75715e">// umount时，该层级的root cgroup必须没有子cgroup
-</span><span style="color:#75715e"></span>	BUG_ON(<span style="color:#f92672">!</span>list_empty(<span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>children));
-
-	mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-	mutex_lock(<span style="color:#f92672">&amp;</span>cgroup_root_mutex);
-
-	<span style="color:#75715e">/* Rebind all subsystems back to the default hierarchy */</span>
-	<span style="color:#75715e">// 删除该层级上所有附加的cgroup子系统
-</span><span style="color:#75715e"></span>	ret <span style="color:#f92672">=</span> rebind_subsystems(root, <span style="color:#ae81ff">0</span>);
-	<span style="color:#75715e">/* Shouldn&#39;t be able to fail ... */</span>
-	BUG_ON(ret);
-
-	<span style="color:#75715e">/*
-</span><span style="color:#75715e">	 * Release all the links from css_sets to this hierarchy&#39;s
-</span><span style="color:#75715e">	 * root cgroup
-</span><span style="color:#75715e">	 */</span>
-	write_lock(<span style="color:#f92672">&amp;</span>css_set_lock);
-
-	list_for_each_entry_safe(link, saved_link, <span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>css_sets,
-				 cgrp_link_list) {
-		list_del(<span style="color:#f92672">&amp;</span>link<span style="color:#f92672">-&gt;</span>cg_link_list);
-		list_del(<span style="color:#f92672">&amp;</span>link<span style="color:#f92672">-&gt;</span>cgrp_link_list);
-		kfree(link);
-	}
-	write_unlock(<span style="color:#f92672">&amp;</span>css_set_lock);
-	<span style="color:#75715e">// 在roots链表中删除该cgroupfs_root
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>list_empty(<span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>root_list)) {
-		list_del(<span style="color:#f92672">&amp;</span>root<span style="color:#f92672">-&gt;</span>root_list);
-		root_count<span style="color:#f92672">--</span>;
-	}
-
-	mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_root_mutex);
-	mutex_unlock(<span style="color:#f92672">&amp;</span>cgroup_mutex);
-
-	simple_xattrs_free(<span style="color:#f92672">&amp;</span>cgrp<span style="color:#f92672">-&gt;</span>xattrs);
-
-	kill_litter_super(sb);
-	cgroup_drop_root(root);
-}
-</code></pre></div><h3 id="参考文章">参考文章</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="nf">cgroup_kill_sb</span><span class="p">(</span><span class="k">struct</span> <span class="n">super_block</span> <span class="o">*</span><span class="n">sb</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroupfs_root</span> <span class="o">*</span><span class="n">root</span> <span class="o">=</span> <span class="n">sb</span><span class="o">-&gt;</span><span class="n">s_fs_info</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cgroup</span> <span class="o">*</span><span class="n">cgrp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">top_cgroup</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cg_cgroup_link</span> <span class="o">*</span><span class="n">link</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">struct</span> <span class="n">cg_cgroup_link</span> <span class="o">*</span><span class="n">saved_link</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">BUG_ON</span><span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// umount时，该层级上的cgroup个数必须为1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">number_of_cgroups</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// umount时，该层级的root cgroup必须没有子cgroup
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">BUG_ON</span><span class="p">(</span><span class="o">!</span><span class="nf">list_empty</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">children</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_root_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Rebind all subsystems back to the default hierarchy */</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// 删除该层级上所有附加的cgroup子系统
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">ret</span> <span class="o">=</span> <span class="nf">rebind_subsystems</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Shouldn&#39;t be able to fail ... */</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">BUG_ON</span><span class="p">(</span><span class="n">ret</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * Release all the links from css_sets to this hierarchy&#39;s
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 * root cgroup
+</span></span></span><span class="line"><span class="cl"><span class="cm">	 */</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">write_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">list_for_each_entry_safe</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="n">saved_link</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">css_sets</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">				 <span class="n">cgrp_link_list</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">list_del</span><span class="p">(</span><span class="o">&amp;</span><span class="n">link</span><span class="o">-&gt;</span><span class="n">cg_link_list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">list_del</span><span class="p">(</span><span class="o">&amp;</span><span class="n">link</span><span class="o">-&gt;</span><span class="n">cgrp_link_list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">kfree</span><span class="p">(</span><span class="n">link</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">write_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">css_set_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// 在roots链表中删除该cgroupfs_root
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nf">list_empty</span><span class="p">(</span><span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">root_list</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">list_del</span><span class="p">(</span><span class="o">&amp;</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">root_list</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="n">root_count</span><span class="o">--</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_root_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgroup_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">simple_xattrs_free</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cgrp</span><span class="o">-&gt;</span><span class="n">xattrs</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nf">kill_litter_super</span><span class="p">(</span><span class="n">sb</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">cgroup_drop_root</span><span class="p">(</span><span class="n">root</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="参考文章">参考文章</h3>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -856,7 +1481,10 @@ static DEFINE_SPINLOCK(hierarchy_id_lock);
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2018-08-25</span>
+    <span class="item-content">
+        2018-08-25
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -864,41 +1492,28 @@ static DEFINE_SPINLOCK(hierarchy_id_lock);
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/cgroup/">cgroup</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/kernel/cgroup-source-css-set-hash/">
+        <a class="prev" href="/kernel/cgroup-source-css-set-hash/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">cgroup源码分析4——css_set的哈希表分析</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/kernel/cgroup-source-cgroup_init/">
+        <a class="next" href="/kernel/cgroup-source-cgroup_init/">
             <span class="next-text nav-default">cgroup源码分析2——cgroup的初始化</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -912,6 +1527,11 @@ static DEFINE_SPINLOCK(hierarchy_id_lock);
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -936,26 +1556,24 @@ static DEFINE_SPINLOCK(hierarchy_id_lock);
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

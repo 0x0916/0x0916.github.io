@@ -16,23 +16,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="laoqinren" />
-  <meta name="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
- 注意：本文中引用的内核代码版本为v5.2
-" />
-
-  <meta name="keywords" content="Linux, kernel" />
+<meta name="author" content="laoqinren" /><meta name="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
+注意：本文中引用的内核代码版本为v5.2
+" /><meta name="keywords" content="Linux, kernel" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.80.0" />
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
 
 
 <link rel="canonical" href="http://linux.laoqinren.net/linux/cgroup-cpuset/" />
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,14 +37,8 @@
 
 
 
-
-
-
-
-<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
-
-
 
 
 <meta property="og:title" content="Cgroup之cpuset子系统" />
@@ -57,22 +47,17 @@
 注意：本文中引用的内核代码版本为v5.2
 " />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://linux.laoqinren.net/linux/cgroup-cpuset/" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/cgroup-cpuset/" /><meta property="article:section" content="linux" />
 <meta property="article:published_time" content="2018-05-10T18:26:35+08:00" />
 <meta property="article:modified_time" content="2015-06-10T18:26:35+08:00" />
 <meta itemprop="name" content="Cgroup之cpuset子系统">
 <meta itemprop="description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
 注意：本文中引用的内核代码版本为v5.2
-">
-<meta itemprop="datePublished" content="2018-05-10T18:26:35+08:00" />
+"><meta itemprop="datePublished" content="2018-05-10T18:26:35+08:00" />
 <meta itemprop="dateModified" content="2015-06-10T18:26:35+08:00" />
-<meta itemprop="wordCount" content="2717">
-
-
-
-<meta itemprop="keywords" content="kernel,linux,cgroup,cpuset," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="wordCount" content="2766">
+<meta itemprop="keywords" content="kernel,linux,cgroup,cpuset," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Cgroup之cpuset子系统"/>
 <meta name="twitter:description" content="最近分析了内核cpuset的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的docker也只是使用了其最简单的功能。本文对cpuset进行了简要总结，并总结了docker如何使用它。
 
@@ -118,12 +103,21 @@
         <li class="mobile-menu-item">Archives</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Notes</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -144,6 +138,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -157,46 +152,40 @@
       <div class="post-meta">
         <span class="post-time"> 2018-05-10 </span>
         <div class="post-category">
-            
-              <a href="/categories/linux/"> linux </a>
-            
-              <a href="/categories/cgroup/"> cgroup </a>
-            
-          </div>
-        <span class="more-meta"> 2717 words </span>
-        <span class="more-meta"> 6 mins read </span>
+            <a href="/categories/linux/"> linux </a>
+            <a href="/categories/cgroup/"> cgroup </a>
+            </div>
         
       </div>
     </header>
 
-    
-    
-<div class="post-toc" id="post-toc">
+    <div class="post-toc" id="post-toc">
   <h2 class="post-toc-title">Contents</h2>
-  
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#什么是cpuset-">什么是cpuset ?</a></li>
-    <li><a href="#cpusets-是如何实现的">cpusets 是如何实现的？</a></li>
-    <li><a href="#cpuset-cgroup控制文件">cpuset cgroup控制文件</a></li>
-    <li><a href="#docker中cpuset的使用">docker中cpuset的使用</a></li>
-    <li><a href="#cpuset-扩展功能">cpuset 扩展功能</a>
+    <li>
       <ul>
-        <li><a href="#什么是-exclusive-cpusets-">什么是 exclusive cpusets ?</a></li>
-        <li><a href="#什么是-memory_pressure-">什么是 memory_pressure ?</a></li>
-        <li><a href="#什么是--memory-spread-">什么是  memory spread ?</a></li>
-        <li><a href="#什么是-sched_load_balance-">什么是 sched_load_balance ?</a></li>
-        <li><a href="#什么是-sched_relax_domain_level-">什么是 sched_relax_domain_level ?</a></li>
+        <li><a href="#什么是cpuset-">什么是cpuset ?</a></li>
+        <li><a href="#cpusets-是如何实现的">cpusets 是如何实现的？</a></li>
+        <li><a href="#cpuset-cgroup控制文件">cpuset cgroup控制文件</a></li>
+        <li><a href="#docker中cpuset的使用">docker中cpuset的使用</a></li>
+        <li><a href="#cpuset-扩展功能">cpuset 扩展功能</a>
+          <ul>
+            <li><a href="#什么是-exclusive-cpusets-">什么是 exclusive cpusets ?</a></li>
+            <li><a href="#什么是-memory_pressure-">什么是 memory_pressure ?</a></li>
+            <li><a href="#什么是--memory-spread-">什么是  memory spread ?</a></li>
+            <li><a href="#什么是-sched_load_balance-">什么是 sched_load_balance ?</a></li>
+            <li><a href="#什么是-sched_relax_domain_level-">什么是 sched_relax_domain_level ?</a></li>
+          </ul>
+        </li>
+        <li><a href="#参考文档">参考文档</a></li>
       </ul>
     </li>
-    <li><a href="#参考文档">参考文档</a></li>
   </ul>
 </nav>
   </div>
 </div>
-
-    
     <div class="post-content">
       <p>最近分析了内核<code>cpuset</code>的实现，发现在目前的常见的系统中应用不是很广泛。目前最火的<code>docker</code>也只是使用了其最简单的功能。本文对<code>cpuset</code>进行了简要总结，并总结了<code>docker</code>如何使用它。</p>
 <blockquote>
@@ -229,11 +218,21 @@
 <li>在<code>vmscan.c</code>,现在内存恢复到<code>cpuset</code>中所允许的内存节点上</li>
 </ul>
 <p>另外，每一个进程对应的文件<code> /proc/&lt;pid&gt;/status</code>中有四行信息描述其<code>cpuset</code>信息：</p>
-<pre><code>  Cpus_allowed:   ffffffff,ffffffff,ffffffff,ffffffff
-  Cpus_allowed_list:      0-127
-  Mems_allowed:   ffffffff,ffffffff
-  Mems_allowed_list:      0-63
-</code></pre><p>每一个进程对应的文件<code> /proc/&lt;pid&gt;/cpuset</code>中展示了其对应的<code>cgroup</code>路径信息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">  Cpus_allowed:   ffffffff,ffffffff,ffffffff,ffffffff
+</span></span><span class="line"><span class="cl">  Cpus_allowed_list:      0-127
+</span></span><span class="line"><span class="cl">  Mems_allowed:   ffffffff,ffffffff
+</span></span><span class="line"><span class="cl">  Mems_allowed_list:      0-63
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>每一个进程对应的文件<code> /proc/&lt;pid&gt;/cpuset</code>中展示了其对应的<code>cgroup</code>路径信息。</p>
 <h2 id="cpuset-cgroup控制文件">cpuset cgroup控制文件</h2>
 <p>每一个<code>cpuset</code>中，都会对应一组<code>cgroup</code>的控制文件，包括如下：</p>
 <table>
@@ -315,21 +314,41 @@
 </table>
 <h2 id="docker中cpuset的使用">docker中cpuset的使用</h2>
 <p><code>docker</code>中对<code>cpuset</code>的复杂功能都没有使用，即上面提到的各种<code>flags</code>都是用的默认值（即都未使能），<code>docker</code>只导出了两个接口：<code>mems</code>和<code>cpus</code>：</p>
-<pre><code># docker run --help
-
-Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
-
-Run a command in a new container
-
-Options:
-...
-...
-
-      --cpuset-cpus string                    CPUs in which to allow execution (0-3, 0,1)
-      --cpuset-mems string                    MEMs in which to allow execution (0-3, 0,1)
-...
-...
-</code></pre><p>其实现请参考：<a href="https://github.com/opencontainers/runc/blob/v1.0.0-rc5/libcontainer/cgroups/fs/cpuset.go#L32:L44">runc代码</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># docker run --help
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Run a command in a new container
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Options:
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      --cpuset-cpus string                    CPUs in which to allow execution (0-3, 0,1)
+</span></span><span class="line"><span class="cl">      --cpuset-mems string                    MEMs in which to allow execution (0-3, 0,1)
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其实现请参考：<a href="https://github.com/opencontainers/runc/blob/v1.0.0-rc5/libcontainer/cgroups/fs/cpuset.go#L32:L44">runc代码</a></p>
 <p>在实现中，新建<code>cpuset</code>时<code>mems</code>和<code>cpus</code>的值默认为其<code>parent cpuset</code>的<code>mems</code>和<code>cpus</code>的值。</p>
 <h2 id="cpuset-扩展功能">cpuset 扩展功能</h2>
 <h3 id="什么是-exclusive-cpusets-">什么是 exclusive cpusets ?</h3>
@@ -339,44 +358,87 @@ Options:
 <h3 id="什么是--memory-spread-">什么是  memory spread ?</h3>
 <p>当进行内存分配时，默认从当前运行的<code>cpu</code>所在的<code>node</code>上分配内存（<code>page cache</code> or  <code>slab cache</code>），当配置了<code>memory_spread_page</code>和<code>memory_spread_slab</code>后，分配内存时就会使用轮询算法。默认情况下，该功能是<code>disable</code>的。</p>
 <p>代码如下：  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.2/kernel/cgroup/cpuset.c#L3449#L3472"> kernel/cgroup/cpuset.c(line 3449-3472) </a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cpuset_spread_node</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>rotor)
-{
-	<span style="color:#66d9ef">return</span> <span style="color:#f92672">*</span>rotor <span style="color:#f92672">=</span> next_node_in(<span style="color:#f92672">*</span>rotor, current<span style="color:#f92672">-&gt;</span>mems_allowed);
-}
-
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cpuset_mem_spread_node</span>(<span style="color:#66d9ef">void</span>)
-{
-	<span style="color:#66d9ef">if</span> (current<span style="color:#f92672">-&gt;</span>cpuset_mem_spread_rotor <span style="color:#f92672">==</span> NUMA_NO_NODE)
-		current<span style="color:#f92672">-&gt;</span>cpuset_mem_spread_rotor <span style="color:#f92672">=</span>
-			node_random(<span style="color:#f92672">&amp;</span>current<span style="color:#f92672">-&gt;</span>mems_allowed);
-
-	<span style="color:#66d9ef">return</span> cpuset_spread_node(<span style="color:#f92672">&amp;</span>current<span style="color:#f92672">-&gt;</span>cpuset_mem_spread_rotor);
-}
-
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">cpuset_slab_spread_node</span>(<span style="color:#66d9ef">void</span>)
-{
-	<span style="color:#66d9ef">if</span> (current<span style="color:#f92672">-&gt;</span>cpuset_slab_spread_rotor <span style="color:#f92672">==</span> NUMA_NO_NODE)
-		current<span style="color:#f92672">-&gt;</span>cpuset_slab_spread_rotor <span style="color:#f92672">=</span>
-			node_random(<span style="color:#f92672">&amp;</span>current<span style="color:#f92672">-&gt;</span>mems_allowed);
-
-	<span style="color:#66d9ef">return</span> cpuset_spread_node(<span style="color:#f92672">&amp;</span>current<span style="color:#f92672">-&gt;</span>cpuset_slab_spread_rotor);
-}
-
-EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
-</code></pre></div><h3 id="什么是-sched_load_balance-">什么是 sched_load_balance ?</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">cpuset_spread_node</span><span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="n">rotor</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="o">*</span><span class="n">rotor</span> <span class="o">=</span> <span class="nf">next_node_in</span><span class="p">(</span><span class="o">*</span><span class="n">rotor</span><span class="p">,</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">mems_allowed</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">cpuset_mem_spread_node</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">cpuset_mem_spread_rotor</span> <span class="o">==</span> <span class="n">NUMA_NO_NODE</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="n">current</span><span class="o">-&gt;</span><span class="n">cpuset_mem_spread_rotor</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">node_random</span><span class="p">(</span><span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">mems_allowed</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">cpuset_spread_node</span><span class="p">(</span><span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">cpuset_mem_spread_rotor</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">cpuset_slab_spread_node</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">cpuset_slab_spread_rotor</span> <span class="o">==</span> <span class="n">NUMA_NO_NODE</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="n">current</span><span class="o">-&gt;</span><span class="n">cpuset_slab_spread_rotor</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">			<span class="nf">node_random</span><span class="p">(</span><span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">mems_allowed</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">cpuset_spread_node</span><span class="p">(</span><span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">cpuset_slab_spread_rotor</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">EXPORT_SYMBOL_GPL</span><span class="p">(</span><span class="n">cpuset_mem_spread_node</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="什么是-sched_load_balance-">什么是 sched_load_balance ?</h3>
 <p>该值默认为<code>1</code>，即打开调度<code>CPU</code>的负载均衡，这里指的是<code>cpuset</code>拥有的<code>sched_domain</code>，默认全局的<code>CPU</code>调度是本来就有负载均衡的。</p>
 <p>简单说一下<code>sched_domain</code>的作用，其实就是划定了负载均衡的<code>CPU</code>范围，默认是有一个全局的<code>sched_domain</code>，对所有<code>CPU</code>做负载均衡的，现在再划分出一个<code>sched_domain</code>把<code>CPU</code>的某个子集作为负载均衡的单元。</p>
 <p>对应到<code>cpuset</code>中，即将该<code>cpuset</code>所运行的<code>cpu</code>集合作为一个负载均衡在单元。</p>
 <h3 id="什么是-sched_relax_domain_level-">什么是 sched_relax_domain_level ?</h3>
 <p>当<code>sched_load_balance</code>使能后，该值代表寻找<code>cpu</code>的范围,该值有几个等级，越大越优先，表示迁移时搜索<code>CPU</code>的范围，这个主要开启了负载均衡选项的时候才有用。具体值代表的范围如下：</p>
-<pre><code>  -1  : no request. use system default or follow request of others.
-   0  : no search.
-   1  : search siblings (hyperthreads in a core).
-   2  : search cores in a package.
-   3  : search cpus in a node [= system wide on non-NUMA system]
-   4  : search nodes in a chunk of node [on NUMA system]
-   5  : search system wide [on NUMA system]
-</code></pre><p>什么时候有用呢？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">  -1  : no request. use system default or follow request of others.
+</span></span><span class="line"><span class="cl">   0  : no search.
+</span></span><span class="line"><span class="cl">   1  : search siblings (hyperthreads in a core).
+</span></span><span class="line"><span class="cl">   2  : search cores in a package.
+</span></span><span class="line"><span class="cl">   3  : search cpus in a node [= system wide on non-NUMA system]
+</span></span><span class="line"><span class="cl">   4  : search nodes in a chunk of node [on NUMA system]
+</span></span><span class="line"><span class="cl">   5  : search system wide [on NUMA system]
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>什么时候有用呢？</p>
 <ol>
 <li>当进程在cpu间迁移时代价足够小</li>
 <li>searching cost 足够小，对我们没有影响</li>
@@ -386,7 +448,6 @@ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
 <p><a href="http://man7.org/linux/man-pages/man7/cpuset.7.html">http://man7.org/linux/man-pages/man7/cpuset.7.html</a></p>
     </div>
 
-    
     <div class="post-copyright">
   <p class="copyright-item">
     <span class="item-title">Author</span>
@@ -394,7 +455,10 @@ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2015-06-10</span>
+    <span class="item-content">
+        2015-06-10
+        
+    </span>
   </p>
   <p class="copyright-item">
       <span class="item-title">Markdown</span>
@@ -402,43 +466,29 @@ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
     </p>
   
 </div>
-
-    
-    
-
-    <footer class="post-footer">
+<footer class="post-footer">
       <div class="post-tags">
-          
           <a href="/tags/kernel/">kernel</a>
-          
           <a href="/tags/linux/">linux</a>
-          
           <a href="/tags/cgroup/">cgroup</a>
-          
           <a href="/tags/cpuset/">cpuset</a>
-          
-        </div>
-
-      
+          </div>
       <nav class="post-nav">
-        
-          <a class="prev" href="/linux/fuse/">
+        <a class="prev" href="/linux/fuse/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">FUSE介绍</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
-        
-          <a class="next" href="/linux/linux-swap/">
+        <a class="next" href="/linux/linux-swap/">
             <span class="next-text nav-default">Linux交换空间</span>
-            <span class="prev-text nav-mobile">Next</span>
+            <span class="next-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>
     </footer>
   </article>
         </div>
-        
-  <div id="disqus_thread"></div>
+        <div id="disqus_thread"></div>
     <script type="text/javascript">
     (function() {
       
@@ -452,6 +502,11 @@ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
     })();
     </script>
     <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
       </div>
     </main>
 
@@ -476,26 +531,24 @@ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
 
   <span class="copyright-year">
     &copy; 
-    
-      2016 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">laoqinren</span>
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
       <i class="iconfont icon-up"></i>
     </div>
   </div>
-  
-<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
-<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 
