@@ -49,7 +49,7 @@
 <meta itemprop="name" content="001-计算机是如何启动的">
 <meta itemprop="description" content="通常计算机的启动方式有两种，传统的BIOS-MBR启动模式和新的UEFI-GPT启动模式，本文将介绍传统的BIOS-MBR启动模式。"><meta itemprop="datePublished" content="2021-02-21T23:58:42+08:00" />
 <meta itemprop="dateModified" content="2021-02-21T23:58:42+08:00" />
-<meta itemprop="wordCount" content="3666">
+<meta itemprop="wordCount" content="3667">
 <meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="001-计算机是如何启动的"/>
 <meta name="twitter:description" content="通常计算机的启动方式有两种，传统的BIOS-MBR启动模式和新的UEFI-GPT启动模式，本文将介绍传统的BIOS-MBR启动模式。"/>
@@ -199,7 +199,7 @@
 <li>然后通过按<code>Ctrl+Alt+2</code>进入<code>qemu</code>的<code>monitor</code>界面，为了了解<code>80386</code>此时的寄存器内容，在<code>monitor</code>界面下输入命令<code>info registers</code></li>
 </ol>
 <p><img src="./qemu-registers.png" alt=""></p>
-<p>我们可以看到<code>EIP=0xfff0</code>，<code>CS</code>的<code>selector=0xf000</code>，<code>CS</code>的<code>base=0xfff0000</code>。</p>
+<p>我们可以看到<code>EIP=0xfff0</code>，<code>CS</code>的<code>selector=0xf000</code>，<code>CS</code>的<code>base=0xffff0000</code>。</p>
 <h3 id="intel-80386计算机启动流程">intel 80386计算机启动流程</h3>
 <p>由上节我们知道，<code>intel 80386</code>计算机加电后，执行的第一条指令的位置是：<code>0xFFFFFFF0</code>，该位置其实是<code>BIOS</code>程序，它做完计算机硬件自检和初始化后，会选择一个启动设备（例如软盘、硬盘、光盘等），并且读取该设备的第一扇区(即主引导扇区或启动扇区)到内存一个特定的地址<code>0x7c00</code>处，然后<code>CPU</code>控制权会转移到那个地址继续执行。</p>
 <p>其实，了解了如上信息，就足够了，着急的读者可以直接跳到下一节。不过我还是想详细介绍了计算机的启动流程。</p>
@@ -565,7 +565,7 @@
 </span></span><span class="line"><span class="cl">(gdb) 
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>从上面可以看出，<code>$cs*16+$pc</code>就是计算机加电时的开始执行的地址，该位置时一条<code>ljmp</code>指令，跳转到<code>BIOS</code>程序中进行初始化，然后会读取引导扇区到内存一个特定的地址<code>0x7c00</code>处，<code>CPU</code>控制权会转移到那个地址继续执行。</p>
+</div><p>从上面可以看出，<code>$cs*16+$pc</code>就是计算机加电时的开始执行的地址，该位置是一条<code>ljmp</code>指令，跳转到<code>BIOS</code>程序中进行初始化，然后会读取引导扇区到内存一个特定的地址<code>0x7c00</code>处，<code>CPU</code>控制权会转移到那个地址继续执行。</p>
 <p>接下来，我们在<code>0x7c00</code>处设置一个断点：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">

@@ -31,7 +31,7 @@ qemu-system-i386 -S
 
 ![](./qemu-registers.png)
 
-我们可以看到`EIP=0xfff0`，`CS`的`selector=0xf000`，`CS`的`base=0xfff0000`。
+我们可以看到`EIP=0xfff0`，`CS`的`selector=0xf000`，`CS`的`base=0xffff0000`。
 
 ### intel 80386计算机启动流程
 
@@ -285,7 +285,7 @@ The target architecture is assumed to be i8086
 (gdb) 
 ```
 
-从上面可以看出，`$cs*16+$pc`就是计算机加电时的开始执行的地址，该位置时一条`ljmp`指令，跳转到`BIOS`程序中进行初始化，然后会读取引导扇区到内存一个特定的地址`0x7c00`处，`CPU`控制权会转移到那个地址继续执行。
+从上面可以看出，`$cs*16+$pc`就是计算机加电时的开始执行的地址，该位置是一条`ljmp`指令，跳转到`BIOS`程序中进行初始化，然后会读取引导扇区到内存一个特定的地址`0x7c00`处，`CPU`控制权会转移到那个地址继续执行。
 
 接下来，我们在`0x7c00`处设置一个断点：
 ```

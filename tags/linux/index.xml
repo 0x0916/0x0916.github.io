@@ -6,7 +6,16 @@
     <description>Recent content in linux on Notes about linux and my work</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 30 Aug 2020 10:08:20 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 12 Sep 2023 19:08:08 +0800</lastBuildDate><atom:link href="http://linux.laoqinren.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>关于linux oom killer</title>
+      <link>http://linux.laoqinren.net/linux/linux-oom-killer/</link>
+      <pubDate>Tue, 12 Sep 2023 19:08:08 +0800</pubDate>
+      
+      <guid>http://linux.laoqinren.net/linux/linux-oom-killer/</guid>
+      <description>&lt;p&gt;当 Linux 机器内存耗尽时，内核会调用 &lt;code&gt;Out of Memory（OOM）killer &lt;/code&gt;来释放一些内存。在运行大量内存密集型进程的服务器上，经常会遇到这种情况。在这篇文章中，我们将深入探讨 &lt;code&gt;OOM killer&lt;/code&gt;何时会被调用，它如何决定杀死哪个进程，以及我们能否阻止它杀死像数据库等重要进程。&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>Linux内核跟踪技术之——kprobe技术</title>
       <link>http://linux.laoqinren.net/kernel/linux-kprobe/</link>

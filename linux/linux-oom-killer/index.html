@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>关于linux oom killer - Notes about linux and my work</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="laoqinren" /><meta name="description" content="当 Linux 机器内存耗尽时，内核会调用 Out of Memory（OOM）killer 来释放一些内存。在运行大量内存密集型进程的服务器上，经常会遇到这种情况。在这篇文章中，我们将深入探讨 OOM killer何时会被调用，它如何决定杀死哪个进程，以及我们能否阻止它杀死像数据库等重要进程。
+" /><meta name="keywords" content="Linux, kernel" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.115.3 with theme even" />
+
+
+<link rel="canonical" href="http://linux.laoqinren.net/linux/linux-oom-killer/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+<meta property="og:title" content="关于linux oom killer" />
+<meta property="og:description" content="当 Linux 机器内存耗尽时，内核会调用 Out of Memory（OOM）killer 来释放一些内存。在运行大量内存密集型进程的服务器上，经常会遇到这种情况。在这篇文章中，我们将深入探讨 OOM killer何时会被调用，它如何决定杀死哪个进程，以及我们能否阻止它杀死像数据库等重要进程。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://linux.laoqinren.net/linux/linux-oom-killer/" /><meta property="article:section" content="linux" />
+<meta property="article:published_time" content="2023-09-12T19:08:08+08:00" />
+<meta property="article:modified_time" content="2023-09-12T19:08:08+08:00" />
+<meta itemprop="name" content="关于linux oom killer">
+<meta itemprop="description" content="当 Linux 机器内存耗尽时，内核会调用 Out of Memory（OOM）killer 来释放一些内存。在运行大量内存密集型进程的服务器上，经常会遇到这种情况。在这篇文章中，我们将深入探讨 OOM killer何时会被调用，它如何决定杀死哪个进程，以及我们能否阻止它杀死像数据库等重要进程。"><meta itemprop="datePublished" content="2023-09-12T19:08:08+08:00" />
+<meta itemprop="dateModified" content="2023-09-12T19:08:08+08:00" />
+<meta itemprop="wordCount" content="1570">
+<meta itemprop="keywords" content="kernel,linux,OOM," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="关于linux oom killer"/>
+<meta name="twitter:description" content="当 Linux 机器内存耗尽时，内核会调用 Out of Memory（OOM）killer 来释放一些内存。在运行大量内存密集型进程的服务器上，经常会遇到这种情况。在这篇文章中，我们将深入探讨 OOM killer何时会被调用，它如何决定杀死哪个进程，以及我们能否阻止它杀死像数据库等重要进程。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Notes</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/linux/">
+        <li class="mobile-menu-item">linux</li>
+      </a><a href="/kernel/">
+        <li class="mobile-menu-item">Kernel</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">Blog</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives</li>
+      </a>
+  </ul>
+
+  
+
+
+</nav>
+
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Notes</a>
+</div>
+
+
+
+
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/linux/">linux</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/kernel/">Kernel</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/posts/">Blog</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/archives/">Archives</a>
+      </li>
+  </ul>
+</nav>
+
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">关于linux oom killer</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2023-09-12 </span>
+        <div class="post-category">
+            <a href="/categories/linux/"> linux </a>
+            </div>
+        
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#oom-killer如何选择要杀死的进程">OOM killer如何选择要杀死的进程？</a></li>
+            <li><a href="#我能确保一些重要进程不被-oom-killer-杀掉吗">我能确保一些重要进程不被 OOM Killer 杀掉吗？</a></li>
+            <li><a href="#显示所有运行进程的-oom-分数">显示所有运行进程的 OOM 分数</a></li>
+            <li><a href="#检查是否有进程被-oom-杀掉">检查是否有进程被 OOM 杀掉</a></li>
+            <li><a href="#调整-oom-分数的注意事项">调整 OOM 分数的注意事项</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      <p>当 Linux 机器内存耗尽时，内核会调用 <code>Out of Memory（OOM）killer </code>来释放一些内存。在运行大量内存密集型进程的服务器上，经常会遇到这种情况。在这篇文章中，我们将深入探讨 <code>OOM killer</code>何时会被调用，它如何决定杀死哪个进程，以及我们能否阻止它杀死像数据库等重要进程。</p>
+<h3 id="oom-killer如何选择要杀死的进程">OOM killer如何选择要杀死的进程？</h3>
+<p>Linux 内核会给每个正在运行的进程一个名为 <code>oom_score</code> 的分数，这个分数会显示进程在可用内存不足的情况下被终止的可能性。该分数与进程使用的内存量成正比。</p>
+<p>内核里是通过函数<code>oom_badness</code>对进程进行打分的，其原型如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * oom_badness - heuristic function to determine which candidate task to kill
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @p: task struct of which task we should calculate
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * @totalpages: total present RAM allowed for page allocation
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * The heuristic for determining which task to kill is made to be as simple and
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * predictable as possible.  The goal is to return the highest value for the
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * task consuming the most memory to avoid subsequent oom failures.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">long</span> <span class="nf">oom_badness</span><span class="p">(</span><span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">totalpages</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个函数的实现可能会随着Linux内核的版本而有所不同，这里以5.10(  <a target="_blank" href="https://github.com/torvalds/linux/blob/v5.10/mm/oom_kill.c#L192#L239"> mm/oom_kill.c(line 192-239)</a>)为例说明其算法：</p>
+<ul>
+<li>（1）计算进程的<code>RSS</code>（Resident Set Size，常驻内存集大小）、页表和交换空间的总和，这个总和就是进程的基础OOM得分points。</li>
+<li>（2）通过oom_score_adj来调整得分：<code>points += （oom_score_adj* totalpages）/1000</code>。</li>
+<li>（3）最终返回评分：<code>points</code>。</li>
+</ul>
+<p>注意：以下几种进程也是不会被OOM killer杀死的：</p>
+<ul>
+<li>1号进程</li>
+<li>内核线程</li>
+<li>即将退出的进程，其task_struct-&gt;mm为空的情况。</li>
+<li>oom_score_adj设置为-1000</li>
+<li>mm-&gt;flags中设置了MMF_OOM_SKIP位</li>
+<li>进程处于in_vfork中</li>
+</ul>
+<p>进程的 <code>oom_score</code> 可以在 <code>/proc</code> 目录中找到。假设你的进程的进程 ID（pid）是 <code>42</code>，那么 <code>cat /proc/42/oom_score</code> 会给出该进程的得分。</p>
+<h3 id="我能确保一些重要进程不被-oom-killer-杀掉吗">我能确保一些重要进程不被 OOM Killer 杀掉吗？</h3>
+<p>可以！<code>OOM killer</code>会检查 <code>oom_score_adj</code>，以调整其最终计算得分。该文件位于 <code>/proc/$pid/oom_score_adj</code>。 您可以在该文件中添加一个较大的负分，以确保进程被 <code>OOM killer</code>选中并终止的几率较低。<code>oom_score_adj</code> 的范围从 <code>-1000</code> 到 <code>1000</code> 不等。如果给它赋值 <code>-1000</code>，那么它可以使用 <code>100%</code> 的内存，但仍能避免被 <code>OOM killer</code>终止。另一方面，如果给它赋值 <code>1000</code>，那么 <code>Linux</code> 内核将继续杀死该进程，即使它只占用了极少的内存。</p>
+<p>更改 <code>oom_score_adj</code> 的方法比较简单，直接修改<code>proc</code>接口文件就可以：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">echo -200 | sudo tee - /proc/42/oom_score_adj
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们需要以<code> root</code> 用户或 <code>sudo</code> 用户身份进行操作，因为 <code>Linux</code> 不允许普通用户降低 <code>OOM</code> 分数。您可以以普通用户身份增加 <code>OOM</code> 得分，无需任何特殊权限，例如：<code>echo 100 &gt; /proc/42/oom_score_adj</code>。</p>
+<blockquote>
+<p>还有另一个不那么精细的分数，称为 oom_adj，其范围在 -16 至 15 之间。它与 oom_score_adj 类似。 事实上，当你设置 oom_adj 时，内核会自动将其缩减并计算 oom_score_adj。oom_adj 有一个神奇的值 -17，表示给定进程永远不会被 OOM 杀手杀死。这个oom_adj是要被oom_score_adj替代的，只是为了兼容旧的内核版本，暂时保留，以后会被废弃。</p>
+</blockquote>
+<h3 id="显示所有运行进程的-oom-分数">显示所有运行进程的 OOM 分数</h3>
+<p>该脚本按 OOM 分数降序显示所有运行进程的 OOM 分数和 OOM 调整后分数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="c1"># Displays running processes in descending order of OOM score</span>
+</span></span><span class="line"><span class="cl"><span class="nb">printf</span> <span class="s1">&#39;PID\tOOM Score\tOOM Adj\tCommand\n&#39;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="nb">read</span> -r pid comm<span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">do</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="o">[</span> -f /proc/<span class="nv">$pid</span>/oom_score <span class="o">]</span>  <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="k">$(</span>cat /proc/<span class="nv">$pid</span>/oom_score<span class="k">)</span> !<span class="o">=</span> <span class="m">0</span> <span class="o">]</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="k">then</span>
+</span></span><span class="line"><span class="cl">	  <span class="nb">printf</span> <span class="s1">&#39;%d\t%d\t\t%d\t%s\n&#39;</span> <span class="s2">&#34;</span><span class="nv">$pid</span><span class="s2">&#34;</span> <span class="s2">&#34;</span><span class="k">$(</span>cat /proc/<span class="nv">$pid</span>/oom_score<span class="k">)</span><span class="s2">&#34;</span> <span class="s2">&#34;</span><span class="k">$(</span>cat /proc/<span class="nv">$pid</span>/oom_score_adj<span class="k">)</span><span class="s2">&#34;</span> <span class="s2">&#34;</span><span class="nv">$comm</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">fi</span>	
+</span></span><span class="line"><span class="cl"><span class="k">done</span> &lt; &lt;<span class="o">(</span>ps -e -o <span class="nv">pid</span><span class="o">=</span> -o <span class="nv">comm</span><span class="o">=)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="检查是否有进程被-oom-杀掉">检查是否有进程被 OOM 杀掉</h3>
+<p>最简单的方法是搜索系统日志。</p>
+<p>在 <code>Ubuntu</code> 中：<code>grep -i kill /var/log/syslog</code>。如果某个进程已被杀死，您可能会得到如下结果：<code>my_process invoked oom-killer: gfp_mask=0x201da, order=0, oom_score_adj=0</code></p>
+<h3 id="调整-oom-分数的注意事项">调整 OOM 分数的注意事项</h3>
+<ul>
+<li>
+<p>请记住，OOM 是更大问题（可用内存不足）的症状。解决这个问题的最好办法是增加可用内存（如更好的硬件），或将某些程序移到其他机器上，或减少程序的内存消耗（如尽可能少分配内存）。</p>
+</li>
+<li>
+<p>过多调整 OOM 调整分数会导致随机进程被杀死，无法释放足够的内存。</p>
+</li>
+</ul>
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">laoqinren</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+        2023-09-12
+        
+    </span>
+  </p>
+  <p class="copyright-item">
+      <span class="item-title">Markdown</span>
+      <span class="item-content"><a class="link-to-markdown" href="http://linux.laoqinren.net/linux/linux-oom-killer/index.md" target="_blank">The Markdown version »</a></span>
+    </p>
+  
+</div>
+<footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/kernel/">kernel</a>
+          <a href="/tags/linux/">linux</a>
+          <a href="/tags/oom/">OOM</a>
+          </div>
+      <nav class="post-nav">
+        
+        <a class="next" href="/linux/build-auto-install-centos7-iso/">
+            <span class="next-text nav-default">制作自动化安装的CENTOS7 ISO</span>
+            <span class="next-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        <div id="disqus_thread"></div>
+    <script type="text/javascript">
+    (function() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'laoqinren';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:w@laoqinren.net" class="iconfont icon-email" title="email"></a>
+      <a href="http://github.com/0x0916" class="iconfont icon-github" title="github"></a>
+  <a href="http://linux.laoqinren.net/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2016 - 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>laoqinren</span>
+  </span>
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
